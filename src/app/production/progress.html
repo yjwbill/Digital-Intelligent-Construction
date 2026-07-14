@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>生产-进度管理</title>
+<base href="../../../">
+<link rel="stylesheet" href="./styles.css?v=2.2.274-output-completion-rate">
+<link rel="stylesheet" href="./src/components/base-select/base-select.css">
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="top-left">
+      <div class="portal-switch" onclick="togglePcPortalDropdown(event)">
+        <button class="portal-switch-trigger" type="button" aria-label="切换端口">
+          <span class="portal-switch-grid">▪▪<br/>▪▪</span>
+        </button>
+        <div class="portal-brand">
+          <div class="logo-icon" id="portalLogoIcon">企</div>
+          <strong id="portalTitle">企业管理</strong>
+        </div>
+        <div class="portal-switch-pop" id="portalSwitchPop">
+          <div class="portal-pop-brand">
+            <span class="portal-pop-mark"></span>
+            <strong>数智施工</strong>
+          </div>
+          <div class="portal-pop-divider"></div>
+          <div class="portal-pop-grid">
+            <button type="button" data-portal="enterprise" onclick="switchPcPortal(event,'enterprise')">
+              <span class="portal-option-icon enterprise">企</span>
+              <span>企业管理</span>
+            </button>
+            <button type="button" data-portal="project" onclick="switchPcPortal(event,'project')">
+              <span class="portal-option-icon project">项</span>
+              <span>项目管理</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <nav class="primary-nav" id="primaryNav"></nav>
+    </div>
+    <div class="top-user">
+      <div class="org-switch" onclick="toggleOrgDropdown(event)">
+        <div class="org-current">
+          <span class="org-label">组织</span>
+          <span id="currentOrgName">隧道股份</span>
+          <span class="org-arrow">⌄</span>
+        </div>
+        <div class="org-dropdown">
+          <div class="org-dropdown-title">切换组织</div>
+          <div class="org-option active" onclick="selectOrg(event,'隧道股份')">
+            <div>
+              <div class="org-name">隧道股份</div>
+              <div class="org-desc">股份级 · 查看全部组织数据</div>
+            </div>
+            <span class="org-check">✓</span>
+          </div>
+          <div class="org-option" onclick="selectOrg(event,'上海隧道')">
+            <div>
+              <div class="org-name">上海隧道</div>
+              <div class="org-desc">子公司 · 隧道股份下属组织</div>
+            </div>
+            <span class="org-check">✓</span>
+          </div>
+          <div class="org-option" onclick="selectOrg(event,'市政集团')">
+            <div>
+              <div class="org-name">市政集团</div>
+              <div class="org-desc">子公司 · 隧道股份下属组织</div>
+            </div>
+            <span class="org-check">✓</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="user-menu" onclick="toggleUserDropdown(event)">
+        <div class="user-profile">
+          <div class="user-avatar">王</div>
+          <span class="user-name">王安全</span>
+          <span class="user-arrow">⌄</span>
+        </div>
+        <div class="user-dropdown">
+          <div class="user-dropdown-head">
+            <div class="user-avatar big">王</div>
+            <div>
+              <div class="user-dropdown-name">王安全</div>
+              <div class="user-dropdown-role">安全领导</div>
+            </div>
+          </div>
+          <div class="user-dropdown-item" onclick="openVersionHistory(event)">
+            <span>🕘</span>
+            <span>历史版本记录</span>
+          </div>
+        </div>
+      </div>
+
+      <span class="role-tag">安全领导</span>
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside class="sider" id="sideMenu"></aside>
+    <main class="main">
+      <div id="listPage"></div>
+      <div id="detailPage" style="display:none"></div>
+    </main>
+  </div>
+</div>
+
+<div class="modal-mask" id="modalMask">
+  <div class="modal" id="modalBox">
+    <div class="modal-hd">
+     <span id="modalTitle">弹窗</span>
+      <div class="modal-hd-actions">
+      <button class="modal-icon-btn" id="modalFullscreenBtn" title="全屏" onclick="toggleModalFullscreen(event)">⛶</button>
+    <span class="close" onclick="closeModal()">×</span>
+  </div>
+</div>
+
+    <div class="modal-bd" id="modalBody"></div>
+    <div class="modal-ft" id="modalFooter">
+      <button class="btn" onclick="closeModal()">关闭</button>
+      <button class="btn primary" onclick="closeModal()">确认</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="./organization-data.js?v=2.2.274-output-completion-rate"></script>
+<script src="./master-data.js?v=2.2.274-output-completion-rate"></script>
+<script src="./src/app/production/progress.js?v=2.2.274-output-completion-rate"></script>
+<script src="./app.js?v=2.2.274-output-completion-rate"></script>
+<script>
+  (function(){
+    function openMobileOverviewPreview(){
+      var query=new URLSearchParams(location.search || "");
+      if(query.get("mobileOverview")!=="1" && location.hash!=="#mobile-overview")return;
+      if(typeof window.renderMobileProjectOverviewPageV2227==="function"){
+        setTimeout(function(){ window.renderMobileProjectOverviewPageV2227(); },0);
+      }
+    }
+    if(document.readyState==="loading"){
+      document.addEventListener("DOMContentLoaded",openMobileOverviewPreview);
+    }else{
+      openMobileOverviewPreview();
+    }
+  })();
+</script>
+</body>
+</html>

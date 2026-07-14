@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "1.0.0",
+  "storageKey": "EM_MASTER_DATA_V1",
+  "entities": {
+    "organizations": {
+      "description": "Organization tree master data",
+      "primaryKey": "code",
+      "fields": ["code", "name", "level", "parentCode"]
+    },
+    "users": {
+      "description": "Enterprise user master data",
+      "primaryKey": "id",
+      "fields": ["id", "name", "username", "phone", "gender", "orgId", "postId", "roleIds", "status"]
+    },
+    "projects": {
+      "description": "Construction project master data",
+      "primaryKey": "id",
+      "uniqueKeys": ["projectCode"],
+      "fields": ["id", "projectName", "projectCode", "subCompany", "branchCompany", "projectStatus", "projectManager", "projectType", "implementationMode", "controlLevel", "builder", "approvalDate", "projectCost"]
+    },
+    "workers": {
+      "description": "Labor worker master data",
+      "primaryKey": "id",
+      "fields": ["id", "name", "phone", "gender", "birth", "type", "job", "project", "sub", "branch", "unit", "team", "status"]
+    },
+    "dictionaries": {
+      "description": "Data dictionary package",
+      "storageShape": "Single-element array containing a dictionary payload",
+      "fields": ["schemaVersion", "dataVersion", "generatedAt", "dictTypes", "dictItems"],
+      "dictTypeFields": ["dictCode", "dictName", "remark", "sortNo", "status"],
+      "dictItemFields": ["dictCode", "itemCode", "itemName", "status", "sortNo", "palette", "remark"]
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0.0",
+  "entities": [
+    {
+      "entity": "dictType",
+      "tableSuggestion": "dict_type",
+      "primaryKey": "id",
+      "fields": [
+        { "name": "id", "type": "string", "required": true, "description": "稳定主键" },
+        { "name": "dictCode", "type": "string", "required": true, "description": "字典编码，业务唯一" },
+        { "name": "dictName", "type": "string", "required": true, "description": "字典名称" },
+        { "name": "remark", "type": "string", "required": false, "description": "备注" },
+        { "name": "sortNo", "type": "number", "required": true, "description": "排序号" },
+        { "name": "status", "type": "string", "required": true, "description": "ENABLED/DISABLED" }
+      ]
+    },
+    {
+      "entity": "dictItem",
+      "tableSuggestion": "dict_item",
+      "primaryKey": "id",
+      "fields": [
+        { "name": "id", "type": "string", "required": true, "description": "稳定主键" },
+        { "name": "dictCode", "type": "string", "required": true, "description": "所属字典编码" },
+        { "name": "itemCode", "type": "string", "required": true, "description": "字典项编码" },
+        { "name": "itemName", "type": "string", "required": true, "description": "字典项名称" },
+        { "name": "status", "type": "string", "required": true, "description": "ENABLED/DISABLED" },
+        { "name": "sortNo", "type": "number", "required": true, "description": "排序号" },
+        { "name": "palette", "type": "string", "required": false, "description": "前端标签配色，可不入核心业务表" },
+        { "name": "remark", "type": "string", "required": false, "description": "备注" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>企业管理</title>
+<link rel="stylesheet" href="./styles.css?v=2.2.274-output-completion-rate">
+<link rel="stylesheet" href="./src/components/base-select/base-select.css">
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="top-left">
+      <div class="portal-switch" onclick="togglePcPortalDropdown(event)">
+        <button class="portal-switch-trigger" type="button" aria-label="切换端口">
+          <span class="portal-switch-grid">▪▪<br/>▪▪</span>
+        </button>
+        <div class="portal-brand">
+          <div class="logo-icon" id="portalLogoIcon">企</div>
+          <strong id="portalTitle">企业管理</strong>
+        </div>
+        <div class="portal-switch-pop" id="portalSwitchPop">
+          <div class="portal-pop-brand">
+            <span class="portal-pop-mark"></span>
+            <strong>数智施工</strong>
+          </div>
+          <div class="portal-pop-divider"></div>
+          <div class="portal-pop-grid">
+            <button type="button" data-portal="enterprise" onclick="switchPcPortal(event,'enterprise')">
+              <span class="portal-option-icon enterprise">企</span>
+              <span>企业管理</span>
+            </button>
+            <button type="button" data-portal="project" onclick="switchPcPortal(event,'project')">
+              <span class="portal-option-icon project">项</span>
+              <span>项目管理</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <nav class="primary-nav" id="primaryNav"></nav>
+    </div>
+    <div class="top-user">
+      <div class="org-switch" onclick="toggleOrgDropdown(event)">
+        <div class="org-current">
+          <span class="org-label">组织</span>
+          <span id="currentOrgName">隧道股份</span>
+          <span class="org-arrow">⌄</span>
+        </div>
+        <div class="org-dropdown">
+          <div class="org-dropdown-title">切换组织</div>
+          <div class="org-option active" onclick="selectOrg(event,'隧道股份')">
+            <div>
+              <div class="org-name">隧道股份</div>
+              <div class="org-desc">股份级 · 查看全部组织数据</div>
+            </div>
+            <span class="org-check">✓</span>
+          </div>
+          <div class="org-option" onclick="selectOrg(event,'上海隧道')">
+            <div>
+              <div class="org-name">上海隧道</div>
+              <div class="org-desc">子公司 · 隧道股份下属组织</div>
+            </div>
+            <span class="org-check">✓</span>
+          </div>
+          <div class="org-option" onclick="selectOrg(event,'市政集团')">
+            <div>
+              <div class="org-name">市政集团</div>
+              <div class="org-desc">子公司 · 隧道股份下属组织</div>
+            </div>
+            <span class="org-check">✓</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="user-menu" onclick="toggleUserDropdown(event)">
+        <div class="user-profile">
+          <div class="user-avatar">王</div>
+          <span class="user-name">王安全</span>
+          <span class="user-arrow">⌄</span>
+        </div>
+        <div class="user-dropdown">
+          <div class="user-dropdown-head">
+            <div class="user-avatar big">王</div>
+            <div>
+              <div class="user-dropdown-name">王安全</div>
+              <div class="user-dropdown-role">安全领导</div>
+            </div>
+          </div>
+          <div class="user-dropdown-item" onclick="openVersionHistory(event)">
+            <span>🕘</span>
+            <span>历史版本记录</span>
+          </div>
+        </div>
+      </div>
+
+      <span class="role-tag">安全领导</span>
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside class="sider" id="sideMenu"></aside>
+    <main class="main">
+      <div id="listPage"></div>
+      <div id="detailPage" style="display:none"></div>
+    </main>
+  </div>
+</div>
+
+<div class="modal-mask" id="modalMask">
+  <div class="modal" id="modalBox">
+    <div class="modal-hd">
+     <span id="modalTitle">弹窗</span>
+      <div class="modal-hd-actions">
+      <button class="modal-icon-btn" id="modalFullscreenBtn" title="全屏" onclick="toggleModalFullscreen(event)">⛶</button>
+    <span class="close" onclick="closeModal()">×</span>
+  </div>
+</div>
+
+    <div class="modal-bd" id="modalBody"></div>
+    <div class="modal-ft" id="modalFooter">
+      <button class="btn" onclick="closeModal()">关闭</button>
+      <button class="btn primary" onclick="closeModal()">确认</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<template data-enterprise-construction-log-template>
+  <div class="compact-title-row">
+    <div class="module-title">施工日志</div>
+  </div>
+
+  <div data-enterprise-log-query></div>
+  <div data-enterprise-log-stats></div>
+
+  <section class="card table-card construction-project-table-card monthly-fill-table-card enterprise-construction-log-table-card">
+    <div class="card-hd">
+      <div class="card-title enterprise-log-table-title">
+        <span>施工日志上报明细</span>
+        <div class="enterprise-log-month-switch" aria-label="施工日志上报月份">
+          <button type="button" title="上一个月" aria-label="上一个月" data-enterprise-log-month-prev>&#8249;</button>
+          <strong data-enterprise-log-month-label></strong>
+          <button type="button" title="下一个月" aria-label="下一个月" data-enterprise-log-month-next>&#8250;</button>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" type="button" data-enterprise-log-refresh>刷新</button>
+        <button class="btn primary" type="button" data-enterprise-log-export>导出</button>
+        <button class="column-setting-icon-btn" type="button" title="列设置" data-enterprise-log-column-setting>⚙</button>
+      </div>
+    </div>
+
+    <div class="table-wrap roster-table-wrap">
+      <table id="enterpriseConstructionLogTable" class="monthly-fill-group-table">
+        <thead id="enterpriseConstructionLogThead"></thead>
+        <tbody id="enterpriseConstructionLogTbody"></tbody>
+      </table>
+    </div>
+
+    <div class="pagination">
+      <span id="enterpriseConstructionLogTotalText"></span>
+      <span id="enterpriseConstructionLogPageText"></span>
+    </div>
+  </section>
+</template>
+
+<template data-production-dashboard-template="empty">
+  <div class="safety-screen-page safety-screen-empty-page">
+    <div data-production-slot="header"></div>
+    <div class="safety-screen-empty">
+      <h2 data-production-empty-title></h2>
+      <p>当前看板待配置</p>
+    </div>
+  </div>
+</template>
+
+<template data-production-dashboard-template="major">
+  <div class="safety-screen-page production-major-dashboard">
+    <div data-production-slot="header"></div>
+    <div class="production-major-body">
+      <section class="production-value-top-strip production-major-top-strip" data-production-slot="top"></section>
+      <section class="production-major-grid" data-production-slot="grid"></section>
+    </div>
+  </div>
+</template>
+
+<template data-production-dashboard-template="overview">
+  <div class="safety-screen-page production-overview-dashboard">
+    <div data-production-slot="header"></div>
+    <div class="safety-screen-body production-overview-body">
+      <section class="production-overview-top-grid" data-production-slot="top-grid"></section>
+      <section class="production-overview-grid row-analysis" data-production-slot="row-analysis"></section>
+      <section class="production-overview-grid main">
+        <div data-production-slot="completion"></div>
+        <div class="production-overview-middle-stack" data-production-slot="middle"></div>
+        <div class="production-overview-right-stack" data-production-slot="right"></div>
+      </section>
+    </div>
+  </div>
+</template>
+
+<template data-production-dashboard-template="value">
+  <div class="safety-screen-page production-value-dashboard">
+    <div data-production-slot="header"></div>
+    <div class="safety-screen-body production-value-body">
+      <div class="production-value-org-tabs" data-production-slot="org-tabs"></div>
+      <section class="production-value-top-strip" data-production-slot="top"></section>
+      <section class="production-value-layout">
+        <div class="production-value-left">
+          <section class="production-value-panel main-output">
+            <div class="production-value-panel-hd"><h2>施工类产值</h2></div>
+            <div class="production-value-main-summary" data-production-slot="main-summary"></div>
+            <div class="production-value-main-matrix" data-production-slot="main-matrix"></div>
+          </section>
+        </div>
+        <div class="production-value-right" data-production-slot="right"></div>
+      </section>
+      <section class="production-value-bottom-grid" data-production-slot="bottom"></section>
+    </div>
+  </div>
+</template>
+
+<template data-production-dashboard-template="placeholder">
+  <div class="compact-title-row">
+    <div class="module-title" data-placeholder-title></div>
+  </div>
+  <section class="card table-card">
+    <div class="card-bd" style="flex:1;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted)">
+      <div>
+        <div style="font-size:56px;margin-bottom:16px" data-placeholder-icon></div>
+        <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px" data-placeholder-name></div>
+        <div data-placeholder-desc></div>
+      </div>
+    </div>
+  </section>
+</template>
+
+<template data-production-dashboard-template="component-demo">
+  <div class="compact-title-row">
+    <div class="module-title">标准化组件</div>
+    <div class="breadcrumb">首页 / 组件 / 标准化组件 / 选择器组件</div>
+  </div>
+  <section class="card component-demo-card">
+    <div class="card-hd"><div class="card-title">BaseSelect</div></div>
+    <div class="component-demo-grid">
+      <div class="component-demo-item">
+        <div class="component-demo-label">基础单选 / 搜索过滤 / 键盘操作</div>
+        <div data-production-slot="demo-select"></div>
+      </div>
+      <div class="component-demo-item">
+        <div class="component-demo-label">禁用状态</div>
+        <div data-production-slot="demo-disabled-select"></div>
+      </div>
+    </div>
+  </section>
+  <section class="card component-demo-card">
+    <div class="card-hd"><div class="card-title">BaseMultiSelect</div></div>
+    <div class="component-demo-grid">
+      <div class="component-demo-item">
+        <div class="component-demo-label">多选 / tag + checkbox / 全选 / 清空</div>
+        <div data-production-slot="demo-multi-select"></div>
+      </div>
+      <div class="component-demo-item component-demo-result">
+        <div class="component-demo-label">当前值</div>
+        <pre data-production-demo-result></pre>
+      </div>
+    </div>
+  </section>
+</template>
+
+<template data-production-dashboard-template="construction-project">
+  <div class="compact-title-row">
+    <div>
+      <div class="breadcrumb">生产 / 施工项目一览</div>
+      <div class="module-title">施工项目一览表</div>
+    </div>
+  </div>
+
+  <section id="constructionProjectQueryCard" class="card unified-query-card construction-project-search-card collapsed">
+    <div class="card-hd">
+      <div class="card-title">查询条件</div>
+      <div class="actions">
+        <button class="btn" type="button" data-construction-project-reset>重置</button>
+        <button class="btn primary" type="button" data-construction-project-query>查询</button>
+        <button id="constructionProjectQueryCardToggle" class="btn" type="button" data-construction-project-query-toggle>展开</button>
+      </div>
+    </div>
+    <div class="card-bd">
+      <div id="constructionProjectSearchGrid" class="construction-project-search-grid" data-construction-project-search-grid></div>
+    </div>
+  </section>
+
+  <section class="card construction-project-stat-card">
+    <div class="card-bd" id="constructionProjectStats"></div>
+  </section>
+
+  <section class="card table-card construction-project-table-card">
+    <div class="card-hd">
+      <div class="card-title">项目列表</div>
+      <div class="actions">
+        <button class="btn primary" type="button" data-construction-project-add>新增项目</button>
+        <button class="btn" type="button" data-construction-project-refresh>刷新</button>
+        <button class="btn primary" type="button" data-construction-project-export>导出</button>
+        <button class="column-setting-icon-btn" type="button" title="列设置" data-construction-project-column-setting>⚙</button>
+      </div>
+    </div>
+    <div class="table-wrap roster-table-wrap">
+      <table id="constructionProjectTable">
+        <thead><tr id="constructionProjectThead"></tr></thead>
+        <tbody id="constructionProjectTbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <span id="constructionProjectTotalText">共 0 条</span>
+      <div class="pager">
+        <button class="btn mini" type="button" data-construction-project-prev>上一页</button>
+        <b id="constructionProjectPageText">第 1 / 1 页</b>
+        <button class="btn mini" type="button" data-construction-project-next>下一页</button>
+        <select id="constructionProjectPageSize" class="select mini-select" data-construction-project-page-size>
+          <option value="10">10条/页</option>
+          <option value="20">20条/页</option>
+          <option value="50">50条/页</option>
+        </select>
+      </div>
+    </div>
+  </section>
+</template>
+
+<template data-risk-management-template="ledger">
+  <div class="compact-title-row">
+    <div class="module-title">风险管控清单</div>
+    <div class="breadcrumb">首页 / 生产管理 / 风险管理 / 风险管控清单</div>
+  </div>
+
+  <section id="riskQueryCard" class="card unified-query-card risk-search-card collapsed">
+    <div class="card-hd">
+      <div class="card-title">查询条件</div>
+      <div class="actions">
+        <button class="btn" type="button" data-risk-reset>重置</button>
+        <button class="btn primary" type="button" data-risk-query>查询</button>
+        <button id="riskQueryCardToggle" class="btn" type="button" data-risk-query-toggle>展开</button>
+      </div>
+    </div>
+    <div class="card-bd">
+      <div class="risk-search-grid risk-search-grid-fixed">
+        <div class="form-item"><label>风险名称</label><input id="riskNameFilter" class="input" placeholder="模糊搜索风险名称"/></div>
+        <div class="form-item"><label>风险描述</label><input id="riskDescFilter" class="input" placeholder="模糊搜索风险描述"/></div>
+        <div class="form-item"><label>风险等级</label><div data-risk-slot="level"></div></div>
+        <div class="form-item"><label>风险类型</label><div data-risk-slot="type"></div></div>
+
+        <div class="form-item"><label>项目名称</label><input id="riskProjectNameFilter" class="input" placeholder="模糊搜索项目名称"/></div>
+        <div class="form-item"><label>子公司</label><div data-risk-slot="sub-company"></div></div>
+        <div class="form-item"><label>分公司</label><div data-risk-slot="branch-company"></div></div>
+        <div class="form-item"><label>项目经理</label><input id="riskProjectManagerFilter" class="input" placeholder="模糊搜索项目经理"/></div>
+
+        <div class="form-item"><label>计划开始日期</label><div data-risk-slot="plan-start"></div></div>
+        <div class="form-item"><label>实际开始日期</label><div data-risk-slot="actual-start"></div></div>
+        <div class="form-item"><label>计划完成日期</label><div data-risk-slot="plan-end"></div></div>
+        <div class="form-item"><label>实际结束日期</label><div data-risk-slot="actual-end"></div></div>
+
+        <div class="form-item"><label>挂牌领导</label><input id="riskSupervisorFilter" class="input" placeholder="模糊搜索挂牌领导"/></div>
+        <div class="form-item"><label>开工令</label><select id="riskStartOrderFilter" class="select"><option value="">全部</option><option>已上传</option><option>未上传</option></select></div>
+        <div class="form-item"><label>是否年度风险</label><select id="riskMajorFilter" class="select"><option value="">全部</option><option>是</option><option>否</option></select></div>
+        <div class="form-item"><label>是否临铁/临高速</label><select id="riskRailHighwayFilter" class="select"><option value="">全部</option><option>是</option><option>否</option></select></div>
+
+        <div class="form-item"><label>条件验收</label><select id="riskConditionFilter" class="select"><option value="">全部</option><option>是</option><option>否</option></select></div>
+        <div class="form-item"><label>风险状态</label><select id="riskStatusFilter" class="select"><option value="">全部</option><option>已完成</option><option>未完成</option></select></div>
+        <div class="form-item"><label>所属区域</label><div data-risk-slot="area"></div></div>
+        <div class="form-item"><label>省市区</label><div class="risk-cascader" data-risk-slot="province"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card unified-stats-card risk-stat-card">
+    <div class="card-bd"><div class="risk-stats stats" id="riskStatsBox"></div></div>
+  </section>
+
+  <section class="card table-card risk-table-card">
+    <div class="card-hd">
+      <div class="card-title">风险管控清单</div>
+      <div class="actions">
+        <button class="btn primary" type="button" data-risk-export>数据导出</button>
+        <button class="btn" type="button" data-risk-refresh>刷新</button>
+        <button class="column-setting-icon-btn" type="button" title="列配置" data-risk-column-setting>⚙</button>
+      </div>
+    </div>
+    <div class="table-wrap roster-table-wrap">
+      <table id="riskTable">
+        <thead><tr id="riskThead"></tr></thead>
+        <tbody id="riskTbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination risk-pagination">
+      <span id="riskTotalText">共 0 条记录</span>
+      <span class="pager">
+        <button class="btn mini" type="button" data-risk-page-prev>‹</button>
+        <b id="riskPageText">1</b>
+        <button class="btn mini" type="button" data-risk-page-next>›</button>
+        <select id="riskPageSize" class="select mini-select" data-risk-page-size>
+          <option value="25">25条/页</option>
+          <option value="50" selected>50条/页</option>
+          <option value="100">100条/页</option>
+        </select>
+      </span>
+    </div>
+  </section>
+</template>
+
+<template data-output-management-template="forecast">
+  <div class="output-forecast-page">
+    <div data-output-slot="title"></div>
+    <div data-output-slot="body"></div>
+  </div>
+</template>
+
+<template data-output-management-template="actual">
+  <div class="compact-title-row"><div class="module-title">实际产值上报</div></div>
+  <div data-output-slot="query"></div>
+  <div data-output-slot="stats"></div>
+  <div data-output-slot="table"></div>
+</template>
+
+<template data-output-management-template="other-biz">
+  <div class="other-biz-output-page">
+    <div class="compact-title-row"><div class="module-title">其他业态产值申报</div></div>
+    <div data-output-slot="query"></div>
+    <div data-output-slot="stats"></div>
+    <div data-output-slot="table"></div>
+  </div>
+</template>
+
+<template data-output-management-template="finished-unsettled">
+  <div class="other-biz-output-page">
+    <div class="compact-title-row"><div class="module-title">完工未结算管理</div></div>
+    <div data-output-slot="query"></div>
+    <div data-output-slot="table"></div>
+  </div>
+</template>
+
+<template data-supplier-template="ledger">
+  <div class="compact-title-row"><div class="module-title">供应商基础画像</div></div>
+  <section class="card unified-query-card">
+    <div class="card-hd">
+      <div class="card-title">查询条件</div>
+      <div class="actions">
+        <button class="btn" type="button" data-supplier-ledger-reset>重置</button>
+        <button class="btn primary" type="button" data-supplier-ledger-query>查询</button>
+      </div>
+    </div>
+    <div class="card-bd">
+      <div class="search-grid">
+        <div class="form-item"><label>分包商名称</label><input id="supplierNameFilter" class="input" placeholder="请输入分包商名称"/></div>
+        <div class="form-item"><label>承建分包工程名称</label><input id="supplierProjectFilter" class="input" placeholder="请输入承建分包工程名称"/></div>
+      </div>
+    </div>
+  </section>
+  <section class="card table-card">
+    <div class="card-hd">
+      <div class="card-title">供应商台账</div>
+      <div class="actions">
+        <button class="btn" type="button" data-supplier-ledger-refresh>刷新</button>
+        <button class="btn primary" type="button" data-supplier-ledger-export>导出</button>
+        <button class="column-setting-icon-btn" type="button" title="列设置" data-supplier-ledger-columns>⚙</button>
+      </div>
+    </div>
+    <div class="table-wrap roster-table-wrap">
+      <table id="supplierLedgerTable"><thead><tr id="supplierLedgerThead"></tr></thead><tbody id="supplierLedgerTbody"></tbody></table>
+    </div>
+    <div class="pagination"><span id="supplierTotalText">共 0 条</span><span>第 1 / 1 页　每页 10 条</span></div>
+  </section>
+</template>
+
+<template data-supplier-template="score">
+  <div class="compact-title-row"><div class="module-title">供应商评分记录</div></div>
+  <section class="card unified-query-card">
+    <div class="card-hd">
+      <div class="card-title">查询条件</div>
+      <div class="actions">
+        <button class="btn" type="button" data-supplier-score-reset>重置</button>
+        <button class="btn primary" type="button" data-supplier-score-query>查询</button>
+      </div>
+    </div>
+    <div class="card-bd">
+      <div class="search-grid">
+        <div class="form-item"><label>评价年份</label><select id="scoreYearFilter" class="select"><option selected>2026</option><option>2025</option><option>2024</option><option>2023</option></select></div>
+        <div class="form-item"><label>供应商名称</label><input id="scoreSupplierNameFilter" class="input" placeholder="请输入供应商名称"/></div>
+        <div class="form-item"><label>供应商分类</label><select id="scoreCategoryFilter" class="select"><option value="">全部</option><option>设备租赁</option><option>设备采购</option><option>材料采购</option><option>劳务分包</option><option>专业分包</option></select></div>
+        <div class="form-item"><label>采购商名称</label><input id="scorePurchaserNameFilter" class="input" placeholder="请输入采购商名称"/></div>
+      </div>
+    </div>
+  </section>
+  <section class="card table-card">
+    <div class="card-hd">
+      <div class="card-title">评分记录清单</div>
+      <div class="actions">
+        <button class="btn" type="button" data-supplier-score-refresh>刷新</button>
+        <button class="btn primary" type="button" data-supplier-score-export>导出</button>
+        <button class="column-setting-icon-btn" type="button" title="列设置" data-supplier-score-columns>⚙</button>
+      </div>
+    </div>
+    <div class="table-wrap roster-table-wrap">
+      <table id="supplierScoreTable"><thead><tr id="supplierScoreThead"></tr></thead><tbody id="supplierScoreTbody"></tbody></table>
+    </div>
+    <div class="pagination"><span id="supplierScoreTotalText">共 0 条</span><span>第 1 / 1 页　每页 10 条</span></div>
+  </section>
+</template>
+
+<template data-supplier-template="performance">
+  <div class="compact-title-row"><div class="module-title">履约评价</div></div>
+  <section class="card unified-query-card">
+    <div class="card-hd">
+      <div class="card-title">查询条件</div>
+      <div class="actions">
+        <button class="btn" type="button" data-performance-reset>重置</button>
+        <button class="btn primary" type="button" data-performance-query>查询</button>
+      </div>
+    </div>
+    <div class="card-bd">
+      <div class="search-grid">
+        <div class="form-item"><label>集团下属子公司</label><select id="perfSubCompanyFilter" class="select" data-performance-sub-company><option value="">全部</option></select></div>
+        <div class="form-item"><label>项目主管单位</label><input id="perfUnitFilter" class="input" placeholder="请输入项目主管单位"/></div>
+        <div class="form-item"><label>项目名称</label><input id="perfProjectFilter" class="input" placeholder="请输入项目名称"/></div>
+        <div class="form-item"><label>项目联合管理方</label><input id="perfJointFilter" class="input" placeholder="请输入项目联合管理方"/></div>
+        <div class="form-item"><label>项目经理</label><input id="perfManagerFilter" class="input" placeholder="请输入项目经理"/></div>
+      </div>
+    </div>
+  </section>
+  <section class="card table-card">
+    <div class="card-hd">
+      <div class="card-title">履约评价列表</div>
+      <div class="actions">
+        <button class="btn primary" type="button" data-performance-create>发起评价</button>
+        <button class="btn" type="button" data-performance-refresh>刷新</button>
+        <button class="btn primary" type="button" data-performance-export>导出</button>
+        <button class="column-setting-icon-btn" type="button" title="列设置" data-performance-columns>⚙</button>
+      </div>
+    </div>
+    <div class="table-wrap roster-table-wrap">
+      <table id="performanceTable"><thead><tr id="performanceThead"></tr></thead><tbody id="performanceTbody"></tbody></table>
+    </div>
+    <div class="pagination"><span id="performanceTotalText">共 0 条</span><span>第 1 / 1 页　每页 10 条</span></div>
+  </section>
+</template>
+
+<script src="./organization-data.js?v=2.2.274-output-completion-rate"></script>
+<script src="./master-data.js?v=2.2.274-output-completion-rate"></script>
+<script src="./app.js?v=2.2.274-output-completion-rate"></script>
+<script>
+  (function(){
+    function openMobileOverviewPreview(){
+      var query=new URLSearchParams(location.search || "");
+      if(query.get("mobileOverview")!=="1" && location.hash!=="#mobile-overview")return;
+      if(typeof window.renderMobileProjectOverviewPageV2227==="function"){
+        setTimeout(function(){ window.renderMobileProjectOverviewPageV2227(); },0);
+      }
+    }
+    if(document.readyState==="loading"){
+      document.addEventListener("DOMContentLoaded",openMobileOverviewPreview);
+    }else{
+      openMobileOverviewPreview();
+    }
+  })();
+</script>
+</body>
+</html>

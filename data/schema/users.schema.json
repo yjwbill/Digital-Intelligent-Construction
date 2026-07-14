@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "1.0.0",
+  "entity": "user",
+  "tableSuggestion": "user_employee",
+  "primaryKey": "id",
+  "fields": [
+    { "name": "id", "type": "string", "required": true, "description": "稳定主键" },
+    { "name": "userCode", "type": "string", "required": true, "description": "人员编码，业务唯一" },
+    { "name": "userName", "type": "string", "required": true, "description": "人员姓名" },
+    { "name": "mobile", "type": "string", "required": false, "description": "手机号" },
+    { "name": "orgId", "type": "string", "required": true, "description": "所属组织 ID" },
+    { "name": "orgCode", "type": "string", "required": true, "description": "所属组织编码" },
+    { "name": "orgName", "type": "string", "required": true, "description": "所属组织名称" },
+    { "name": "positionName", "type": "string", "required": false, "description": "岗位名称" },
+    { "name": "roleCodes", "type": "array<string>", "required": false, "description": "角色编码集合" },
+    { "name": "status", "type": "string", "required": true, "description": "ENABLED/DISABLED" },
+    { "name": "createdAt", "type": "datetime", "required": true, "description": "创建时间" },
+    { "name": "updatedAt", "type": "datetime", "required": true, "description": "更新时间" }
+  ]
+}

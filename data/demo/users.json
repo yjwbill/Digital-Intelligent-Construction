@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "1.0.0",
+  "dataVersion": "2026.07.08-demo",
+  "generatedAt": "2026-07-08 00:00:00",
+  "description": "人员主数据。维护后可作为后端 user/employee 表初始化数据来源。",
+  "users": [
+    {
+      "id": "user-001",
+      "userCode": "U0001",
+      "userName": "王安全",
+      "mobile": "15700009999",
+      "orgId": "org-G001",
+      "orgCode": "G001",
+      "orgName": "隧道股份",
+      "positionName": "安全领导",
+      "roleCodes": [
+        "SAFETY_LEADER"
+      ],
+      "status": "ENABLED",
+      "createdAt": "2026-07-08 00:00:00",
+      "updatedAt": "2026-07-08 00:00:00"
+    },
+    {
+      "id": "user-002",
+      "userCode": "U0002",
+      "userName": "赵菁",
+      "mobile": "15712349999",
+      "orgId": "org-D004",
+      "orgCode": "D004",
+      "orgName": "轨交分公司",
+      "positionName": "项目经理",
+      "roleCodes": [
+        "PROJECT_MANAGER"
+      ],
+      "status": "ENABLED",
+      "createdAt": "2026-07-08 00:00:00",
+      "updatedAt": "2026-07-08 00:00:00"
+    },
+    {
+      "id": "user-003",
+      "userCode": "U0003",
+      "userName": "李峻",
+      "mobile": "15723459999",
+      "orgId": "org-D009",
+      "orgCode": "D009",
+      "orgName": "河南分公司",
+      "positionName": "项目经理",
+      "roleCodes": [
+        "PROJECT_MANAGER"
+      ],
+      "status": "ENABLED",
+      "createdAt": "2026-07-08 00:00:00",
+      "updatedAt": "2026-07-08 00:00:00"
+    },
+    {
+      "id": "user-004",
+      "userCode": "U0004",
+      "userName": "张三",
+      "mobile": "15734569999",
+      "orgId": "org-D005",
+      "orgCode": "D005",
+      "orgName": "市政分公司",
+      "positionName": "项目经理",
+      "roleCodes": [
+        "PROJECT_MANAGER"
+      ],
+      "status": "ENABLED",
+      "createdAt": "2026-07-08 00:00:00",
+      "updatedAt": "2026-07-08 00:00:00"
+    },
+    {
+      "id": "user-005",
+      "userCode": "U0005",
+      "userName": "王晨",
+      "mobile": "15745679999",
+      "orgId": "org-D037",
+      "orgCode": "D037",
+      "orgName": "总承包一部",
+      "positionName": "项目经理",
+      "roleCodes": [
+        "PROJECT_MANAGER"
+      ],
+      "status": "ENABLED",
+      "createdAt": "2026-07-08 00:00:00",
+      "updatedAt": "2026-07-08 00:00:00"
+    },
+    {
+      "id": "user-006",
+      "userCode": "U0006",
+      "userName": "陈启航",
+      "mobile": "15756789999",
+      "orgId": "org-D038",
+      "orgCode": "D038",
+      "orgName": "总承包二部",
+      "positionName": "项目经理",
+      "roleCodes": [
+        "PROJECT_MANAGER"
+      ],
+      "status": "ENABLED",
+      "createdAt": "2026-07-08 00:00:00",
+      "updatedAt": "2026-07-08 00:00:00"
+    }
+  ]
+}

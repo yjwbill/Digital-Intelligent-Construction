@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0.0",
+  "dataVersion": "2026.07.08-demo",
+  "generatedAt": "2026-07-08 00:00:00",
+  "files": [
+    "organization.json",
+    "users.json",
+    "dictionaries.json"
+  ],
+  "readPriority": [
+    "EM_LOCAL_DATA",
+    "data/demo",
+    "data/seed",
+    "app.js fallback"
+  ],
+  "description": "基础数据版本说明。EM_LOCAL_DATA 用于本机持续维护，data/demo 用于发包预览快照。"
+}
