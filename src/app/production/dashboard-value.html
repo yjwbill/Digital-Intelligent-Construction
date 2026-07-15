@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>生产-施工项目一览</title>
+<title>生产-产值看板</title>
 <base href="../../../">
 <link rel="stylesheet" href="./styles.css?v=2.2.274-output-completion-rate">
 <link rel="stylesheet" href="./src/components/base-select/base-select.css">
@@ -127,115 +127,30 @@
 
 <div class="toast" id="toast"></div>
 
-<template data-production-dashboard-template="placeholder">
-  <div class="compact-title-row">
-    <div class="module-title" data-placeholder-title></div>
-  </div>
-  <section class="card table-card">
-    <div class="card-bd" style="flex:1;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted)">
-      <div>
-        <div style="font-size:56px;margin-bottom:16px" data-placeholder-icon></div>
-        <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px" data-placeholder-name></div>
-        <div data-placeholder-desc></div>
-      </div>
-    </div>
-  </section>
-</template>
-
-<template data-production-dashboard-template="component-demo">
-  <div class="compact-title-row">
-    <div class="module-title">标准化组件</div>
-    <div class="breadcrumb">首页 / 组件 / 标准化组件 / 选择器组件</div>
-  </div>
-  <section class="card component-demo-card">
-    <div class="card-hd"><div class="card-title">BaseSelect</div></div>
-    <div class="component-demo-grid">
-      <div class="component-demo-item">
-        <div class="component-demo-label">基础单选 / 搜索过滤 / 键盘操作</div>
-        <div data-production-slot="demo-select"></div>
-      </div>
-      <div class="component-demo-item">
-        <div class="component-demo-label">禁用状态</div>
-        <div data-production-slot="demo-disabled-select"></div>
-      </div>
-    </div>
-  </section>
-  <section class="card component-demo-card">
-    <div class="card-hd"><div class="card-title">BaseMultiSelect</div></div>
-    <div class="component-demo-grid">
-      <div class="component-demo-item">
-        <div class="component-demo-label">多选 / tag + checkbox / 全选 / 清空</div>
-        <div data-production-slot="demo-multi-select"></div>
-      </div>
-      <div class="component-demo-item component-demo-result">
-        <div class="component-demo-label">当前值</div>
-        <pre data-production-demo-result></pre>
-      </div>
-    </div>
-  </section>
-</template>
-
-<template data-production-dashboard-template="construction-project">
-  <div class="compact-title-row">
-    <div>
-      <div class="breadcrumb">生产 / 施工项目一览</div>
-      <div class="module-title">施工项目一览表</div>
+<template data-production-dashboard-template="value">
+  <div class="safety-screen-page production-value-dashboard">
+    <div data-production-slot="header"></div>
+    <div class="safety-screen-body production-value-body">
+      <div class="production-value-org-tabs" data-production-slot="org-tabs"></div>
+      <section class="production-value-top-strip" data-production-slot="top"></section>
+      <section class="production-value-layout">
+        <div class="production-value-left">
+          <section class="production-value-panel main-output">
+            <div class="production-value-panel-hd"><h2>施工类产值</h2></div>
+            <div class="production-value-main-summary" data-production-slot="main-summary"></div>
+            <div class="production-value-main-matrix" data-production-slot="main-matrix"></div>
+          </section>
+        </div>
+        <div class="production-value-right" data-production-slot="right"></div>
+      </section>
+      <section class="production-value-bottom-grid" data-production-slot="bottom"></section>
     </div>
   </div>
-
-  <section id="constructionProjectQueryCard" class="card unified-query-card construction-project-search-card collapsed">
-    <div class="card-hd">
-      <div class="card-title">查询条件</div>
-      <div class="actions">
-        <button class="btn" type="button" data-construction-project-reset>重置</button>
-        <button class="btn primary" type="button" data-construction-project-query>查询</button>
-        <button id="constructionProjectQueryCardToggle" class="btn" type="button" data-construction-project-query-toggle>展开</button>
-      </div>
-    </div>
-    <div class="card-bd">
-      <div id="constructionProjectSearchGrid" class="construction-project-search-grid" data-construction-project-search-grid></div>
-    </div>
-  </section>
-
-  <section class="card construction-project-stat-card">
-    <div class="card-bd" id="constructionProjectStats"></div>
-  </section>
-
-  <section class="card table-card construction-project-table-card">
-    <div class="card-hd">
-      <div class="card-title">项目列表</div>
-      <div class="actions">
-        <button class="btn primary" type="button" data-construction-project-add>新增项目</button>
-        <button class="btn" type="button" data-construction-project-refresh>刷新</button>
-        <button class="btn primary" type="button" data-construction-project-export>导出</button>
-        <button class="column-setting-icon-btn" type="button" title="列设置" data-construction-project-column-setting>⚙</button>
-      </div>
-    </div>
-    <div class="table-wrap roster-table-wrap">
-      <table id="constructionProjectTable">
-        <thead><tr id="constructionProjectThead"></tr></thead>
-        <tbody id="constructionProjectTbody"></tbody>
-      </table>
-    </div>
-    <div class="pagination">
-      <span id="constructionProjectTotalText">共 0 条</span>
-      <div class="pager">
-        <button class="btn mini" type="button" data-construction-project-prev>上一页</button>
-        <b id="constructionProjectPageText">第 1 / 1 页</b>
-        <button class="btn mini" type="button" data-construction-project-next>下一页</button>
-        <select id="constructionProjectPageSize" class="select mini-select" data-construction-project-page-size>
-          <option value="10">10条/页</option>
-          <option value="20">20条/页</option>
-          <option value="50">50条/页</option>
-        </select>
-      </div>
-    </div>
-  </section>
 </template>
 
 <script src="./organization-data.js?v=2.2.274-output-completion-rate"></script>
 <script src="./master-data.js?v=2.2.274-output-completion-rate"></script>
-<script src="./src/app/production/dashboard-projects-entry.js?v=2.2.274-output-completion-rate"></script>
+<script src="./src/app/production/dashboard-value.js?v=2.2.274-output-completion-rate"></script>
 <script src="./app.js?v=2.2.274-output-completion-rate"></script>
 <script>
   (function(){

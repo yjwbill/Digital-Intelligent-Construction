@@ -155,7 +155,7 @@ if(line==="home"){
 }else if(line==="production"){
   activateProductionDashboardMenu();
   renderSideMenu(line);
-  renderProductionOverviewDashboardPage();
+  renderProductionDashboardByKey("overview");
   showToast("已切换到生产条线");
 }else if(line==="base"){
   activateBaseOrgMenu();
@@ -244,11 +244,10 @@ function selectBusinessSingleMenu(line,i,name){
 
   if(line==="home"&&name==="施工日志")return renderEnterpriseConstructionLogPage();
   if(line==="safety"&&i===0)return renderSafetyOnlineDashboardPage();
-  if(line==="production"&&name==="大屏看板")return renderProductionOverviewDashboardPage();
+  if(line==="production"&&name==="大屏看板")return renderProductionDashboardByKey(window.__APP_PRODUCTION_DASHBOARD_ROUTE_KEY__ || "overview");
   if(line==="production"&&name==="施工项目一览")return renderConstructionProjectPage();
 
   line==="safety"
     ? renderSafetyPlaceholder(name)
     : renderBusinessModulePage(line,name);
 }
-

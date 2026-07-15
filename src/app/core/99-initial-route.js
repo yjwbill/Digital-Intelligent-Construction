@@ -1,7 +1,7 @@
 (function(){
   const enterpriseLineRoutes={
     home:"home-project-album",
-    production:"src/app/production/dashboard-projects.html",
+    production:"src/app/production/dashboard.html",
     safety:"safety-dashboard",
     economy:"economy-cost",
     operation:"operation-production-project",
@@ -9,7 +9,7 @@
   };
   const enterpriseSingleRoutes={
     home:{0:"home-project-album",1:"src/app/home/construction-log.html"},
-    production:{0:"src/app/production/dashboard-projects.html",1:"src/app/production/dashboard-projects.html"},
+    production:{0:"src/app/production/dashboard.html",1:"src/app/production/dashboard-projects.html"},
     safety:{0:"safety-dashboard",7:"safety-managed-overview"},
     economy:{0:"economy-cost",1:"economy-contract",2:"economy-settlement",3:"economy-analysis",4:"economy-fund-plan"}
   };
@@ -125,11 +125,23 @@
     }
 
     const menu=menus[menuIndex];
-    if(menu.children?.length){
-      const childIndex=Math.max(0,menu.children.findIndex(child=>child.name===(childName || menuName)));
-      selectBusinessChildMenu(line,menuIndex,childIndex,menu.children[childIndex].name);
-    }else{
-      selectBusinessSingleMenu(line,menuIndex,menu.name);
+    const dashboardRouteKey=line==="production" && menu.name==="大屏看板"
+      ? (route.dashboard || route.screen || route.tab || "overview")
+      : null;
+    const previousDashboardRouteKey=window.__APP_PRODUCTION_DASHBOARD_ROUTE_KEY__;
+    if(dashboardRouteKey)window.__APP_PRODUCTION_DASHBOARD_ROUTE_KEY__=dashboardRouteKey;
+    try{
+      if(menu.children?.length){
+        const childIndex=Math.max(0,menu.children.findIndex(child=>child.name===(childName || menuName)));
+        selectBusinessChildMenu(line,menuIndex,childIndex,menu.children[childIndex].name);
+      }else{
+        selectBusinessSingleMenu(line,menuIndex,menu.name);
+      }
+    }finally{
+      if(dashboardRouteKey){
+        if(previousDashboardRouteKey===undefined)delete window.__APP_PRODUCTION_DASHBOARD_ROUTE_KEY__;
+        else window.__APP_PRODUCTION_DASHBOARD_ROUTE_KEY__=previousDashboardRouteKey;
+      }
     }
   }
 
