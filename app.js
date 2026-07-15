@@ -8,6 +8,7 @@
     "src/app/production/supplier-performance.js",
     "src/app/base/base-management.js",
     "src/app/safety/evaluation-dashboard.js",
+    "src/app/production/dashboard-statistics-data.js",
     "src/app/production/dashboard.js",
     "src/app/production/dashboard-projects.js",
     "src/app/home/construction-log.js",

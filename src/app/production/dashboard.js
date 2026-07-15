@@ -1,4 +1,4 @@
-const productionScreenTabs=["生产总览","圆顶管看板（试运行）","重大工程项目看板","产值看板"];
+const productionScreenTabs=["生产总览","圆顶管看板（试运行）","重大工程项目看板","产值看板","纳统看板"];
 const productionScreenEmptyTabs=["圆顶管看板（试运行）"];
 const productionValueCompanies=[
   "上海隧道",
@@ -64,8 +64,19 @@ const productionOverviewFilterState={
   client:"",
   projectType:""
 };
-const productionScreenTemplatePath="src/app/production/dashboard.html";
-let productionScreenTemplatePromise=null;
+const productionStatisticsState={
+  industry:"",
+  company:"全部"
+};
+const productionScreenTemplatePaths={
+  overview:"src/app/production/dashboard.html",
+  statistics:"src/app/production/dashboard-statistics.html",
+  pipe:"src/app/production/dashboard-pipe.html",
+  major:"src/app/production/dashboard-major.html",
+  value:"src/app/production/dashboard-value.html",
+  empty:"src/app/production/dashboard-pipe.html"
+};
+const productionScreenTemplatePromises=new Map();
 let productionScreenRenderToken=0;
 
 function getProductionScreenTemplatesFromDocument(){
@@ -112,12 +123,15 @@ function replaceProductionScreenText(node,from,to){
   node.childNodes.forEach(child=>replaceProductionScreenText(child,from,to));
 }
 
-function loadProductionScreenTemplates(){
+function loadProductionScreenTemplates(name="overview"){
   const inlineTemplates=getProductionScreenTemplatesFromDocument();
-  if(inlineTemplates)return Promise.resolve(inlineTemplates);
+  if(inlineTemplates?.has(name))return Promise.resolve(inlineTemplates);
 
-  if(!productionScreenTemplatePromise){
-    productionScreenTemplatePromise=fetch(productionScreenTemplatePath)
+  const path=productionScreenTemplatePaths[name] || productionScreenTemplatePaths.overview;
+  if(!path)return Promise.resolve(inlineTemplates || new Map());
+
+  if(!productionScreenTemplatePromises.has(path)){
+    const promise=fetch(path)
       .then(response=>{
         if(!response.ok)throw new Error(`HTTP ${response.status}`);
         return response.text();
@@ -132,16 +146,22 @@ function loadProductionScreenTemplates(){
       })
       .catch(error=>{
         console.warn("load production templates failed",error);
-        productionScreenTemplatePromise=null;
+        productionScreenTemplatePromises.delete(path);
         return new Map();
       });
+    productionScreenTemplatePromises.set(path,promise);
   }
-  return productionScreenTemplatePromise;
+  return productionScreenTemplatePromises.get(path).then(templates=>{
+    if(!inlineTemplates)return templates;
+    const merged=new Map(inlineTemplates);
+    templates.forEach((template,key)=>merged.set(key,template));
+    return merged;
+  });
 }
 
 async function mountProductionScreenTemplate(name,display="block"){
   const token=++productionScreenRenderToken;
-  const templates=await loadProductionScreenTemplates();
+  const templates=await loadProductionScreenTemplates(name);
   if(token!==productionScreenRenderToken)return {stale:true,root:null};
   const template=templates.get(name);
   if(!template){
@@ -195,17 +215,20 @@ const productionDashboardScreenRoutes={
   overview:"src/app/production/dashboard.html",
   pipe:"src/app/production/dashboard-pipe.html",
   major:"src/app/production/dashboard-major.html",
-  value:"src/app/production/dashboard-value.html"
+  value:"src/app/production/dashboard-value.html",
+  statistics:"src/app/production/dashboard-statistics.html"
 };
 const productionDashboardScreenKeys={
   "生产总览":"overview",
   "圆顶管看板（试运行）":"pipe",
   "重大工程项目看板":"major",
   "产值看板":"value",
+  "纳统看板":"statistics",
   overview:"overview",
   pipe:"pipe",
   major:"major",
-  value:"value"
+  value:"value",
+  statistics:"statistics"
 };
 
 function getProductionDashboardScreenKey(screen){
@@ -232,6 +255,7 @@ function renderProductionDashboardByKey(screen,options={}){
   const preserve=!!options.preserveScroll;
   if(key==="major")return preserve?renderProductionMajorDashboardPreservingScroll():renderProductionMajorDashboardPage();
   if(key==="value")return preserve?renderProductionValueDashboardPreservingScroll():renderProductionValueDashboardPage();
+  if(key==="statistics")return preserve?renderProductionStatisticsDashboardPreservingScroll():renderProductionStatisticsDashboardPage();
   if(key==="pipe")return renderProductionScreenEmptyPage("圆顶管看板（试运行）");
   return preserve?renderProductionOverviewDashboardPreservingScroll():renderProductionOverviewDashboardPage();
 }
@@ -315,6 +339,8 @@ function setProductionValueCompanyMode(mode){
 function renderProductionScreenHeader(activeTab="产值看板"){
   const isOverview=activeTab==="生产总览";
   const isMajor=activeTab==="重大工程项目看板";
+  const isStatistics=activeTab==="纳统看板";
+  const statisticsData=getProductionStatisticsData();
   const overviewCompanyOptions=getOrganizationCompanies();
   const overviewBranchOptions=getOrganizationBranchOptions(productionOverviewFilterState.company);
   return `
@@ -337,6 +363,11 @@ function renderProductionScreenHeader(activeTab="产值看板"){
           <select class="select" onchange="setProductionMajorFilter('region',this.value)">${renderProductionOverviewOptions(productionOverviewRegions,productionMajorFilterState.region,"所属区域")}</select>
           <select class="select" onchange="setProductionMajorFilter('projectType',this.value)">${renderProductionOverviewOptions(getProductionOverviewProjectTypeOptions(),productionMajorFilterState.projectType,"项目类型")}</select>
           <select class="select" onchange="setProductionMajorFilter('client',this.value)">${renderProductionOverviewOptions(productionOverviewClients,productionMajorFilterState.client,"重点客户")}</select>
+        </div>
+      `:isStatistics?`
+        <div class="screen-company screen-month-actions production-statistics-source">
+          <span>${formatProductionStatisticsReportMonth(statisticsData.reportMonth)}</span>
+          <b title="${escapeAttr(statisticsData.sourceFile || "")}">纳统数据</b>
         </div>
       `:`
         <div class="screen-company screen-month-actions">
@@ -836,6 +867,374 @@ async function renderProductionOverviewDashboardPage(){
   bindProductionOverviewMaterialTrendHover();
 }
 
+function getProductionStatisticsData(){
+  return window.productionStatisticsDashboardData || {industries:[],overall:{}};
+}
+
+function getProductionStatisticsIndustries(){
+  const data=getProductionStatisticsData();
+  return Array.isArray(data.industries)?data.industries:[];
+}
+
+function formatProductionStatisticsReportMonth(value){
+  const text=String(value || "").trim();
+  const match=text.match(/^(\d{4})-(\d{1,2})$/);
+  if(match)return `${match[1]}年${match[2].padStart(2,"0")}月`;
+  return text || "数据月份";
+}
+
+function productionStatisticsText(value,fallback="-"){
+  if(value===0)return "0";
+  const text=value===undefined || value===null || value==="" ? fallback : String(value);
+  return escapeAttr(text);
+}
+
+function productionStatisticsJsArg(value){
+  return escapeAttr(String(value || "").replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/\r?\n/g," "));
+}
+
+function formatProductionStatisticsNumber(value,digits=2){
+  if(value===undefined || value===null || value==="")return "-";
+  const num=Number(value);
+  if(!Number.isFinite(num))return String(value);
+  const hasDecimal=Math.abs(num-Math.trunc(num))>.000001;
+  return num.toLocaleString("zh-CN",{
+    minimumFractionDigits:hasDecimal?Math.min(digits,2):0,
+    maximumFractionDigits:digits
+  });
+}
+
+function formatProductionStatisticsAmount(value){
+  const num=Number(value || 0);
+  if(!Number.isFinite(num))return "-";
+  if(Math.abs(num)>=10000)return `${formatProductionStatisticsNumber(num/10000,2)}亿元`;
+  return `${formatProductionStatisticsNumber(num,0)}万元`;
+}
+
+function formatProductionStatisticsProgress(numerator,denominator){
+  const den=Number(denominator || 0);
+  if(!den)return "-";
+  const percent=Number(numerator || 0)/den*100;
+  return `${formatProductionStatisticsNumber(percent,2)}%`;
+}
+
+function getProductionStatisticsProgressValue(numerator,denominator){
+  const den=Number(denominator || 0);
+  if(!den)return 0;
+  return Math.max(0,Math.min(100,Number(numerator || 0)/den*100));
+}
+
+function getProductionStatisticsYoYClass(value){
+  const num=parseFloat(String(value || "").replace("%",""));
+  if(!Number.isFinite(num) || num===0)return "flat";
+  return num>0?"up":"down";
+}
+
+function getProductionStatisticsMetricName(industry){
+  if(industry?.name==="房地产业")return "产值/营收/投资/销售面积";
+  return industry?.metricName || industry?.summary?.metricName || "纳统值";
+}
+
+function getActiveProductionStatisticsIndustry(){
+  const industries=getProductionStatisticsIndustries();
+  if(!industries.length)return null;
+  let active=industries.find(item=>item.name===productionStatisticsState.industry);
+  if(!active){
+    active=industries[0];
+    productionStatisticsState.industry=active.name;
+    productionStatisticsState.company="全部";
+  }
+  return active;
+}
+
+function getProductionStatisticsCompanyRows(industry){
+  if(!industry)return [];
+  const summary=industry.summary || {};
+  const companies=Array.isArray(summary.companies)?summary.companies:[];
+  return [
+    {
+      company:"全部",
+      entityCount:summary.entityCount || 0,
+      includedCount:summary.includedCount || 0,
+      plan2026:summary.plan2026 || 0,
+      month2026:summary.month2026 || 0,
+      ytd2026:summary.ytd2026 || 0,
+      salesAreaYtd2026:summary.salesAreaYtd2026 || 0,
+      isAll:true
+    },
+    ...companies
+  ];
+}
+
+function getActiveProductionStatisticsCompany(industry){
+  const rows=getProductionStatisticsCompanyRows(industry);
+  if(!rows.some(row=>row.company===productionStatisticsState.company)){
+    productionStatisticsState.company="全部";
+  }
+  return productionStatisticsState.company || "全部";
+}
+
+function getProductionStatisticsFilteredRecords(industry){
+  if(!industry)return [];
+  const company=getActiveProductionStatisticsCompany(industry);
+  const records=Array.isArray(industry.records)?industry.records:[];
+  if(company==="全部")return records;
+  return records.filter(record=>record.company===company);
+}
+
+function setProductionStatisticsIndustry(industry){
+  productionStatisticsState.industry=industry || "";
+  productionStatisticsState.company="全部";
+  renderProductionStatisticsDashboardPreservingScroll();
+}
+
+function setProductionStatisticsCompany(company){
+  productionStatisticsState.company=company || "全部";
+  renderProductionStatisticsDashboardPreservingScroll();
+}
+
+function renderProductionStatisticsKpis(){
+  const data=getProductionStatisticsData();
+  const overall=data.overall || {};
+  const industries=getProductionStatisticsIndustries();
+  const includedRate=formatProductionStatisticsProgress(overall.includedCount,overall.entityCount);
+  const cards=[
+    {label:"业态数量",value:overall.industryCount || industries.length,unit:"个",note:`公司 ${overall.companyCount || 0} 家`,tone:"blue"},
+    {label:"法人单位",value:overall.entityCount || 0,unit:"家",note:`明细 ${overall.recordCount || 0} 行`,tone:"cyan"},
+    {label:"已纳统单位",value:overall.includedCount || 0,unit:"家",note:`纳统率 ${includedRate}`,tone:"green"},
+    {label:"2026计划纳统值",value:formatProductionStatisticsAmount(overall.plan2026),unit:"",note:"按各业态计划汇总",tone:"orange"},
+    {label:"1-6月累计纳统值",value:formatProductionStatisticsAmount(overall.ytd2026),unit:"",note:`本月 ${formatProductionStatisticsAmount(overall.month2026)}`,tone:"purple"}
+  ];
+  return cards.map(card=>`
+    <article class="production-statistics-kpi ${card.tone}">
+      <span>${card.label}</span>
+      <strong>${card.value}<em>${card.unit}</em></strong>
+      <p>${card.note}</p>
+    </article>
+  `).join("");
+}
+
+function renderProductionStatisticsIndustryCards(){
+  const industries=getProductionStatisticsIndustries();
+  const active=getActiveProductionStatisticsIndustry();
+  return industries.map((industry,index)=>{
+    const summary=industry.summary || {};
+    const progressText=formatProductionStatisticsProgress(summary.ytd2026,summary.plan2026);
+    const progressValue=getProductionStatisticsProgressValue(summary.ytd2026,summary.plan2026);
+    const includedRate=formatProductionStatisticsProgress(summary.includedCount,summary.entityCount);
+    return `
+      <button type="button" class="production-statistics-industry-card tone-${index%6} ${active?.name===industry.name?"active":""}" onclick="setProductionStatisticsIndustry('${productionStatisticsJsArg(industry.name)}')">
+        <span>${productionStatisticsText(industry.name)}</span>
+        <strong>${productionStatisticsText(getProductionStatisticsMetricName(industry))}</strong>
+        <div class="production-statistics-industry-meta">
+          <b>${formatProductionStatisticsNumber(summary.entityCount || 0,0)}<em>公司</em></b>
+          <b>${formatProductionStatisticsNumber(summary.includedCount || 0,0)}<em>已纳统</em></b>
+        </div>
+        <div class="production-statistics-industry-values">
+          <p><i>年度计划</i><em>${formatProductionStatisticsAmount(summary.plan2026)}</em></p>
+          <p><i>本月</i><em>${formatProductionStatisticsAmount(summary.month2026)}</em></p>
+          <p><i>累计</i><em>${formatProductionStatisticsAmount(summary.ytd2026)}</em></p>
+        </div>
+        <div class="production-statistics-progress">
+          <span><i style="width:${progressValue.toFixed(2)}%"></i></span>
+          <em>${progressText}</em>
+        </div>
+        <small>纳统率 ${includedRate}</small>
+      </button>
+    `;
+  }).join("");
+}
+
+function renderProductionStatisticsCompanyHeader(){
+  const industry=getActiveProductionStatisticsIndustry();
+  const company=getActiveProductionStatisticsCompany(industry);
+  if(!industry)return "";
+  return `
+    <div class="production-overview-panel-hd production-statistics-panel-hd">
+      <h3>${productionStatisticsText(industry.name)}公司维度</h3>
+      <div class="production-statistics-panel-actions">
+        <span>${productionStatisticsText(getProductionStatisticsMetricName(industry))}</span>
+        <b>${productionStatisticsText(company)}</b>
+      </div>
+    </div>
+  `;
+}
+
+function renderProductionStatisticsCompanies(){
+  const industry=getActiveProductionStatisticsIndustry();
+  if(!industry)return `<div class="project-log-empty">暂无纳统数据</div>`;
+  const activeCompany=getActiveProductionStatisticsCompany(industry);
+  return `
+    <div class="production-statistics-company-list">
+      ${getProductionStatisticsCompanyRows(industry).map(row=>{
+        const progressValue=getProductionStatisticsProgressValue(row.ytd2026,row.plan2026);
+        const progressText=formatProductionStatisticsProgress(row.ytd2026,row.plan2026);
+        return `
+          <button type="button" class="production-statistics-company-row ${row.company===activeCompany?"active":""} ${row.isAll?"all":""}" onclick="setProductionStatisticsCompany('${productionStatisticsJsArg(row.company)}')">
+            <span class="name">${productionStatisticsText(row.company)}</span>
+            <span><b>${formatProductionStatisticsNumber(row.entityCount || 0,0)}</b><em>法人</em></span>
+            <span><b>${formatProductionStatisticsNumber(row.includedCount || 0,0)}</b><em>纳统</em></span>
+            <span><b>${formatProductionStatisticsAmount(row.ytd2026)}</b><em>累计</em></span>
+            <span class="bar"><i style="width:${progressValue.toFixed(2)}%"></i><em>${progressText}</em></span>
+          </button>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+function renderProductionStatisticsDetailHeader(){
+  const industry=getActiveProductionStatisticsIndustry();
+  if(!industry)return "";
+  const activeCompany=getActiveProductionStatisticsCompany(industry);
+  const records=getProductionStatisticsFilteredRecords(industry);
+  return `
+    <div class="production-overview-panel-hd production-statistics-panel-hd">
+      <h3>${productionStatisticsText(industry.name)}法人单位明细</h3>
+      <div class="production-statistics-panel-actions">
+        <span>${productionStatisticsText(activeCompany)}</span>
+        <b>${records.length} 行</b>
+      </div>
+    </div>
+  `;
+}
+
+function renderProductionStatisticsRecordType(record){
+  const labels={detail:"明细",line:"分行",subtotal:"小计",total:"合计"};
+  return labels[record?.recordType] || record?.recordType || "-";
+}
+
+function renderProductionStatisticsCommonCells(record){
+  return `
+    <td>${productionStatisticsText(record.row)}</td>
+    <td>${productionStatisticsText(record.serial)}</td>
+    <td><span class="production-statistics-tag ${productionStatisticsText(record.recordType)}">${productionStatisticsText(renderProductionStatisticsRecordType(record))}</span></td>
+    <td class="name">${productionStatisticsText(record.legalEntity)}</td>
+    <td>${productionStatisticsText(record.company)}</td>
+    <td>${productionStatisticsText(record.industryCategory)}</td>
+    <td>${productionStatisticsText(record.scale)}</td>
+    <td>${productionStatisticsText(record.registeredCapital)}</td>
+    <td>${productionStatisticsText(record.registeredCity)}</td>
+    <td>${productionStatisticsText(record.registeredDistrict)}</td>
+    <td>${productionStatisticsText(record.businessPlace)}</td>
+    <td>${productionStatisticsText(record.constructionQualification)}</td>
+    <td>${productionStatisticsText(record.realEstateQualification)}</td>
+    <td>${productionStatisticsText(record.financialSupervision)}</td>
+    <td>${productionStatisticsText(record.financialLicense)}</td>
+    <td><span class="production-statistics-include ${record.included==="是"?"yes":record.included==="否"?"no":""}">${productionStatisticsText(record.included)}</span></td>
+    <td>${productionStatisticsText(record.statisticsPlace)}</td>
+    <td>${productionStatisticsText(record.lineType)}</td>
+  `;
+}
+
+function renderProductionStatisticsCommonTailCells(record){
+  return `
+    <td>${productionStatisticsText(record.department)}</td>
+    <td>${productionStatisticsText(record.contact)}</td>
+    <td>${productionStatisticsText(record.phone)}</td>
+  `;
+}
+
+function renderProductionStatisticsMetricCell(value){
+  return `<td>${productionStatisticsText(formatProductionStatisticsNumber(value,2))}</td>`;
+}
+
+function renderProductionStatisticsYoYCell(value){
+  return `<td class="yoy ${getProductionStatisticsYoYClass(value)}">${productionStatisticsText(value)}</td>`;
+}
+
+function renderProductionStatisticsGenericDetails(records){
+  return `
+    <table class="production-statistics-table">
+      <thead>
+        <tr>
+          <th>行号</th><th>序号</th><th>类型</th><th>法人单位</th><th>所属公司</th><th>行业</th><th>规上/规下</th><th>注册资本</th><th>注册市</th><th>注册区</th><th>经营地</th><th>建筑资质</th><th>房产资质</th><th>金融监管</th><th>金融牌照</th><th>是否纳统</th><th>纳统地</th><th>在地</th><th>2025全年</th><th>2026计划</th><th>计划同比</th><th>2025年06月</th><th>2026年06月</th><th>月同比</th><th>2025年累计</th><th>2026年累计</th><th>累计同比</th><th>负责部门</th><th>联系人</th><th>电话</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${records.map(record=>`
+          <tr class="${productionStatisticsText(record.recordType)}">
+            ${renderProductionStatisticsCommonCells(record)}
+            ${renderProductionStatisticsMetricCell(record.metrics?.annual2025)}
+            ${renderProductionStatisticsMetricCell(record.metrics?.plan2026)}
+            ${renderProductionStatisticsYoYCell(record.metrics?.planYoY)}
+            ${renderProductionStatisticsMetricCell(record.metrics?.month2025)}
+            ${renderProductionStatisticsMetricCell(record.metrics?.month2026)}
+            ${renderProductionStatisticsYoYCell(record.metrics?.monthYoY)}
+            ${renderProductionStatisticsMetricCell(record.metrics?.ytd2025)}
+            ${renderProductionStatisticsMetricCell(record.metrics?.ytd2026)}
+            ${renderProductionStatisticsYoYCell(record.metrics?.ytdYoY)}
+            ${renderProductionStatisticsCommonTailCells(record)}
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function getProductionStatisticsRealEstateMetric(record,period,key){
+  const value=record?.metrics?.[period]?.[key];
+  return value===undefined || value===null ? "" : value;
+}
+
+function renderProductionStatisticsRealEstateMetricCells(record,period){
+  return ["output","revenue","investment","salesArea"].map(key=>renderProductionStatisticsMetricCell(getProductionStatisticsRealEstateMetric(record,period,key))).join("");
+}
+
+function renderProductionStatisticsRealEstateDetails(records){
+  return `
+    <table class="production-statistics-table production-statistics-real-estate-table">
+      <thead>
+        <tr>
+          <th>行号</th><th>序号</th><th>类型</th><th>法人单位</th><th>所属公司</th><th>行业</th><th>规上/规下</th><th>注册资本</th><th>注册市</th><th>注册区</th><th>经营地</th><th>建筑资质</th><th>房产资质</th><th>金融监管</th><th>金融牌照</th><th>是否纳统</th><th>纳统地</th><th>在地</th><th>2025全年产值</th><th>2025全年营收</th><th>2025全年投资</th><th>2025全年销售面积</th><th>2025年06月产值</th><th>2025年06月营收</th><th>2025年06月投资</th><th>2025年06月销售面积</th><th>2025年累计产值</th><th>2025年累计营收</th><th>2025年累计投资</th><th>2025年累计销售面积</th><th>2026计划产值</th><th>2026计划营收</th><th>2026计划投资</th><th>2026计划销售面积</th><th>2026年06月产值</th><th>2026年06月营收</th><th>2026年06月投资</th><th>2026年06月销售面积</th><th>2026年累计产值</th><th>2026年累计营收</th><th>2026年累计投资</th><th>2026年累计销售面积</th><th>负责部门</th><th>联系人</th><th>电话</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${records.map(record=>`
+          <tr class="${productionStatisticsText(record.recordType)}">
+            ${renderProductionStatisticsCommonCells(record)}
+            ${renderProductionStatisticsRealEstateMetricCells(record,"annual2025")}
+            ${renderProductionStatisticsRealEstateMetricCells(record,"month2025")}
+            ${renderProductionStatisticsRealEstateMetricCells(record,"ytd2025")}
+            ${renderProductionStatisticsRealEstateMetricCells(record,"plan2026")}
+            ${renderProductionStatisticsRealEstateMetricCells(record,"month2026")}
+            ${renderProductionStatisticsRealEstateMetricCells(record,"ytd2026")}
+            ${renderProductionStatisticsCommonTailCells(record)}
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function renderProductionStatisticsDetails(){
+  const industry=getActiveProductionStatisticsIndustry();
+  if(!industry)return `<div class="project-log-empty">暂无纳统数据</div>`;
+  const records=getProductionStatisticsFilteredRecords(industry);
+  if(!records.length)return `<div class="project-log-empty">暂无匹配数据</div>`;
+  return industry.name==="房地产业"
+    ? renderProductionStatisticsRealEstateDetails(records)
+    : renderProductionStatisticsGenericDetails(records);
+}
+
+async function renderProductionStatisticsDashboardPage(){
+  detailPage.style.display="none";
+  const mounted=await mountProductionScreenTemplate("statistics","block");
+  if(mounted.stale)return;
+  getActiveProductionStatisticsIndustry();
+  replaceProductionScreenFragment(productionScreenSlot("header"),renderProductionScreenHeader("纳统看板"));
+  replaceProductionScreenFragment(productionScreenSlot("statistics-kpis"),renderProductionStatisticsKpis());
+  replaceProductionScreenFragment(productionScreenSlot("statistics-industries"),renderProductionStatisticsIndustryCards());
+  replaceProductionScreenFragment(productionScreenSlot("statistics-company-header"),renderProductionStatisticsCompanyHeader());
+  replaceProductionScreenFragment(productionScreenSlot("statistics-companies"),renderProductionStatisticsCompanies());
+  replaceProductionScreenFragment(productionScreenSlot("statistics-detail-header"),renderProductionStatisticsDetailHeader());
+  replaceProductionScreenFragment(productionScreenSlot("statistics-details"),renderProductionStatisticsDetails());
+}
+
+function renderProductionStatisticsDashboardPreservingScroll(){
+  renderWithPreservedScroll(renderProductionStatisticsDashboardPage,[".production-statistics-dashboard",".production-statistics-table-wrap","#listPage",".main"]);
+}
+
 function renderProductionValueMetric(label,value,unit,icon,extra=""){
   const isImageIcon=String(icon).endsWith(".svg");
   const iconHtml=isImageIcon?`<img src="${icon}" alt=""/>`:icon;
@@ -1267,13 +1666,17 @@ function renderProductionValueDashboardPreservingScroll(){
 Object.assign(window,{
   renderProductionDashboardByKey,
   renderProductionOverviewDashboardPage,
+  renderProductionStatisticsDashboardPage,
   renderProductionMajorDashboardPage,
   renderProductionValueDashboardPage,
   renderProductionOverviewDashboardPreservingScroll,
+  renderProductionStatisticsDashboardPreservingScroll,
   renderProductionMajorDashboardPreservingScroll,
   renderProductionValueDashboardPreservingScroll,
   renderProductionScreenEmptyPage,
   switchProductionScreenTab,
+  setProductionStatisticsIndustry,
+  setProductionStatisticsCompany,
   setProductionOverviewFilter,
   setProductionMajorFilter,
   setProductionOverviewCompletionMode,
