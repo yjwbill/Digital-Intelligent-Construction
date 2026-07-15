@@ -978,6 +978,17 @@ const otherBizOutputBizColumns=[
 ];
 
 const otherBizOutputInputColumns=otherBizOutputBizColumns.filter(col=>col.key!=="total");
+const otherBizOutputIndustryGroups=[
+  {key:"product",label:"产品销售",columns:["product"]},
+  {key:"design",label:"设计",columns:["design"]},
+  {key:"digital",label:"数字",columns:["digital"]},
+  {key:"cityOperation",label:"城市运营",columns:["cityOperation"]},
+  {key:"property",label:"房产",columns:["propertyManage","businessOperation","propertyDevelop"]},
+  {key:"investment",label:"投资",columns:["equityInvestment","infrastructureInvestment","leaseFactoring"]}
+];
+const otherBizOutputColumnIndustryMap=Object.fromEntries(
+  otherBizOutputIndustryGroups.flatMap(group=>group.columns.map(key=>[key,group.key]))
+);
 const otherBizOutputReportMetricFields=[
   {key:"annualPlan",label:"年度计划产值"},
   {key:"monthlyActual",label:"本月度实际完成产值"},
@@ -1201,7 +1212,7 @@ function openOtherBizOutputDetail(id){
                 field.key,
                 {[col.key]:row.reportStatus==="未上报"?0:getOtherBizOutputReportMetricValue(row,col.key,field.key)}
               ]));
-              return renderOtherBizOutputReportInput(col.label,col.key,values,true);
+              return renderOtherBizOutputReportInput(col.label,col.key,values,{readonly:true});
             }).join("")}
           </div>
         </section>
@@ -1258,9 +1269,37 @@ function getOtherBizOutputReportMetricValue(row,colKey,metricKey){
   return base;
 }
 
-function renderOtherBizOutputReportInput(label,key,values,readonly=false){
+function getOtherBizOutputInitialIndustryKeys(values){
+  const active=otherBizOutputIndustryGroups
+    .filter(group=>group.columns.some(colKey=>otherBizOutputReportMetricFields.some(field=>Number(values?.[field.key]?.[colKey]||0)>0)))
+    .map(group=>group.key);
+  return active.length?active:otherBizOutputIndustryGroups.map(group=>group.key);
+}
+
+function renderOtherBizOutputIndustrySelector(activeKeys){
   return `
-    <article class="other-biz-report-metric-card ${readonly?"total":""}">
+    <div class="other-biz-industry-selector">
+      <div>
+        <strong>填报业态</strong>
+        <span>仅勾选需要填报的业态</span>
+      </div>
+      <div class="other-biz-industry-options">
+        ${otherBizOutputIndustryGroups.map(group=>`
+          <label>
+            <input type="checkbox" class="other-biz-industry-check" value="${group.key}" ${activeKeys.includes(group.key)?"checked":""} onchange="toggleOtherBizOutputIndustry('${group.key}',this.checked)"/>
+            <span>${group.label}</span>
+          </label>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderOtherBizOutputReportInput(label,key,values,options={}){
+  const readonly=!!options.readonly;
+  const industry=options.industry || otherBizOutputColumnIndustryMap[key] || "";
+  return `
+    <article class="other-biz-report-metric-card ${readonly?"total":""}" ${industry?`data-industry="${industry}"`:""}>
       <h3>${label}</h3>
       <div class="other-biz-report-metric-fields">
         ${otherBizOutputReportMetricFields.map(field=>`
@@ -1287,12 +1326,47 @@ function renderOtherBizOutputReportInput(label,key,values,readonly=false){
   `;
 }
 
+function renderOtherBizOutputReportTotal(values){
+  return `
+    <div class="other-biz-report-total">
+      <h3>合计</h3>
+      <div class="other-biz-report-total-values">
+        ${otherBizOutputReportMetricFields.map(field=>`
+          <div>
+            <span>${field.label}</span>
+            <strong class="other-biz-report-total-value" data-key="total" data-metric="${field.key}">${Number(values?.[field.key]?.total||0).toFixed(6)}</strong>
+            <em>万元</em>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
 function updateOtherBizOutputReportTotal(){
   otherBizOutputReportMetricFields.forEach(field=>{
-    const inputs=[...document.querySelectorAll(`.other-biz-report-amount[data-metric="${field.key}"]:not(.readonly)`)];
+    const inputs=[...document.querySelectorAll(`.other-biz-report-metric-card:not(.is-hidden) .other-biz-report-amount[data-metric="${field.key}"]:not(.readonly)`)]; 
     const total=inputs.reduce((sum,input)=>sum+(Number(input.value)||0),0);
     const totalInput=document.querySelector(`.other-biz-report-amount[data-key="total"][data-metric="${field.key}"]`);
     if(totalInput)totalInput.value=total.toFixed(6);
+    const totalText=document.querySelector(`.other-biz-report-total-value[data-key="total"][data-metric="${field.key}"]`);
+    if(totalText)totalText.textContent=total.toFixed(6);
+  });
+}
+
+function toggleOtherBizOutputIndustry(groupKey,checked){
+  document.querySelectorAll(`.other-biz-report-metric-card[data-industry="${groupKey}"]`).forEach(card=>{
+    card.classList.toggle("is-hidden",!checked);
+    card.querySelectorAll(".other-biz-report-amount:not(.readonly)").forEach(input=>{
+      input.disabled=!checked;
+    });
+  });
+  updateOtherBizOutputReportTotal();
+}
+
+function syncOtherBizOutputIndustrySelection(){
+  document.querySelectorAll(".other-biz-industry-check").forEach(input=>{
+    toggleOtherBizOutputIndustry(input.value,input.checked);
   });
 }
 
@@ -1322,6 +1396,7 @@ function renderOtherBizOutputPresetFlow(){
 function openOtherBizOutputReportForm(){
   const base=getOtherBizOutputReportBase();
   const values=buildOtherBizOutputReportInitialValues();
+  const activeIndustryKeys=getOtherBizOutputInitialIndustryKeys(values);
   const html=`
     <div class="actual-output-detail other-biz-report-form">
       <div class="actual-output-detail-main">
@@ -1336,10 +1411,11 @@ function openOtherBizOutputReportForm(){
         </section>
         <section class="actual-output-report-card">
           <div class="actual-output-section-title">上报信息</div>
+          ${renderOtherBizOutputIndustrySelector(activeIndustryKeys)}
           <div class="other-biz-report-metric-list">
-            ${renderOtherBizOutputReportInput("合计","total",values,true)}
-            ${otherBizOutputInputColumns.map(col=>renderOtherBizOutputReportInput(col.label,col.key,values)).join("")}
+            ${otherBizOutputInputColumns.map(col=>renderOtherBizOutputReportInput(col.label,col.key,values,{industry:otherBizOutputColumnIndustryMap[col.key]})).join("")}
           </div>
+          ${renderOtherBizOutputReportTotal(values)}
         </section>
       </div>
       ${renderOtherBizOutputPresetFlow()}
@@ -1350,17 +1426,21 @@ function openOtherBizOutputReportForm(){
     <button class="btn primary" onclick="submitOtherBizOutputReportForm()">提交</button>
   `,"large");
   modalBox.classList.add("actual-output-detail-modal");
-  updateOtherBizOutputReportTotal();
+  syncOtherBizOutputIndustrySelection();
 }
 
 function submitOtherBizOutputReportForm(){
   const base=getOtherBizOutputReportBase();
   const values={};
   const reportMetrics=Object.fromEntries(otherBizOutputReportMetricFields.map(field=>[field.key,{}]));
+  const activeIndustryKeys=[...document.querySelectorAll(".other-biz-industry-check:checked")].map(input=>input.value);
+  if(!activeIndustryKeys.length)return showToast("请至少选择一个需要填报的业态");
   otherBizOutputBizColumns.forEach(col=>{
+    const isActive=col.key==="total" || activeIndustryKeys.includes(otherBizOutputColumnIndustryMap[col.key]);
     otherBizOutputReportMetricFields.forEach(field=>{
       const input=document.querySelector(`.other-biz-report-amount[data-key="${col.key}"][data-metric="${field.key}"]`);
-      reportMetrics[field.key][col.key]=Number(input?.value)||0;
+      const totalText=document.querySelector(`.other-biz-report-total-value[data-key="${col.key}"][data-metric="${field.key}"]`);
+      reportMetrics[field.key][col.key]=isActive ? Number(input?.value || totalText?.textContent)||0 : 0;
     });
     values[col.key]=reportMetrics.monthlyActual[col.key]||0;
   });
@@ -1451,7 +1531,7 @@ const finishedUnsettledOutputState={
 
 const finishedUnsettledMetricFields=[
   {key:"annualPlan",label:"年度计划产值"},
-  {key:"monthlyActual",label:"本月度实际完成产值"},
+  {key:"monthlyActual",label:"实际完成产值"},
   {key:"remainingContract",label:"剩余合同产值"}
 ];
 const finishedUnsettledProjectStatuses=["完工","竣工"];
@@ -1566,7 +1646,7 @@ tableColumnDefinitions.finishedUnsettledOutput=[
   {key:"outputMonth",title:"上报月份",width:120,align:"center",render:row=>row.outputMonth},
   {key:"reportStatus",title:"上报情况",width:130,align:"center",render:row=>renderActualOutputStatusTag(row.reportStatus)},
   {key:"annualPlan",title:"年度计划产值（万元）",width:170,align:"right",render:row=>row.reportStatus==="未上报"?"-":formatActualOutputAmount(row.annualPlan)},
-  {key:"monthlyActual",title:"本月度实际完成产值（万元）",width:210,align:"right",render:row=>row.reportStatus==="未上报"?"-":formatActualOutputAmount(row.monthlyActual)},
+  {key:"monthlyActual",title:"实际完成产值（万元）",width:170,align:"right",render:row=>row.reportStatus==="未上报"?"-":formatActualOutputAmount(row.monthlyActual)},
   {key:"remainingContract",title:"剩余合同产值（万元）",width:170,align:"right",render:row=>row.reportStatus==="未上报"?"-":formatActualOutputAmount(row.remainingContract)},
   {key:"reporter",title:"上报人",width:110,align:"center",render:row=>row.reporter||"-"},
   {key:"reportDate",title:"上报日期",width:130,align:"center",render:row=>row.reportDate||"-"},

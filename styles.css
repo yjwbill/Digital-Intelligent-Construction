@@ -2058,6 +2058,62 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
   padding-right:4px;
 }
 
+.other-biz-industry-selector{
+  margin-top:12px;
+  padding:12px;
+  border:1px solid #D9E1EC;
+  border-radius:6px;
+  background:#F7FAFF;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+}
+
+.other-biz-industry-selector strong,
+.other-biz-industry-selector span{
+  display:block;
+}
+
+.other-biz-industry-selector strong{
+  color:#1D2129;
+  font-size:14px;
+  line-height:20px;
+}
+
+.other-biz-industry-selector>div:first-child span{
+  margin-top:2px;
+  color:#86909C;
+  font-size:12px;
+}
+
+.other-biz-industry-options{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.other-biz-industry-options label{
+  height:30px;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:0 10px;
+  border:1px solid #D9E1EC;
+  border-radius:4px;
+  background:#fff;
+  color:#1D2129;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.other-biz-industry-options input{
+  margin:0;
+}
+
 .other-biz-report-metric-list.readonly{
   max-height:none;
 }
@@ -2073,6 +2129,62 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
 .other-biz-report-metric-card.total{
   grid-column:1/-1;
   background:#F7FAFF;
+}
+
+.other-biz-report-metric-card.is-hidden{
+  display:none;
+}
+
+.other-biz-report-total{
+  flex:0 0 auto;
+  margin-top:12px;
+  padding:12px 0 0;
+  border-top:1px solid #E5EAF2;
+}
+
+.other-biz-report-total h3{
+  margin:0 0 8px;
+  color:#1D2129;
+  font-size:14px;
+  line-height:20px;
+  font-weight:800;
+}
+
+.other-biz-report-total-values{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+
+.other-biz-report-total-values div{
+  min-width:0;
+  display:flex;
+  align-items:baseline;
+  gap:6px;
+  padding:0;
+  background:transparent;
+}
+
+.other-biz-report-total-values span{
+  color:#4E5969;
+  font-size:12px;
+  line-height:18px;
+  font-weight:700;
+  white-space:nowrap;
+}
+
+.other-biz-report-total-values strong{
+  color:#165DFF;
+  font-family:D-DIN,Arial,sans-serif;
+  font-size:20px;
+  line-height:1;
+  font-weight:900;
+}
+
+.other-biz-report-total-values em{
+  color:#4E5969;
+  font-size:12px;
+  font-style:normal;
 }
 
 .other-biz-report-metric-card h3{

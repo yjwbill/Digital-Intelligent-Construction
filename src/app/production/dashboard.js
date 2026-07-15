@@ -1106,7 +1106,6 @@ function renderProductionStatisticsRecordType(record){
 
 function renderProductionStatisticsCommonCells(record){
   return `
-    <td>${productionStatisticsText(record.row)}</td>
     <td>${productionStatisticsText(record.serial)}</td>
     <td><span class="production-statistics-tag ${productionStatisticsText(record.recordType)}">${productionStatisticsText(renderProductionStatisticsRecordType(record))}</span></td>
     <td class="name">${productionStatisticsText(record.legalEntity)}</td>
@@ -1148,7 +1147,7 @@ function renderProductionStatisticsGenericDetails(records){
     <table class="production-statistics-table">
       <thead>
         <tr>
-          <th>行号</th><th>序号</th><th>类型</th><th>法人单位</th><th>所属公司</th><th>行业</th><th>规上/规下</th><th>注册资本</th><th>注册市</th><th>注册区</th><th>经营地</th><th>建筑资质</th><th>房产资质</th><th>金融监管</th><th>金融牌照</th><th>是否纳统</th><th>纳统地</th><th>在地</th><th>2025全年</th><th>2026计划</th><th>计划同比</th><th>2025年06月</th><th>2026年06月</th><th>月同比</th><th>2025年累计</th><th>2026年累计</th><th>累计同比</th><th>负责部门</th><th>联系人</th><th>电话</th>
+          <th>序号</th><th>类型</th><th>法人单位</th><th>所属公司</th><th>行业</th><th>规上/规下</th><th>注册资本</th><th>注册市</th><th>注册区</th><th>经营地</th><th>建筑资质</th><th>房产资质</th><th>金融监管</th><th>金融牌照</th><th>是否纳统</th><th>纳统地</th><th>在地</th><th>2025全年</th><th>2026计划</th><th>计划同比</th><th>2025年06月</th><th>2026年06月</th><th>月同比</th><th>2025年累计</th><th>2026年累计</th><th>累计同比</th><th>负责部门</th><th>联系人</th><th>电话</th>
         </tr>
       </thead>
       <tbody>
@@ -1186,7 +1185,7 @@ function renderProductionStatisticsRealEstateDetails(records){
     <table class="production-statistics-table production-statistics-real-estate-table">
       <thead>
         <tr>
-          <th>行号</th><th>序号</th><th>类型</th><th>法人单位</th><th>所属公司</th><th>行业</th><th>规上/规下</th><th>注册资本</th><th>注册市</th><th>注册区</th><th>经营地</th><th>建筑资质</th><th>房产资质</th><th>金融监管</th><th>金融牌照</th><th>是否纳统</th><th>纳统地</th><th>在地</th><th>2025全年产值</th><th>2025全年营收</th><th>2025全年投资</th><th>2025全年销售面积</th><th>2025年06月产值</th><th>2025年06月营收</th><th>2025年06月投资</th><th>2025年06月销售面积</th><th>2025年累计产值</th><th>2025年累计营收</th><th>2025年累计投资</th><th>2025年累计销售面积</th><th>2026计划产值</th><th>2026计划营收</th><th>2026计划投资</th><th>2026计划销售面积</th><th>2026年06月产值</th><th>2026年06月营收</th><th>2026年06月投资</th><th>2026年06月销售面积</th><th>2026年累计产值</th><th>2026年累计营收</th><th>2026年累计投资</th><th>2026年累计销售面积</th><th>负责部门</th><th>联系人</th><th>电话</th>
+          <th>序号</th><th>类型</th><th>法人单位</th><th>所属公司</th><th>行业</th><th>规上/规下</th><th>注册资本</th><th>注册市</th><th>注册区</th><th>经营地</th><th>建筑资质</th><th>房产资质</th><th>金融监管</th><th>金融牌照</th><th>是否纳统</th><th>纳统地</th><th>在地</th><th>2025全年产值</th><th>2025全年营收</th><th>2025全年投资</th><th>2025全年销售面积</th><th>2025年06月产值</th><th>2025年06月营收</th><th>2025年06月投资</th><th>2025年06月销售面积</th><th>2025年累计产值</th><th>2025年累计营收</th><th>2025年累计投资</th><th>2025年累计销售面积</th><th>2026计划产值</th><th>2026计划营收</th><th>2026计划投资</th><th>2026计划销售面积</th><th>2026年06月产值</th><th>2026年06月营收</th><th>2026年06月投资</th><th>2026年06月销售面积</th><th>2026年累计产值</th><th>2026年累计营收</th><th>2026年累计投资</th><th>2026年累计销售面积</th><th>负责部门</th><th>联系人</th><th>电话</th>
         </tr>
       </thead>
       <tbody>
