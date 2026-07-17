@@ -1849,9 +1849,11 @@ async function renderProductionValueDashboardPage(){
   const matrixSlot=productionScreenSlot("main-matrix");
   if(matrixSlot){
     const useMultiColumn=!isAll && displayMainRows.length>=2;
-    const matrixRows=useMultiColumn && displayMainRows.length===2 ? 1 : useMultiColumn ? 2 : Math.max(1,displayMainRows.length);
-    const matrixColumns=useMultiColumn && displayMainRows.length===2 ? 2 : useMultiColumn ? Math.ceil(displayMainRows.length/2) : 1;
+    const useThreeBusinessLayout=!isAll && displayMainRows.length===3;
+    const matrixRows=useThreeBusinessLayout ? 1 : useMultiColumn && displayMainRows.length===2 ? 1 : useMultiColumn ? 2 : Math.max(1,displayMainRows.length);
+    const matrixColumns=useThreeBusinessLayout ? 3 : useMultiColumn && displayMainRows.length===2 ? 2 : useMultiColumn ? Math.ceil(displayMainRows.length/2) : 1;
     matrixSlot.classList.toggle("multi-column",useMultiColumn);
+    matrixSlot.classList.toggle("three-business",useThreeBusinessLayout);
     matrixSlot.style.setProperty("--matrix-row-count",matrixRows);
     matrixSlot.style.setProperty("--matrix-column-count",matrixColumns);
   }

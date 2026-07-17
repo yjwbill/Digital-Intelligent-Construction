@@ -15646,6 +15646,31 @@ body.mobile-mode .mobile-manual-scroll{
 .production-value-dashboard.single-company .production-value-main-matrix.multi-column .production-value-main-row:nth-child(n+3){
   border-left:1px solid #dfe8f4;
 }
+.production-value-dashboard.single-company .production-value-main-matrix.three-business{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  grid-template-rows:minmax(210px,1fr);
+  grid-auto-flow:row;
+  column-gap:5px;
+  background:#dfe8f4;
+}
+.production-value-dashboard.single-company .production-value-main-matrix.three-business .production-value-main-row{
+  grid-template-columns:minmax(0,1fr);
+  grid-template-rows:42px minmax(0,1fr);
+  border-top:0;
+  border-left:0;
+  background:#fff;
+}
+.production-value-dashboard.single-company .production-value-main-matrix.three-business .production-value-main-row:nth-child(even){
+  border-top:0;
+}
+.production-value-dashboard.single-company .production-value-main-matrix.three-business .production-value-main-row + .production-value-main-row{
+  border-left:0;
+}
+.production-value-dashboard.single-company .production-value-main-matrix.three-business .production-value-main-row-label{
+  border-right:0;
+  border-bottom:1px solid #dfe8f4;
+  font-size:18px;
+}
 .production-value-main-row-label{
   display:grid;
   place-items:center;
