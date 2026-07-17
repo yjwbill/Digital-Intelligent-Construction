@@ -1452,7 +1452,7 @@ function renderProductionValueBizPanel(){
   const values=productionValueBizData[dataKey] || productionValueBizData[productionValueBizTabs[0]];
   const cards=[
     ["年度计划产值总额",values[0],"万元","¥"],
-    ["年度累计已完成产值",values[1],"万元","✓"],
+    ["年度累计完成产值",values[1],"万元","✓"],
     ["产值完成率",values[2],"","◔"],
     ["剩余合同产值",values[3],"万元","♟"]
   ];
@@ -1558,7 +1558,7 @@ function getProductionValueBusinessMetrics(type){
   const rate=totals.plan?totals.completed/totals.plan*100:0;
   return [
     {label:"年度计划产值总额",value:formatProductionValuePlain(totals.plan,2),unit:"万元"},
-    {label:"年度累计已完成产值",value:formatProductionValuePlain(totals.completed,2),unit:"万元"},
+    {label:"年度累计完成产值",value:formatProductionValuePlain(totals.completed,2),unit:"万元"},
     {label:"产值完成率",value:formatProductionValuePlain(rate,2),unit:"%"},
     {label:"剩余合同产值",value:formatProductionValuePlain(totals.remaining,2),unit:"万元"}
   ];
@@ -1777,14 +1777,16 @@ async function renderProductionValueDashboardPage(){
   const isAll=productionValueOrgActive==="全部";
   const topStats=[
     ["年度目标产值","4,349,038.13","万元","./src/assets/production-value/top-plan-total.svg"],
-    ["年度累计已完成产值",isAll?"566,416.19":"151,417.30","万元","./src/assets/production-value/top-completed-contract.svg"],
-    ["剩余合同产值","52,733,458.84","万元","./src/assets/production-value/top-completed-contract.svg"],
-    ["产值完成率",isAll?"13.02":"6.88","%","./src/assets/production-value/top-progress.svg"]
+    ["年度累计完成产值",isAll?"566,416.19":"151,417.30","万元","./src/assets/production-value/top-completed-contract.svg"],
+    ["产值完成率",isAll?"13.02":"6.88","%","./src/assets/production-value/top-progress.svg"],
+    ["7月完成产值",isAll?"31,440.45":"5,200.00","万元","./src/assets/production-value/top-completed-contract.svg"],
+    ["剩余合同产值","52,733,458.84","万元","./src/assets/production-value/top-completed-contract.svg"]
   ];
   const mainItems=[
     {label:"年度计划产值总额",value:"4,349,038.13",unit:"万元",icon:"./src/assets/production-value/main-plan-total.svg"},
-    {label:"年度累计已完成产值",value:isAll?"401,192.61":"151,417.30",unit:"万元",icon:"./src/assets/production-value/main-completed.svg"},
+    {label:"年度累计完成产值",value:isAll?"401,192.61":"151,417.30",unit:"万元",icon:"./src/assets/production-value/main-completed.svg"},
     {label:"产值完成率",value:isAll?"9.22":"6.88",unit:"%",icon:"./src/assets/production-value/main-rate.svg"},
+    {label:"7月完成产值",value:isAll?"31,440.45":"5,200.00",unit:"万元",icon:"./src/assets/production-value/main-completed.svg"},
     {label:"剩余合同产值",value:"52,208,882.36",unit:"万元",icon:"./src/assets/production-value/main-contract.svg"}
   ];
   const constructionMainRows=[
@@ -1793,19 +1795,19 @@ async function renderProductionValueDashboardPage(){
       categories:[
         {type:"new",title:"新接",metrics:[
           {label:"年度计划产值总额",value:"623,649.45",unit:"万元"},
-          {label:"年度累计已完成产值",value:"41,952.85",unit:"万元"},
+          {label:"年度累计完成产值",value:"41,952.85",unit:"万元"},
           {label:"产值完成率",value:"6.73",unit:"%"},
           {label:"剩余合同产值",value:"6,125,500.04",unit:"万元"}
         ]},
         {type:"carry",title:"转接",metrics:[
           {label:"年度计划产值总额",value:"1,927,643.74",unit:"万元"},
-          {label:"年度累计已完成产值",value:"204,520.13",unit:"万元"},
+          {label:"年度累计完成产值",value:"204,520.13",unit:"万元"},
           {label:"产值完成率",value:"10.61",unit:"%"},
           {label:"剩余合同产值",value:"24,502,000.15",unit:"万元"}
         ]},
         {type:"done",title:"完工未结算",metrics:[
           {label:"年度计划产值总额",value:"283,477.02",unit:"万元"},
-          {label:"年度累计已完成产值",value:"15,732.32",unit:"万元"},
+          {label:"年度累计完成产值",value:"15,732.32",unit:"万元"},
           {label:"产值完成率",value:"5.55",unit:"%"},
           {label:"剩余合同产值",value:"3,403,055.57",unit:"万元"}
         ]}
@@ -1816,19 +1818,19 @@ async function renderProductionValueDashboardPage(){
       categories:[
         {type:"new",title:"新接",metrics:[
           {label:"年度计划产值总额",value:"105,441.44",unit:"万元"},
-          {label:"年度累计已完成产值",value:"7,354.71",unit:"万元"},
+          {label:"年度累计完成产值",value:"7,354.71",unit:"万元"},
           {label:"产值完成率",value:"6.98",unit:"%"},
           {label:"剩余合同产值",value:"1,384,460.51",unit:"万元"}
         ]},
         {type:"carry",title:"转接",metrics:[
           {label:"年度计划产值总额",value:"197,702.70",unit:"万元"},
-          {label:"年度累计已完成产值",value:"21,451.25",unit:"万元"},
+          {label:"年度累计完成产值",value:"21,451.25",unit:"万元"},
           {label:"产值完成率",value:"10.85",unit:"%"},
           {label:"剩余合同产值",value:"2,175,580.81",unit:"万元"}
         ]},
         {type:"done",title:"完工未结算",metrics:[
           {label:"年度计划产值总额",value:"26,360.36",unit:"万元"},
-          {label:"年度累计已完成产值",value:"1,838.68",unit:"万元"},
+          {label:"年度累计完成产值",value:"1,838.68",unit:"万元"},
           {label:"产值完成率",value:"6.98",unit:"%"},
           {label:"剩余合同产值",value:"395,560.15",unit:"万元"}
         ]}

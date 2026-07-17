@@ -15314,7 +15314,7 @@ body.mobile-mode .mobile-manual-scroll{
 .production-value-top-strip{
   min-height:96px;
   display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-columns:repeat(5,minmax(0,1fr));
   gap:10px;
   align-items:center;
   padding:10px 14px;
@@ -15566,7 +15566,7 @@ body.mobile-mode .mobile-manual-scroll{
 }
 .production-value-main-summary{
   display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-columns:repeat(5,minmax(0,1fr));
   gap:8px;
   margin-bottom:8px;
 }

@@ -318,7 +318,7 @@ function renderOutputForecastStatsCard(){
         <div class="construction-project-stat-items">
           ${metric("至2025年末累计完成产值(万元)",sumValue("completedTo2025"))}
           ${metric("年度计划产值(万元)",sumValue("annualPlanOutput"))}
-          ${metric("年度累计已完成产值(万元)",sumValue("annualCompletedOutput"))}
+          ${metric("年度累计完成产值(万元)",sumValue("annualCompletedOutput"))}
           ${metric("5月完成产值(万元)",sumValue("mayOutput"))}
           ${metric("剩余合同产值(万元)",sumValue("remainingContractOutput"))}
           ${metric("2026年剩余合同产值预计完成(万元)",sumValue("remaining2026Forecast"))}
@@ -343,7 +343,7 @@ tableColumnDefinitions.outputForecastConstruction=[
   {key:"statisticNature",title:"统计性质",width:120,align:"center",render:row=>tag(row.statisticNature,row.statisticNature==="新接"?"green":row.statisticNature==="转接"?"blue":"orange")},
   {key:"completedTo2025",title:"至2025年末累计完成产值(万元)",width:230,align:"right",render:row=>formatForecastAmount(row.completedTo2025)},
   {key:"annualPlanOutput",title:"年度计划产值(万元)",width:180,align:"right",render:row=>formatForecastAmount(row.annualPlanOutput)},
-  {key:"annualCompletedOutput",title:"年度累计已完成产值(万元)",width:210,align:"right",render:row=>formatForecastAmount(row.annualCompletedOutput)},
+  {key:"annualCompletedOutput",title:"年度累计完成产值(万元)",width:210,align:"right",render:row=>formatForecastAmount(row.annualCompletedOutput)},
   {key:"mayOutput",title:"5月完成产值(万元)",width:170,align:"right",render:row=>formatForecastAmount(row.mayOutput)},
   {key:"remainingContractOutput",title:"剩余合同产值(万元)",width:180,align:"right",render:row=>formatForecastAmount(row.remainingContractOutput)},
   {key:"remaining2026Forecast",title:"2026年剩余合同产值预计完成(万元)",width:260,align:"right",render:row=>formatForecastAmount(row.remaining2026Forecast)},
