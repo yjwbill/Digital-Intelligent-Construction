@@ -1860,7 +1860,7 @@ function getDefaultColumnConfig(tableKey){
     key:col.key,
     title:col.title,
     width:col.width || 120,
-    visible:true,
+    visible:col.defaultHidden!==true,
     order:index + 1,
     align:col.align || "left"
   }));

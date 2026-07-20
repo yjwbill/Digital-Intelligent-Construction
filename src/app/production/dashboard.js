@@ -52,7 +52,6 @@ const productionValueBizData={
   "投资【基建项目】":["1,185,000","694,200","58.6%","490,800"],
   "投资【租赁及保理】":["268,600","186,400","69.4%","82,200"]
 };
-let productionValueCompanyMode="actual";
 let productionOverviewCompletionMode="actual";
 
 const productionOverviewFilterState={
@@ -321,11 +320,6 @@ function setProductionValueBizTab(tab){
 function setProductionValueBizSubTab(parent,tab){
   productionValueBizActive=parent;
   productionValueBizSubActive[parent]=tab;
-  renderProductionValueDashboardPreservingScroll();
-}
-
-function setProductionValueCompanyMode(mode){
-  productionValueCompanyMode=mode;
   renderProductionValueDashboardPreservingScroll();
 }
 
@@ -1010,22 +1004,22 @@ if(typeof tableColumnDefinitions!=="undefined"){
     {key:"company",title:"所属公司",width:120,render:record=>productionStatisticsText(record.company)},
     {key:"industryCategory",title:"行业",width:120,render:record=>productionStatisticsText(record.industryCategory)},
     {key:"scale",title:"规上/规下",width:100,align:"center",render:record=>productionStatisticsText(record.scale)},
-    {key:"registeredCapital",title:"注册资本",width:110,align:"right",render:record=>productionStatisticsText(record.registeredCapital)},
-    {key:"registeredCity",title:"注册市",width:110,render:record=>productionStatisticsText(record.registeredCity)},
-    {key:"registeredDistrict",title:"注册区",width:110,render:record=>productionStatisticsText(record.registeredDistrict)},
-    {key:"businessPlace",title:"经营地",width:120,render:record=>productionStatisticsText(record.businessPlace)},
-    {key:"constructionQualification",title:"建筑资质",width:100,align:"center",render:record=>productionStatisticsText(record.constructionQualification)},
-    {key:"realEstateQualification",title:"房产资质",width:100,align:"center",render:record=>productionStatisticsText(record.realEstateQualification)},
-    {key:"financialSupervision",title:"金融监管",width:100,align:"center",render:record=>productionStatisticsText(record.financialSupervision)},
-    {key:"financialLicense",title:"金融牌照",width:100,align:"center",render:record=>productionStatisticsText(record.financialLicense)},
+    {key:"registeredCapital",title:"注册资本",width:110,align:"right",defaultHidden:true,render:record=>productionStatisticsText(record.registeredCapital)},
+    {key:"registeredCity",title:"注册市",width:110,defaultHidden:true,render:record=>productionStatisticsText(record.registeredCity)},
+    {key:"registeredDistrict",title:"注册区",width:110,defaultHidden:true,render:record=>productionStatisticsText(record.registeredDistrict)},
+    {key:"businessPlace",title:"经营地",width:120,defaultHidden:true,render:record=>productionStatisticsText(record.businessPlace)},
+    {key:"constructionQualification",title:"建筑资质",width:100,align:"center",defaultHidden:true,render:record=>productionStatisticsText(record.constructionQualification)},
+    {key:"realEstateQualification",title:"房产资质",width:100,align:"center",defaultHidden:true,render:record=>productionStatisticsText(record.realEstateQualification)},
+    {key:"financialSupervision",title:"金融监管",width:100,align:"center",defaultHidden:true,render:record=>productionStatisticsText(record.financialSupervision)},
+    {key:"financialLicense",title:"金融牌照",width:100,align:"center",defaultHidden:true,render:record=>productionStatisticsText(record.financialLicense)},
     {key:"included",title:"是否纳统",width:100,align:"center",render:record=>renderProductionStatisticsIncludedValue(record)},
-    {key:"statisticsPlace",title:"纳统地",width:160,render:record=>productionStatisticsText(record.statisticsPlace)},
+    {key:"statisticsPlace",title:"纳统地",width:160,defaultHidden:true,render:record=>productionStatisticsText(record.statisticsPlace)},
     {key:"lineType",title:"在地",width:90,align:"center",render:record=>productionStatisticsText(record.lineType)}
   ];
   const productionStatisticsTailColumns=[
-    {key:"department",title:"负责部门",width:140,render:record=>productionStatisticsText(record.department)},
-    {key:"contact",title:"联系人",width:100,render:record=>productionStatisticsText(record.contact)},
-    {key:"phone",title:"电话",width:130,render:record=>productionStatisticsText(record.phone)}
+    {key:"department",title:"负责部门",width:140,defaultHidden:true,render:record=>productionStatisticsText(record.department)},
+    {key:"contact",title:"联系人",width:100,defaultHidden:true,render:record=>productionStatisticsText(record.contact)},
+    {key:"phone",title:"电话",width:130,defaultHidden:true,render:record=>productionStatisticsText(record.phone)}
   ];
 
   tableColumnDefinitions.productionStatisticsDetail=[
@@ -1637,23 +1631,16 @@ function renderProductionValueCompanyTable(){
     {company:"城建物资",actual:18620.45,target:410000.00,plan:329650.20},
     {company:"运营集团",actual:32500.60,target:680000.00,plan:468920.55}
   ];
-  const isPlan=productionValueCompanyMode==="plan";
-  const denominatorKey=isPlan?"plan":"target";
-  const denominatorTitle=isPlan?"年度计划值":"年度目标值";
   return `
     <section class="production-value-panel company-table">
       <div class="production-value-panel-hd">
         <h2>各公司产值完成情况</h2>
-        <div class="production-value-switch">
-          <button class="${!isPlan?"active":""}" onclick="setProductionValueCompanyMode('actual')">实际完成</button>
-          <button class="${isPlan?"active":""}" onclick="setProductionValueCompanyMode('plan')">全年计划</button>
-        </div>
       </div>
       <table>
-        <thead><tr><th>公司名称</th><th>完成情况</th><th>实际完成</th><th>${denominatorTitle}</th></tr></thead>
+        <thead><tr><th>公司名称</th><th>完成情况</th><th>实际完成</th><th>年度目标值</th><th>年度计划值</th></tr></thead>
         <tbody>
           ${rows.map(row=>{
-            const denominator=row[denominatorKey];
+            const denominator=row.target;
             const percent=denominator?row.actual/denominator*100:0;
             const status=percent>=10?"normal":percent>0?"lag":"none";
             return `
@@ -1665,7 +1652,8 @@ function renderProductionValueCompanyTable(){
                 </div>
               </td>
               <td>${formatProductionValueAmount(row.actual)}</td>
-              <td>${formatProductionValueAmount(denominator)}</td>
+              <td>${formatProductionValueAmount(row.target)}</td>
+              <td>${formatProductionValueAmount(row.plan)}</td>
             </tr>
           `}).join("")}
         </tbody>
@@ -1895,6 +1883,5 @@ Object.assign(window,{
   setProductionOverviewMaterialActive,
   setProductionValueOrg,
   setProductionValueBizTab,
-  setProductionValueBizSubTab,
-  setProductionValueCompanyMode
+  setProductionValueBizSubTab
 });
