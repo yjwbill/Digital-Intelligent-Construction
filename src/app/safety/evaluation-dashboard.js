@@ -13,7 +13,11 @@ function renderSafetyPlaceholder(name){
 
 function renderSafetyEvaluationManagePage(name){
   if(name==="指标管理")return renderSafetyEvaluationIndicatorPage();
-  if(name==="月度评价填报")return renderSafetyEvaluationMonthlyFillPage();
+  if(name==="月度评价填报")return renderSafetyEvaluationMonthlyFillCurrentPage();
+  if(name==="月度评价填报（禁）"){
+    safetyEvalMonthlyFillState.activeTab="company";
+    return renderSafetyEvaluationMonthlyFillPage(true);
+  }
   if(name==="对象管理（禁）")return renderSafetyEvaluationObjectPage();
   if(name==="评价模型")return renderSafetyEvaluationModelPage();
   if(name==="评价任务管理")return renderSafetyEvaluationTaskPage();
@@ -334,7 +338,8 @@ function setSafetyEvalMonthlyYear(year){
   const plans=getSafetyEvalMonthlyPlansByYear();
   safetyEvalMonthlyFillState.activePlan=plans[0]?.month || safetyEvalMonthlyPlans[0].month;
   safetyEvalMonthlyFillState.page={company:1,branch:1,project:1};
-  renderSafetyEvaluationMonthlyFillPage();
+  if(safetyEvalMonthlyFillState.legacyView)renderSafetyEvaluationMonthlyFillPage(true);
+  else renderSafetyEvaluationMonthlyFillCurrentPage();
 }
 
 function setSafetyEvalMonthlyPlan(month){
@@ -443,7 +448,8 @@ function submitSafetyEvalMonthlyFill(){
   const now=new Date();
   const pad=value=>String(value).padStart(2,"0");
   plan.updatedAt=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-  renderSafetyEvaluationMonthlyFillPage();
+  if(safetyEvalMonthlyFillState.legacyView)renderSafetyEvaluationMonthlyFillPage(true);
+  else renderSafetyEvaluationMonthlyFillCurrentPage();
   const tabLabel={company:"子公司评价数据",branch:"分公司评价数据",project:"项目评价数据"}[safetyEvalMonthlyFillState.activeTab] || "评价数据";
   showToast(`${plan.month}${tabLabel}已提交`);
 }
@@ -476,9 +482,380 @@ function getSafetyEvalMonthlyActiveRows(){
   return monthRows[safetyEvalMonthlyFillState.activeTab] || monthRows.company || [];
 }
 
-function renderSafetyEvaluationMonthlyFillPage(){
+const safetyEvalMonthlyCurrentQuery={projectName:"",company:"",branch:""};
+
+function getSafetyEvalMonthlyCurrentProjectRows(){
+  const rows=(safetyEvalMonthlyRowsByMonth[safetyEvalMonthlyFillState.activePlan] || safetyEvalMonthlyRowsByMonth["2026-06"]).project || [];
+  return rows.filter(row=>{
+    if(safetyEvalMonthlyCurrentQuery.projectName&&!row.projectName.includes(safetyEvalMonthlyCurrentQuery.projectName))return false;
+    if(safetyEvalMonthlyCurrentQuery.company&&row.company!==safetyEvalMonthlyCurrentQuery.company)return false;
+    if(safetyEvalMonthlyCurrentQuery.branch&&row.branch!==safetyEvalMonthlyCurrentQuery.branch)return false;
+    return true;
+  });
+}
+
+function getSafetyEvalMonthlyCurrentOptions(){
+  const rows=(safetyEvalMonthlyRowsByMonth[safetyEvalMonthlyFillState.activePlan] || safetyEvalMonthlyRowsByMonth["2026-06"]).project || [];
+  const companies=[...new Set(rows.map(row=>row.company))];
+  const branches=[...new Set(rows.filter(row=>!safetyEvalMonthlyCurrentQuery.company||row.company===safetyEvalMonthlyCurrentQuery.company).map(row=>row.branch))];
+  return {companies,branches};
+}
+
+function renderSafetyEvalMonthlyCurrentPlanCard(plan){
+  const rows=safetyEvalMonthlyRowsByMonth[plan.month] || {company:[],branch:[],project:[]};
+  const active=safetyEvalMonthlyFillState.activePlan===plan.month;
+  return `
+    <div class="monthly-plan-card ${active?"active":""}" onclick="setSafetyEvalMonthlyCurrentPlan('${plan.month}')">
+      <div class="monthly-plan-card-hd">
+        <strong>${plan.month}评价数据填报</strong>
+        <span class="monthly-plan-badge ${plan.status==="进行中"?"running":"ended"}">${plan.status}</span>
+      </div>
+      <div class="monthly-plan-lines monthly-plan-count-lines">
+        <div><span>评价子公司数</span><strong>${rows.company.length}</strong></div>
+        <div><span>评价分公司数</span><strong>${rows.branch.length}</strong></div>
+        <div><span>评价项目数</span><strong>${rows.project.length}</strong></div>
+      </div>
+      <div class="monthly-plan-update">◷ 更新于 ${plan.updatedAt}</div>
+    </div>
+  `;
+}
+
+function setSafetyEvalMonthlyCurrentYear(year){
+  safetyEvalMonthlyFillState.selectedYear=String(year);
+  const plans=getSafetyEvalMonthlyPlansByYear();
+  safetyEvalMonthlyFillState.activePlan=plans[0]?.month || safetyEvalMonthlyPlans[0].month;
+  safetyEvalMonthlyFillState.page.project=1;
+  safetyEvalMonthlyTreeExpandedCompanies.clear();
+  safetyEvalMonthlyTreeExpandedBranches.clear();
+  safetyEvalMonthlyTreeExpansionInitialized=false;
+  Object.assign(safetyEvalMonthlyCurrentQuery,{projectName:"",company:"",branch:""});
+  renderSafetyEvaluationMonthlyFillCurrentPage();
+}
+
+function setSafetyEvalMonthlyCurrentPlan(month){
+  safetyEvalMonthlyFillState.activePlan=month;
+  safetyEvalMonthlyFillState.selectedYear=String(month).slice(0,4);
+  safetyEvalMonthlyFillState.page.project=1;
+  safetyEvalMonthlyTreeExpandedCompanies.clear();
+  safetyEvalMonthlyTreeExpandedBranches.clear();
+  safetyEvalMonthlyTreeExpansionInitialized=false;
+  Object.assign(safetyEvalMonthlyCurrentQuery,{projectName:"",company:"",branch:""});
+  renderSafetyEvaluationMonthlyFillCurrentPage();
+}
+
+function querySafetyEvalMonthlyCurrent(){
+  safetyEvalMonthlyCurrentQuery.projectName=document.getElementById("semProjectName")?.value.trim() || "";
+  safetyEvalMonthlyCurrentQuery.company=document.getElementById("semCompany")?.value || "";
+  safetyEvalMonthlyCurrentQuery.branch=document.getElementById("semBranch")?.value || "";
+  safetyEvalMonthlyFillState.page.project=1;
+  renderSafetyEvaluationMonthlyFillCurrentPage();
+}
+
+function resetSafetyEvalMonthlyCurrent(){
+  Object.assign(safetyEvalMonthlyCurrentQuery,{projectName:"",company:"",branch:""});
+  safetyEvalMonthlyFillState.page.project=1;
+  renderSafetyEvaluationMonthlyFillCurrentPage();
+}
+
+function changeSafetyEvalMonthlyCurrentPage(delta){
+  const totalPages=Math.max(1,Math.ceil(getSafetyEvalMonthlyCurrentProjectRows().length/safetyEvalMonthlyFillState.pageSize));
+  safetyEvalMonthlyFillState.page.project=Math.min(totalPages,Math.max(1,(safetyEvalMonthlyFillState.page.project||1)+delta));
+  renderSafetyEvaluationMonthlyFillCurrentPage();
+}
+
+function changeSafetyEvalMonthlyCurrentPageSize(value){
+  safetyEvalMonthlyFillState.pageSize=Number(value)||10;
+  safetyEvalMonthlyFillState.page.project=1;
+  renderSafetyEvaluationMonthlyFillCurrentPage();
+}
+
+const safetyEvalMonthlyTreeExpandedCompanies=new Set();
+const safetyEvalMonthlyTreeExpandedBranches=new Set();
+const safetyEvalMonthlyTreeValues={};
+let safetyEvalMonthlyTreeInputTimer=null;
+let safetyEvalMonthlyTreeExpansionInitialized=false;
+const safetyEvalMonthlyTreeInputKeys=["fourMismatch","injury","pipelineAccident","fireAccident","lateReport","concealedReport","publicOpinion","opinionConceal","administrativePenalty","minorReport","minorApproved","laborDispute","honorNational","honorProvincial","honorDistrict"];
+const safetyEvalMonthlyTreeFixedKeys=["sequence","company","branch","projectName"];
+
+tableColumnDefinitions.safetyEvalMonthlyTree=[
+  {key:"sequence",title:"序号",width:92,align:"center",kind:"entity",render:()=>""},
+  {key:"company",title:"子公司",width:150,align:"center",kind:"entity",render:()=>""},
+  {key:"branch",title:"分公司",width:160,align:"center",kind:"entity",render:()=>""},
+  {key:"projectName",title:"项目名称",width:300,align:"left",kind:"entity",render:()=>""},
+  {key:"fourMismatch",title:"四要素不一致人数",group:"实名四要素一致性",width:150,align:"center",kind:"input",render:()=>""},
+  {key:"fourScore",title:"得分",group:"实名四要素一致性",width:100,align:"center",kind:"score",scoreKey:"fourScore",render:()=>""},
+  {key:"injury",title:"人身伤亡事故",group:"人身伤亡事故",width:130,align:"center",kind:"input",render:()=>""},
+  {key:"pipelineAccident",title:"重大管线事故",group:"人身伤亡事故",width:130,align:"center",kind:"input",render:()=>""},
+  {key:"fireAccident",title:"消防事故",group:"人身伤亡事故",width:110,align:"center",kind:"input",render:()=>""},
+  {key:"accidentScore",title:"得分",group:"人身伤亡事故",width:100,align:"center",kind:"score",scoreKey:"accidentScore",render:()=>""},
+  {key:"lateReport",title:"迟报数",group:"事故迟报瞒报",width:100,align:"center",kind:"input",render:()=>""},
+  {key:"concealedReport",title:"瞒报数",group:"事故迟报瞒报",width:100,align:"center",kind:"input",render:()=>""},
+  {key:"reportScore",title:"得分",group:"事故迟报瞒报",width:100,align:"center",kind:"score",scoreKey:"reportScore",render:()=>""},
+  {key:"publicOpinion",title:"舆情事件数",group:"重大舆情事件",width:120,align:"center",kind:"input",render:()=>""},
+  {key:"opinionConceal",title:"瞒报数",group:"重大舆情事件",width:100,align:"center",kind:"input",render:()=>""},
+  {key:"opinionScore",title:"得分",group:"重大舆情事件",width:100,align:"center",kind:"score",scoreKey:"opinionScore",render:()=>""},
+  {key:"administrativePenalty",title:"行政处罚数",group:"行政处罚记录",width:120,align:"center",kind:"input",render:()=>""},
+  {key:"penaltyScore",title:"得分",group:"行政处罚记录",width:100,align:"center",kind:"score",scoreKey:"penaltyScore",render:()=>""},
+  {key:"minorReport",title:"轻微事故上报数",group:"轻微事故上报",width:140,align:"center",kind:"input",render:()=>""},
+  {key:"minorApproved",title:"审核通过数",group:"轻微事故上报",width:120,align:"center",kind:"input",render:()=>""},
+  {key:"minorScore",title:"得分",group:"轻微事故上报",width:100,align:"center",kind:"score",scoreKey:"minorScore",render:()=>""},
+  {key:"laborDispute",title:"工伤信访数",group:"工伤信访维稳",width:120,align:"center",kind:"input",render:()=>""},
+  {key:"laborScore",title:"得分",group:"工伤信访维稳",width:100,align:"center",kind:"score",scoreKey:"laborScore",render:()=>""},
+  {key:"honorNational",title:"国际级和国家级",group:"荣誉表彰奖励",width:140,align:"center",kind:"input",render:()=>""},
+  {key:"honorProvincial",title:"省部级",group:"荣誉表彰奖励",width:100,align:"center",kind:"input",render:()=>""},
+  {key:"honorDistrict",title:"县区级和企业级",group:"荣誉表彰奖励",width:150,align:"center",kind:"input",render:()=>""},
+  {key:"honorScore",title:"得分",group:"荣誉表彰奖励",width:100,align:"center",kind:"score",scoreKey:"honorScore",render:()=>""}
+];
+
+function getSafetyEvalMonthlyTreeVisibleColumns(){
+  const definitions=tableColumnDefinitions.safetyEvalMonthlyTree;
+  const config=getColumnConfig("safetyEvalMonthlyTree");
+  const fixed=safetyEvalMonthlyTreeFixedKeys.map(key=>{
+    const definition=definitions.find(item=>item.key===key);
+    const saved=config.find(item=>item.key===key);
+    return {...definition,...saved,visible:true};
+  });
+  const optional=getVisibleColumns("safetyEvalMonthlyTree").filter(item=>!safetyEvalMonthlyTreeFixedKeys.includes(item.key));
+  return [...fixed,...optional];
+}
+
+function openSafetyEvalMonthlyTreeColumnSetting(){
+  openColumnSetting("safetyEvalMonthlyTree","renderSafetyEvaluationMonthlyFillCurrentPage");
+  safetyEvalMonthlyTreeFixedKeys.forEach(key=>{
+    const row=document.querySelector(`#columnSettingTbody tr[data-key="${key}"]`);
+    if(!row)return;
+    const visible=row.querySelector(".col-visible");
+    const width=row.querySelector(".col-width");
+    const order=row.querySelector(".col-order");
+    if(visible){visible.checked=true;visible.disabled=true;}
+    if(width)width.disabled=true;
+    if(order)order.disabled=true;
+    row.querySelectorAll(".mini-btn").forEach(button=>button.disabled=true);
+    row.title="基础冻结列始终显示并固定在表格左侧";
+  });
+}
+
+function getSafetyEvalMonthlyTreeProjectValues(projectName){
+  const storageKey=`${safetyEvalMonthlyFillState.activePlan}|${projectName}`;
+  if(!safetyEvalMonthlyTreeValues[storageKey]){
+    safetyEvalMonthlyTreeValues[storageKey]=Object.fromEntries(safetyEvalMonthlyTreeInputKeys.map(key=>[key,0]));
+  }
+  return safetyEvalMonthlyTreeValues[storageKey];
+}
+
+function isSafetyEvalMonthlyTreeEditable(){
+  return safetyEvalMonthlyPlans.find(plan=>plan.month===safetyEvalMonthlyFillState.activePlan)?.status==="进行中";
+}
+
+function calculateSafetyEvalMonthlyTreeScores(values){
+  return {
+    fourScore:Math.max(0,100-values.fourMismatch*10),
+    accidentScore:Math.max(0,100-values.injury*100-values.pipelineAccident*50-values.fireAccident*50),
+    reportScore:Math.max(0,100-values.concealedReport*100-values.lateReport*50),
+    opinionScore:Math.max(0,100-values.publicOpinion*10),
+    penaltyScore:Math.max(0,100-values.administrativePenalty*10),
+    minorScore:60+values.minorReport*5+values.minorApproved*30,
+    laborScore:Math.max(0,100-values.laborDispute*10),
+    honorScore:100+values.honorNational*40+values.honorProvincial*30+values.honorDistrict*20
+  };
+}
+
+function getSafetyEvalMonthlyTreeAverage(rows,scoreKey){
+  if(!rows.length)return 0;
+  return rows.reduce((sum,row)=>sum+calculateSafetyEvalMonthlyTreeScores(getSafetyEvalMonthlyTreeProjectValues(row.projectName))[scoreKey],0)/rows.length;
+}
+
+function formatSafetyEvalMonthlyTreeScore(value){
+  const number=Number(value)||0;
+  return Number.isInteger(number)?String(number):number.toFixed(1);
+}
+
+function updateSafetyEvalMonthlyTreeInput(projectName,key,value){
+  const values=getSafetyEvalMonthlyTreeProjectValues(decodeURIComponent(projectName));
+  values[key]=Math.max(0,Number(value)||0);
+  renderSafetyEvaluationMonthlyFillCurrentPage();
+}
+
+function scheduleSafetyEvalMonthlyTreeInput(projectName,key,value){
+  clearTimeout(safetyEvalMonthlyTreeInputTimer);
+  safetyEvalMonthlyTreeInputTimer=setTimeout(()=>updateSafetyEvalMonthlyTreeInput(projectName,key,value),180);
+}
+
+function toggleSafetyEvalMonthlyTreeCompany(encodedName){
+  const name=decodeURIComponent(encodedName);
+  if(safetyEvalMonthlyTreeExpandedCompanies.has(name))safetyEvalMonthlyTreeExpandedCompanies.delete(name);
+  else safetyEvalMonthlyTreeExpandedCompanies.add(name);
+  renderSafetyEvaluationMonthlyFillCurrentPage();
+}
+
+function toggleSafetyEvalMonthlyTreeBranch(encodedKey){
+  const key=decodeURIComponent(encodedKey);
+  if(safetyEvalMonthlyTreeExpandedBranches.has(key))safetyEvalMonthlyTreeExpandedBranches.delete(key);
+  else safetyEvalMonthlyTreeExpandedBranches.add(key);
+  renderSafetyEvaluationMonthlyFillCurrentPage();
+}
+
+document.addEventListener("click",event=>{
+  const companyToggle=event.target.closest?.("[data-monthly-tree-company]");
+  if(companyToggle){
+    event.preventDefault();
+    toggleSafetyEvalMonthlyTreeCompany(companyToggle.dataset.monthlyTreeCompany);
+    return;
+  }
+  const branchToggle=event.target.closest?.("[data-monthly-tree-branch]");
+  if(branchToggle){
+    event.preventDefault();
+    toggleSafetyEvalMonthlyTreeBranch(branchToggle.dataset.monthlyTreeBranch);
+  }
+});
+
+function renderSafetyEvalMonthlyTreeInput(projectName,key){
+  const values=getSafetyEvalMonthlyTreeProjectValues(projectName);
+  if(!isSafetyEvalMonthlyTreeEditable())return `<span class="monthly-tree-readonly-value">${values[key]}</span>`;
+  return `<input class="monthly-tree-input" type="number" min="0" step="1" value="${values[key]}" aria-label="${key}" oninput="scheduleSafetyEvalMonthlyTreeInput('${encodeURIComponent(projectName)}','${key}',this.value)" onchange="updateSafetyEvalMonthlyTreeInput('${encodeURIComponent(projectName)}','${key}',this.value)"/>`;
+}
+
+function renderSafetyEvalMonthlyTreeMetricCells(type,rows,project){
+  const scores=type==="project"?calculateSafetyEvalMonthlyTreeScores(getSafetyEvalMonthlyTreeProjectValues(project.projectName)):null;
+  return getSafetyEvalMonthlyTreeVisibleColumns().filter(column=>column.kind!=="entity").map(column=>{
+    const style=`width:${column.width}px;min-width:${column.width}px;max-width:${column.width}px;text-align:${column.align||"center"}`;
+    if(column.kind==="input"){
+      return type==="project"
+        ?`<td style="${style}">${renderSafetyEvalMonthlyTreeInput(project.projectName,column.key)}</td>`
+        :`<td class="monthly-tree-disabled-cell" style="${style}">-</td>`;
+    }
+    const value=type==="project"?scores[column.scoreKey]:getSafetyEvalMonthlyTreeAverage(rows,column.scoreKey);
+    return `<td class="monthly-tree-score-cell" style="${style}">${formatSafetyEvalMonthlyTreeScore(value)}</td>`;
+  }).join("");
+}
+
+function renderSafetyEvalMonthlyTreeHeader(){
+  const columns=getSafetyEvalMonthlyTreeVisibleColumns();
+  const firstRow=[];
+  const secondRow=[];
+  for(let index=0;index<columns.length;index++){
+    const column=columns[index];
+    if(column.kind==="entity"){
+      firstRow.push(`<th rowspan="2" data-column-key="${column.key}" style="width:${column.width}px;min-width:${column.width}px;max-width:${column.width}px;text-align:${column.align||"center"}">${column.title}</th>`);
+      continue;
+    }
+    const group=column.group||column.title;
+    const groupColumns=[column];
+    while(index+1<columns.length&&columns[index+1].kind!=="entity"&&(columns[index+1].group||columns[index+1].title)===group){
+      groupColumns.push(columns[++index]);
+    }
+    const width=groupColumns.reduce((sum,item)=>sum+(Number(item.width)||100),0);
+    firstRow.push(`<th colspan="${groupColumns.length}" style="width:${width}px;min-width:${width}px">${group}</th>`);
+    secondRow.push(groupColumns.map(item=>`<th style="width:${item.width}px;min-width:${item.width}px;max-width:${item.width}px;text-align:${item.align||"center"}">${item.title}</th>`).join(""));
+  }
+  return `<tr>${firstRow.join("")}</tr><tr>${secondRow.join("")}</tr>`;
+}
+
+function renderSafetyEvalMonthlyTreeTable(projectRows){
+  const companies=[];
+  projectRows.forEach(project=>{
+    let company=companies.find(item=>item.name===project.company);
+    if(!company){company={name:project.company,branches:[]};companies.push(company);}
+    let branch=company.branches.find(item=>item.name===project.branch);
+    if(!branch){branch={name:project.branch,projects:[]};company.branches.push(branch);}
+    branch.projects.push(project);
+  });
+  if(!safetyEvalMonthlyTreeExpansionInitialized){
+    if(companies.length)safetyEvalMonthlyTreeExpandedCompanies.add(companies[0].name);
+    if(companies[0]?.branches.length)safetyEvalMonthlyTreeExpandedBranches.add(`${companies[0].name}|${companies[0].branches[0].name}`);
+    safetyEvalMonthlyTreeExpansionInitialized=true;
+  }
+  const body=[];
+  companies.forEach((company,companyIndex)=>{
+    const companyProjects=company.branches.flatMap(branch=>branch.projects);
+    const companyOpen=safetyEvalMonthlyTreeExpandedCompanies.has(company.name);
+    body.push(`<tr class="monthly-tree-company-row"><td><button class="monthly-tree-toggle" data-monthly-tree-company="${encodeURIComponent(company.name)}">${companyOpen?"▼":"▶"}</button>${companyIndex+1}</td><td>${company.name}</td><td>-</td><td>-</td>${renderSafetyEvalMonthlyTreeMetricCells("company",companyProjects,null)}</tr>`);
+    if(!companyOpen)return;
+    company.branches.forEach((branch,branchIndex)=>{
+      const branchKey=`${company.name}|${branch.name}`;
+      const branchOpen=safetyEvalMonthlyTreeExpandedBranches.has(branchKey);
+      body.push(`<tr class="monthly-tree-branch-row"><td><button class="monthly-tree-toggle" data-monthly-tree-branch="${encodeURIComponent(branchKey)}">${branchOpen?"▼":"▶"}</button>${companyIndex+1}.${branchIndex+1}</td><td>-</td><td>${branch.name}</td><td>-</td>${renderSafetyEvalMonthlyTreeMetricCells("branch",branch.projects,null)}</tr>`);
+      if(!branchOpen)return;
+      branch.projects.forEach((project,projectIndex)=>{
+        body.push(`<tr class="monthly-tree-project-row"><td>${companyIndex+1}.${branchIndex+1}.${projectIndex+1}</td><td>-</td><td>-</td><td class="monthly-tree-project-name" title="${escapeAttr(project.projectName)}">${project.projectName}</td>${renderSafetyEvalMonthlyTreeMetricCells("project",[project],project)}</tr>`);
+      });
+    });
+  });
+  return `
+    <table class="monthly-fill-tree-table" style="min-width:${getSafetyEvalMonthlyTreeVisibleColumns().reduce((sum,column)=>sum+(Number(column.width)||100),0)}px">
+      <thead>${renderSafetyEvalMonthlyTreeHeader()}</thead>
+      <tbody>${body.join("")||`<tr><td colspan="${getSafetyEvalMonthlyTreeVisibleColumns().length}" class="safety-eval-empty-rank">暂无数据</td></tr>`}</tbody>
+    </table>
+  `;
+}
+
+function renderSafetyEvaluationMonthlyFillCurrentPage(){
   detailPage.style.display="none";
   listPage.style.display="flex";
+  safetyEvalMonthlyFillState.legacyView=false;
+  safetyEvalMonthlyFillState.activeTab="project";
+  const currentYear=String(new Date().getFullYear());
+  if(!safetyEvalMonthlyFillState.selectedYear)safetyEvalMonthlyFillState.selectedYear=currentYear;
+  const years=getSafetyEvalMonthlyYears();
+  const visiblePlans=getSafetyEvalMonthlyPlansByYear();
+  if(!visiblePlans.some(plan=>plan.month===safetyEvalMonthlyFillState.activePlan)&&visiblePlans.length)safetyEvalMonthlyFillState.activePlan=visiblePlans[0].month;
+  const activePlan=safetyEvalMonthlyPlans.find(plan=>plan.month===safetyEvalMonthlyFillState.activePlan)||safetyEvalMonthlyPlans[0];
+  const options=getSafetyEvalMonthlyCurrentOptions();
+  const allRows=getSafetyEvalMonthlyCurrentProjectRows();
+  const totalPages=Math.max(1,Math.ceil(allRows.length/safetyEvalMonthlyFillState.pageSize));
+  safetyEvalMonthlyFillState.page.project=Math.min(totalPages,Math.max(1,safetyEvalMonthlyFillState.page.project||1));
+  const start=(safetyEvalMonthlyFillState.page.project-1)*safetyEvalMonthlyFillState.pageSize;
+  const pageRows=allRows.slice(start,start+safetyEvalMonthlyFillState.pageSize);
+  listPage.innerHTML=`
+    <div class="compact-title-row"><div class="module-title">安全评价 / 月度评价填报</div></div>
+    <div class="base-auth-layout safety-monthly-fill-layout safety-monthly-fill-current-layout">
+      <section class="org-tree-panel monthly-plan-panel">
+        <div class="org-tree-hd">
+          <div class="card-title">月度计划</div>
+          <select class="monthly-plan-year-select" onchange="setSafetyEvalMonthlyCurrentYear(this.value)">
+            ${years.map(year=>`<option value="${year}" ${year===safetyEvalMonthlyFillState.selectedYear?"selected":""}>${year}年</option>`).join("")}
+          </select>
+        </div>
+        <div class="monthly-plan-list">${visiblePlans.map(renderSafetyEvalMonthlyCurrentPlanCard).join("")}</div>
+      </section>
+      <section class="org-user-panel monthly-fill-panel monthly-fill-current-panel">
+        ${renderUnifiedQueryCard(`
+          <div class="form-item"><label>项目名称</label><input class="input" id="semProjectName" value="${escapeAttr(safetyEvalMonthlyCurrentQuery.projectName)}" placeholder="请输入项目名称"/></div>
+          <div class="form-item"><label>子公司</label><select class="select" id="semCompany"><option value="">全部</option>${options.companies.map(value=>`<option value="${value}" ${value===safetyEvalMonthlyCurrentQuery.company?"selected":""}>${value}</option>`).join("")}</select></div>
+          <div class="form-item"><label>分公司</label><select class="select" id="semBranch"><option value="">全部</option>${options.branches.map(value=>`<option value="${value}" ${value===safetyEvalMonthlyCurrentQuery.branch?"selected":""}>${value}</option>`).join("")}</select></div>
+        `,{title:"查询条件",queryFn:"querySafetyEvalMonthlyCurrent()",resetFn:"resetSafetyEvalMonthlyCurrent()",gridClass:"search-grid"})}
+        <section class="card table-card construction-project-table-card monthly-fill-table-card monthly-fill-current-table-card">
+          <div class="card-hd">
+            <div class="card-title">评价数据</div>
+            <div class="actions">
+              <button class="btn" onclick="renderSafetyEvaluationMonthlyFillCurrentPage()">刷新</button>
+              <button class="btn" onclick="showToast('导出成功：${activePlan.month}月项目评价数据.xlsx')">导出</button>
+              <button class="btn primary" onclick="submitSafetyEvalMonthlyFill()" ${activePlan.status!=="进行中"?"disabled":""}>提交</button>
+              <button class="column-setting-icon-btn" title="列设置" onclick="openSafetyEvalMonthlyTreeColumnSetting()">⚙</button>
+            </div>
+          </div>
+          <div class="table-wrap roster-table-wrap">
+            ${renderSafetyEvalMonthlyTreeTable(pageRows)}
+          </div>
+          <div class="pagination">
+            <span>共 ${allRows.length} 条</span>
+            <div class="pager">
+              <button class="btn mini" onclick="changeSafetyEvalMonthlyCurrentPage(-1)" ${safetyEvalMonthlyFillState.page.project<=1?"disabled":""}>上一页</button>
+              <b>第 ${safetyEvalMonthlyFillState.page.project} / ${totalPages} 页</b>
+              <button class="btn mini" onclick="changeSafetyEvalMonthlyCurrentPage(1)" ${safetyEvalMonthlyFillState.page.project>=totalPages?"disabled":""}>下一页</button>
+              <select class="select mini-select" onchange="changeSafetyEvalMonthlyCurrentPageSize(this.value)">${[10,20,50].map(size=>`<option value="${size}" ${size===safetyEvalMonthlyFillState.pageSize?"selected":""}>${size}条/页</option>`).join("")}</select>
+            </div>
+          </div>
+        </section>
+      </section>
+    </div>
+  `;
+}
+
+function renderSafetyEvaluationMonthlyFillPage(legacyView=safetyEvalMonthlyFillState.legacyView||false){
+  detailPage.style.display="none";
+  listPage.style.display="flex";
+  safetyEvalMonthlyFillState.legacyView=Boolean(legacyView);
   const currentYear=String(new Date().getFullYear());
   if(!safetyEvalMonthlyFillState.selectedYear)safetyEvalMonthlyFillState.selectedYear=currentYear;
   const years=getSafetyEvalMonthlyYears();
@@ -492,7 +869,7 @@ function renderSafetyEvaluationMonthlyFillPage(){
   const tableTitle=tabs.find(item=>item[0]===safetyEvalMonthlyFillState.activeTab)?.[1] || "评价数据";
   listPage.innerHTML=`
     <div class="compact-title-row">
-      <div class="module-title">安全评价 / 月度评价填报</div>
+      <div class="module-title">安全评价 / 月度评价填报${safetyEvalMonthlyFillState.legacyView?"（禁）":""}</div>
     </div>
     <div class="base-auth-layout safety-monthly-fill-layout">
       <section class="org-tree-panel monthly-plan-panel">
@@ -551,6 +928,7 @@ function renderSafetyEvaluationMonthlyFillPage(){
 }
 
 window.renderSafetyEvaluationMonthlyFillPage=renderSafetyEvaluationMonthlyFillPage;
+window.renderSafetyEvaluationMonthlyFillCurrentPage=renderSafetyEvaluationMonthlyFillCurrentPage;
 
 const safetyEvalIndicatorOptions={
   categories:["事故指标","行为指标","管理指标","风险指标","现场指标","综合指标"],
