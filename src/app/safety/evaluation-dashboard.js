@@ -592,7 +592,7 @@ tableColumnDefinitions.safetyEvalIndicator=[
   {key:"selection",title:"",width:48,align:"center",render:()=>`<input type="checkbox"/>`},
   {key:"index",title:"序号",width:70,align:"center",render:(row,index)=>(safetyEvalIndicatorState.page-1)*safetyEvalIndicatorState.pageSize+index+1},
   {key:"code",title:"指标编码",width:120,align:"left",render:row=>row.code},
-  {key:"name",title:"指标名称",width:180,align:"left",render:row=>`<a class="link" onclick="showToast('查看指标：${row.name}')">${row.name}</a>`},
+  {key:"name",title:"指标名称",width:180,align:"left",render:row=>`<a class="link" onclick="openSafetyEvalIndicatorDetailModal(${row.id})">${row.name}</a>`},
   {key:"category",title:"指标分类",width:120,align:"center",render:row=>row.category},
   {key:"type",title:"指标类型",width:120,align:"center",render:row=>tag(row.type,row.type==="自动指标"?"blue":row.type==="手工指标"?"orange":row.type==="规则指标"?"green":"purple")},
   {key:"source",title:"数据来源",width:150,align:"left",render:row=>row.source},
@@ -602,7 +602,7 @@ tableColumnDefinitions.safetyEvalIndicator=[
   {key:"createTime",title:"创建时间",width:170,align:"center",render:row=>row.createTime},
   {key:"updateTime",title:"更新时间",width:170,align:"center",render:row=>row.updateTime},
   {key:"operation",title:"操作",width:220,align:"center",render:row=>`
-    <a class="link" onclick="showToast('编辑指标：${row.name}')">编辑</a>
+    <a class="link" onclick="openSafetyEvalIndicatorEditModal(${row.id})">编辑</a>
     <a class="link" onclick="showToast('配置规则：${row.name}')">规则</a>
     <a class="link" onclick="showToast('配置权重：${row.name}')">权重</a>
     <a class="link" onclick="toggleSafetyEvalIndicatorStatus(${row.id})">${row.status==="启用"?"停用":"启用"}</a>
@@ -760,7 +760,6 @@ function renderSafetyEvaluationIndicatorPage(){
         <div class="card-title">指标列表</div>
         <div class="actions">
           <button class="btn primary" onclick="showToast('新增指标功能演示')">新增指标</button>
-          <button class="btn" onclick="showToast('批量导入功能演示')">批量导入</button>
           <button class="btn" onclick="showToast('批量导出成功')">批量导出</button>
           <button class="column-setting-icon-btn" title="列配置" onclick="openColumnSetting('safetyEvalIndicator','renderSafetyEvaluationIndicatorPage')">⚙</button>
         </div>
@@ -817,20 +816,49 @@ safetyEvalIndicatorRows.splice(0,safetyEvalIndicatorRows.length,...[
 
 Object.assign(safetyEvalIndicatorState,{calculationMethod:"",linkedSource:""});
 
+function getSafetyEvalIndicatorReferencedModels(indicator){
+  const models=Array.isArray(safetyEvalModelRows)?safetyEvalModelRows:[];
+  const count=Math.min(models.length,Math.max(0,Number(indicator?.templateRefCount)||0));
+  if(!count)return [];
+  const start=((Number(indicator.id)||1)*2-2)%models.length;
+  return Array.from({length:count},(_,index)=>models[(start+index)%models.length]);
+}
+
+function openSafetyEvalIndicatorModels(id){
+  const indicator=safetyEvalIndicatorRows.find(item=>item.id===Number(id));
+  if(!indicator)return;
+  const models=getSafetyEvalIndicatorReferencedModels(indicator);
+  const html=`
+    <div class="safety-eval-indicator-model-modal">
+      <div class="safety-eval-indicator-model-summary">
+        <span>当前指标</span><strong>${indicator.name}</strong><em>${indicator.code}</em>
+        <b>关联模型 ${models.length} 个</b>
+      </div>
+      <div class="table-wrap safety-eval-indicator-model-table-wrap">
+        ${renderSafetyEvalModelTable(models)}
+      </div>
+    </div>
+  `;
+  openModal("引用模型",html,`<button class="btn" onclick="closeModal()">关闭</button>`,"large");
+}
+
 tableColumnDefinitions.safetyEvalIndicator=[
   {key:"index",title:"序号",width:70,align:"center",render:(row,index)=>(safetyEvalIndicatorState.page-1)*safetyEvalIndicatorState.pageSize+index+1},
   {key:"code",title:"指标编号",width:120,align:"left",render:row=>row.code},
-  {key:"name",title:"指标名称",width:190,align:"left",render:row=>`<a class="link" onclick="showToast('查看指标：${row.name}')">${row.name}</a>`},
+  {key:"name",title:"指标名称",width:190,align:"left",render:row=>`<a class="link" onclick="openSafetyEvalIndicatorDetailModal(${row.id})">${row.name}</a>`},
   {key:"type",title:"指标类型",width:120,align:"center",render:row=>tag(row.type,row.type==="基础指标"?"blue":"purple")},
   {key:"calculationMethod",title:"计算方式",width:120,align:"center",render:row=>tag(row.calculationMethod,row.calculationMethod==="自动计算"?"green":row.calculationMethod==="规则计算"?"orange":"gray")},
   {key:"linkedSource",title:"关联源数据",width:180,align:"left",render:row=>row.calculationMethod==="自动计算"?(row.linkedSource || "-"):"-"},
-  {key:"templateRefCount",title:"引用模版数",width:110,align:"center",render:row=>row.templateRefCount ?? 0},
+  {key:"templateRefCount",title:"引用模型数",width:110,align:"center",render:row=>{
+    const count=getSafetyEvalIndicatorReferencedModels(row).length;
+    return count?`<a class="link safety-eval-model-count-link" onclick="openSafetyEvalIndicatorModels(${row.id})">${count}</a>`:"0";
+  }},
   {key:"status",title:"状态",width:100,align:"center",render:row=>tag(row.status,row.status==="启用"?"green":"red")},
   {key:"remark",title:"指标说明",width:280,align:"left",render:row=>`<span class="indicator-remark" title="${escapeAttr(row.remark)}">${row.remark}</span>`},
   {key:"createTime",title:"创建时间",width:170,align:"center",render:row=>row.createTime},
   {key:"updateTime",title:"更新时间",width:170,align:"center",render:row=>row.updateTime},
   {key:"operation",title:"操作",width:120,align:"center",render:row=>`
-    <a class="link" onclick="showToast('编辑指标：${row.name}')">编辑</a>
+    <a class="link" onclick="openSafetyEvalIndicatorEditModal(${row.id})">编辑</a>
     <a class="link" onclick="toggleSafetyEvalIndicatorStatus(${row.id})">${row.status==="启用"?"停用":"启用"}</a>
   `}
 ];
@@ -913,18 +941,24 @@ function renderSafetyEvalIndicatorStats(){
   `;
 }
 
-function openSafetyEvalIndicatorCreateModal(){
-  openModal("新增指标",`
+let safetyEvalIndicatorEditingId=null;
+
+function openSafetyEvalIndicatorCreateModal(editingId=null,viewOnly=false){
+  const editingRow=safetyEvalIndicatorRows.find(item=>item.id===Number(editingId)) || null;
+  document.getElementById("modalBody")?.classList.remove("safety-eval-detail-mode");
+  safetyEvalIndicatorEditingId=viewOnly?null:(editingRow?.id || null);
+  const locked=Boolean(editingRow);
+  openModal(viewOnly?"指标详情":locked?"编辑指标":"新增指标",`
     <div class="search-grid">
-      <div class="form-item"><label>指标名称</label><input class="input" id="seiCreateName" placeholder="请输入指标名称"/></div>
-      <div class="form-item"><label>指标编号</label><input class="input" id="seiCreateCode" placeholder="请输入指标编号"/></div>
-      <div class="form-item"><label>指标类型</label><select class="select" id="seiCreateType" onchange="updateSafetyEvalIndicatorCreateForm()">${renderSafetyEvalIndicatorOptions(safetyEvalIndicatorOptions.types,"基础指标","请选择")}</select></div>
+      <div class="form-item"><label>指标名称</label><input class="input" id="seiCreateName" value="${escapeAttr(editingRow?.name||"")}" placeholder="请输入指标名称"/></div>
+      <div class="form-item"><label>指标编号</label><input class="input ${locked?"safety-eval-locked-field":""}" id="seiCreateCode" value="${escapeAttr(editingRow?.code||"")}" placeholder="请输入指标编号" ${locked?"disabled":""}/></div>
+      <div class="form-item"><label>指标类型</label><select class="select ${locked?"safety-eval-locked-field":""}" id="seiCreateType" onchange="updateSafetyEvalIndicatorCreateForm()" ${locked?"disabled":""}>${renderSafetyEvalIndicatorOptions(safetyEvalIndicatorOptions.types,editingRow?.type||"基础指标","请选择")}</select></div>
       <div class="form-item"><label>计算方式</label><select class="select" id="seiCreateMethod" onchange="updateSafetyEvalIndicatorCreateForm()"></select></div>
       <div class="form-item safety-eval-create-field" id="seiCreateSourceWrap"><label>关联源数据</label><select class="select" id="seiCreateSource">${renderSafetyEvalIndicatorOptions(safetyEvalIndicatorOptions.sources,"","请选择关联源数据")}</select></div>
       <div class="form-item safety-eval-formula-field" id="seiCreateRuleWrap">
         <label>计算规则</label>
         <div class="message-rich-editor safety-formula-editor">
-          <div class="message-rich-toolbar safety-formula-toolbar">
+          <div class="message-rich-toolbar safety-formula-toolbar" ${viewOnly?'style="display:none"':''}>
             <div class="template-param-insert">
               <button class="template-param-btn" type="button" onclick="toggleSafetyEvalFormulaMenu(event)"><span>＋</span>插入指标</button>
               <div class="template-param-menu safety-formula-menu" id="seiFormulaIndicatorMenu">
@@ -938,10 +972,35 @@ function openSafetyEvalIndicatorCreateModal(){
           <div id="seiCreateRule" class="message-rich-content template-rich-content safety-formula-content" contenteditable="true" onmouseup="saveSafetyEvalFormulaRange()" onkeyup="saveSafetyEvalFormulaRange()" onfocus="saveSafetyEvalFormulaRange()" oninput="saveSafetyEvalFormulaRange()" data-placeholder="请输入或通过插入指标构建计算公式"></div>
         </div>
       </div>
-      <div class="form-item" style="grid-column:1/-1"><label>指标说明</label><textarea class="input" id="seiCreateRemark" placeholder="请输入指标说明" style="min-height:92px;resize:vertical;padding-top:8px"></textarea></div>
+      <div class="form-item" style="grid-column:1/-1"><label>指标说明</label><textarea class="input" id="seiCreateRemark" placeholder="请输入指标说明" style="min-height:92px;resize:vertical;padding-top:8px">${editingRow?.remark||""}</textarea></div>
     </div>
-  `,`<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveSafetyEvalIndicator()">保存</button>`,"large");
+  `,viewOnly?`<button class="btn" onclick="closeModal()">关闭</button>`:`<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveSafetyEvalIndicator()">保存</button>`,"large");
   updateSafetyEvalIndicatorCreateForm();
+  if(editingRow){
+    const method=document.getElementById("seiCreateMethod");
+    if(method)method.value=editingRow.calculationMethod;
+    updateSafetyEvalIndicatorCreateForm();
+    const source=document.getElementById("seiCreateSource");
+    if(source&&editingRow.linkedSource!=="-")source.value=editingRow.linkedSource;
+    const rule=document.getElementById("seiCreateRule");
+    if(rule)rule.textContent=editingRow.calculationRule||"";
+  }
+  if(viewOnly){
+    document.querySelectorAll("#modalBody input,#modalBody select,#modalBody textarea,#modalBody button").forEach(control=>control.disabled=true);
+    const editor=document.getElementById("seiCreateRule");
+    if(editor)editor.setAttribute("contenteditable","false");
+    const toolbar=document.querySelector("#modalBody .safety-formula-toolbar");
+    if(toolbar)toolbar.style.display="none";
+    document.getElementById("modalBody")?.classList.add("safety-eval-detail-mode");
+  }
+}
+
+function openSafetyEvalIndicatorEditModal(id){
+  openSafetyEvalIndicatorCreateModal(id);
+}
+
+function openSafetyEvalIndicatorDetailModal(id){
+  openSafetyEvalIndicatorCreateModal(id,true);
 }
 
 let safetyEvalFormulaRange=null;
@@ -1037,6 +1096,7 @@ function updateSafetyEvalIndicatorCreateForm(){
 }
 
 function saveSafetyEvalIndicator(){
+  const editingRow=safetyEvalIndicatorRows.find(item=>item.id===Number(safetyEvalIndicatorEditingId)) || null;
   const type=document.getElementById("seiCreateType")?.value || "基础指标";
   const method=document.getElementById("seiCreateMethod")?.value || (type==="复合指标"?"规则计算":"自动计算");
   const name=document.getElementById("seiCreateName")?.value.trim() || "新建安全评价指标";
@@ -1044,24 +1104,30 @@ function saveSafetyEvalIndicator(){
   const linkedSource=method==="自动计算"?(document.getElementById("seiCreateSource")?.value || safetyEvalIndicatorOptions.sources[0]):"-";
   const rule=document.getElementById("seiCreateRule")?.textContent.trim();
   const remark=document.getElementById("seiCreateRemark")?.value.trim() || (rule?`计算规则：${rule}`:"新增指标说明");
-  safetyEvalIndicatorRows.unshift({
-    id:Math.max(0,...safetyEvalIndicatorRows.map(row=>row.id))+1,
-    code,
-    name,
-    type,
-    calculationMethod:method,
-    linkedSource,
-    source:linkedSource,
-    templateRefCount:0,
-    status:"启用",
-    remark,
-    createTime:"2026-07-02 09:30",
-    updateTime:"2026-07-02 09:30"
-  });
+  if(editingRow){
+    Object.assign(editingRow,{name,calculationMethod:method,linkedSource,source:linkedSource,remark,calculationRule:rule||"",updateTime:"2026-07-20 10:30"});
+  }else{
+    safetyEvalIndicatorRows.unshift({
+      id:Math.max(0,...safetyEvalIndicatorRows.map(row=>row.id))+1,
+      code,
+      name,
+      type,
+      calculationMethod:method,
+      linkedSource,
+      source:linkedSource,
+      calculationRule:rule||"",
+      templateRefCount:0,
+      status:"启用",
+      remark,
+      createTime:"2026-07-20 10:30",
+      updateTime:"2026-07-20 10:30"
+    });
+  }
   closeModal();
+  safetyEvalIndicatorEditingId=null;
   safetyEvalIndicatorState.page=1;
   renderSafetyEvaluationIndicatorPage();
-  showToast(`已新增指标：${name}`);
+  showToast(`${editingRow?"已更新":"已新增"}指标：${name}`);
 }
 
 function renderSafetyEvaluationIndicatorPage(){
@@ -1090,7 +1156,6 @@ function renderSafetyEvaluationIndicatorPage(){
         <div class="card-title">指标列表</div>
         <div class="actions">
           <button class="btn primary" onclick="openSafetyEvalIndicatorCreateModal()">新增指标</button>
-          <button class="btn" onclick="showToast('批量导入功能演示')">批量导入</button>
           <button class="btn" onclick="showToast('批量导出成功')">批量导出</button>
           <button class="column-setting-icon-btn" title="列配置" onclick="openColumnSetting('safetyEvalIndicator','renderSafetyEvaluationIndicatorPage')">⚙</button>
         </div>
@@ -2044,6 +2109,7 @@ const safetyEvalSourceRows=[
   fieldType:row[4],
   sourceCategory:row[5],
   sourceSystem:row[6],
+  syncRule:["每日8:00同步","每日8:00同步","每5分钟同步","每日8:30同步","每日8:30同步","每日22:00同步","每日20:00同步","每周周三12:00同步","每日18:00同步","手工触发同步","每日8:00同步","每5分钟同步"][index],
   dataUpdateTime:row[7],
   lastSyncTime:row[8],
   dataStatus:row[9],
@@ -2110,16 +2176,18 @@ tableColumnDefinitions.safetyEvalSource=[
   {key:"sourceFieldCode",title:"数据字段编码",width:150,align:"left",render:row=>row.sourceFieldCode},
   {key:"sourceFieldName",title:"数据字段名称",width:150,align:"left",render:row=>row.sourceFieldName},
   {key:"sourceSystem",title:"来源系统",width:130,align:"center",render:row=>safetyEvalSourceSystemTag(row.sourceSystem)},
+  {key:"syncRule",title:"同步规则",width:170,align:"center",render:row=>row.syncRule},
   {key:"dataUpdateTime",title:"数据更新时间",width:170,align:"center",render:row=>row.dataUpdateTime},
   {key:"lastSyncTime",title:"最近同步时间",width:170,align:"center",render:row=>row.lastSyncTime},
   {key:"syncStatus",title:"同步状态",width:110,align:"center",render:row=>safetyEvalSyncStatusTag(row.syncStatus)},
   {key:"integrityRate",title:"数据完整率",width:140,align:"center",render:row=>renderSafetyEvalSourceProgress(row.integrityRate)},
-  {key:"referencedIndicatorCount",title:"引用指标数",width:110,align:"center",render:row=>`<a class="link" onclick="showToast('查看引用指标：${row.sourceName}')">${row.referencedIndicatorCount}</a>`},
+  {key:"referencedIndicatorCount",title:"关联指标数",width:110,align:"center",render:row=>`<a class="link" onclick="showToast('查看关联指标：${row.sourceName}')">${row.referencedIndicatorCount}</a>`},
   {key:"abnormalImpact",title:"异常影响",width:260,align:"left",render:row=>`<span title="${escapeAttr(row.abnormalImpact)}">${row.abnormalImpact}</span>`},
   {key:"createTime",title:"创建时间",width:170,align:"center",render:row=>row.createTime},
-  {key:"operation",title:"操作",width:150,align:"center",render:row=>`
+  {key:"operation",title:"操作",width:230,align:"center",render:row=>`
     <a class="link" onclick="showToast('查看数据：${row.sourceName}')">查看数据</a>
     <a class="link" onclick="resyncSafetyEvalSource(${row.id})">重新同步</a>
+    <a class="link" onclick="openSafetyEvalSourceSyncLog(${row.id})">同步日志</a>
   `}
 ];
 try{localStorage.removeItem(getColumnStorageKey("safetyEvalSource"));}catch(e){}
@@ -2177,6 +2245,26 @@ function resyncSafetyEvalSource(id){
     showToast(`已发起重新同步：${row.sourceName}`);
   }
   renderSafetyEvaluationSourcePage();
+}
+
+function openSafetyEvalSourceSyncLog(id){
+  const row=safetyEvalSourceRows.find(item=>item.id===Number(id));
+  if(!row)return;
+  const failed=row.syncStatus==="同步失败";
+  const logs=[
+    {time:row.lastSyncTime,status:row.syncStatus,count:failed?0:1286,duration:failed?"12秒":"18秒",message:failed?"来源系统连接超时":"同步完成"},
+    {time:"2026-07-01 08:00",status:"已同步",count:1248,duration:"17秒",message:"同步完成"},
+    {time:"2026-06-30 08:00",status:"已同步",count:1221,duration:"16秒",message:"同步完成"}
+  ];
+  openModal("同步日志",`
+    <div class="safety-eval-sync-log-summary"><span>数据字段</span><strong>${row.sourceFieldName}</strong><em>${row.sourceFieldCode}</em><b>${row.syncRule}</b></div>
+    <div class="table-wrap">
+      <table class="safety-eval-detail-table">
+        <thead><tr><th>同步时间</th><th>同步状态</th><th>同步数据量</th><th>耗时</th><th>执行结果</th></tr></thead>
+        <tbody>${logs.map(log=>`<tr><td>${log.time}</td><td>${safetyEvalSyncStatusTag(log.status)}</td><td>${log.count} 条</td><td>${log.duration}</td><td>${log.message}</td></tr>`).join("")}</tbody>
+      </table>
+    </div>
+  `,`<button class="btn" onclick="closeModal()">关闭</button>`,"large");
 }
 
 function renderSafetyEvalSourceTable(rows){
@@ -2987,7 +3075,7 @@ function renderSafetyScreenEmptyPage(tab){
   `;
 }
 
-const safetyProcessOrgState={active:"全部"};
+const safetyProcessOrgState={active:"全部",company:"",branch:""};
 const safetyProcessRows=[
   [1,"2026-07-12","星期日","青浦区外青松公路（城中段）整治工程","上海隧道-市政分公司",["进行中","orange"],["未完成","gray"],["未完成","gray"],["未完成","gray"],["未完成","gray"],["未完成","gray"]],
   [2,"2026-07-12","星期日","上海市轨道交通21号线一期工程","上海隧道-轨交分公司",["未完成","gray"],["未完成","gray"],["未完成","gray"],["未完成","gray"],["未完成","gray"],["未完成","gray"]],
@@ -3000,7 +3088,26 @@ const safetyProcessRows=[
 ];
 
 function setSafetyProcessOrg(org){
-  safetyProcessOrgState.active=org;
+  safetyProcessOrgState.company=org&&org!=="全部"?org:"";
+  safetyProcessOrgState.branch="";
+  safetyProcessOrgState.active=safetyProcessOrgState.company||"全部";
+  renderSafetyProcessDashboardPreservingScroll();
+}
+
+function getSafetyProcessOrgRecords(){
+  return safetyProcessRows.map(row=>{
+    const [company,branch]=String(row[4]||"").split("-");
+    return {row,company,branch};
+  });
+}
+
+function getSafetyProcessFilteredRows(){
+  return DashboardOrgSwitch.filter(getSafetyProcessOrgRecords(),safetyProcessOrgState).map(item=>item.row);
+}
+
+function setSafetyProcessOrgSelection(selection){
+  Object.assign(safetyProcessOrgState,selection);
+  safetyProcessOrgState.active=safetyProcessOrgState.company||"全部";
   renderSafetyProcessDashboardPreservingScroll();
 }
 
@@ -3071,13 +3178,14 @@ function renderSafetyProcessTrafficChart(){
 }
 
 function renderSafetyProcessProjectList(){
-  return `<section class="safety-process-card safety-process-list"><div class="safety-process-list-tabs"><button class="active">未完成项目列表</button><button>已完成项目列表</button></div><div class="safety-process-filter"><label>所属组织：<select class="select"><option>请选择组织</option><option>上海隧道</option><option>市政集团</option></select></label><label>项目名称：<input class="input" placeholder="请输入项目名称"/></label><label>看板日期：<button class="component-date-input"><i></i><strong>${getSafetyWeekLabel()}</strong></button></label><label><input class="input" placeholder="选择日期"/></label><button class="btn primary" onclick="showToast('查询成功')">查询</button><button class="btn" onclick="showToast('已重置')">重置</button></div><div class="safety-process-table-wrap"><table><thead><tr><th>序号</th><th>日期</th><th>星期</th><th>项目名称</th><th>所属单位</th><th>计划状态</th><th>审批状态</th><th>班会状态</th><th>验收状态</th><th>旁站状态</th><th>核验状态</th><th>操作</th></tr></thead><tbody>${safetyProcessRows.map(row=>`<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td title="${escapeAttr(row[3])}">${row[3]}</td><td>${row[4]}</td>${row.slice(5).map(item=>`<td>${renderSafetyProcessStatus(item)}</td>`).join("")}<td><a onclick="showToast('施工日志已打印')">打印</a><a onclick="showToast('已打开项目过程详情')">查看详情</a></td></tr>`).join("")}</tbody></table></div><div class="safety-process-pagination"><span>共 273 条记录</span><div><button disabled>‹‹</button><button disabled>‹</button><button class="active">1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>6</button><button>›</button><button>››</button><select><option>50条/页</option></select></div></div></section>`;
+  const rows=getSafetyProcessFilteredRows();
+  return `<section class="safety-process-card safety-process-list"><div class="safety-process-list-tabs"><button class="active">未完成项目列表</button><button>已完成项目列表</button></div><div class="safety-process-filter"><label>所属组织：<select class="select"><option>请选择组织</option><option>上海隧道</option><option>市政集团</option></select></label><label>项目名称：<input class="input" placeholder="请输入项目名称"/></label><label>看板日期：<button class="component-date-input"><i></i><strong>${getSafetyWeekLabel()}</strong></button></label><label><input class="input" placeholder="选择日期"/></label><button class="btn primary" onclick="showToast('查询成功')">查询</button><button class="btn" onclick="showToast('已重置')">重置</button></div><div class="safety-process-table-wrap"><table><thead><tr><th>序号</th><th>日期</th><th>星期</th><th>项目名称</th><th>所属单位</th><th>计划状态</th><th>审批状态</th><th>班会状态</th><th>验收状态</th><th>旁站状态</th><th>核验状态</th><th>操作</th></tr></thead><tbody>${rows.map(row=>`<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td title="${escapeAttr(row[3])}">${row[3]}</td><td>${row[4]}</td>${row.slice(5).map(item=>`<td>${renderSafetyProcessStatus(item)}</td>`).join("")}<td><a onclick="showToast('施工日志已打印')">打印</a><a onclick="showToast('已打开项目过程详情')">查看详情</a></td></tr>`).join("")||`<tr><td colspan="12">暂无项目数据</td></tr>`}</tbody></table></div><div class="safety-process-pagination"><span>共 ${rows.length} 条记录</span><div><button disabled>‹‹</button><button disabled>‹</button><button class="active">1</button><button>›</button><button>››</button><select><option>50条/页</option></select></div></div></section>`;
 }
 
 function renderSafetyProcessDashboardPage(){
   detailPage.style.display="none";
   listPage.style.display="block";
-  listPage.innerHTML=`<div class="safety-screen-page safety-process-page">${renderSafetyScreenHeader("过程管控")}<div class="safety-eval-org-tabs safety-process-org-tabs">${safetyEvaluationOrgs.map(org=>`<button class="${org===safetyProcessOrgState.active?"active":""}" onclick="setSafetyProcessOrg('${escapeAttr(org)}')">${org}</button>`).join("")}</div><div class="safety-process-body"><section class="safety-process-top-grid">${renderSafetyProcessOverview()}${renderSafetyProcessRank()}${renderSafetyProcessTrendChart()}</section><section class="safety-process-bottom-grid">${renderSafetyProcessProjectList()}${renderSafetyProcessTrafficChart()}</section></div></div>`;
+  listPage.innerHTML=`<div class="safety-screen-page safety-process-page">${renderSafetyScreenHeader("过程管控")}${DashboardOrgSwitch.render({id:"safety-process-org",records:getSafetyProcessOrgRecords(),state:safetyProcessOrgState,onChange:setSafetyProcessOrgSelection})}<div class="safety-process-body"><section class="safety-process-top-grid">${renderSafetyProcessOverview()}${renderSafetyProcessRank()}${renderSafetyProcessTrendChart()}</section><section class="safety-process-bottom-grid">${renderSafetyProcessProjectList()}${renderSafetyProcessTrafficChart()}</section></div></div>`;
 }
 
 function renderSafetyProcessDashboardPreservingScroll(){
@@ -3161,7 +3269,7 @@ function renderSafetyOnlineDashboardPage(activeTab="安全在线"){
 }
 
 const safetyEvaluationOrgs=["全部",...getOrganizationCompanies()];
-const safetyEvaluationOrgState={active:safetyEvaluationOrgs[0]};
+const safetyEvaluationOrgState={active:safetyEvaluationOrgs[0],company:"",branch:""};
 const safetyEvaluationSummaryMeta=[
   {label:"安全纳管项目数",level:"",color:"blue",icon:"▣",trend:"↑ 4"},
   {label:"风险极高项目",level:"风险极高",color:"red",icon:"src/assets/risk-extreme.png",trend:"↑ 3",iconType:"image"},
@@ -3333,15 +3441,24 @@ const safetyEvaluationRadarAxes=[
 ];
 
 function getSafetyEvaluationActiveRows(){
-  const active=safetyEvaluationOrgState.active;
-  if(!active||active===safetyEvaluationOrgs[0])return safetyEvaluationRows;
-  return safetyEvaluationRows.filter(row=>row[2]===active);
+  return DashboardOrgSwitch.filter(safetyEvaluationRows,safetyEvaluationOrgState,row=>row[2],row=>row[3]);
 }
 
 function setSafetyEvaluationOrg(org){
-  safetyEvaluationOrgState.active=org;
-  safetyEvaluationFilterState.subCompany=org===safetyEvaluationOrgs[0]?"":org;
+  safetyEvaluationOrgState.company=org&&org!==safetyEvaluationOrgs[0]?org:"";
+  safetyEvaluationOrgState.branch="";
+  safetyEvaluationOrgState.active=safetyEvaluationOrgState.company||safetyEvaluationOrgs[0];
+  safetyEvaluationFilterState.subCompany=safetyEvaluationOrgState.company;
   safetyEvaluationFilterState.branch="";
+  safetyEvaluationFilterState.selectedIds=[];
+  renderSafetyEvaluationDashboardPreservingScroll();
+}
+
+function setSafetyEvaluationOrgSelection(selection){
+  Object.assign(safetyEvaluationOrgState,selection);
+  safetyEvaluationOrgState.active=safetyEvaluationOrgState.company||safetyEvaluationOrgs[0];
+  safetyEvaluationFilterState.subCompany=safetyEvaluationOrgState.company;
+  safetyEvaluationFilterState.branch=safetyEvaluationOrgState.branch;
   safetyEvaluationFilterState.selectedIds=[];
   renderSafetyEvaluationDashboardPreservingScroll();
 }
@@ -3515,9 +3632,12 @@ function toggleSafetyEvalScoreSort(){
 function setSafetyEvalFilter(key,value){
   safetyEvaluationFilterState[key]=value;
   if(key==="subCompany"){
+    safetyEvaluationOrgState.company=value;
+    safetyEvaluationOrgState.branch="";
     safetyEvaluationOrgState.active=value || safetyEvaluationOrgs[0];
     safetyEvaluationFilterState.branch="";
   }
+  if(key==="branch")safetyEvaluationOrgState.branch=value;
   safetyEvaluationFilterState.selectedIds=[];
   renderSafetyEvaluationDashboardPreservingScroll();
 }
@@ -3682,8 +3802,8 @@ function renderSafetyEvaluationDashboardPage(){
   listPage.innerHTML=`
     <div class="safety-screen-page safety-eval-page">
       ${renderSafetyScreenHeader("安全评价")}
-      <div class="safety-eval-org-tabs">
-        ${safetyEvaluationOrgs.map(org=>`<button class="${org===safetyEvaluationOrgState.active?"active":""}" onclick="setSafetyEvaluationOrg('${escapeAttr(org)}')">${org}</button>`).join("")}
+      <div class="safety-eval-org-switch-wrap">
+        ${DashboardOrgSwitch.render({id:"safety-evaluation-org",records:safetyEvaluationRows,state:safetyEvaluationOrgState,companyKey:row=>row[2],branchKey:row=>row[3],onChange:setSafetyEvaluationOrgSelection})}
         <div class="safety-eval-worker">
           ${renderSafetyXiaoAnDialog()}
           <button class="safety-xiaoan-avatar" title="安全小警" onclick="openSafetyXiaoAnDialog()">
