@@ -1,4 +1,4 @@
-const productionScreenTabs=["生产总览","圆顶管看板（试运行）","重大工程项目看板","产值看板","纳统看板"];
+const productionScreenTabs=["生产总览","圆顶管看板（试运行）","重大工程项目看板","产值看板","新兴业务看板","纳统看板"];
 const productionScreenEmptyTabs=["圆顶管看板（试运行）"];
 const productionValueCompanies=[
   "上海隧道",
@@ -16,6 +16,15 @@ const productionValueCompanies=[
   "地空公司"
 ];
 const productionValueOrgs=["全部",...productionValueCompanies];
+const productionValueOrgProjects=getOrganizationCompanies().slice(0,9).flatMap((company,companyIndex)=>{
+  const branches=getOrganizationBranches(company).slice(0,Math.min(4,getOrganizationBranches(company).length));
+  return branches.flatMap((branch,branchIndex)=>Array.from({length:2+(companyIndex+branchIndex)%3},(_,projectIndex)=>({
+    company,
+    branch,
+    project:`${company}${branch}产值项目${projectIndex+1}`
+  })));
+});
+const productionValueOrgState={company:"",branch:""};
 let productionValueOrgActive="全部";
 const productionValueBizTabs=[
   "产品销售",
@@ -213,6 +222,7 @@ const productionDashboardScreenRoutes={
   pipe:"src/app/production/dashboard-pipe.html",
   major:"src/app/production/dashboard-major.html",
   value:"src/app/production/dashboard-value.html",
+  emerging:"src/app/production/dashboard-emerging.html",
   statistics:"src/app/production/dashboard-statistics.html"
 };
 const productionDashboardScreenKeys={
@@ -220,11 +230,13 @@ const productionDashboardScreenKeys={
   "圆顶管看板（试运行）":"pipe",
   "重大工程项目看板":"major",
   "产值看板":"value",
+  "新兴业务看板":"emerging",
   "纳统看板":"statistics",
   overview:"overview",
   pipe:"pipe",
   major:"major",
   value:"value",
+  emerging:"emerging",
   statistics:"statistics"
 };
 
@@ -252,6 +264,7 @@ function renderProductionDashboardByKey(screen,options={}){
   const preserve=!!options.preserveScroll;
   if(key==="major")return preserve?renderProductionMajorDashboardPreservingScroll():renderProductionMajorDashboardPage();
   if(key==="value")return preserve?renderProductionValueDashboardPreservingScroll():renderProductionValueDashboardPage();
+  if(key==="emerging")return preserve?renderProductionEmergingDashboardPreservingScroll():renderProductionEmergingDashboardPage();
   if(key==="statistics")return preserve?renderProductionStatisticsDashboardPreservingScroll():renderProductionStatisticsDashboardPage();
   if(key==="pipe")return renderProductionScreenEmptyPage("圆顶管看板（试运行）");
   return preserve?renderProductionOverviewDashboardPreservingScroll():renderProductionOverviewDashboardPage();
@@ -307,6 +320,17 @@ function setProductionOverviewMaterialActive(name){
 function setProductionValueOrg(org){
   productionValueOrgActive=org;
   renderProductionValueDashboardPreservingScroll();
+}
+
+function setProductionValueOrgSelection(selection){
+  Object.assign(productionValueOrgState,selection);
+  productionValueOrgActive=productionValueOrgState.company||"全部";
+  renderProductionValueDashboardPreservingScroll();
+}
+
+function getProductionValueSelectionScale(){
+  const rows=DashboardOrgSwitch.filter(productionValueOrgProjects,productionValueOrgState);
+  return productionValueOrgProjects.length?rows.length/productionValueOrgProjects.length:1;
 }
 
 function setProductionValueBizTab(tab){
@@ -1860,18 +1884,196 @@ function renderProductionValueDashboardPreservingScroll(){
   renderWithPreservedScroll(renderProductionValueDashboardPage,[".production-value-dashboard",".production-value-panel.company-table table","#listPage",".main"]);
 }
 
+const productionEmergingCategories=[
+  {name:"新能源",count:1606,amount:186.5,color:"#2378ff"},
+  {name:"新环境",count:1043,amount:156.3,color:"#20b8b4"},
+  {name:"数字化",count:816,amount:145.0,color:"#ff8a12"},
+  {name:"智慧运营",count:690,amount:112.0,color:"#7566ee"},
+  {name:"新材料",count:431,amount:68.8,color:"#48b8e8"},
+  {name:"其他",count:249,amount:59.85,color:"#b8c5d8"}
+];
+const productionEmergingCompanies=getOrganizationCompanies().slice(0,9);
+const productionEmergingProjectSeeds=[
+  ["上海临港新能源产业园区建设工程","新能源","氢能产业园区设计施工总承包"],
+  ["苏州太湖流域水环境综合治理项目","新环境","太湖水环境治理EPC项目"],
+  ["深圳智慧城市运行管理平台建设","数字化","智慧城运平台建设项目"],
+  ["杭州城市轨道交通智慧运维工程","智慧运营","地铁智慧运维系统集成项目"],
+  ["安徽新型建筑材料产业基地项目","新材料","新型建材生产基地建设项目"],
+  ["郑州城市更新综合改造工程","其他","城市更新改造EPC项目"]
+];
+const productionEmergingProjects=Array.from({length:39},(_,index)=>{
+  const seed=productionEmergingProjectSeeds[index%productionEmergingProjectSeeds.length];
+  const company=productionEmergingCompanies[index%productionEmergingCompanies.length];
+  const companyBranches=getOrganizationBranches(company);
+  const branch=companyBranches[index%Math.min(4,companyBranches.length)];
+  const sequence=String(index+1).padStart(3,"0");
+  const projectValue=512000000+(index%9)*173000000;
+  const emergingAmount=Math.round(projectValue*(.075+(index%5)*.025));
+  const bidAmount=Math.round(projectValue*.91);
+  const orderEmergingAmount=Math.round(bidAmount*(.06+(index%5)*.018));
+  return {
+    id:index+1,name:index<6?seed[0]:`${seed[0]}（${index+1}标段）`,code:`SCXM2026${sequence}`,
+    category:seed[1],company,branch,month:`2026-${String(1+(index%7)).padStart(2,"0")}`,
+    projectValue,emergingAmount,orderCode:`DDXM2026${sequence}`,
+    orderName:index<6?seed[2]:`${seed[2]}（${index+1}标段）`,bidAmount,orderEmergingAmount
+  };
+});
+const productionEmergingOrgState={company:"",branch:""};
+let productionEmergingOrgActive="全部";
+let productionEmergingChartMode="project";
+let productionEmergingPage=1;
+const productionEmergingPageSize=8;
+
+function getProductionEmergingScale(){
+  return productionEmergingProjects.length?getProductionEmergingRows().length/productionEmergingProjects.length:1;
+}
+
+function getProductionEmergingRows(){
+  return DashboardOrgSwitch.filter(productionEmergingProjects,productionEmergingOrgState);
+}
+
+function setProductionEmergingOrg(org){
+  productionEmergingOrgState.company=org&&org!=="全部"?org:"";
+  productionEmergingOrgState.branch="";
+  productionEmergingOrgActive=productionEmergingOrgState.company||"全部";
+  productionEmergingPage=1;
+  renderProductionEmergingDashboardPreservingScroll();
+}
+
+function setProductionEmergingOrgSelection(selection){
+  Object.assign(productionEmergingOrgState,selection);
+  productionEmergingOrgActive=productionEmergingOrgState.company||"全部";
+  productionEmergingPage=1;
+  renderProductionEmergingDashboardPreservingScroll();
+}
+
+function setProductionEmergingChartMode(mode){
+  productionEmergingChartMode=mode==="amount"?"amount":"project";
+  renderProductionEmergingDashboardPreservingScroll();
+}
+
+function changeProductionEmergingPage(delta){
+  const totalPages=Math.max(1,Math.ceil(getProductionEmergingRows().length/productionEmergingPageSize));
+  productionEmergingPage=Math.min(totalPages,Math.max(1,productionEmergingPage+Number(delta||0)));
+  renderProductionEmergingDashboardPreservingScroll();
+}
+
+function renderProductionEmergingKpis(){
+  const scale=getProductionEmergingScale();
+  const values=[
+    ["生产项目数",Math.round(6218*scale),"个","./src/assets/production-value/top-completed-contract.svg"],
+    ["涉及新兴业务项目数",Math.round(4835*scale),"个","./src/assets/production-value/main-plan-total.svg"],
+    ["生产项目合同总额",(3658.72*scale).toFixed(2),"亿元","./src/assets/production-value/top-plan-total.svg"],
+    ["新兴业务认定金额",(728.45*scale).toFixed(2),"亿元","./src/assets/production-value/main-contract.svg"],
+    ["新兴业务项目占比","77.83","%","./src/assets/production-value/top-progress.svg"],
+    ["新兴业务金额占比","19.90","%","./src/assets/production-value/main-rate.svg"]
+  ];
+  return values.map(item=>renderProductionValueMetric(...item)).join("");
+}
+
+function renderProductionEmergingComposition(){
+  const scale=getProductionEmergingScale();
+  const projectTotal=productionEmergingCategories.reduce((sum,item)=>sum+item.count,0);
+  const amountTotal=productionEmergingCategories.reduce((sum,item)=>sum+item.amount,0);
+  const buildStops=key=>{
+    const total=key==="count"?projectTotal:amountTotal;
+    let cursor=0;
+    return productionEmergingCategories.map(item=>{
+      const start=cursor;
+      cursor+=item[key]/total*100;
+      return `${item.color} ${start.toFixed(2)}% ${cursor.toFixed(2)}%`;
+    }).join(",");
+  };
+  return `<section class="production-value-panel emerging-chart-panel emerging-composition">
+    <div class="production-value-panel-hd"><h2>新兴业务项目/金额构成分析</h2></div>
+    <div class="emerging-composition-body"><div class="emerging-donut-stack">
+      <div class="emerging-donut" style="--emerging-donut:${buildStops("count")}"><div><strong>${formatProductionValuePlain(projectTotal*scale,0)}</strong><span>项目构成</span></div></div>
+      <div class="emerging-donut" style="--emerging-donut:${buildStops("amount")}"><div><strong>${formatProductionValuePlain(amountTotal*scale,2)}<small>亿</small></strong><span>金额构成</span></div></div>
+    </div><div class="emerging-legend-table"><div><b>业务类别</b><b>项目数 | 占比</b><b>认定金额（万元） | 占比</b></div>${productionEmergingCategories.map(item=>`<div><span><i style="background:${item.color}"></i>${item.name}</span><strong>${formatProductionValuePlain(item.count*scale,0)} <i>|</i> ${(item.count/projectTotal*100).toFixed(2)}%</strong><em>${formatProductionValuePlain(item.amount*10000*scale,2)} <i>|</i> ${(item.amount/amountTotal*100).toFixed(2)}%</em></div>`).join("")}</div></div>
+  </section>`;
+}
+
+function renderProductionEmergingCompanyRank(){
+  const isBranchMode=Boolean(productionEmergingOrgState.company);
+  let rows;
+  if(isBranchMode){
+    const companyRows=productionEmergingProjects.filter(row=>row.company===productionEmergingOrgState.company);
+    const branches=getOrganizationBranches(productionEmergingOrgState.company).filter(branch=>companyRows.some(row=>row.branch===branch));
+    rows=branches.map(branch=>{
+      const projects=companyRows.filter(row=>row.branch===branch);
+      const emergingCount=projects.length*62+branch.length%7*9;
+      const productionCount=Math.max(emergingCount,Math.round(emergingCount/(.68+(branch.length%4)*.05)));
+      const contractAmount=projects.reduce((sum,row)=>sum+row.projectValue,0)/10000;
+      const emergingAmount=projects.reduce((sum,row)=>sum+row.emergingAmount,0)/10000;
+      return {name:branch,productionCount,emergingCount,contractAmount,emergingAmount};
+    });
+    if(productionEmergingOrgState.branch)rows=rows.filter(row=>row.name===productionEmergingOrgState.branch);
+  }else{
+    rows=productionEmergingCompanies.map((company,index)=>({
+      name:company,
+      productionCount:1120-index*68,
+      emergingCount:872-index*57,
+      contractAmount:286500.00-index*13350.00,
+      emergingAmount:125345.32-index*9441.17
+    }));
+  }
+  const progress=(value,total)=>Math.min(100,Math.max(0,total?value/total*100:0));
+  const progressCell=(value,total,decimals=0)=>`<div class="emerging-rank-progress"><span title="新兴业务 ${formatProductionValuePlain(value,decimals)} / 总量 ${formatProductionValuePlain(total,decimals)}"><b style="width:${progress(value,total).toFixed(2)}%"></b></span><em>${formatProductionValuePlain(value,decimals)} / ${formatProductionValuePlain(total,decimals)}</em></div>`;
+  const levelLabel=isBranchMode?"分公司":"子公司";
+  return `<section class="production-value-panel emerging-chart-panel emerging-rank ${isBranchMode?"branch-mode":""}"><div class="production-value-panel-hd"><h2>${levelLabel}新兴业务情况</h2></div><div class="emerging-rank-table-wrap"><table class="production-overview-progress-table emerging-rank-table"><thead><tr><th>序号</th><th>${levelLabel}</th><th>项目数</th><th>认定金额（万元）</th></tr></thead><tbody>${rows.map((row,index)=>`<tr><td>${index+1}</td><td title="${escapeAttr(row.name)}">${row.name}</td><td>${progressCell(row.emergingCount,row.productionCount,0)}</td><td>${progressCell(row.emergingAmount,row.contractAmount,0)}</td></tr>`).join("")||`<tr><td colspan="4">暂无分公司数据</td></tr>`}</tbody></table></div><div class="emerging-rank-legend"><span><i></i>生产项目数 / 合同总额</span><span><i></i>新兴业务项目数 / 认定金额</span></div></section>`;
+}
+
+function renderProductionEmergingYearChart(){
+  const rows=[
+    {year:"2022年",count:1128,amount:112.63},{year:"2023年",count:1825,amount:218.75},
+    {year:"2024年",count:2674,amount:351.42},{year:"2025年",count:3948,amount:587.36},{year:"2026年",count:4835,amount:728.45}
+  ];
+  return `<section class="production-value-panel emerging-chart-panel emerging-year"><div class="production-value-panel-hd"><h2>新兴业务年度对比分析</h2></div><div class="emerging-year-plot">${rows.map(row=>`<div class="emerging-year-group"><div class="emerging-year-bars"><i style="height:${row.count/5000*100}%"><em>${formatProductionValuePlain(row.count,0)}</em></i><b style="height:${row.amount/800*100}%"><em>${row.amount}</em></b></div><span>${row.year}</span></div>`).join("")}</div><div class="emerging-year-legend"><span><i></i>涉及新兴业务项目数（个）</span><span><i></i>新兴业务认定金额（亿元）</span></div></section>`;
+}
+
+function renderProductionEmergingTable(){
+  const rows=getProductionEmergingRows();
+  const totalPages=Math.max(1,Math.ceil(rows.length/productionEmergingPageSize));
+  productionEmergingPage=Math.min(totalPages,Math.max(1,productionEmergingPage));
+  const start=(productionEmergingPage-1)*productionEmergingPageSize;
+  const pageRows=rows.slice(start,start+productionEmergingPageSize);
+  const tagTone=category=>`tone-${Math.max(1,productionEmergingCategories.findIndex(item=>item.name===category)+1)}`;
+  const renderEmergingTag=category=>`<span class="emerging-tag ${tagTone(category)}">${category}</span>`;
+  return `<section class="production-value-panel emerging-list-panel"><div class="production-value-panel-hd"><h2>新兴业务项目清单</h2></div><div class="emerging-table-wrap"><table><colgroup><col class="col-index"><col class="col-production-name"><col class="col-production-code"><col class="col-industry"><col class="col-company"><col class="col-month"><col class="col-project-value"><col class="col-production-tag"><col class="col-emerging-amount"><col class="col-order-name"><col class="col-order-code"><col class="col-bid-amount"><col class="col-order-tag"><col class="col-order-emerging-amount"></colgroup><thead><tr><th>序号</th><th>生产项目名称</th><th>生产项目编号</th><th>项目业态</th><th>子公司管理单位</th><th>填报年月</th><th>项目造价（元）</th><th>生产项目新兴业务标识</th><th>生产项目新兴业务金额（元）</th><th>订单项目名称</th><th>订单项目编号</th><th>订单项目中标价（元）</th><th>订单项目新兴业务标识</th><th>订单项目新兴业务金额（元）</th></tr></thead><tbody>${pageRows.map((row,index)=>`<tr><td>${start+index+1}</td><td class="production-project-name" title="${escapeAttr(row.name)}">${row.name}</td><td>${row.code}</td><td>${renderEmergingTag(row.category)}</td><td>${row.company}</td><td>${row.month}</td><td>${formatProductionValuePlain(row.projectValue)}</td><td>${renderEmergingTag(row.category)}</td><td>${formatProductionValuePlain(row.emergingAmount)}</td><td class="order-project-name" title="${escapeAttr(row.orderName)}">${row.orderName}</td><td>${row.orderCode}</td><td>${formatProductionValuePlain(row.bidAmount)}</td><td>${renderEmergingTag(row.category)}</td><td>${formatProductionValuePlain(row.orderEmergingAmount)}</td></tr>`).join("")||`<tr><td colspan="14">暂无数据</td></tr>`}</tbody></table></div><div class="pagination emerging-pagination"><span>共 ${rows.length} 条</span><div class="pager"><button class="btn mini" ${productionEmergingPage<=1?"disabled":""} onclick="changeProductionEmergingPage(-1)">上一页</button><b>第 ${productionEmergingPage} / ${totalPages} 页</b><button class="btn mini" ${productionEmergingPage>=totalPages?"disabled":""} onclick="changeProductionEmergingPage(1)">下一页</button><span>${productionEmergingPageSize}条/页</span></div></div></section>`;
+}
+
+async function renderProductionEmergingDashboardPage(){
+  detailPage.style.display="none";
+  const mounted=await mountProductionScreenTemplate("emerging","block");
+  if(mounted.stale)return;
+  replaceProductionScreenFragment(productionScreenSlot("header"),renderProductionScreenHeader("新兴业务看板"));
+  replaceProductionScreenFragment(productionScreenSlot("org-tabs"),DashboardOrgSwitch.render({id:"production-emerging-org",records:productionEmergingProjects,state:productionEmergingOrgState,onChange:setProductionEmergingOrgSelection}));
+  replaceProductionScreenFragment(productionScreenSlot("emerging-kpis"),renderProductionEmergingKpis());
+  replaceProductionScreenFragment(productionScreenSlot("emerging-charts"),[renderProductionEmergingComposition(),renderProductionEmergingCompanyRank(),renderProductionEmergingYearChart()].join(""));
+  replaceProductionScreenFragment(productionScreenSlot("emerging-table"),renderProductionEmergingTable());
+}
+
+function renderProductionEmergingDashboardPreservingScroll(){
+  renderWithPreservedScroll(renderProductionEmergingDashboardPage,[".production-emerging-dashboard",".emerging-table-wrap","#listPage",".main"]);
+}
+
 Object.assign(window,{
   renderProductionDashboardByKey,
   renderProductionOverviewDashboardPage,
   renderProductionStatisticsDashboardPage,
   renderProductionMajorDashboardPage,
   renderProductionValueDashboardPage,
+  renderProductionEmergingDashboardPage,
   renderProductionOverviewDashboardPreservingScroll,
   renderProductionStatisticsDashboardPreservingScroll,
   renderProductionMajorDashboardPreservingScroll,
   renderProductionValueDashboardPreservingScroll,
+  renderProductionEmergingDashboardPreservingScroll,
   renderProductionScreenEmptyPage,
   switchProductionScreenTab,
+  setProductionEmergingOrg,
+  setProductionEmergingChartMode,
+  changeProductionEmergingPage,
   setProductionStatisticsIndustry,
   setProductionStatisticsCompany,
   setProductionOverviewFilter,

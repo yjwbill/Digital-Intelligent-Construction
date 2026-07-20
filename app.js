@@ -2,6 +2,7 @@
   const version="2.2.274-output-completion-rate";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
+    "src/components/dashboard-org-switch/dashboard-org-switch.js",
     "src/app/project/project-portal.js",
     "src/app/shell/enterprise-navigation.js",
     "src/app/safety/labor-video-roster.js",

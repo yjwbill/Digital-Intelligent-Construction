@@ -233,6 +233,7 @@ const componentLibraryStateV2288={
   platform:"pc",
   active:"button"
 };
+const componentDashboardOrgStateV2276={company:"",branch:""};
 
 const componentLibraryDatePickerStateV2297={
   size:"default",
@@ -310,7 +311,8 @@ const componentLibraryMenusV2288={
   pc:[
     {group:"基础组件",items:[["button","按钮 Button"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"]]},
     {group:"表单组件",items:[["input","输入框 Input"],["select","选择器 Select"]]},
-    {group:"数据展示",items:[["tag","标签 Tag"],["table","表格 Table"]]}
+    {group:"数据展示",items:[["tag","标签 Tag"],["table","表格 Table"]]},
+    {group:"业务组件",items:[["dashboard-org-switch","看板组织切换 DashboardOrgSwitch"]]}
   ],
   mobile:[
     {group:"基础组件",items:[["button","按钮 Button"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"]]},
@@ -554,6 +556,7 @@ function renderPcDatePickerPreviewV2297(){
 }
 
 function renderPcComponentPreviewV2288(type){
+  const dashboardOrgDemoRecords=getOrganizationCompanies().slice(0,3).flatMap(company=>getOrganizationBranches(company).slice(0,3).map((branch,index)=>({company,branch,project:`示例项目${index+1}`})));
   const demos={
     button:`
       <div class="component-demo-row">
@@ -585,6 +588,10 @@ function renderPcComponentPreviewV2288(type){
     table:`
       <div class="component-mini-table"><table><thead><tr><th>序号</th><th>组件名称</th><th>状态</th></tr></thead><tbody><tr><td>1</td><td>按钮 Button</td><td>${tag("已启用","green")}</td></tr><tr><td>2</td><td>日期选择器</td><td>${tag("设计中","blue")}</td></tr></tbody></table></div>
       <p>表格统一复用现有列表组件，支持列设置、分页、导出和固定表头。</p>
+    `,
+    "dashboard-org-switch":`
+      <div class="component-dashboard-org-demo">${DashboardOrgSwitch.render({id:"component-dashboard-org-switch",records:dashboardOrgDemoRecords,state:componentDashboardOrgStateV2276,onChange:selection=>{Object.assign(componentDashboardOrgStateV2276,selection);refreshComponentLibraryPreviewV2300();}})}</div>
+      <p>根据项目所属组织反推可选子公司和分公司，并通过组织管理主数据校验父子关系。选择子公司后自动展开第二行分公司选项。</p>
     `
   };
   return demos[type] || demos.button;
@@ -961,4 +968,6 @@ Object.assign(window,{
   selectComponentLibraryItemV2288
 });
 
-document.addEventListener("DOMContentLoaded",renderDigitalConstructionEntry);
+document.addEventListener("DOMContentLoaded",()=>{
+  if(!window.__APP_INITIAL_ROUTE__)renderDigitalConstructionEntry();
+});
