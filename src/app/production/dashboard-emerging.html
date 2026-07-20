@@ -1,0 +1,32 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>生产-新兴业务看板</title>
+<base href="../../../">
+<link rel="stylesheet" href="./styles.css?v=2.2.286-global-shell-safety-source">
+<link rel="stylesheet" href="./src/components/base-select/base-select.css">
+</head>
+<body>
+<script src="./src/app/shell/app-shell.js?v=2.2.286-global-shell-safety-source"></script>
+
+<template data-production-dashboard-template="emerging">
+  <div class="safety-screen-page production-emerging-dashboard">
+    <div data-production-slot="header"></div>
+    <div class="safety-screen-body production-emerging-body">
+      <div class="production-value-org-tabs" data-production-slot="org-tabs"></div>
+      <section class="production-emerging-kpis" data-production-slot="emerging-kpis"></section>
+      <section class="production-emerging-charts" data-production-slot="emerging-charts"></section>
+      <div data-production-slot="emerging-table"></div>
+    </div>
+  </div>
+</template>
+
+<script src="./organization-data.js?v=2.2.286-global-shell-safety-source"></script>
+<script src="./master-data.js?v=2.2.286-global-shell-safety-source"></script>
+<script src="./src/app/production/dashboard-emerging.js?v=2.2.286-global-shell-safety-source"></script>
+<script src="./app.js?v=2.2.286-global-shell-safety-source"></script>
+<script src="./src/app/shell/mobile-overview-preview.js?v=2.2.286-global-shell-safety-source"></script>
+</body>
+</html>
