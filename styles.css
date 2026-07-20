@@ -52,9 +52,37 @@ button{cursor:pointer}
   font-size:0;
 }
 .portal-switch{height:52px;display:flex;align-items:center;gap:12px;position:relative;user-select:none;}
-.portal-switch-trigger{width:34px;height:34px;border:0;border-right:1px solid var(--border);background:#fff;color:#1D2129;display:flex;align-items:center;justify-content:flex-start;padding:0 12px 0 0;cursor:pointer;}
-.portal-switch-trigger:hover .portal-switch-grid{background:#F2F3F5;}
-.portal-switch-grid{width:26px;height:26px;border-radius:6px;display:block;padding:5px;object-fit:contain;}
+.portal-switch-trigger{width:56px;height:52px;border:0;border-right:1px solid var(--border);background:#fff;color:#1D2129;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;}
+.portal-switch-trigger:hover{background:#F7F8FA;}
+.portal-switch-grid{
+  width:18px;
+  height:18px;
+  display:block;
+  position:relative;
+  color:transparent;
+  font-size:0;
+  line-height:0;
+  background:none;
+}
+.portal-switch-grid:before{
+  content:"";
+  position:absolute;
+  left:1px;
+  top:1px;
+  width:3px;
+  height:3px;
+  border-radius:50%;
+  background:#5f6368;
+  box-shadow:
+    7px 0 #5f6368,
+    14px 0 #5f6368,
+    0 7px #5f6368,
+    7px 7px #5f6368,
+    14px 7px #5f6368,
+    0 14px #5f6368,
+    7px 14px #5f6368,
+    14px 14px #5f6368;
+}
 .portal-brand{height:52px;display:flex;align-items:center;gap:10px;cursor:pointer;}
 .portal-brand strong{font-size:18px;font-weight:800;color:#1D2129;white-space:nowrap;}
 .portal-switch-pop{position:absolute;left:0;top:58px;width:434px;background:#fff;border:1px solid #E5EAF2;border-radius:6px;box-shadow:0 12px 30px rgba(15,35,70,.13);padding:18px 16px 20px;z-index:120;display:none;}
@@ -15830,9 +15858,12 @@ body.mobile-mode .mobile-manual-scroll{
 }
 .production-value-main-summary{
   display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-columns:repeat(5,minmax(128px,1fr));
   gap:8px;
   margin-bottom:8px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:thin;
 }
 .production-value-main-summary-card{
   min-height:58px;
@@ -16656,6 +16687,57 @@ body.mobile-mode .mobile-manual-scroll{
   }
   .production-value-main-categories{grid-template-columns:1fr;}
   .production-value-main-category-grid{grid-template-columns:1fr;}
+}
+
+.production-value-dashboard .production-value-top-strip{
+  grid-template-columns:repeat(5,minmax(170px,1fr));
+  grid-auto-flow:column;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:thin;
+}
+
+.production-major-dashboard .production-major-top-strip{
+  grid-template-columns:repeat(6,minmax(150px,1fr));
+  grid-auto-flow:column;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:thin;
+}
+
+.production-value-dashboard .production-value-top-strip .production-value-metric,
+.production-major-dashboard .production-major-top-strip .production-value-metric{
+  min-width:0;
+}
+
+.production-value-dashboard .production-value-top-strip .production-value-metric>div,
+.production-major-dashboard .production-major-top-strip .production-value-metric>div{
+  min-width:0;
+}
+
+.production-value-dashboard .production-value-top-strip .production-value-metric strong,
+.production-major-dashboard .production-major-top-strip .production-value-metric strong{
+  white-space:nowrap;
+}
+
+.production-value-dashboard .production-value-top-strip .production-value-metric p,
+.production-major-dashboard .production-major-top-strip .production-value-metric p,
+.production-major-dashboard .production-major-top-strip .production-value-metric small{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.production-value-panel.main-output .production-value-main-summary{
+  grid-template-columns:repeat(5,minmax(128px,1fr));
+  grid-auto-flow:column;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:thin;
+}
+
+.production-value-panel.main-output .production-value-main-summary-card{
+  min-width:0;
 }
 .safety-eval-org-tabs{height:64px;margin:0 12px;padding:8px 16px;display:flex;align-items:center;gap:30px;border-radius:0 0 6px 6px;background:rgba(255,255,255,.64);position:relative;}
 .safety-eval-org-tabs button{min-width:88px;height:38px;border:0;border-radius:6px;background:transparent;color:#1f2b3d;font-size:15px;font-weight:700;}
