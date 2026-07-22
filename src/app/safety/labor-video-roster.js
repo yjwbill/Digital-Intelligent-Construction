@@ -162,7 +162,7 @@ const safetyAiCaptureRows=[
   {id:7,type:"危险区域闯入",status:"无效",company:"市政集团",branch:"江苏分公司",camera:"综合管廊入口球机",project:"南京江北新区综合管廊二期工程",time:"2026-07-11 15:18:42",resource:"2026年第28周/区域入侵",read:"处置完成",box:"area"},
   {id:8,type:"人机碰撞",status:"待确认",company:"上海隧道",branch:"市政分公司",camera:"顶管始发井球机",project:"华翔路非开挖修复工程",time:"2026-07-11 13:06:09",resource:"2026年第28周/碰撞检测",read:"项目安全组待阅",box:"large"}
 ];
-const safetyAiCaptureState={company:"",branch:"",type:"",camera:"",date:"",projectName:"",statStatus:"",statType:"",page:1,pageSize:8};
+const safetyAiCaptureState={company:"",branch:"",type:"",camera:"",date:"",projectName:"",statStatus:"",statType:"",page:1,pageSize:50};
 
 function getSafetyAiCaptureBaseRows(){
   const state=safetyAiCaptureState;
@@ -400,7 +400,7 @@ function renderRosterPage(){
 
       <div class="pagination">
         <span id="totalText">共 0 条</span>
-        <span>第 1 / 1 页　每页 10 条</span>
+        <span>第 1 / 1 页　每页 50 条</span>
       </div>
     </section>
   `;

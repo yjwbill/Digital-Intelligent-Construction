@@ -14,7 +14,7 @@ const dataDictionaryPaletteV2284=[
 const dataDictionaryPaletteKeysV2284=["gray","green","blue","orange","red","purple","cyan","pink","indigo","yellow"];
 const dataDictionaryPaletteIndexV2284={default:0,gray:0,green:1,blue:2,orange:3,red:4,purple:5,cyan:6,pink:7,indigo:8,yellow:9,brown:9};
 const dataDictionaryExcludedCodesV2284=new Set(["ORG_TREE"]);
-const dataDictionaryStateV2284={active:"PROJECT_STATUS",dictKeyword:"",valueKeyword:"",valuePage:1,valuePageSize:10,localLoaded:false,localLoading:false};
+const dataDictionaryStateV2284={active:"PROJECT_STATUS",dictKeyword:"",valueKeyword:"",valuePage:1,valuePageSize:50,localLoaded:false,localLoading:false};
 const dataDictionaryListV2284=[
   {name:"项目状态",code:"PROJECT_STATUS",remark:"项目全生命周期状态"},
   {name:"项目类型",code:"PROJECT_TYPE",remark:"项目业务类型"},
@@ -147,7 +147,7 @@ function changeDataDictionaryValuePageV2284(dir){
 }
 
 function changeDataDictionaryValuePageSizeV2284(value){
-  dataDictionaryStateV2284.valuePageSize=Number(value)||10;
+  dataDictionaryStateV2284.valuePageSize=Number(value)||50;
   dataDictionaryStateV2284.valuePage=1;
   renderDataDictionaryPageV2284();
 }

@@ -19,8 +19,8 @@ function renderSafetyEvaluationManagePage(name){
     return renderSafetyEvaluationMonthlyFillPage(true);
   }
   if(name==="对象管理（禁）")return renderSafetyEvaluationObjectPage();
-  if(name==="评价模型")return renderSafetyEvaluationModelPage();
-  if(name==="评价任务管理")return renderSafetyEvaluationTaskPage();
+  if(name==="评价模型"||name==="安全评价模型")return renderSafetyEvaluationModelPage();
+  if(name==="评价任务管理"||name==="安全评价任务")return renderSafetyEvaluationTaskPage();
   if(name==="评价结果管理")return renderSafetyEvaluationResultPage();
   if(name==="源数据管理")return renderSafetyEvaluationSourcePage();
   detailPage.style.display="none";
@@ -51,7 +51,7 @@ const safetyEvalMonthlyFillState={
   selectedYear:"2026",
   activeTab:"company",
   page:{company:1,branch:1,project:1},
-  pageSize:10
+  pageSize:50
 };
 try{
   ["safetyEvalMonthlyCompany","safetyEvalMonthlyBranch","safetyEvalMonthlyProject"].forEach(key=>localStorage.removeItem(getColumnStorageKey(key)));
@@ -377,7 +377,7 @@ function renderSafetyEvalMonthlyGroupedHeader(tableKey){
     const col=columns[i];
     if(!col.group){
       top.push(`
-        <th rowspan="2" class="monthly-fill-rowspan-th" style="width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">
+        <th rowspan="2" class="monthly-fill-rowspan-th ${getTableColumnClass(tableKey,col,columns)}" data-column-key="${escapeAttr(col.key)}" style="${getTableColumnStickyStyle(tableKey,col,columns)}width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">
           ${col.title}
         </th>
       `);
@@ -397,7 +397,7 @@ function renderSafetyEvalMonthlyGroupedHeader(tableKey){
       </th>
     `);
     bottom.push(groupCols.map(child=>`
-      <th class="monthly-fill-child-th" style="width:${child.width}px;min-width:${child.width}px;max-width:${child.width}px;text-align:${child.align||"center"}">
+      <th class="monthly-fill-child-th ${getTableColumnClass(tableKey,child,columns)}" data-column-key="${escapeAttr(child.key)}" style="${getTableColumnStickyStyle(tableKey,child,columns)}width:${child.width}px;min-width:${child.width}px;max-width:${child.width}px;text-align:${child.align||"center"}">
         ${child.title}
       </th>
     `).join(""));
@@ -436,7 +436,7 @@ function changeSafetyEvalMonthlyPage(delta){
 }
 
 function changeSafetyEvalMonthlyPageSize(value){
-  safetyEvalMonthlyFillState.pageSize=Number(value)||10;
+  safetyEvalMonthlyFillState.pageSize=Number(value)||50;
   safetyEvalMonthlyFillState.page={company:1,branch:1,project:1};
   renderSafetyEvalMonthlyTable();
 }
@@ -564,7 +564,7 @@ function changeSafetyEvalMonthlyCurrentPage(delta){
 }
 
 function changeSafetyEvalMonthlyCurrentPageSize(value){
-  safetyEvalMonthlyFillState.pageSize=Number(value)||10;
+  safetyEvalMonthlyFillState.pageSize=Number(value)||50;
   safetyEvalMonthlyFillState.page.project=1;
   renderSafetyEvaluationMonthlyFillCurrentPage();
 }
@@ -572,14 +572,15 @@ function changeSafetyEvalMonthlyCurrentPageSize(value){
 const safetyEvalMonthlyTreeExpandedCompanies=new Set();
 const safetyEvalMonthlyTreeExpandedBranches=new Set();
 const safetyEvalMonthlyTreeValues={};
-let safetyEvalMonthlyTreeInputTimer=null;
+let safetyEvalMonthlyTreeEditingProject="";
+let safetyEvalMonthlyTreeDraftValues={};
 let safetyEvalMonthlyTreeExpansionInitialized=false;
 const safetyEvalMonthlyTreeInputKeys=["fourMismatch","injury","pipelineAccident","fireAccident","lateReport","concealedReport","publicOpinion","opinionConceal","administrativePenalty","minorReport","minorApproved","laborDispute","honorNational","honorProvincial","honorDistrict"];
 const safetyEvalMonthlyTreeFixedKeys=["sequence","company","branch","projectName"];
 
 tableColumnDefinitions.safetyEvalMonthlyTree=[
-  {key:"sequence",title:"序号",width:92,align:"center",kind:"entity",render:()=>""},
-  {key:"company",title:"子公司",width:150,align:"center",kind:"entity",render:()=>""},
+  {key:"sequence",title:"序号",width:80,align:"center",kind:"entity",render:()=>""},
+  {key:"company",title:"子公司",width:120,align:"center",kind:"entity",render:()=>""},
   {key:"branch",title:"分公司",width:160,align:"center",kind:"entity",render:()=>""},
   {key:"projectName",title:"项目名称",width:300,align:"left",kind:"entity",render:()=>""},
   {key:"fourMismatch",title:"四要素不一致人数",group:"实名四要素一致性",width:150,align:"center",kind:"input",render:()=>""},
@@ -604,7 +605,8 @@ tableColumnDefinitions.safetyEvalMonthlyTree=[
   {key:"honorNational",title:"国际级和国家级",group:"荣誉表彰奖励",width:140,align:"center",kind:"input",render:()=>""},
   {key:"honorProvincial",title:"省部级",group:"荣誉表彰奖励",width:100,align:"center",kind:"input",render:()=>""},
   {key:"honorDistrict",title:"县区级和企业级",group:"荣誉表彰奖励",width:150,align:"center",kind:"input",render:()=>""},
-  {key:"honorScore",title:"得分",group:"荣誉表彰奖励",width:100,align:"center",kind:"score",scoreKey:"honorScore",render:()=>""}
+  {key:"honorScore",title:"得分",group:"荣誉表彰奖励",width:100,align:"center",kind:"score",scoreKey:"honorScore",render:()=>""},
+  {key:"operation",title:"操作",width:100,align:"center",kind:"action",render:()=>""}
 ];
 
 function getSafetyEvalMonthlyTreeVisibleColumns(){
@@ -671,14 +673,41 @@ function formatSafetyEvalMonthlyTreeScore(value){
 }
 
 function updateSafetyEvalMonthlyTreeInput(projectName,key,value){
-  const values=getSafetyEvalMonthlyTreeProjectValues(decodeURIComponent(projectName));
-  values[key]=Math.max(0,Number(value)||0);
-  renderSafetyEvaluationMonthlyFillCurrentPage();
+  const name=decodeURIComponent(projectName);
+  if(safetyEvalMonthlyTreeEditingProject!==name)return;
+  safetyEvalMonthlyTreeDraftValues[key]=Math.max(0,Number(value)||0);
+  const scores=calculateSafetyEvalMonthlyTreeScores(safetyEvalMonthlyTreeDraftValues);
+  const row=document.querySelector(`tr[data-monthly-project="${CSS.escape(projectName)}"]`);
+  if(row)row.querySelectorAll("[data-monthly-score-key]").forEach(cell=>cell.textContent=formatSafetyEvalMonthlyTreeScore(scores[cell.dataset.monthlyScoreKey]));
 }
 
 function scheduleSafetyEvalMonthlyTreeInput(projectName,key,value){
-  clearTimeout(safetyEvalMonthlyTreeInputTimer);
-  safetyEvalMonthlyTreeInputTimer=setTimeout(()=>updateSafetyEvalMonthlyTreeInput(projectName,key,value),180);
+  updateSafetyEvalMonthlyTreeInput(projectName,key,value);
+}
+
+function editSafetyEvalMonthlyTreeProject(encodedName){
+  if(!isSafetyEvalMonthlyTreeEditable())return showToast("历史月份仅支持查看");
+  const projectName=decodeURIComponent(encodedName);
+  safetyEvalMonthlyTreeEditingProject=projectName;
+  safetyEvalMonthlyTreeDraftValues={...getSafetyEvalMonthlyTreeProjectValues(projectName)};
+  renderSafetyEvaluationMonthlyFillCurrentPage();
+}
+
+function saveSafetyEvalMonthlyTreeProject(encodedName){
+  const projectName=decodeURIComponent(encodedName);
+  if(safetyEvalMonthlyTreeEditingProject!==projectName)return;
+  Object.assign(getSafetyEvalMonthlyTreeProjectValues(projectName),safetyEvalMonthlyTreeDraftValues);
+  safetyEvalMonthlyTreeEditingProject="";
+  safetyEvalMonthlyTreeDraftValues={};
+  renderSafetyEvaluationMonthlyFillCurrentPage();
+  showToast("保存成功");
+}
+
+function cancelSafetyEvalMonthlyTreeProject(encodedName){
+  if(safetyEvalMonthlyTreeEditingProject!==decodeURIComponent(encodedName))return;
+  safetyEvalMonthlyTreeEditingProject="";
+  safetyEvalMonthlyTreeDraftValues={};
+  renderSafetyEvaluationMonthlyFillCurrentPage();
 }
 
 function toggleSafetyEvalMonthlyTreeCompany(encodedName){
@@ -711,21 +740,32 @@ document.addEventListener("click",event=>{
 
 function renderSafetyEvalMonthlyTreeInput(projectName,key){
   const values=getSafetyEvalMonthlyTreeProjectValues(projectName);
-  if(!isSafetyEvalMonthlyTreeEditable())return `<span class="monthly-tree-readonly-value">${values[key]}</span>`;
-  return `<input class="monthly-tree-input" type="number" min="0" step="1" value="${values[key]}" aria-label="${key}" oninput="scheduleSafetyEvalMonthlyTreeInput('${encodeURIComponent(projectName)}','${key}',this.value)" onchange="updateSafetyEvalMonthlyTreeInput('${encodeURIComponent(projectName)}','${key}',this.value)"/>`;
+  if(!isSafetyEvalMonthlyTreeEditable()||safetyEvalMonthlyTreeEditingProject!==projectName)return `<span class="monthly-tree-readonly-value">${values[key]}</span>`;
+  return `<input class="monthly-tree-input" type="number" min="0" step="1" value="${safetyEvalMonthlyTreeDraftValues[key]??values[key]}" aria-label="${key}" oninput="scheduleSafetyEvalMonthlyTreeInput('${encodeURIComponent(projectName)}','${key}',this.value)"/>`;
+}
+
+function renderSafetyEvalMonthlyTreeActions(type,project){
+  if(type!=="project"||!project||!isSafetyEvalMonthlyTreeEditable())return "-";
+  const encoded=encodeURIComponent(project.projectName);
+  if(safetyEvalMonthlyTreeEditingProject===project.projectName){
+    return `<button type="button" class="link" onclick="saveSafetyEvalMonthlyTreeProject('${encoded}')">保存</button>　<button type="button" class="link" onclick="cancelSafetyEvalMonthlyTreeProject('${encoded}')">取消</button>`;
+  }
+  return `<button type="button" class="link" onclick="editSafetyEvalMonthlyTreeProject('${encoded}')">编辑</button>`;
 }
 
 function renderSafetyEvalMonthlyTreeMetricCells(type,rows,project){
-  const scores=type==="project"?calculateSafetyEvalMonthlyTreeScores(getSafetyEvalMonthlyTreeProjectValues(project.projectName)):null;
+  const projectValues=type==="project"&&safetyEvalMonthlyTreeEditingProject===project.projectName?safetyEvalMonthlyTreeDraftValues:type==="project"?getSafetyEvalMonthlyTreeProjectValues(project.projectName):null;
+  const scores=type==="project"?calculateSafetyEvalMonthlyTreeScores(projectValues):null;
   return getSafetyEvalMonthlyTreeVisibleColumns().filter(column=>column.kind!=="entity").map(column=>{
     const style=`width:${column.width}px;min-width:${column.width}px;max-width:${column.width}px;text-align:${column.align||"center"}`;
+    if(column.kind==="action")return `<td class="table-sticky-operation monthly-tree-operation-cell" data-column-key="operation" style="${style}">${renderSafetyEvalMonthlyTreeActions(type,project)}</td>`;
     if(column.kind==="input"){
       return type==="project"
         ?`<td style="${style}">${renderSafetyEvalMonthlyTreeInput(project.projectName,column.key)}</td>`
         :`<td class="monthly-tree-disabled-cell" style="${style}">-</td>`;
     }
     const value=type==="project"?scores[column.scoreKey]:getSafetyEvalMonthlyTreeAverage(rows,column.scoreKey);
-    return `<td class="monthly-tree-score-cell" style="${style}">${formatSafetyEvalMonthlyTreeScore(value)}</td>`;
+    return `<td class="monthly-tree-score-cell" ${type==="project"?`data-monthly-score-key="${column.scoreKey}"`:""} style="${style}">${formatSafetyEvalMonthlyTreeScore(value)}</td>`;
   }).join("");
 }
 
@@ -735,13 +775,13 @@ function renderSafetyEvalMonthlyTreeHeader(){
   const secondRow=[];
   for(let index=0;index<columns.length;index++){
     const column=columns[index];
-    if(column.kind==="entity"){
-      firstRow.push(`<th rowspan="2" data-column-key="${column.key}" style="width:${column.width}px;min-width:${column.width}px;max-width:${column.width}px;text-align:${column.align||"center"}">${column.title}</th>`);
+    if(column.kind==="entity"||column.kind==="action"){
+      firstRow.push(`<th rowspan="2" class="${column.kind==="action"?"table-sticky-operation":""}" data-column-key="${column.key}" style="width:${column.width}px;min-width:${column.width}px;max-width:${column.width}px;text-align:${column.key==="projectName"?"center":column.align||"center"}">${column.title}</th>`);
       continue;
     }
     const group=column.group||column.title;
     const groupColumns=[column];
-    while(index+1<columns.length&&columns[index+1].kind!=="entity"&&(columns[index+1].group||columns[index+1].title)===group){
+    while(index+1<columns.length&&!['entity','action'].includes(columns[index+1].kind)&&(columns[index+1].group||columns[index+1].title)===group){
       groupColumns.push(columns[++index]);
     }
     const width=groupColumns.reduce((sum,item)=>sum+(Number(item.width)||100),0);
@@ -769,15 +809,15 @@ function renderSafetyEvalMonthlyTreeTable(projectRows){
   companies.forEach((company,companyIndex)=>{
     const companyProjects=company.branches.flatMap(branch=>branch.projects);
     const companyOpen=safetyEvalMonthlyTreeExpandedCompanies.has(company.name);
-    body.push(`<tr class="monthly-tree-company-row"><td><button class="monthly-tree-toggle" data-monthly-tree-company="${encodeURIComponent(company.name)}">${companyOpen?"▼":"▶"}</button>${companyIndex+1}</td><td>${company.name}</td><td>-</td><td>-</td>${renderSafetyEvalMonthlyTreeMetricCells("company",companyProjects,null)}</tr>`);
+    body.push(`<tr class="monthly-tree-company-row"><td><div class="monthly-tree-sequence-cell"><button class="monthly-tree-toggle" title="${companyOpen?"收起":"展开"}" aria-label="${companyOpen?"收起":"展开"}" data-monthly-tree-company="${encodeURIComponent(company.name)}"><img src="./src/assets/${companyOpen?"monthly-tree-collapse.svg":"monthly-tree-expand.svg"}" alt=""/></button><span>${companyIndex+1}</span></div></td><td>${company.name}</td><td>-</td><td>-</td>${renderSafetyEvalMonthlyTreeMetricCells("company",companyProjects,null)}</tr>`);
     if(!companyOpen)return;
     company.branches.forEach((branch,branchIndex)=>{
       const branchKey=`${company.name}|${branch.name}`;
       const branchOpen=safetyEvalMonthlyTreeExpandedBranches.has(branchKey);
-      body.push(`<tr class="monthly-tree-branch-row"><td><button class="monthly-tree-toggle" data-monthly-tree-branch="${encodeURIComponent(branchKey)}">${branchOpen?"▼":"▶"}</button>${companyIndex+1}.${branchIndex+1}</td><td>-</td><td>${branch.name}</td><td>-</td>${renderSafetyEvalMonthlyTreeMetricCells("branch",branch.projects,null)}</tr>`);
+      body.push(`<tr class="monthly-tree-branch-row"><td><div class="monthly-tree-sequence-cell"><button class="monthly-tree-toggle" title="${branchOpen?"收起":"展开"}" aria-label="${branchOpen?"收起":"展开"}" data-monthly-tree-branch="${encodeURIComponent(branchKey)}"><img src="./src/assets/${branchOpen?"monthly-tree-collapse.svg":"monthly-tree-expand.svg"}" alt=""/></button><span>${companyIndex+1}.${branchIndex+1}</span></div></td><td>-</td><td>${branch.name}</td><td>-</td>${renderSafetyEvalMonthlyTreeMetricCells("branch",branch.projects,null)}</tr>`);
       if(!branchOpen)return;
       branch.projects.forEach((project,projectIndex)=>{
-        body.push(`<tr class="monthly-tree-project-row"><td>${companyIndex+1}.${branchIndex+1}.${projectIndex+1}</td><td>-</td><td>-</td><td class="monthly-tree-project-name" title="${escapeAttr(project.projectName)}">${project.projectName}</td>${renderSafetyEvalMonthlyTreeMetricCells("project",[project],project)}</tr>`);
+        body.push(`<tr class="monthly-tree-project-row" data-monthly-project="${encodeURIComponent(project.projectName)}"><td>${companyIndex+1}.${branchIndex+1}.${projectIndex+1}</td><td>-</td><td>-</td><td class="monthly-tree-project-name" title="${escapeAttr(project.projectName)}">${project.projectName}</td>${renderSafetyEvalMonthlyTreeMetricCells("project",[project],project)}</tr>`);
       });
     });
   });
@@ -830,7 +870,7 @@ function renderSafetyEvaluationMonthlyFillCurrentPage(){
             <div class="actions">
               <button class="btn" onclick="renderSafetyEvaluationMonthlyFillCurrentPage()">刷新</button>
               <button class="btn" onclick="showToast('导出成功：${activePlan.month}月项目评价数据.xlsx')">导出</button>
-              <button class="btn primary" onclick="submitSafetyEvalMonthlyFill()" ${activePlan.status!=="进行中"?"disabled":""}>提交</button>
+              ${activePlan.status==="进行中"?`<button class="btn primary" onclick="submitSafetyEvalMonthlyFill()">提交</button>`:""}
               <button class="column-setting-icon-btn" title="列设置" onclick="openSafetyEvalMonthlyTreeColumnSetting()">⚙</button>
             </div>
           </div>
@@ -964,7 +1004,7 @@ const safetyEvalIndicatorRows=[
   updateTime:row[9]
 }));
 
-const safetyEvalIndicatorState={name:"",code:"",category:"",type:"",source:"",score:"",status:"",statKey:"all",page:1,pageSize:10};
+const safetyEvalIndicatorState={name:"",code:"",category:"",type:"",source:"",score:"",status:"",statKey:"all",page:1,pageSize:50};
 
 tableColumnDefinitions.safetyEvalIndicator=[
   {key:"selection",title:"",width:48,align:"center",render:()=>`<input type="checkbox"/>`},
@@ -1102,7 +1142,7 @@ function renderSafetyEvalIndicatorTable(rows){
         ${rows.map((row,index)=>`
           <tr>
             ${columns.map(col=>`
-              <td style="width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">${col.render(row,index)}</td>
+              <td class="${getTableColumnClass("safetyEvalIndicator",col,columns)}" data-column-key="${escapeAttr(col.key)}" style="${getTableColumnStickyStyle("safetyEvalIndicator",col,columns)}width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">${col.render(row,index)}</td>
             `).join("")}
           </tr>
         `).join("") || `<tr><td colspan="${columns.length}" style="text-align:center;color:var(--muted);height:80px">暂无数据</td></tr>`}
@@ -1605,7 +1645,7 @@ const safetyEvalObjectState={
   createEndTime:"",
   statKey:"",
   page:1,
-  pageSize:10
+  pageSize:50
 };
 
 tableColumnDefinitions.safetyEvalObject=[
@@ -1753,7 +1793,7 @@ function renderSafetyEvalObjectTable(rows){
         ${rows.map((row,index)=>`
           <tr>
             ${columns.map(col=>`
-              <td style="width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">${col.render(row,index)}</td>
+              <td class="${getTableColumnClass("safetyEvalObject",col,columns)}" data-column-key="${escapeAttr(col.key)}" style="${getTableColumnStickyStyle("safetyEvalObject",col,columns)}width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">${col.render(row,index)}</td>
             `).join("")}
           </tr>
         `).join("") || `<tr><td colspan="${columns.length}" style="text-align:center;color:var(--muted);height:80px">暂无数据</td></tr>`}
@@ -1861,7 +1901,7 @@ const safetyEvalModelState={
   publishStartTime:"",
   publishEndTime:"",
   page:1,
-  pageSize:10
+  pageSize:50
 };
 
 function safetyEvalModelTypeTag(value){
@@ -2143,7 +2183,7 @@ function renderSafetyEvalModelTable(rows){
         ${rows.map((row,index)=>`
           <tr>
             ${columns.map(col=>`
-              <td style="width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">${col.render(row,index)}</td>
+              <td class="${getTableColumnClass("safetyEvalModel",col,columns)}" data-column-key="${escapeAttr(col.key)}" style="${getTableColumnStickyStyle("safetyEvalModel",col,columns)}width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">${col.render(row,index)}</td>
             `).join("")}
           </tr>
         `).join("") || `<tr><td colspan="${columns.length}" style="text-align:center;color:var(--muted);height:80px">暂无数据</td></tr>`}
@@ -2269,7 +2309,7 @@ const safetyEvalResultState={
   scoreMin:"",
   scoreMax:"",
   page:1,
-  pageSize:10
+  pageSize:50
 };
 
 function safetyEvalRiskTag(value){
@@ -2393,7 +2433,7 @@ function renderSafetyEvalResultTable(rows){
         ${rows.map((row,index)=>`
           <tr>
             ${columns.map(col=>`
-              <td style="width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">${col.render(row,index)}</td>
+              <td class="${getTableColumnClass("safetyEvalResult",col,columns)}" data-column-key="${escapeAttr(col.key)}" style="${getTableColumnStickyStyle("safetyEvalResult",col,columns)}width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">${col.render(row,index)}</td>
             `).join("")}
           </tr>
         `).join("") || `<tr><td colspan="${columns.length}" style="text-align:center;color:var(--muted);height:80px">暂无数据</td></tr>`}
@@ -2519,7 +2559,7 @@ const safetyEvalSourceState={
   updateStartTime:"",
   updateEndTime:"",
   page:1,
-  pageSize:10
+  pageSize:50
 };
 
 function safetyEvalSourceFieldTag(value){
@@ -2658,7 +2698,7 @@ function renderSafetyEvalSourceTable(rows){
         ${rows.map((row,index)=>`
           <tr>
             ${columns.map(col=>`
-              <td style="width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">${col.render(row,index)}</td>
+              <td class="${getTableColumnClass("safetyEvalSource",col,columns)}" data-column-key="${escapeAttr(col.key)}" style="${getTableColumnStickyStyle("safetyEvalSource",col,columns)}width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">${col.render(row,index)}</td>
             `).join("")}
           </tr>
         `).join("") || `<tr><td colspan="${columns.length}" style="text-align:center;color:var(--muted);height:80px">暂无数据</td></tr>`}
@@ -2766,7 +2806,7 @@ const safetyEvalTaskState={
   createStartTime:"",
   createEndTime:"",
   page:1,
-  pageSize:10
+  pageSize:50
 };
 
 tableColumnDefinitions.safetyEvalTask=[
@@ -3101,7 +3141,7 @@ function renderSafetyEvalTaskTable(rows){
         ${rows.map((row,index)=>`
           <tr>
             ${columns.map(col=>`
-              <td style="width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">${col.render(row,index)}</td>
+              <td class="${getTableColumnClass("safetyEvalTask",col,columns)}" data-column-key="${escapeAttr(col.key)}" style="${getTableColumnStickyStyle("safetyEvalTask",col,columns)}width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">${col.render(row,index)}</td>
             `).join("")}
           </tr>
         `).join("") || `<tr><td colspan="${columns.length}" style="text-align:center;color:var(--muted);height:80px">暂无数据</td></tr>`}
@@ -3721,7 +3761,7 @@ function normalizeSafetyEvaluationRows(){
   });
 }
 normalizeSafetyEvaluationRows();
-const safetyEvaluationTablePageSize=10;
+const safetyEvaluationTablePageSize=50;
 const safetyEvaluationFilterState={projectName:"",subCompany:"",branch:"",manager:"",status:"",riskLevel:"",scoreSort:"",selectedIds:[]};
 const safetyEvaluationDetailMeta=[
   {cost:"220,0900.00万元",tags:["地下工程","浙江区域","集团一体化管理模式","集团重点关注","EPC"]},
@@ -4362,7 +4402,7 @@ function renderSafetyStaffShortageBody(){
             <tbody id="safetyStaffShortageTbody"></tbody>
           </table>
         </div>
-        <div class="pagination"><span>共 ${list.length} 条记录</span><span>第 1 / 1 页&nbsp;&nbsp;每页 10 条</span></div>
+        <div class="pagination"><span>共 ${list.length} 条记录</span><span>第 1 / 1 页&nbsp;&nbsp;每页 50 条</span></div>
       </section>
     </div>
   `;

@@ -7,7 +7,7 @@ document.addEventListener("click",event=>{
 document.addEventListener("change",event=>{
   const projectLogPageSize=event.target.closest?.("[data-project-log-page-size]");
   if(projectLogPageSize){
-    projectLogState.pageSize=Number(projectLogPageSize.value)||12;
+    projectLogState.pageSize=Number(projectLogPageSize.value)||50;
     projectLogState.page=1;
     renderProjectLogPage();
   }
@@ -210,7 +210,8 @@ function selectBusinessChildMenu(line,gi,ci,name){
 
   if(line==="production"&&parent?.name==="风险管理"&&(name==="风险管控清单"||name==="风险管理台账"))return renderRiskLedgerPage();
   if(line==="production"&&parent?.name==="产值管理"&&name==="产值预测分析报表")return renderOutputForecastAnalysisPage();
-  if(line==="production"&&parent?.name==="产值管理"&&name==="实际产值上报")return renderActualOutputReportPage();
+  if(line==="production"&&parent?.name==="产值管理"&&name==="项目产值上报（废）")return renderActualOutputReportPage();
+  if(line==="production"&&parent?.name==="产值管理"&&name==="实际产值上报")return renderComprehensiveActualOutputReportPage();
   if(line==="production"&&parent?.name==="产值管理"&&name==="完工未结算管理")return renderFinishedUnsettledOutputPage();
   if(line==="production"&&parent?.name==="产值管理"&&name==="其他业态产值申报")return renderOtherBizOutputReportPage();
 
@@ -246,6 +247,7 @@ function selectBusinessSingleMenu(line,i,name){
   if(line==="safety"&&i===0)return renderSafetyOnlineDashboardPage();
   if(line==="production"&&name==="大屏看板")return renderProductionDashboardByKey(window.__APP_PRODUCTION_DASHBOARD_ROUTE_KEY__ || "overview");
   if(line==="production"&&name==="施工项目一览")return renderConstructionProjectPage();
+  if(line==="operation"&&name==="接口同步异常记录")return renderInterfaceSyncExceptionPage();
 
   line==="safety"
     ? renderSafetyPlaceholder(name)

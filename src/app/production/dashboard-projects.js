@@ -365,7 +365,7 @@ function createConstructionProject(x,i){
 let constructionProjectCurrentList=[...constructionProjectData];
 let constructionProjectBaseFilteredList=[...constructionProjectData];
 let constructionProjectActiveStat=null;
-let constructionProjectPageSize=10;
+let constructionProjectPageSize=50;
 let constructionProjectCurrentPage=1;
 
 function moneyWan(v){return Number(v||0).toLocaleString("zh-CN");}
@@ -741,7 +741,7 @@ function renderConstructionProjectStats(){
 
 function renderConstructionProjectTableHeader(){
   return getVisibleColumns("constructionProject").map(col=>`
-    <th class="${col.key==="operation"?"project-operation-col":""}" style="width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">
+    <th class="${col.key==="operation"?"project-operation-col ":""}${getTableColumnClass("constructionProject",col,getVisibleColumns("constructionProject"))}" data-column-key="${escapeAttr(col.key)}" style="${getTableColumnStickyStyle("constructionProject",col,getVisibleColumns("constructionProject"))}width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">
       ${col.title}
     </th>
   `).join("");
@@ -767,7 +767,7 @@ function renderConstructionProjectTable(){
   replaceProductionDashboardFragment(tbody,list.map((row,index)=>`
     <tr>
       ${columns.map(col=>`
-        <td class="${col.key==="operation"?"project-operation-col":""}" style="width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">
+        <td class="${col.key==="operation"?"project-operation-col ":""}${getTableColumnClass("constructionProject",col,columns)}" data-column-key="${escapeAttr(col.key)}" style="${getTableColumnStickyStyle("constructionProject",col,columns)}width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">
           ${col.render(row,index)}
         </td>
       `).join("")}
@@ -795,7 +795,7 @@ function changeConstructionProjectPage(delta){
 }
 
 function changeConstructionProjectPageSize(value){
-  constructionProjectPageSize=Number(value)||10;
+  constructionProjectPageSize=Number(value)||50;
   constructionProjectCurrentPage=1;
   renderConstructionProjectTable();
 }

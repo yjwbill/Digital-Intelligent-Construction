@@ -84,8 +84,12 @@
     if(!slug || window.__APP_APPLYING_INITIAL_ROUTE__)return false;
     const href=pageHref(slug,params);
     if(sameRoute(href))return false;
-    location.assign(href);
-    return true;
+    try{
+      history.replaceState(history.state,"",href);
+    }catch(error){
+      // Some local preview modes restrict History API URL changes; menu rendering must still continue.
+    }
+    return false;
   }
 
   function routeWithQueryOverride(route,mode){

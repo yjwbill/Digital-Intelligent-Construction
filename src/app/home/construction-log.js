@@ -10,10 +10,12 @@ const enterpriseConstructionLogState={
   builder:"",
   keyCustomer:"",
   region:"",
+  projectStatus:"",
+  projectCode:"",
   reportMonth:getCurrentReportMonth(),
   statKey:"all",
   page:1,
-  pageSize:10
+  pageSize:50
 };
 
 function getEnterpriseConstructionLogMonthMeta(){
@@ -123,6 +125,7 @@ function getEnterpriseConstructionLogRows(){
     return {
       ...project,
       reportStatus,
+      reportMethod:reportStatus==="已上报"?(getEnterpriseConstructionLogReportRecord(project,latestDay,enterpriseConstructionLogState.reportMonth).mode==="file"?"文件上报":"在线上报"):"",
       onTimeUpload:reportStatus==="已上报"?(project.id%5===0?"否":"是"):"否",
       latestUploadDate:uploadedDay
         ? `${enterpriseConstructionLogState.reportMonth}-${String(uploadedDay).padStart(2,"0")}`
@@ -146,6 +149,8 @@ function filterEnterpriseConstructionLogSearchRows(rows){
     if(s.builder&&!row.builder.includes(s.builder))return false;
     if(s.keyCustomer&&(row.keyCustomer||"无")!==s.keyCustomer)return false;
     if(s.region&&row.region!==s.region)return false;
+    if(s.projectStatus&&row.projectStatus!==s.projectStatus)return false;
+    if(s.projectCode&&!row.projectCode.includes(s.projectCode))return false;
     return true;
   });
 }
@@ -154,7 +159,9 @@ function getEnterpriseConstructionLogTodayStatRows(){
   const day=13;
   return filterEnterpriseConstructionLogSearchRows(constructionProjectData.map(project=>{
     const dailyState=getEnterpriseConstructionLogDayStateForMonth(project,day,"2026-07");
-    return {...project,reportStatus:dailyState==="stopped"?"停工未上报":dailyState==="missing"?"未上报":"已上报"};
+    const reportStatus=dailyState==="stopped"?"停工未上报":dailyState==="missing"?"未上报":"已上报";
+    const reportMethod=dailyState==="reported"?(getEnterpriseConstructionLogReportRecord(project,day,"2026-07").mode==="file"?"文件上报":"在线上报"):"";
+    return {...project,reportStatus,reportMethod};
   }));
 }
 
@@ -163,6 +170,8 @@ function getEnterpriseConstructionLogFilteredRows(){
   if(enterpriseConstructionLogState.statKey==="reported")return rows.filter(row=>row.reportStatus==="已上报");
   if(enterpriseConstructionLogState.statKey==="unreported")return rows.filter(row=>row.reportStatus==="未上报");
   if(enterpriseConstructionLogState.statKey==="stopped")return rows.filter(row=>row.reportStatus==="停工未上报");
+  if(enterpriseConstructionLogState.statKey==="online")return rows.filter(row=>row.reportMethod==="在线上报");
+  if(enterpriseConstructionLogState.statKey==="file")return rows.filter(row=>row.reportMethod==="文件上报");
   return rows;
 }
 
@@ -200,13 +209,13 @@ function refreshEnterpriseConstructionLogColumns(){
       align:"center",
       render:row=>renderEnterpriseConstructionLogDayCell(row,index+1)
     })),
-    {key:"projectManager",title:"项目经理",width:110,align:"center",render:row=>row.projectManager},
+    {key:"projectManager",title:"项目经理",width:190,align:"center",render:row=>`${row.projectManager} | ${maskPhone(row.managerPhone||"18000005555")} <button type="button" class="link" title="查看完整手机号" onclick="showToast('查看手机号权限')">👁️</button>`},
     {key:"controlLevel",title:"管控等级",width:150,align:"center",render:row=>row.controlLevel},
     {key:"builder",title:"建设单位",width:220,align:"left",render:row=>row.builder},
     {key:"keyCustomer",title:"重点客户",width:130,align:"center",render:row=>row.keyCustomer||"无"},
     {key:"region",title:"所属区域",width:120,align:"center",render:row=>row.region},
     {key:"projectCode",title:"项目编号",width:150,align:"center",render:row=>row.projectCode},
-    {key:"action",title:"操作",width:100,align:"center",render:row=>`<button type="button" class="link" data-log-detail-id="${row.id}">查看</button>`}
+    {key:"operation",title:"操作",width:100,align:"center",render:row=>`<button type="button" class="link" data-log-detail-id="${row.id}">查看</button>`}
   ];
 }
 
@@ -229,6 +238,13 @@ function renderEnterpriseConstructionLogStats(){
           ${item("stopped","停工未上报",count("停工未上报"))}
         </div>
       </div>
+      <div class="construction-project-stat-group">
+        <div class="construction-project-stat-name">上报方式</div>
+        <div class="construction-project-stat-items">
+          ${item("online","在线上报",rows.filter(row=>row.reportMethod==="在线上报").length)}
+          ${item("file","文件上报",rows.filter(row=>row.reportMethod==="文件上报").length)}
+        </div>
+      </div>
     </div>
   `);
 }
@@ -247,6 +263,8 @@ function renderEnterpriseConstructionLogQueryFields(){
     <div class="form-item"><label>建设单位</label><input id="enterpriseLogBuilder" class="input" value="${escapeAttr(s.builder)}" placeholder="请输入建设单位模糊搜索"/></div>
     <div class="form-item"><label>重点客户</label><select id="enterpriseLogKeyCustomer" class="select">${renderActualOutputOptions(cpUnique("keyCustomer").map(value=>value||"无"),s.keyCustomer,"全部")}</select></div>
     <div class="form-item"><label>所属区域</label><select id="enterpriseLogRegion" class="select">${renderActualOutputOptions(cpUnique("region"),s.region,"全部")}</select></div>
+    <div class="form-item"><label>项目状态</label><select id="enterpriseLogProjectStatus" class="select">${renderActualOutputOptions(cpUnique("projectStatus"),s.projectStatus,"全部")}</select></div>
+    <div class="form-item"><label>项目编号</label><input id="enterpriseLogProjectCode" class="input" value="${escapeAttr(s.projectCode)}" placeholder="请输入项目编号模糊搜索"/></div>
   `;
 }
 
@@ -273,7 +291,7 @@ async function renderEnterpriseConstructionLogPage(){
     resetFn:"resetEnterpriseConstructionLog()",
     gridClass:"search-grid",
     id:"enterpriseConstructionLogQueryCard",
-    canCollapse:false
+    canCollapse:true
   }));
   replaceEnterpriseConstructionLogFragment(document.querySelector("[data-enterprise-log-stats]"),renderEnterpriseConstructionLogStats());
   const table=document.getElementById("enterpriseConstructionLogTable");
@@ -372,6 +390,8 @@ function syncEnterpriseConstructionLogQueryState(){
   enterpriseConstructionLogState.builder=document.getElementById("enterpriseLogBuilder")?.value.trim()||"";
   enterpriseConstructionLogState.keyCustomer=document.getElementById("enterpriseLogKeyCustomer")?.value||"";
   enterpriseConstructionLogState.region=document.getElementById("enterpriseLogRegion")?.value||"";
+  enterpriseConstructionLogState.projectStatus=document.getElementById("enterpriseLogProjectStatus")?.value||"";
+  enterpriseConstructionLogState.projectCode=document.getElementById("enterpriseLogProjectCode")?.value.trim()||"";
 }
 
 function queryEnterpriseConstructionLog(){
@@ -383,7 +403,7 @@ function queryEnterpriseConstructionLog(){
 
 function resetEnterpriseConstructionLog(){
   Object.assign(enterpriseConstructionLogState,{
-    projectName:"",company:"",branch:"",manager:"",controlLevel:"",builder:"",keyCustomer:"",region:"",statKey:"all",page:1,pageSize:10
+    projectName:"",company:"",branch:"",manager:"",controlLevel:"",builder:"",keyCustomer:"",region:"",projectStatus:"",projectCode:"",statKey:"all",page:1,pageSize:50
   });
   renderEnterpriseConstructionLogPage();
 }
@@ -401,7 +421,7 @@ function changeEnterpriseConstructionLogPage(delta){
 }
 
 function changeEnterpriseConstructionLogPageSize(value){
-  enterpriseConstructionLogState.pageSize=Number(value)||10;
+  enterpriseConstructionLogState.pageSize=Number(value)||50;
   enterpriseConstructionLogState.page=1;
   renderEnterpriseConstructionLogTable();
 }
@@ -425,7 +445,7 @@ const enterpriseConstructionLogProjectViewState={
   startDate:"",
   endDate:"",
   page:1,
-  pageSize:12
+  pageSize:50
 };
 
 function getEnterpriseConstructionLogMonthMetaByValue(monthValue){
@@ -436,6 +456,7 @@ function getEnterpriseConstructionLogMonthMetaByValue(monthValue){
 function getEnterpriseConstructionLogDayStateForMonth(project,day,monthValue){
   if(!project)return "not-started";
   const date=`${monthValue}-${String(day).padStart(2,"0")}`;
+  if(globalThis.projectLogDeletedKeys?.has(`${project.projectName}|${date}`))return "missing";
   if(date<constructionLogDataRange.start||date>constructionLogDataRange.end)return "not-started";
   if(project.projectStatus==="停工")return "stopped";
   if((Number(project.id)*3+Number(day))%11===0||(Number(project.id)+Number(day)*2)%17===0)return "missing";
@@ -596,7 +617,7 @@ function renderEnterpriseConstructionLogProjectPagination(records){
         <button class="btn mini" ${page<=1?"disabled":""} onclick="changeEnterpriseConstructionLogProjectPage(-1)">上一页</button>
         <b>第 ${page} / ${totalPages} 页</b>
         <button class="btn mini" ${page>=totalPages?"disabled":""} onclick="changeEnterpriseConstructionLogProjectPage(1)">下一页</button>
-        <select class="select mini-select" onchange="changeEnterpriseConstructionLogProjectPageSize(this.value)">${[12,24].map(size=>`<option value="${size}" ${size===enterpriseConstructionLogProjectViewState.pageSize?"selected":""}>${size}条/页</option>`).join("")}</select>
+        <select class="select mini-select" onchange="changeEnterpriseConstructionLogProjectPageSize(this.value)">${[12,24,50].map(size=>`<option value="${size}" ${size===enterpriseConstructionLogProjectViewState.pageSize?"selected":""}>${size}条/页</option>`).join("")}</select>
       </div>
     </div>
   `;
@@ -692,7 +713,7 @@ function changeEnterpriseConstructionLogProjectPage(delta){
 }
 
 function changeEnterpriseConstructionLogProjectPageSize(value){
-  enterpriseConstructionLogProjectViewState.pageSize=Number(value)||12;
+  enterpriseConstructionLogProjectViewState.pageSize=Number(value)||50;
   enterpriseConstructionLogProjectViewState.page=1;
   renderEnterpriseConstructionLogProjectView();
 }
@@ -732,7 +753,7 @@ function openEnterpriseConstructionLogDetail(id){
     selectedDate:"",
     workArea:"",keyword:"",startDate:"",endDate:"",
     page:1,
-    pageSize:12
+    pageSize:50
   });
   const records=getEnterpriseConstructionLogProjectRecords(project);
   enterpriseConstructionLogProjectViewState.selectedDate=records[0]?.date||"";

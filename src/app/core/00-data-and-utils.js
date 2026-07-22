@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.274";
-const APP_CODE_VERSION_NAME="产值完成率口径统一";
-const APP_CODE_VERSION_TIME="2026-07-14 18:11";
-const APP_CODE_VERSION_DESC="企业生产产值看板统一将产值进度及相关完成率指标命名为产值完成率。";
+const APP_CODE_VERSION="EM-20260701-V2.2.325";
+const APP_CODE_VERSION_NAME="安全评价模块副本版";
+const APP_CODE_VERSION_TIME="2026-07-22 16:40";
+const APP_CODE_VERSION_DESC="在安全评价菜单下新增安全评价模型和安全评价任务，分别完整复用评价模型与评价任务管理模块。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
@@ -617,6 +617,7 @@ const businessMenus={
           {name:"产值预测分析报表"},
           {name:"目标设置"},
           {name:"产值申报"},
+          {name:"项目产值上报（废）"},
           {name:"实际产值上报"},
           {name:"完工未结算管理"},
           {name:"其他业态产值申报"}
@@ -709,7 +710,9 @@ const businessMenus={
           {name:"指标管理"},
           {name:"月度评价填报"},
           {name:"评价模型"},
+          {name:"安全评价模型"},
           {name:"评价任务管理"},
+          {name:"安全评价任务"},
           {name:"评价结果管理"},
           {name:"源数据管理"},
           {name:"对象管理（禁）"}
@@ -738,7 +741,8 @@ const businessMenus={
         children:[
           {name:"生产项目报表",active:true}
         ]
-      }
+      },
+      {icon:"⚠️",name:"接口同步异常记录",active:false}
     ]
   }
 };
@@ -1492,9 +1496,9 @@ const tableColumnDefinitions={
     {
       key:"operation",
       title:"操作",
-      width:130,
+      width:160,
       align:"center",
-      render:w=>`<a class="link" onclick="openDetail(${w.id})">详情</a> ｜ <a class="link" onclick="openWorkerEditModal(${w.id})">编辑</a> ｜ <a class="link danger-link" onclick="deleteWorker(${w.id})">删除</a>`
+      render:w=>`<a class="link" onclick="openDetail(${w.id})">详情</a>　<a class="link" onclick="openWorkerEditModal(${w.id})">编辑</a>　<a class="link danger-link" onclick="deleteWorker(${w.id})">删除</a>`
     }
   ],
 
@@ -1855,6 +1859,21 @@ function getColumnStorageKey(tableKey){
   return "EM_TABLE_COLUMNS_" + APP_CODE_VERSION + "_" + tableKey;
 }
 
+function getTableFreezeStorageKey(tableKey){
+  return "EM_TABLE_FREEZE_" + APP_CODE_VERSION + "_" + tableKey;
+}
+
+function getDefaultTableFreezeCount(tableKey){
+  return Math.max(0,Number(tableColumnDefinitions[tableKey]?.freezeCount)||0);
+}
+
+function getTableFreezeCount(tableKey){
+  const saved=localStorage.getItem(getTableFreezeStorageKey(tableKey));
+  const count=saved===null?getDefaultTableFreezeCount(tableKey):Math.max(0,Number(saved)||0);
+  const max=getVisibleColumns(tableKey).filter(col=>col.key!=="operation").length;
+  return Math.min(count,max);
+}
+
 function getDefaultColumnConfig(tableKey){
   return tableColumnDefinitions[tableKey].map((col,index)=>({
     key:col.key,
@@ -1896,7 +1915,7 @@ function getVisibleColumns(tableKey){
   const config=getColumnConfig(tableKey);
   const defs=tableColumnDefinitions[tableKey];
 
-  return config
+  const columns=config
     .filter(c=>c.visible)
     .sort((a,b)=>a.order-b.order)
     .map(c=>({
@@ -1905,15 +1924,41 @@ function getVisibleColumns(tableKey){
       align:c.align||"left"
     }))
     .filter(c=>c.key);
+  return columns.filter(col=>col.key!=="operation").concat(columns.filter(col=>col.key==="operation"));
 }
 
 function getTableMinWidth(tableKey){
   return getVisibleColumns(tableKey).reduce((sum,c)=>sum+(Number(c.width)||120),0);
 }
 
+function getTableColumnStickyMeta(tableKey,col,columns=getVisibleColumns(tableKey)){
+  if(col.key==="operation")return {operation:true,left:false,leftOffset:0,lastLeft:false};
+  const normalColumns=columns.filter(item=>item.key!=="operation");
+  const freezeCount=Math.min(getTableFreezeCount(tableKey),normalColumns.length);
+  const index=normalColumns.findIndex(item=>item.key===col.key);
+  if(index<0||index>=freezeCount)return {operation:false,left:false,leftOffset:0,lastLeft:false};
+  return {
+    operation:false,
+    left:true,
+    leftOffset:normalColumns.slice(0,index).reduce((sum,item)=>sum+(Number(item.width)||120),0),
+    lastLeft:index===freezeCount-1
+  };
+}
+
+function getTableColumnClass(tableKey,col,columns=getVisibleColumns(tableKey)){
+  const meta=getTableColumnStickyMeta(tableKey,col,columns);
+  return [meta.operation?"table-sticky-operation":"",meta.left?"table-sticky-left":"",meta.lastLeft?"table-sticky-left-edge":""].filter(Boolean).join(" ");
+}
+
+function getTableColumnStickyStyle(tableKey,col,columns=getVisibleColumns(tableKey)){
+  const meta=getTableColumnStickyMeta(tableKey,col,columns);
+  return meta.left?`--table-sticky-left:${meta.leftOffset}px;`:"";
+}
+
 function renderTableHeaderByColumns(tableKey){
-  return getVisibleColumns(tableKey).map(col=>`
-    <th style="width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">
+  const columns=getVisibleColumns(tableKey);
+  return columns.map(col=>`
+    <th class="${getTableColumnClass(tableKey,col,columns)}" data-column-key="${escapeAttr(col.key)}" style="${getTableColumnStickyStyle(tableKey,col,columns)}width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">
       ${col.title}
     </th>
   `).join("");
@@ -1927,7 +1972,7 @@ function renderTableByColumns(tableKey,data,tbodyId){
   tbody.innerHTML=data.map((row,index)=>`
     <tr>
       ${columns.map(col=>`
-        <td style="width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">
+        <td class="${getTableColumnClass(tableKey,col,columns)}" data-column-key="${escapeAttr(col.key)}" style="${getTableColumnStickyStyle(tableKey,col,columns)}width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">
           ${col.render(row,index)}
         </td>
       `).join("")}
@@ -1937,6 +1982,7 @@ function renderTableByColumns(tableKey,data,tbodyId){
 
 function openColumnSetting(tableKey,afterSaveFnName){
   const config=getColumnConfig(tableKey);
+  const maxFreezeColumns=config.filter(col=>col.key!=="operation").length;
 
   openModal(
     "列设置",
@@ -1944,6 +1990,12 @@ function openColumnSetting(tableKey,afterSaveFnName){
       <div class="setting-tip">
         可设置当前列表的列宽、是否展示、显示顺序、内容对齐方式。设置会自动保存到浏览器本地缓存。
         排序数字越小越靠前；也可使用上移、下移快速调整。
+      </div>
+      <div class="column-freeze-setting">
+        <label for="columnFreezeCount">冻结至第</label>
+        <input id="columnFreezeCount" type="number" min="0" max="${maxFreezeColumns}" value="${getTableFreezeCount(tableKey)}"/>
+        <span>列</span>
+        <em>从左侧起冻结前 X 列，填 0 表示不冻结；操作列始终固定在右侧。</em>
       </div>
       <div style="overflow:auto">
         <table class="column-setting-table">
@@ -2018,6 +2070,11 @@ function moveColumnSettingRow(btn,dir){
   refreshColumnOrderInputs();
 }
 
+function refreshStandardTableHeaderByConfig(tableKey){
+  const header=document.getElementById(tableKey+"Thead");
+  if(header?.tagName==="TR")header.innerHTML=renderTableHeaderByColumns(tableKey);
+}
+
 function saveColumnSetting(tableKey,afterSaveFnName){
   const rows=[...document.querySelectorAll("#columnSettingTbody tr")];
 
@@ -2034,8 +2091,12 @@ function saveColumnSetting(tableKey,afterSaveFnName){
   config=config.map((item,index)=>({...item,order:index+1}));
 
   localStorage.setItem(getColumnStorageKey(tableKey),JSON.stringify(config));
+  const maxFreeze=config.filter(col=>col.visible&&col.key!=="operation").length;
+  const freezeCount=Math.min(maxFreeze,Math.max(0,Number(document.getElementById("columnFreezeCount")?.value)||0));
+  localStorage.setItem(getTableFreezeStorageKey(tableKey),String(freezeCount));
 
   closeModal();
+  refreshStandardTableHeaderByConfig(tableKey);
 
   if(typeof window[afterSaveFnName]==="function"){
     window[afterSaveFnName]();
@@ -2046,7 +2107,9 @@ function saveColumnSetting(tableKey,afterSaveFnName){
 
 function resetColumnSetting(tableKey,afterSaveFnName){
   localStorage.removeItem(getColumnStorageKey(tableKey));
+  localStorage.removeItem(getTableFreezeStorageKey(tableKey));
   closeModal();
+  refreshStandardTableHeaderByConfig(tableKey);
 
   if(typeof window[afterSaveFnName]==="function"){
     window[afterSaveFnName]();
@@ -2183,7 +2246,7 @@ function renderUnifiedTableCard(options){
 
       <div class="pagination">
         <span id="${options.totalId || tableKey + 'TotalText'}">共 ${options.total || 0} 条</span>
-        <span>${options.pageText || "第 1 / 1 页　每页 10 条"}</span>
+        <span>${options.pageText || "第 1 / 1 页　每页 50 条"}</span>
       </div>
     </section>
   `;

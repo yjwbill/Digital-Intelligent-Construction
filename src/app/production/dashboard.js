@@ -350,6 +350,7 @@ function setProductionValueBizSubTab(parent,tab){
 function renderProductionScreenHeader(activeTab="产值看板"){
   const isOverview=activeTab==="生产总览";
   const isMajor=activeTab==="重大工程项目看板";
+  const isEmerging=activeTab==="新兴业务看板";
   const isStatistics=activeTab==="纳统看板";
   const statisticsData=getProductionStatisticsData();
   const overviewCompanyOptions=getOrganizationCompanies();
@@ -374,6 +375,10 @@ function renderProductionScreenHeader(activeTab="产值看板"){
           <select class="select" onchange="setProductionMajorFilter('region',this.value)">${renderProductionOverviewOptions(productionOverviewRegions,productionMajorFilterState.region,"所属区域")}</select>
           <select class="select" onchange="setProductionMajorFilter('projectType',this.value)">${renderProductionOverviewOptions(getProductionOverviewProjectTypeOptions(),productionMajorFilterState.projectType,"项目类型")}</select>
           <select class="select" onchange="setProductionMajorFilter('client',this.value)">${renderProductionOverviewOptions(productionOverviewClients,productionMajorFilterState.client,"重点客户")}</select>
+        </div>
+      `:isEmerging?`
+        <div class="screen-company screen-month-actions production-emerging-year-actions">
+          ${renderProductionEmergingYearPicker()}
         </div>
       `:isStatistics?`
         <div class="screen-company screen-month-actions production-statistics-source">
@@ -1288,19 +1293,19 @@ function getProductionStatisticsConfiguredColumns(tableKey){
   });
 }
 
-function renderProductionStatisticsConfiguredHeader(columns){
+function renderProductionStatisticsConfiguredHeader(tableKey,columns){
   return columns.map(col=>`
-    <th class="${col.statisticsFrozen?"production-statistics-sticky-col":""}" style="${getProductionStatisticsColumnStyle(col)}">${col.title}</th>
+    <th class="${col.statisticsFrozen?"production-statistics-sticky-col ":""}${getTableColumnClass(tableKey,col,columns)}" data-column-key="${escapeAttr(col.key)}" style="${getTableColumnStickyStyle(tableKey,col,columns)}${getProductionStatisticsColumnStyle(col)}">${col.title}</th>
   `).join("");
 }
 
-function renderProductionStatisticsConfiguredCell(record,index,col,mergeRow){
+function renderProductionStatisticsConfiguredCell(tableKey,record,index,col,mergeRow,columns){
   if(col.key==="legalEntity"){
     if(mergeRow && !mergeRow.visible)return "";
     const rowspan=mergeRow?.rowspan>1 ? ` rowspan="${mergeRow.rowspan}"` : "";
     return `<td${rowspan} class="name production-statistics-merged-cell ${col.statisticsFrozen?"production-statistics-sticky-col":""}" style="${getProductionStatisticsColumnStyle(col)}">${col.render(record,index)}</td>`;
   }
-  return `<td class="${col.statisticsFrozen?"production-statistics-sticky-col":""}" style="${getProductionStatisticsColumnStyle(col)}">${col.render(record,index)}</td>`;
+  return `<td class="${col.statisticsFrozen?"production-statistics-sticky-col ":""}${getTableColumnClass(tableKey,col,columns)}" data-column-key="${escapeAttr(col.key)}" style="${getTableColumnStickyStyle(tableKey,col,columns)}${getProductionStatisticsColumnStyle(col)}">${col.render(record,index)}</td>`;
 }
 
 function renderProductionStatisticsConfiguredTable(tableKey,records,options={}){
@@ -1312,12 +1317,12 @@ function renderProductionStatisticsConfiguredTable(tableKey,records,options={}){
   return `
     <table class="production-statistics-table ${options.className || ""}" style="min-width:${minWidth}px">
       <thead>
-        <tr>${renderProductionStatisticsConfiguredHeader(columns)}</tr>
+        <tr>${renderProductionStatisticsConfiguredHeader(tableKey,columns)}</tr>
       </thead>
       <tbody>
         ${records.map((record,index)=>`
           <tr class="${productionStatisticsText(record.recordType)}">
-            ${columns.map(col=>renderProductionStatisticsConfiguredCell(record,index,col,mergeRows[index])).join("")}
+            ${columns.map(col=>renderProductionStatisticsConfiguredCell(tableKey,record,index,col,mergeRows[index],columns)).join("")}
           </tr>
         `).join("") || `<tr><td colspan="${Math.max(columns.length,1)}" style="text-align:center;color:#8a94a6;height:80px">暂无数据</td></tr>`}
       </tbody>
@@ -1901,6 +1906,9 @@ const productionEmergingProjectSeeds=[
   ["安徽新型建筑材料产业基地项目","新材料","新型建材生产基地建设项目"],
   ["郑州城市更新综合改造工程","其他","城市更新改造EPC项目"]
 ];
+const productionEmergingManagers=["商凌锋","李峻","赵菁","王晨","李敏","陈启航","周明","郭琳"];
+const productionEmergingStatuses=["在建","在建","在建","待建","停工","完工","竣工"];
+const productionEmergingIndustries=["总承包","管线","产品销售","设计","数字","城市运营","房产","投资"];
 const productionEmergingProjects=Array.from({length:39},(_,index)=>{
   const seed=productionEmergingProjectSeeds[index%productionEmergingProjectSeeds.length];
   const company=productionEmergingCompanies[index%productionEmergingCompanies.length];
@@ -1913,23 +1921,113 @@ const productionEmergingProjects=Array.from({length:39},(_,index)=>{
   const orderEmergingAmount=Math.round(bidAmount*(.06+(index%5)*.018));
   return {
     id:index+1,name:index<6?seed[0]:`${seed[0]}（${index+1}标段）`,code:`SCXM2026${sequence}`,
-    category:seed[1],company,branch,month:`2026-${String(1+(index%7)).padStart(2,"0")}`,
+    category:seed[1],industry:productionEmergingIndustries[index%productionEmergingIndustries.length],company,branch,month:`2026-${String(1+(index%7)).padStart(2,"0")}`,
+    manager:productionEmergingManagers[index%productionEmergingManagers.length],status:productionEmergingStatuses[index%productionEmergingStatuses.length],
     projectValue,emergingAmount,orderCode:`DDXM2026${sequence}`,
     orderName:index<6?seed[2]:`${seed[2]}（${index+1}标段）`,bidAmount,orderEmergingAmount
   };
 });
 const productionEmergingOrgState={company:"",branch:""};
+const productionEmergingFilterState={projectName:"",projectCode:"",industry:"",company:"",emergingFlag:"",status:"",orderName:"",orderCode:"",orderEmergingFlag:""};
+const productionEmergingYearState={selected:2026,panelStart:2020,open:false};
 let productionEmergingOrgActive="全部";
 let productionEmergingChartMode="project";
 let productionEmergingPage=1;
-const productionEmergingPageSize=8;
+const productionEmergingPageSize=50;
+
+function renderProductionEmergingYearPicker(){
+  const state=productionEmergingYearState;
+  const years=Array.from({length:10},(_,index)=>state.panelStart+index);
+  return `<div class="production-emerging-year-picker" onclick="event.stopPropagation()">
+    <button type="button" class="production-emerging-year-input ${state.open?"active":""}" onclick="toggleProductionEmergingYearPicker(event)">
+      <span class="production-emerging-year-calendar">▣</span><span>${state.selected}年</span><i>⌄</i>
+    </button>
+    <div class="production-emerging-year-panel ${state.open?"open":""}">
+      <div class="production-emerging-year-panel-head">
+        <button type="button" onclick="moveProductionEmergingYearPanel(-10,event)">«</button>
+        <strong>${state.panelStart} - ${state.panelStart+9}</strong>
+        <button type="button" onclick="moveProductionEmergingYearPanel(10,event)">»</button>
+      </div>
+      <div class="production-emerging-year-grid">
+        ${years.map(year=>`<button type="button" class="${year===state.selected?"selected":""}" ${year<2020||year>2026?"disabled":""} onclick="selectProductionEmergingYear(${year},event)">${year}</button>`).join("")}
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleProductionEmergingYearPicker(event){
+  event?.stopPropagation?.();
+  productionEmergingYearState.open=!productionEmergingYearState.open;
+  productionEmergingYearState.panelStart=Math.floor(productionEmergingYearState.selected/10)*10;
+  renderProductionEmergingDashboardPreservingScroll();
+}
+
+function moveProductionEmergingYearPanel(delta,event){
+  event?.stopPropagation?.();
+  productionEmergingYearState.panelStart+=Number(delta)||0;
+  renderProductionEmergingDashboardPreservingScroll();
+}
+
+function selectProductionEmergingYear(year,event){
+  event?.stopPropagation?.();
+  productionEmergingYearState.selected=Math.min(2026,Math.max(2020,Number(year)||2026));
+  productionEmergingYearState.open=false;
+  productionEmergingPage=1;
+  renderProductionEmergingDashboardPreservingScroll();
+}
+
+document.addEventListener("click",()=>{
+  if(!productionEmergingYearState.open)return;
+  productionEmergingYearState.open=false;
+  document.querySelector(".production-emerging-year-panel")?.classList.remove("open");
+  document.querySelector(".production-emerging-year-input")?.classList.remove("active");
+});
 
 function getProductionEmergingScale(){
-  return productionEmergingProjects.length?getProductionEmergingRows().length/productionEmergingProjects.length:1;
+  return productionEmergingProjects.length?getProductionEmergingRows().length/productionEmergingProjects.length*getProductionEmergingYearScale():1;
 }
 
 function getProductionEmergingRows(){
-  return DashboardOrgSwitch.filter(productionEmergingProjects,productionEmergingOrgState);
+  const year=productionEmergingYearState.selected;
+  const scale=getProductionEmergingYearScale();
+  return DashboardOrgSwitch.filter(productionEmergingProjects,productionEmergingOrgState).map(row=>({
+    ...row,
+    month:`${year}-${row.month.slice(5)}`,
+    projectValue:Math.round(row.projectValue*scale),
+    emergingAmount:Math.round(row.emergingAmount*scale),
+    bidAmount:Math.round(row.bidAmount*scale),
+    orderEmergingAmount:Math.round(row.orderEmergingAmount*scale)
+  }));
+}
+
+function getProductionEmergingYearScale(){
+  return ({2020:.28,2021:.36,2022:.46,2023:.58,2024:.72,2025:.86,2026:1})[productionEmergingYearState.selected]||.28;
+}
+
+function getProductionEmergingListRows(){
+  const state=productionEmergingFilterState;
+  return getProductionEmergingRows().filter(row=>{
+    if(state.projectName&&!row.name.includes(state.projectName))return false;
+    if(state.projectCode&&!row.code.includes(state.projectCode))return false;
+    if(state.industry&&row.industry!==state.industry)return false;
+    if(state.company&&row.company!==state.company)return false;
+    if(state.emergingFlag&&row.category!==state.emergingFlag)return false;
+    if(state.status&&row.status!==state.status)return false;
+    if(state.orderName&&!row.orderName.includes(state.orderName))return false;
+    if(state.orderCode&&!row.orderCode.includes(state.orderCode))return false;
+    if(state.orderEmergingFlag&&row.category!==state.orderEmergingFlag)return false;
+    return true;
+  });
+}
+
+function getProductionEmergingFilterOptions(key){
+  return [...new Set(getProductionEmergingRows().map(row=>row[key]).filter(Boolean))];
+}
+
+function setProductionEmergingFilter(key,value){
+  productionEmergingFilterState[key]=value||"";
+  productionEmergingPage=1;
+  renderProductionEmergingDashboardPreservingScroll();
 }
 
 function setProductionEmergingOrg(org){
@@ -1953,7 +2051,7 @@ function setProductionEmergingChartMode(mode){
 }
 
 function changeProductionEmergingPage(delta){
-  const totalPages=Math.max(1,Math.ceil(getProductionEmergingRows().length/productionEmergingPageSize));
+  const totalPages=Math.max(1,Math.ceil(getProductionEmergingListRows().length/productionEmergingPageSize));
   productionEmergingPage=Math.min(totalPages,Math.max(1,productionEmergingPage+Number(delta||0)));
   renderProductionEmergingDashboardPreservingScroll();
 }
@@ -1961,12 +2059,12 @@ function changeProductionEmergingPage(delta){
 function renderProductionEmergingKpis(){
   const scale=getProductionEmergingScale();
   const values=[
-    ["生产项目数",Math.round(6218*scale),"个","./src/assets/production-value/top-completed-contract.svg"],
-    ["涉及新兴业务项目数",Math.round(4835*scale),"个","./src/assets/production-value/main-plan-total.svg"],
-    ["生产项目合同总额",(3658.72*scale).toFixed(2),"亿元","./src/assets/production-value/top-plan-total.svg"],
-    ["新兴业务认定金额",(728.45*scale).toFixed(2),"亿元","./src/assets/production-value/main-contract.svg"],
-    ["新兴业务项目占比","77.83","%","./src/assets/production-value/top-progress.svg"],
-    ["新兴业务金额占比","19.90","%","./src/assets/production-value/main-rate.svg"]
+    ["生产项目数",Math.round(6218*scale),"个","./src/assets/emerging-metrics/生产项目数.svg"],
+    ["涉及新兴业务项目数",Math.round(4835*scale),"个","./src/assets/emerging-metrics/涉及新兴业务项目数.svg"],
+    ["生产项目合同总额",(3658.72*scale).toFixed(2),"亿元","./src/assets/emerging-metrics/生产项目合同总额.svg"],
+    ["新兴业务认定金额",(728.45*scale).toFixed(2),"亿元","./src/assets/emerging-metrics/新兴业务认定金额.svg"],
+    ["新兴业务项目占比","77.83","%","./src/assets/emerging-metrics/新兴业务项目占比.svg"],
+    ["新兴业务金额占比","19.90","%","./src/assets/emerging-metrics/新兴业务金额占比.svg"]
   ];
   return values.map(item=>renderProductionValueMetric(...item)).join("");
 }
@@ -1995,26 +2093,27 @@ function renderProductionEmergingComposition(){
 
 function renderProductionEmergingCompanyRank(){
   const isBranchMode=Boolean(productionEmergingOrgState.company);
+  const yearScale=getProductionEmergingYearScale();
   let rows;
   if(isBranchMode){
     const companyRows=productionEmergingProjects.filter(row=>row.company===productionEmergingOrgState.company);
     const branches=getOrganizationBranches(productionEmergingOrgState.company).filter(branch=>companyRows.some(row=>row.branch===branch));
     rows=branches.map(branch=>{
       const projects=companyRows.filter(row=>row.branch===branch);
-      const emergingCount=projects.length*62+branch.length%7*9;
+      const emergingCount=Math.round((projects.length*62+branch.length%7*9)*yearScale);
       const productionCount=Math.max(emergingCount,Math.round(emergingCount/(.68+(branch.length%4)*.05)));
-      const contractAmount=projects.reduce((sum,row)=>sum+row.projectValue,0)/10000;
-      const emergingAmount=projects.reduce((sum,row)=>sum+row.emergingAmount,0)/10000;
+      const contractAmount=projects.reduce((sum,row)=>sum+row.projectValue,0)/10000*yearScale;
+      const emergingAmount=projects.reduce((sum,row)=>sum+row.emergingAmount,0)/10000*yearScale;
       return {name:branch,productionCount,emergingCount,contractAmount,emergingAmount};
     });
     if(productionEmergingOrgState.branch)rows=rows.filter(row=>row.name===productionEmergingOrgState.branch);
   }else{
     rows=productionEmergingCompanies.map((company,index)=>({
       name:company,
-      productionCount:1120-index*68,
-      emergingCount:872-index*57,
-      contractAmount:286500.00-index*13350.00,
-      emergingAmount:125345.32-index*9441.17
+      productionCount:Math.round((1120-index*68)*yearScale),
+      emergingCount:Math.round((872-index*57)*yearScale),
+      contractAmount:(286500.00-index*13350.00)*yearScale,
+      emergingAmount:(125345.32-index*9441.17)*yearScale
     }));
   }
   const progress=(value,total)=>Math.min(100,Math.max(0,total?value/total*100:0));
@@ -2032,14 +2131,28 @@ function renderProductionEmergingYearChart(){
 }
 
 function renderProductionEmergingTable(){
-  const rows=getProductionEmergingRows();
+  const rows=getProductionEmergingListRows();
   const totalPages=Math.max(1,Math.ceil(rows.length/productionEmergingPageSize));
   productionEmergingPage=Math.min(totalPages,Math.max(1,productionEmergingPage));
   const start=(productionEmergingPage-1)*productionEmergingPageSize;
   const pageRows=rows.slice(start,start+productionEmergingPageSize);
-  const tagTone=category=>`tone-${Math.max(1,productionEmergingCategories.findIndex(item=>item.name===category)+1)}`;
+  const tagTone=category=>{
+    const values=[...productionEmergingCategories.map(item=>item.name),...productionEmergingIndustries];
+    return `tone-${values.indexOf(category)%6+1}`;
+  };
   const renderEmergingTag=category=>`<span class="emerging-tag ${tagTone(category)}">${category}</span>`;
-  return `<section class="production-value-panel emerging-list-panel"><div class="production-value-panel-hd"><h2>新兴业务项目清单</h2></div><div class="emerging-table-wrap"><table><colgroup><col class="col-index"><col class="col-production-name"><col class="col-production-code"><col class="col-industry"><col class="col-company"><col class="col-month"><col class="col-project-value"><col class="col-production-tag"><col class="col-emerging-amount"><col class="col-order-name"><col class="col-order-code"><col class="col-bid-amount"><col class="col-order-tag"><col class="col-order-emerging-amount"></colgroup><thead><tr><th>序号</th><th>生产项目名称</th><th>生产项目编号</th><th>项目业态</th><th>子公司管理单位</th><th>填报年月</th><th>项目造价（元）</th><th>生产项目新兴业务标识</th><th>生产项目新兴业务金额（元）</th><th>订单项目名称</th><th>订单项目编号</th><th>订单项目中标价（元）</th><th>订单项目新兴业务标识</th><th>订单项目新兴业务金额（元）</th></tr></thead><tbody>${pageRows.map((row,index)=>`<tr><td>${start+index+1}</td><td class="production-project-name" title="${escapeAttr(row.name)}">${row.name}</td><td>${row.code}</td><td>${renderEmergingTag(row.category)}</td><td>${row.company}</td><td>${row.month}</td><td>${formatProductionValuePlain(row.projectValue)}</td><td>${renderEmergingTag(row.category)}</td><td>${formatProductionValuePlain(row.emergingAmount)}</td><td class="order-project-name" title="${escapeAttr(row.orderName)}">${row.orderName}</td><td>${row.orderCode}</td><td>${formatProductionValuePlain(row.bidAmount)}</td><td>${renderEmergingTag(row.category)}</td><td>${formatProductionValuePlain(row.orderEmergingAmount)}</td></tr>`).join("")||`<tr><td colspan="14">暂无数据</td></tr>`}</tbody></table></div><div class="pagination emerging-pagination"><span>共 ${rows.length} 条</span><div class="pager"><button class="btn mini" ${productionEmergingPage<=1?"disabled":""} onclick="changeProductionEmergingPage(-1)">上一页</button><b>第 ${productionEmergingPage} / ${totalPages} 页</b><button class="btn mini" ${productionEmergingPage>=totalPages?"disabled":""} onclick="changeProductionEmergingPage(1)">下一页</button><span>${productionEmergingPageSize}条/页</span></div></div></section>`;
+  const option=(value,current)=>`<option value="${escapeAttr(value)}" ${value===current?"selected":""}>${value}</option>`;
+  return `<section class="production-value-panel emerging-list-panel"><div class="production-value-panel-hd emerging-list-panel-hd"><h2>新兴业务项目清单</h2><div class="safety-eval-filters emerging-list-filters">
+    <label>生产项目名称<input value="${escapeAttr(productionEmergingFilterState.projectName)}" placeholder="请输入生产项目名称" onblur="setProductionEmergingFilter('projectName',this.value.trim())"/></label>
+    <label>生产项目编号<input value="${escapeAttr(productionEmergingFilterState.projectCode)}" placeholder="请输入生产项目编号" onblur="setProductionEmergingFilter('projectCode',this.value.trim())"/></label>
+    <label>项目业态<select onchange="setProductionEmergingFilter('industry',this.value)"><option value="">全部</option>${getProductionEmergingFilterOptions("industry").map(value=>option(value,productionEmergingFilterState.industry)).join("")}</select></label>
+    <label>子公司管理单位<select onchange="setProductionEmergingFilter('company',this.value)"><option value="">全部</option>${getProductionEmergingFilterOptions("company").map(value=>option(value,productionEmergingFilterState.company)).join("")}</select></label>
+    <label>生产项目新兴业务标识<select onchange="setProductionEmergingFilter('emergingFlag',this.value)"><option value="">全部</option>${getProductionEmergingFilterOptions("category").map(value=>option(value,productionEmergingFilterState.emergingFlag)).join("")}</select></label>
+    <label>项目状态<select onchange="setProductionEmergingFilter('status',this.value)"><option value="">全部</option>${getProductionEmergingFilterOptions("status").map(value=>option(value,productionEmergingFilterState.status)).join("")}</select></label>
+    <label>订单项目名称<input value="${escapeAttr(productionEmergingFilterState.orderName)}" placeholder="请输入订单项目名称" onblur="setProductionEmergingFilter('orderName',this.value.trim())"/></label>
+    <label>订单项目编号<input value="${escapeAttr(productionEmergingFilterState.orderCode)}" placeholder="请输入订单项目编号" onblur="setProductionEmergingFilter('orderCode',this.value.trim())"/></label>
+    <label>订单项目新兴业务标识<select onchange="setProductionEmergingFilter('orderEmergingFlag',this.value)"><option value="">全部</option>${getProductionEmergingFilterOptions("category").map(value=>option(value,productionEmergingFilterState.orderEmergingFlag)).join("")}</select></label>
+  </div></div><div class="emerging-table-wrap"><table><colgroup><col class="col-index"><col class="col-production-name"><col class="col-production-code"><col class="col-industry"><col class="col-company"><col class="col-month"><col class="col-project-value"><col class="col-production-tag"><col class="col-emerging-amount"><col class="col-order-name"><col class="col-order-code"><col class="col-bid-amount"><col class="col-order-tag"><col class="col-order-emerging-amount"></colgroup><thead><tr><th>序号</th><th>生产项目名称</th><th>生产项目编号</th><th>项目业态</th><th>子公司管理单位</th><th>填报年月</th><th>项目造价（元）</th><th>生产项目新兴业务标识</th><th>生产项目新兴业务金额（元）</th><th>订单项目名称</th><th>订单项目编号</th><th>订单项目中标价（元）</th><th>订单项目新兴业务标识</th><th>订单项目新兴业务金额（元）</th></tr></thead><tbody>${pageRows.map((row,index)=>`<tr><td>${start+index+1}</td><td class="production-project-name" title="${escapeAttr(row.name)}">${row.name}</td><td>${row.code}</td><td>${renderEmergingTag(row.industry)}</td><td>${row.company}</td><td>${row.month}</td><td>${formatProductionValuePlain(row.projectValue)}</td><td>${renderEmergingTag(row.category)}</td><td>${formatProductionValuePlain(row.emergingAmount)}</td><td class="order-project-name" title="${escapeAttr(row.orderName)}">${row.orderName}</td><td>${row.orderCode}</td><td>${formatProductionValuePlain(row.bidAmount)}</td><td>${renderEmergingTag(row.category)}</td><td>${formatProductionValuePlain(row.orderEmergingAmount)}</td></tr>`).join("")||`<tr><td colspan="14">暂无数据</td></tr>`}</tbody></table></div><div class="pagination emerging-pagination"><span>共 ${rows.length} 条</span><div class="pager"><button class="btn mini" ${productionEmergingPage<=1?"disabled":""} onclick="changeProductionEmergingPage(-1)">上一页</button><b>第 ${productionEmergingPage} / ${totalPages} 页</b><button class="btn mini" ${productionEmergingPage>=totalPages?"disabled":""} onclick="changeProductionEmergingPage(1)">下一页</button><span>${productionEmergingPageSize}条/页</span></div></div></section>`;
 }
 
 async function renderProductionEmergingDashboardPage(){
@@ -2072,6 +2185,10 @@ Object.assign(window,{
   renderProductionScreenEmptyPage,
   switchProductionScreenTab,
   setProductionEmergingOrg,
+  setProductionEmergingFilter,
+  toggleProductionEmergingYearPicker,
+  moveProductionEmergingYearPanel,
+  selectProductionEmergingYear,
   setProductionEmergingChartMode,
   changeProductionEmergingPage,
   setProductionStatisticsIndustry,

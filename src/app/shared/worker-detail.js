@@ -1217,10 +1217,21 @@ function toggleOrgDropdown(e){
   document.querySelector(".org-switch")?.classList.toggle("open");
 }
 
-function selectOrg(e,name){
+function selectOrg(e,name,parentName=""){
   e.stopPropagation();
 
   currentOrgName.innerText=name;
+
+  const masterItem=parentName
+    ? organizationMasterData.find(item=>item.level===3&&item.name===name&&getOrganizationByCode(item.parentCode)?.name===parentName)
+    : getOrganizationByName(name);
+  const orgDescription=e.currentTarget.querySelector(".org-desc")?.textContent||"";
+  const level=orgDescription.includes("分公司 ·")?3:orgDescription.includes("子公司 ·")?2:name==="隧道股份"?1:parentName?3:2;
+  const parent=level===3?getOrganizationByCode(masterItem?.parentCode):null;
+  window.__CURRENT_ORGANIZATION__={name,level,company:level===2?name:level===3?(parent?.name||parentName):"",branch:level===3?name:""};
+  currentOrgName.dataset.orgLevel=String(level);
+  currentOrgName.dataset.orgCompany=window.__CURRENT_ORGANIZATION__.company;
+  currentOrgName.dataset.orgBranch=window.__CURRENT_ORGANIZATION__.branch;
 
   document.querySelectorAll(".org-option").forEach(x=>x.classList.remove("active"));
   e.currentTarget.classList.add("active");
@@ -1228,6 +1239,7 @@ function selectOrg(e,name){
   document.querySelector(".org-switch").classList.remove("open");
 
   showToast(`已切换组织：${name}`);
+  document.dispatchEvent(new CustomEvent("organizationchange",{detail:window.__CURRENT_ORGANIZATION__}));
 }
 
 function openVersionHistory(e){

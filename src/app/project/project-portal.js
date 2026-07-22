@@ -82,7 +82,7 @@ function renderPcContextSwitcher(){
         const parent=getOrganizationByCode(item.parentCode);
         const desc=item.level===1?"股份级 · 查看全部组织数据":`${getOrganizationLevelName(item.level)} · ${parent?`${parent.name}下属组织`:"按组织权限查看"}`;
         return `
-          <div class="org-option ${index===0?"active":""}" onclick="selectOrg(event,'${item.name}')">
+          <div class="org-option ${index===0?"active":""}" onclick="selectOrg(event,'${item.name}','${parent?.name||""}')">
             <div><div class="org-name">${item.name}</div><div class="org-desc">${desc}</div></div>
             <span class="org-check">✓</span>
           </div>
@@ -309,7 +309,7 @@ function selectProjectChildMenu(line,groupIndex,childIndex,name){
 
 const projectLogState={
   page:1,
-  pageSize:12,
+  pageSize:50,
   month:"2026-07",
   selectedDate:"2026-07-13",
   workArea:"",
@@ -334,6 +334,13 @@ function renderProjectLogStatusIcon(status){
 }
 
 const projectLogCustomRows=[];
+const projectLogDeletedKeys=new Set();
+globalThis.projectLogDeletedKeys=projectLogDeletedKeys;
+let projectLogEditingRow=null;
+
+function getProjectLogRecordKey(row){
+  return `${row.projectName||pcPortalState.currentProject}|${row.date}`;
+}
 
 function getCurrentProjectLogProject(){
   return getCurrentProjectContext();
@@ -348,7 +355,7 @@ function getProjectLogRows(){
       .filter(day=>getEnterpriseConstructionLogDayStateForMonth(project,day,monthValue)==="reported")
       .map(day=>getEnterpriseConstructionLogReportRecord(project,day,monthValue));
   });
-  return [...projectLogCustomRows.filter(row=>row.projectName===project.projectName),...generated]
+  return [...projectLogCustomRows.filter(row=>row.projectName===project.projectName&&!projectLogDeletedKeys.has(getProjectLogRecordKey(row))),...generated.filter(row=>!projectLogDeletedKeys.has(getProjectLogRecordKey({...row,projectName:project.projectName})))]
     .filter((row,index,rows)=>rows.findIndex(item=>item.date===row.date)===index)
     .sort((a,b)=>b.date.localeCompare(a.date));
 }
@@ -376,7 +383,7 @@ function getProjectLogPagedRows(){
 
 function renderProjectLogCard(row){
   return `
-    <button class="project-log-report-card ${row.mode}" data-project-log-detail="${row.id}" onclick="openProjectLogDetail('${escapeAttr(row.id)}')">
+    <article class="project-log-report-card ${row.mode}" data-project-log-detail="${row.id}" onclick="openProjectLogDetail('${escapeAttr(row.id)}')">
       <span class="project-log-mode ${row.mode}">${row.mode==="online"?"在线上报":"文件上报"}</span>
       ${row.mode==="online"?`
         <img src="${row.cover || "./src/assets/project-log-building.png"}" alt="${row.title}"/>
@@ -392,7 +399,12 @@ function renderProjectLogCard(row){
         <p>上传人：${row.uploader}</p>
         <p>上传时间：${row.uploadTime}</p>
       </div>
-    </button>
+      <div class="project-log-card-actions" onclick="event.stopPropagation()">
+        <button type="button" onclick="exportProjectLog('${escapeAttr(row.id)}')">导出</button>
+        <button type="button" onclick="editProjectLog('${escapeAttr(row.id)}')">编辑</button>
+        <button type="button" class="danger" onclick="deleteProjectLog('${escapeAttr(row.id)}')">删除</button>
+      </div>
+    </article>
   `;
 }
 
@@ -406,7 +418,7 @@ function renderProjectLogPagination(){
         <button class="btn mini" ${projectLogState.page<=1?"disabled":""} onclick="changeProjectLogPage(${projectLogState.page-1})">上一页</button>
         <b>第 ${projectLogState.page} / ${pageCount} 页</b>
         <button class="btn mini" ${projectLogState.page>=pageCount?"disabled":""} onclick="changeProjectLogPage(${projectLogState.page+1})">下一页</button>
-        <select class="select mini-select" onchange="projectLogState.pageSize=Number(this.value)||12;projectLogState.page=1;renderProjectLogPage()">
+        <select class="select mini-select" onchange="projectLogState.pageSize=Number(this.value)||50;projectLogState.page=1;renderProjectLogPage()">
           <option value="12" ${projectLogState.pageSize===12?"selected":""}>12条/页</option>
           <option value="24" ${projectLogState.pageSize===24?"selected":""}>24条/页</option>
         </select>
@@ -438,8 +450,9 @@ function getProjectLogCalendarDays(){
   for(let day=1;day<=totalDays;day++){
     const date=`${year}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
     const project=getCurrentProjectLogProject();
-    const customReported=projectLogCustomRows.some(row=>row.projectName===project?.projectName&&row.date===date);
-    const status=customReported?"reported":getEnterpriseConstructionLogDayStateForMonth(project,day,projectLogState.month);
+    const key=`${project?.projectName||""}|${date}`;
+    const customReported=projectLogCustomRows.some(row=>row.projectName===project?.projectName&&row.date===date&&!projectLogDeletedKeys.has(key));
+    const status=projectLogDeletedKeys.has(key)?"missing":customReported?"reported":getEnterpriseConstructionLogDayStateForMonth(project,day,projectLogState.month);
     days.push({day,date,status:status==="reported"?"uploaded":status,selected:projectLogState.selectedDate===date});
   }
   let next=1;
@@ -684,19 +697,55 @@ function openProjectLogDetail(id){
   modalBox.classList.add("project-log-online-report-modal");
 }
 
+function exportProjectLog(id){
+  const row=getProjectLogRows().find(item=>String(item.id)===String(id));
+  if(row)showToast("施工日志导出成功");
+}
+
+function editProjectLog(id){
+  const row=getProjectLogRows().find(item=>String(item.id)===String(id));
+  if(!row)return;
+  projectLogEditingRow={...row,projectName:row.projectName||pcPortalState.currentProject};
+  if(row.mode==="file")openProjectLogFileReportModal(row);
+  else openProjectLogReportModal(row);
+}
+
+function deleteProjectLog(id){
+  const row=getProjectLogRows().find(item=>String(item.id)===String(id));
+  if(!row)return;
+  openModal("删除施工日志",`<div class="project-log-delete-confirm"><strong>是否删除该施工日志？</strong><p>删除后，企业端及施工日历中的相关统计将同步刷新。</p></div>`,`
+    <button class="btn" onclick="closeModal()">否</button>
+    <button class="btn danger" onclick="confirmDeleteProjectLog('${escapeAttr(id)}')">是</button>
+  `);
+}
+
+function confirmDeleteProjectLog(id){
+  const row=getProjectLogRows().find(item=>String(item.id)===String(id));
+  if(!row)return;
+  const key=getProjectLogRecordKey({...row,projectName:row.projectName||pcPortalState.currentProject});
+  projectLogDeletedKeys.add(key);
+  for(let index=projectLogCustomRows.length-1;index>=0;index--){
+    if(getProjectLogRecordKey(projectLogCustomRows[index])===key)projectLogCustomRows.splice(index,1);
+  }
+  if(projectLogState.selectedDate===row.date)projectLogState.selectedDate="";
+  closeModal();
+  renderProjectLogPage();
+  showToast("施工日志删除成功");
+}
+
 function renderProjectLogWorkAreaOptions(value=""){
   const areas=[...new Set(getProjectLogRows().map(row=>row.workArea))];
   return `<option value="">请选择工区</option>${areas.map(area=>`<option value="${escapeAttr(area)}" ${area===value?"selected":""}>${area}</option>`).join("")}`;
 }
 
-function renderProjectLogWorkTable(type="today"){
+function renderProjectLogWorkTable(type="today",defaultRows=null){
   const isToday=type==="today";
-  const rows=isToday?[{
+  const rows=Array.isArray(defaultRows)?defaultRows:(isToday?[{
     area:"主体结构区",
     content:"完成钢筋绑扎、模板加固及现场安全巡查",
     progress:"85",
     remark:"现场材料已完成验收"
-  }]:[];
+  }]:[]);
   const columnCount=isToday?6:5;
   const emptyRow=`
     <tr class="project-log-report-empty-row"><td colspan="${columnCount}">暂无数据</td></tr>
@@ -895,8 +944,8 @@ function removeProjectLogPhoto(index){
   refreshProjectLogPhotoPreview();
 }
 
-function renderProjectLogReportBaseInfo(prefix="projectLogReport",defaultArea="主体结构区",mode="online"){
-  const today="2026-07-09";
+function renderProjectLogReportBaseInfo(prefix="projectLogReport",defaultArea="主体结构区",mode="online",defaultDate="2026-07-09"){
+  const today=defaultDate;
   const isFile=mode==="file";
   return `
     <section class="project-log-report-section">
@@ -916,11 +965,13 @@ function renderProjectLogReportBaseInfo(prefix="projectLogReport",defaultArea="�
   `;
 }
 
-function openProjectLogReportModal(){
-  projectLogReportPhotoList=[];
-  openModal("施工日志在线上报",`
+function openProjectLogReportModal(editRow=null){
+  if(!editRow)projectLogEditingRow=null;
+  const detail=editRow?getProjectLogReadonlyOnlineDetail(editRow):null;
+  projectLogReportPhotoList=detail?.photos?.map(photo=>({...photo}))||[];
+  openModal(editRow?"编辑施工日志":"施工日志在线上报",`
     <div class="project-log-online-report">
-      ${renderProjectLogReportBaseInfo("projectLogReport","主体结构区")}
+      ${renderProjectLogReportBaseInfo("projectLogReport",editRow?.workArea||"主体结构区","online",editRow?.date||"2026-07-09")}
 
       <section class="project-log-report-section">
         <h3>人员信息</h3>
@@ -933,12 +984,12 @@ function openProjectLogReportModal(){
 
       <section class="project-log-report-section">
         <h3>今日主要工作</h3>
-        ${renderProjectLogWorkTable("today")}
+        ${renderProjectLogWorkTable("today",detail?.today)}
       </section>
 
       <section class="project-log-report-section">
         <h3>明日主要工作</h3>
-        ${renderProjectLogWorkTable("tomorrow")}
+        ${renderProjectLogWorkTable("tomorrow",detail?.tomorrow)}
       </section>
 
       <section class="project-log-report-section">
@@ -960,16 +1011,17 @@ function openProjectLogReportModal(){
   `,`
     <button class="btn" onclick="closeModal()">取消</button>
     <button class="btn" onclick="showToast('施工日志已暂存')">暂存</button>
-    <button class="btn primary" onclick="submitProjectLogReport()">提交上报</button>
+    <button class="btn primary" onclick="submitProjectLogReport()">${editRow?"保存修改":"提交上报"}</button>
   `,"large");
   modalBox.classList.add("project-log-online-report-modal");
 }
 
-function openProjectLogFileReportModal(){
-  projectLogReportFileList=[];
-  openModal("施工日志文件上报",`
+function openProjectLogFileReportModal(editRow=null){
+  if(!editRow)projectLogEditingRow=null;
+  projectLogReportFileList=editRow?getProjectLogReadonlyFiles(editRow).map(file=>({...file,size:0})):[];
+  openModal(editRow?"编辑施工日志":"施工日志文件上报",`
     <div class="project-log-online-report">
-      ${renderProjectLogReportBaseInfo("projectLogFileReport","主体结构区","file")}
+      ${renderProjectLogReportBaseInfo("projectLogFileReport",editRow?.workArea||"主体结构区","file",editRow?.date||"2026-07-09")}
       <section class="project-log-report-section">
         <h3>施工日志文件</h3>
         <div class="project-log-report-grid file">
@@ -979,27 +1031,35 @@ function openProjectLogFileReportModal(){
           </div>
           <div class="form-item project-log-file-remark-item">
             <label>备注说明</label>
-            <textarea class="input project-log-stop-textarea" id="projectLogFileReportRemark" placeholder="请输入备注说明"></textarea>
+            <textarea class="input project-log-stop-textarea" id="projectLogFileReportRemark" placeholder="请输入备注说明">${escapeAttr(editRow?.summary||"")}</textarea>
           </div>
         </div>
       </section>
     </div>
   `,`
     <button class="btn" onclick="closeModal()">取消</button>
-    <button class="btn primary" onclick="submitProjectLogFileReport()">提交上报</button>
+    <button class="btn primary" onclick="submitProjectLogFileReport()">${editRow?"保存修改":"提交上报"}</button>
   `,"large");
   modalBox.classList.add("project-log-online-report-modal");
 }
 
 function submitProjectLogReport(){
+  const editing=projectLogEditingRow;
   const recorder=document.getElementById("projectLogReportRecorder")?.value || "楼力栋";
   const date=document.getElementById("projectLogReportDate")?.value || "2026-07-09";
   const area=document.getElementById("projectLogReportArea")?.value || "主体结构区";
   const now=new Date();
   const uploadTime=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")} ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
   const firstContent=document.querySelector("#projectLogWorkTbody-today .project-log-work-content")?.value?.trim();
-  projectLogCustomRows.unshift({
-    id:Date.now(),
+  if(editing){
+    const oldKey=getProjectLogRecordKey(editing);
+    projectLogDeletedKeys.add(oldKey);
+    for(let index=projectLogCustomRows.length-1;index>=0;index--){
+      if(getProjectLogRecordKey(projectLogCustomRows[index])===oldKey)projectLogCustomRows.splice(index,1);
+    }
+  }
+  const newRow={
+    id:editing?.id||Date.now(),
     projectName:pcPortalState.currentProject,
     mode:"online",
     date,
@@ -1011,7 +1071,9 @@ function submitProjectLogReport(){
     fileSize:"",
     summary:firstContent || "完成施工日志在线上报。",
     cover:projectLogReportPhotoList[0]?.url || ""
-  });
+  };
+  projectLogDeletedKeys.delete(getProjectLogRecordKey(newRow));
+  projectLogCustomRows.unshift(newRow);
   projectLogStatusMap[date]="uploaded";
   projectLogState.page=1;
   projectLogState.workArea="";
@@ -1020,8 +1082,9 @@ function submitProjectLogReport(){
   projectLogState.endDate="";
   projectLogState.selectedDate=date;
   closeModal();
+  projectLogEditingRow=null;
   renderProjectLogPage();
-  showToast("施工日志上报成功");
+  showToast(editing?"施工日志修改成功":"施工日志上报成功");
 }
 
 function submitProjectLogFileReport(){
@@ -1029,7 +1092,8 @@ function submitProjectLogFileReport(){
     showToast("请上传施工日志文件");
     return;
   }
-  const recorder=document.getElementById("projectLogFileReportRecorder")?.value || "楼力栋";
+  const editing=projectLogEditingRow;
+  const recorder=document.getElementById("projectLogFileReportRecorder")?.value || editing?.uploader || "楼力栋";
   const date=document.getElementById("projectLogFileReportDate")?.value || "2026-07-09";
   const area=document.getElementById("projectLogFileReportArea")?.value || "主体结构区";
   const remark=document.getElementById("projectLogFileReportRemark")?.value?.trim() || "";
@@ -1037,8 +1101,15 @@ function submitProjectLogFileReport(){
   const uploadTime=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")} ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
   const totalSize=projectLogReportFileList.reduce((sum,file)=>sum+(Number(file.size)||0),0);
   const firstFile=projectLogReportFileList[0];
-  projectLogCustomRows.unshift({
-    id:Date.now(),
+  if(editing){
+    const oldKey=getProjectLogRecordKey(editing);
+    projectLogDeletedKeys.add(oldKey);
+    for(let index=projectLogCustomRows.length-1;index>=0;index--){
+      if(getProjectLogRecordKey(projectLogCustomRows[index])===oldKey)projectLogCustomRows.splice(index,1);
+    }
+  }
+  const newRow={
+    id:editing?.id||Date.now(),
     projectName:pcPortalState.currentProject,
     mode:"file",
     date,
@@ -1047,10 +1118,12 @@ function submitProjectLogFileReport(){
     uploader:recorder,
     uploadTime,
     fileName:projectLogReportFileList.length>1?`${firstFile.name} 等${projectLogReportFileList.length}个文件`:firstFile.name,
-    fileSize:formatProjectLogFileSize(totalSize),
+    fileSize:totalSize?formatProjectLogFileSize(totalSize):(editing?.fileSize||firstFile.sizeText||"-"),
     summary:remark || "完成施工日志文件上报。",
     files:projectLogReportFileList.map(file=>({...file}))
-  });
+  };
+  projectLogDeletedKeys.delete(getProjectLogRecordKey(newRow));
+  projectLogCustomRows.unshift(newRow);
   projectLogStatusMap[date]="uploaded";
   projectLogState.page=1;
   projectLogState.workArea="";
@@ -1059,8 +1132,9 @@ function submitProjectLogFileReport(){
   projectLogState.endDate="";
   projectLogState.selectedDate=date;
   closeModal();
+  projectLogEditingRow=null;
   renderProjectLogPage();
-  showToast("施工日志文件上报成功");
+  showToast(editing?"施工日志修改成功":"施工日志文件上报成功");
 }
 
 function renderProjectPortalPage(name){
@@ -1100,7 +1174,7 @@ const projectMilestoneNodeState={
   actualEnd:"",
   statKey:"all",
   page:1,
-  pageSize:10
+  pageSize:50
 };
 
 const projectMilestoneNodeRows=[
@@ -1285,7 +1359,7 @@ function resetProjectMilestoneNode(){
     actualEnd:"",
     statKey:"all",
     page:1,
-    pageSize:10
+    pageSize:50
   });
   renderProjectMilestoneNodePage();
 }
@@ -1315,7 +1389,7 @@ function changeProjectMilestoneNodePage(dir){
 }
 
 function changeProjectMilestoneNodePageSize(value){
-  projectMilestoneNodeState.pageSize=Number(value)||10;
+  projectMilestoneNodeState.pageSize=Number(value)||50;
   projectMilestoneNodeState.page=1;
   renderProjectMilestoneNodeTable();
 }
@@ -1331,7 +1405,7 @@ const projectRiskControlState={
   leader:"",
   statKey:"all",
   page:1,
-  pageSize:10
+  pageSize:50
 };
 
 const projectRiskControlRows=[
@@ -1537,7 +1611,7 @@ function resetProjectRiskControl(){
     leader:"",
     statKey:"all",
     page:1,
-    pageSize:10
+    pageSize:50
   });
   renderProjectRiskControlPage();
 }
@@ -1567,7 +1641,7 @@ function changeProjectRiskControlPage(dir){
 }
 
 function changeProjectRiskControlPageSize(value){
-  projectRiskControlState.pageSize=Number(value)||10;
+  projectRiskControlState.pageSize=Number(value)||50;
   projectRiskControlState.page=1;
   renderProjectRiskControlTable();
 }
@@ -1587,7 +1661,7 @@ const projectAwardManagementState={
   certificateEnd:"",
   statKey:"all",
   page:1,
-  pageSize:10
+  pageSize:50
 };
 
 const projectAwardManagementRows=[
@@ -1763,7 +1837,7 @@ function resetProjectAwardManagement(){
     certificateEnd:"",
     statKey:"all",
     page:1,
-    pageSize:10
+    pageSize:50
   });
   renderProjectAwardManagementPage();
 }
@@ -1793,7 +1867,7 @@ function changeProjectAwardManagementPage(dir){
 }
 
 function changeProjectAwardManagementPageSize(value){
-  projectAwardManagementState.pageSize=Number(value)||10;
+  projectAwardManagementState.pageSize=Number(value)||50;
   projectAwardManagementState.page=1;
   renderProjectAwardManagementTable();
 }
@@ -1807,7 +1881,7 @@ const projectTechSchemeState={
   expertReview:"",
   statKey:"all",
   page:1,
-  pageSize:10
+  pageSize:50
 };
 
 const projectTechSchemeRows=[
@@ -1972,7 +2046,7 @@ function resetProjectTechScheme(){
     expertReview:"",
     statKey:"all",
     page:1,
-    pageSize:10
+    pageSize:50
   });
   renderProjectTechSchemePage();
 }
@@ -2002,7 +2076,7 @@ function changeProjectTechSchemePage(dir){
 }
 
 function changeProjectTechSchemePageSize(value){
-  projectTechSchemeState.pageSize=Number(value)||10;
+  projectTechSchemeState.pageSize=Number(value)||50;
   projectTechSchemeState.page=1;
   renderProjectTechSchemeTable();
 }

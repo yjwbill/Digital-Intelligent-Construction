@@ -54,10 +54,38 @@
             </div>
             <span class="org-check">✓</span>
           </div>
+          <div class="org-option" onclick="selectOrg(event,'西南分公司','上海隧道')">
+            <div>
+              <div class="org-name">西南分公司</div>
+              <div class="org-desc">分公司 · 上海隧道下属组织</div>
+            </div>
+            <span class="org-check">✓</span>
+          </div>
           <div class="org-option" onclick="selectOrg(event,'市政集团')">
             <div>
               <div class="org-name">市政集团</div>
               <div class="org-desc">子公司 · 隧道股份下属组织</div>
+            </div>
+            <span class="org-check">✓</span>
+          </div>
+          <div class="org-option" onclick="selectOrg(event,'轨交分公司','上海隧道')">
+            <div>
+              <div class="org-name">轨交分公司</div>
+              <div class="org-desc">分公司 · 上海隧道下属组织</div>
+            </div>
+            <span class="org-check">✓</span>
+          </div>
+          <div class="org-option" onclick="selectOrg(event,'市政分公司','上海隧道')">
+            <div>
+              <div class="org-name">市政分公司</div>
+              <div class="org-desc">分公司 · 上海隧道下属组织</div>
+            </div>
+            <span class="org-check">✓</span>
+          </div>
+          <div class="org-option" onclick="selectOrg(event,'上海分公司','市政集团')">
+            <div>
+              <div class="org-name">上海分公司</div>
+              <div class="org-desc">分公司 · 市政集团下属组织</div>
             </div>
             <span class="org-check">✓</span>
           </div>

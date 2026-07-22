@@ -276,7 +276,7 @@ function renderOrgManagementPage(){
 
         <div class="pagination">
           <span id="orgUserTotalText">共 0 条</span>
-          <span>第 1 / 1 页　每页 10 条</span>
+          <span>第 1 / 1 页　每页 50 条</span>
         </div>
       </section>
     </div>
@@ -771,7 +771,7 @@ function renderPostManagementPage(){
 
       <div class="pagination">
         <span id="postTotalText">共 ${postData.length} 条</span>
-        <span>第 1 / 1 页　每页 10 条</span>
+        <span>第 1 / 1 页　每页 50 条</span>
       </div>
     </section>
   `;
@@ -1044,7 +1044,7 @@ function renderRoleManagementPage(){
 
       <div class="pagination">
         <span>共 ${roleData.length} 条</span>
-        <span>第 1 / 1 页　每页 10 条</span>
+        <span>第 1 / 1 页　每页 50 条</span>
       </div>
     </section>
   `;
@@ -1546,7 +1546,7 @@ function renderSendDrillModalBody(){
             <tbody id="sendDrillRecordTbody"></tbody>
           </table>
         </div>
-        <div class="pagination"><span>共 ${list.length} 条</span><span>第 1 / 1 页　每页 10 条</span></div>
+        <div class="pagination"><span>共 ${list.length} 条</span><span>第 1 / 1 页　每页 50 条</span></div>
       </section>
     </div>
   `;
