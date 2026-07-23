@@ -698,7 +698,7 @@ function editSafetyEvalMonthlyTreeProject(encodedName){
   const projectName=decodeURIComponent(encodedName);
   safetyEvalMonthlyTreeEditingProject=projectName;
   safetyEvalMonthlyTreeDraftValues={...getSafetyEvalMonthlyTreeProjectValues(projectName)};
-  renderSafetyEvaluationMonthlyFillCurrentPage();
+  renderSafetyEvaluationMonthlyFillCurrentPagePreservingScroll();
 }
 
 function saveSafetyEvalMonthlyTreeProject(encodedName){
@@ -707,7 +707,7 @@ function saveSafetyEvalMonthlyTreeProject(encodedName){
   Object.assign(getSafetyEvalMonthlyTreeProjectValues(projectName),safetyEvalMonthlyTreeDraftValues);
   safetyEvalMonthlyTreeEditingProject="";
   safetyEvalMonthlyTreeDraftValues={};
-  renderSafetyEvaluationMonthlyFillCurrentPage();
+  renderSafetyEvaluationMonthlyFillCurrentPagePreservingScroll();
   showToast("保存成功");
 }
 
@@ -715,7 +715,19 @@ function cancelSafetyEvalMonthlyTreeProject(encodedName){
   if(safetyEvalMonthlyTreeEditingProject!==decodeURIComponent(encodedName))return;
   safetyEvalMonthlyTreeEditingProject="";
   safetyEvalMonthlyTreeDraftValues={};
+  renderSafetyEvaluationMonthlyFillCurrentPagePreservingScroll();
+}
+
+function renderSafetyEvaluationMonthlyFillCurrentPagePreservingScroll(){
+  const currentWrap=document.querySelector(".monthly-fill-current-table-card .roster-table-wrap");
+  const scrollLeft=currentWrap?.scrollLeft||0;
+  const scrollTop=currentWrap?.scrollTop||0;
   renderSafetyEvaluationMonthlyFillCurrentPage();
+  const nextWrap=document.querySelector(".monthly-fill-current-table-card .roster-table-wrap");
+  if(nextWrap){
+    nextWrap.scrollLeft=scrollLeft;
+    nextWrap.scrollTop=scrollTop;
+  }
 }
 
 function toggleSafetyEvalMonthlyTreeCompany(encodedName){
@@ -887,7 +899,7 @@ function renderSafetyEvaluationMonthlyFillCurrentPage(){
         </div>
         <div class="monthly-plan-list">${visiblePlans.map(renderSafetyEvalMonthlyCurrentPlanCard).join("")}</div>
       </section>
-      <section class="org-user-panel monthly-fill-panel monthly-fill-current-panel">
+      <div class="monthly-fill-panel monthly-fill-current-panel">
         ${renderUnifiedQueryCard(`
           <div class="form-item"><label>项目名称</label><input class="input" id="semProjectName" value="${escapeAttr(safetyEvalMonthlyCurrentQuery.projectName)}" placeholder="请输入项目名称"/></div>
           <div class="form-item"><label>子公司</label><select class="select" id="semCompany"><option value="">全部</option>${options.companies.map(value=>`<option value="${value}" ${value===safetyEvalMonthlyCurrentQuery.company?"selected":""}>${value}</option>`).join("")}</select></div>
@@ -903,8 +915,11 @@ function renderSafetyEvaluationMonthlyFillCurrentPage(){
               <button class="column-setting-icon-btn" title="列设置" onclick="openSafetyEvalMonthlyTreeColumnSetting()">⚙</button>
             </div>
           </div>
-          <div class="table-wrap roster-table-wrap">
-            ${renderSafetyEvalMonthlyTreeTable(pageRows)}
+          <div class="monthly-tree-table-shell">
+            <div class="table-wrap roster-table-wrap">
+              ${renderSafetyEvalMonthlyTreeTable(pageRows)}
+            </div>
+            <span class="monthly-tree-operation-shadow" aria-hidden="true"></span>
           </div>
           <div class="pagination">
             <span>共 ${allRows.length} 条</span>
@@ -916,7 +931,7 @@ function renderSafetyEvaluationMonthlyFillCurrentPage(){
             </div>
           </div>
         </section>
-      </section>
+      </div>
     </div>
   `;
 }

@@ -17064,9 +17064,13 @@ body.mobile-mode .mobile-manual-scroll{
 .monthly-fill-table-card th,
 .monthly-fill-table-card td{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .monthly-fill-table-card .pager{margin-left:auto;}
-.monthly-fill-current-panel{display:flex;min-width:0;flex-direction:column;gap:12px;}
+.monthly-fill-current-panel{display:flex;min-width:0;min-height:0;flex-direction:column;gap:12px;}
 .monthly-fill-current-panel .query-card{margin-bottom:0;}
 .monthly-fill-current-table-card{min-height:0;margin-top:0;}
+.monthly-tree-table-shell{position:relative;flex:1;min-height:0;overflow:hidden;}
+.monthly-tree-table-shell .roster-table-wrap{height:100%;}
+.monthly-fill-current-table-card .table-sticky-operation{box-shadow:none!important;}
+.monthly-tree-operation-shadow{position:absolute;top:0;right:100px;bottom:0;z-index:11;width:1px;background:#e5e6eb;box-shadow:-10px 0 14px -9px rgba(29,33,41,.42);pointer-events:none;}
 .monthly-fill-tree-table{width:max-content;min-width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:13px;}
 .monthly-fill-tree-table th,.monthly-fill-tree-table td{height:42px;padding:6px 8px;border-right:1px solid #e5e8ef;border-bottom:1px solid #e5e8ef;text-align:center;white-space:nowrap;background:#fff;}
 .monthly-fill-tree-table thead th{height:38px;background:#f5f7fa;color:#4e5969;font-weight:600;line-height:18px;}

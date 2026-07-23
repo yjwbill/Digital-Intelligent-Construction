@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.327";
-const APP_CODE_VERSION_NAME="月度评价险情填报版";
-const APP_CODE_VERSION_TIME="2026-07-23 11:00";
-const APP_CODE_VERSION_DESC="在安全评价月度评价填报中新增险情信息填报，支持项目是否知情不报选择及项目、分公司、子公司得分自动汇总。";
+const APP_CODE_VERSION="EM-20260701-V2.2.328";
+const APP_CODE_VERSION_NAME="月度评价布局交互优化版";
+const APP_CODE_VERSION_TIME="2026-07-23 12:00";
+const APP_CODE_VERSION_DESC="拆分月度评价填报查询与数据区域，保持编辑操作前后的表格滚动位置，并将操作列阴影优化为连续的冻结区域边界。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
