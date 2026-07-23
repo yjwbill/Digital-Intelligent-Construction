@@ -27,7 +27,14 @@ function renderSafetyEvaluationManagePage(name){
     safetyEvalModelCurrentMode=true;
     return renderSafetyEvaluationModelPage();
   }
-  if(name==="评价任务管理"||name==="安全评价任务")return renderSafetyEvaluationTaskPage();
+  if(name==="评价任务管理"){
+    safetyEvalTaskCurrentMode=false;
+    return renderSafetyEvaluationTaskPage();
+  }
+  if(name==="安全评价任务"){
+    safetyEvalTaskCurrentMode=true;
+    return renderSafetyEvaluationTaskPage();
+  }
   if(name==="评价结果管理")return renderSafetyEvaluationResultPage();
   if(name==="源数据管理")return renderSafetyEvaluationSourcePage();
   detailPage.style.display="none";
@@ -2990,6 +2997,14 @@ const safetyEvalTaskOptions={
   executeModes:["自动","手动"]
 };
 
+const safetyEvalCurrentTaskOptions={
+  models:["子公司安全评价模型","分公司安全评价模型","项目安全评价模型"],
+  types:["项目","分公司","子公司"],
+  status:["未执行","执行中","已执行","已确认"],
+  cycles:["月度","季度","临时","专项"],
+  executeModes:["自动","手动"]
+};
+
 const safetyEvalTaskRows=[
   ["TASK-202607-001","集团月度安全评价任务","集团安全评价模型","企业","月度","已完成",100,8,8,0,"2026-07-01 08:30","2026-07-01 10:20","系统管理员","2026-06-30 16:10"],
   ["TASK-202607-002","施工项目月度安全评价任务","施工项目周评价模型","项目","月度","进行中",68,57,39,2,"2026-07-01 09:00","-","李明","2026-06-30 17:25"],
@@ -3022,6 +3037,26 @@ const safetyEvalTaskRows=[
   creator:row[12],
   createTime:row[13]
 }));
+
+const safetyEvalCurrentTaskRows=[
+  [201,"TASK-202607-PRO-001","项目安全月度评价任务","2026-07","项目安全评价模型","项目","月度","自动","未执行",0,38,0,0,"-","-","王安全","2026-07-01 08:00"],
+  [202,"TASK-202607-BRA-001","分公司安全月度评价任务","2026-07","分公司安全评价模型","分公司","月度","自动","执行中",45,0,10,0,"2026-07-23 08:30","-","李明","2026-07-01 08:10"],
+  [203,"TASK-202607-COM-001","子公司安全月度评价任务","2026-07","子公司安全评价模型","子公司","月度","手动","已执行",100,0,0,9,"2026-07-22 09:00","2026-07-22 09:08","张强","2026-07-01 08:20"],
+  [204,"TASK-202606-PRO-001","项目安全月度评价任务","2026-06","项目安全评价模型","项目","月度","自动","已确认",100,38,0,0,"2026-06-30 08:30","2026-06-30 08:42","王安全","2026-06-01 08:00"],
+  [205,"TASK-202606-BRA-001","分公司安全月度评价任务","2026-06","分公司安全评价模型","分公司","月度","自动","已执行",100,0,10,0,"2026-06-30 09:00","2026-06-30 09:06","李明","2026-06-01 08:10"],
+  [206,"TASK-202606-COM-001","子公司安全月度评价任务","2026-06","子公司安全评价模型","子公司","月度","手动","未执行",0,0,0,9,"-","-","张强","2026-06-01 08:20"]
+].map(row=>({id:row[0],taskCode:row[1],taskName:row[2],taskPeriod:row[3],modelName:row[4],modelId:row[4],evaluationType:row[5],cycleType:row[6],executeMode:row[7],taskStatus:row[8],progress:row[9],projectCount:row[10],branchCount:row[11],companyCount:row[12],startTime:row[13],endTime:row[14],creator:row[15],createTime:row[16]}));
+
+let safetyEvalTaskCurrentMode=false;
+const safetyEvalCurrentTaskTimers={};
+
+function getActiveSafetyEvalTaskRows(){
+  return safetyEvalTaskCurrentMode?safetyEvalCurrentTaskRows:safetyEvalTaskRows;
+}
+
+function getActiveSafetyEvalTaskOptions(){
+  return safetyEvalTaskCurrentMode?safetyEvalCurrentTaskOptions:safetyEvalTaskOptions;
+}
 
 const safetyEvalTaskState={
   taskName:"",
@@ -3065,8 +3100,45 @@ tableColumnDefinitions.safetyEvalTask=[
   `}
 ];
 
+function safetyEvalCurrentTaskStatusTag(value){
+  return tag(value,({未执行:"gray",执行中:"blue",已执行:"orange",已确认:"green"})[value]||"gray");
+}
+
+function renderSafetyEvalCurrentTaskActions(row){
+  const actions=[`<a class="link" onclick="showToast('查看任务详情：${row.taskName}')">查看</a>`];
+  if(row.taskStatus==="未执行")actions.push(`<a class="link" onclick="executeSafetyEvalCurrentTask(${row.id},false)">执行</a>`);
+  if(row.taskStatus==="执行中")actions.push(`<a class="link" onclick="showToast('查看诊断进度：${row.taskName}')">查看进度</a>`);
+  if(row.taskStatus==="已执行"){
+    actions.push(`<a class="link" onclick="executeSafetyEvalCurrentTask(${row.id},true)">重新执行</a>`);
+    actions.push(`<a class="link" onclick="confirmSafetyEvalCurrentTask(${row.id})">确认结果</a>`);
+  }
+  if(row.taskStatus==="已确认")actions.push(`<a class="link" onclick="exportSafetyEvalTask(${row.id})">导出结果</a>`);
+  return actions.join("\n");
+}
+
+tableColumnDefinitions.safetyEvalCurrentTask=[
+  {key:"selection",title:"",width:48,align:"center",render:()=>`<input type="checkbox"/>`},
+  {key:"taskCode",title:"任务编号",width:165,align:"left",render:row=>row.taskCode},
+  {key:"taskName",title:"任务名称",width:210,align:"left",render:row=>`<a class="link" onclick="showToast('查看任务详情：${row.taskName}')">${row.taskName}</a>`},
+  {key:"taskPeriod",title:"任务期数",width:110,align:"center",render:row=>row.taskPeriod},
+  {key:"modelName",title:"评价模型",width:190,align:"left",render:row=>row.modelName},
+  {key:"evaluationType",title:"评价对象",width:110,align:"center",render:row=>safetyEvalModelTypeTag(row.evaluationType)},
+  {key:"cycleType",title:"执行周期",width:100,align:"center",render:row=>tag(row.cycleType,"blue")},
+  {key:"executeMode",title:"执行方式",width:100,align:"center",render:row=>tag(row.executeMode,row.executeMode==="自动"?"blue":"orange")},
+  {key:"taskStatus",title:"任务状态",width:110,align:"center",render:row=>safetyEvalCurrentTaskStatusTag(row.taskStatus)},
+  {key:"progress",title:"任务进度",width:160,align:"center",render:row=>renderSafetyEvalTaskProgress(row.progress)},
+  {key:"projectCount",title:"评价项目数",width:110,align:"center",render:row=>row.evaluationType==="项目"?row.projectCount:"-"},
+  {key:"branchCount",title:"评价分公司数",width:120,align:"center",render:row=>row.evaluationType==="分公司"?row.branchCount:"-"},
+  {key:"companyCount",title:"评价子公司数",width:120,align:"center",render:row=>row.evaluationType==="子公司"?row.companyCount:"-"},
+  {key:"startTime",title:"任务开始时间",width:170,align:"center",render:row=>row.startTime},
+  {key:"endTime",title:"任务结束时间",width:170,align:"center",render:row=>row.endTime},
+  {key:"creator",title:"创建人",width:110,align:"center",render:row=>row.creator},
+  {key:"createTime",title:"创建时间",width:170,align:"center",render:row=>row.createTime},
+  {key:"operation",title:"操作",width:220,align:"center",render:row=>renderSafetyEvalCurrentTaskActions(row)}
+];
+
 function getSafetyEvalTaskCreateModels(){
-  return safetyEvalModelRows.filter(row=>row.modelStatus!=="已停用");
+  return (safetyEvalTaskCurrentMode?safetyEvalCurrentModelRows:safetyEvalModelRows).filter(row=>row.modelStatus!=="已停用");
 }
 
 function getSafetyEvalTaskDefaultModel(){
@@ -3080,6 +3152,8 @@ function getSafetyEvalTaskObjectType(model){
 
 function getSafetyEvalTaskObjectsByModel(model){
   const type=getSafetyEvalTaskObjectType(model);
+  if(safetyEvalTaskCurrentMode&&type==="子公司")return getOrganizationCompanies().map((name,index)=>({objectCode:`COMP-${String(index+1).padStart(3,"0")}`,objectName:name,orgName:name,parentOrg:"隧道股份",status:"启用"}));
+  if(safetyEvalTaskCurrentMode&&type==="分公司")return getOrganizationPairs(10).map((pair,index)=>({objectCode:`BRANCH-${String(index+1).padStart(3,"0")}`,objectName:pair[1],orgName:pair[1],parentOrg:pair[0],status:"启用"}));
   return safetyEvalObjectRows.filter(row=>row.objectType===type && row.status==="启用");
 }
 
@@ -3103,7 +3177,7 @@ function renderSafetyEvalTaskModelInfo(model){
 
 function getSafetyEvalTaskDefaultName(modelName,cycleType){
   const cycle=cycleType || "月度";
-  const model=safetyEvalModelRows.find(row=>row.modelName===modelName) || getSafetyEvalTaskDefaultModel();
+  const model=getSafetyEvalTaskCreateModels().find(row=>row.modelName===modelName) || getSafetyEvalTaskDefaultModel();
   const objectType=getSafetyEvalTaskObjectType(model);
   return `${objectType}${cycle}安全评价任务`;
 }
@@ -3161,6 +3235,7 @@ function openSafetyEvalTaskCreateModal(){
       <div class="detail-group-body">
         <div class="search-grid">
           <div class="form-item"><label>任务名称</label><input class="input" id="setCreateTaskName" value="${escapeAttr(getSafetyEvalTaskDefaultName(modelName,cycleType))}" placeholder="选择模型后自动填充，可修改"/></div>
+          ${safetyEvalTaskCurrentMode?`<div class="form-item"><label>任务期数</label><input class="input" type="month" id="setCreateTaskPeriod" value="2026-07"/></div>`:""}
           <div class="form-item"><label>任务类型</label><select class="select" id="setCreateCycle" onchange="syncSafetyEvalTaskCreateCycle()">${safetyEvalTaskOptions.cycles.map(value=>`<option value="${value}" ${value===cycleType?"selected":""}>${value}</option>`).join("")}</select></div>
           <div class="form-item"><label>执行方式</label><select class="select" id="setCreateExecuteMode" onchange="syncSafetyEvalTaskExecuteTime()">${safetyEvalTaskOptions.executeModes.map(value=>`<option value="${value}" ${value===executeMode?"selected":""}>${value}</option>`).join("")}</select></div>
           <div class="form-item"><label>执行时间</label><input class="input" type="datetime-local" id="setCreateExecuteTime" value="2026-07-03T08:30"/></div>
@@ -3183,7 +3258,7 @@ function openSafetyEvalTaskCreateModal(){
 
 function updateSafetyEvalTaskCreateByModel(){
   const modelName=document.getElementById("setCreateModel")?.value || "";
-  const model=safetyEvalModelRows.find(row=>row.modelName===modelName) || getSafetyEvalTaskDefaultModel();
+  const model=getSafetyEvalTaskCreateModels().find(row=>row.modelName===modelName) || getSafetyEvalTaskDefaultModel();
   const modelInfo=document.getElementById("setCreateModelInfo");
   if(modelInfo)modelInfo.innerHTML=renderSafetyEvalTaskModelInfo(model);
   const cycle=document.getElementById("setCreateCycle")?.value || "月度";
@@ -3236,7 +3311,7 @@ function syncSafetyEvalTaskCreateSummary(){
 
 function saveSafetyEvalTaskCreate(){
   const modelName=document.getElementById("setCreateModel")?.value || "";
-  const model=safetyEvalModelRows.find(row=>row.modelName===modelName) || getSafetyEvalTaskDefaultModel();
+  const model=getSafetyEvalTaskCreateModels().find(row=>row.modelName===modelName) || getSafetyEvalTaskDefaultModel();
   const selected=Array.from(document.querySelectorAll(".set-create-object-checkbox:checked")).map(input=>input.value);
   if(!model){showToast("请先选择评价模型");return;}
   if(!selected.length){showToast("请至少选择一个评价对象");return;}
@@ -3245,22 +3320,29 @@ function saveSafetyEvalTaskCreate(){
   const executeTime=document.getElementById("setCreateExecuteTime")?.value || "";
   if(executeMode==="自动"&&!executeTime){showToast("请填写自动执行时间");return;}
   const taskName=document.getElementById("setCreateTaskName")?.value.trim() || getSafetyEvalTaskDefaultName(model.modelName,cycle);
-  const id=Math.max(0,...safetyEvalTaskRows.map(row=>row.id))+1;
+  const activeRows=getActiveSafetyEvalTaskRows();
+  const id=Math.max(0,...activeRows.map(row=>row.id))+1;
   const code=`TASK-202607-${String(id).padStart(3,"0")}`;
-  safetyEvalTaskRows.unshift({
+  const evaluationType=getSafetyEvalTaskObjectType(model);
+  const taskPeriod=document.getElementById("setCreateTaskPeriod")?.value||"2026-07";
+  activeRows.unshift({
     id,
     taskCode:code,
     taskName,
     modelName:model.modelName,
     modelId:model.modelName,
-    evaluationType:getSafetyEvalTaskObjectType(model),
+    taskPeriod,
+    evaluationType,
     cycleType:cycle,
     executeMode,
-    taskStatus:"未开始",
+    taskStatus:safetyEvalTaskCurrentMode?"未执行":"未开始",
     progress:0,
     objectCount:selected.length,
     finishedObjectCount:0,
     failedObjectCount:0,
+    projectCount:evaluationType==="项目"?selected.length:0,
+    branchCount:evaluationType==="分公司"?selected.length:0,
+    companyCount:evaluationType==="子公司"?selected.length:0,
     startTime:executeMode==="自动"?executeTime.replace("T"," "):"-",
     endTime:"-",
     creator:"王安全",
@@ -3283,7 +3365,7 @@ function renderSafetyEvalTaskProgress(progress){
 
 function getSafetyEvalTaskFilteredRows(){
   const s=safetyEvalTaskState;
-  return safetyEvalTaskRows.filter(row=>{
+  return getActiveSafetyEvalTaskRows().filter(row=>{
     if(s.taskName&&!row.taskName.includes(s.taskName))return false;
     if(s.taskCode&&!row.taskCode.includes(s.taskCode))return false;
     if(s.modelId&&row.modelId!==s.modelId)return false;
@@ -3353,24 +3435,52 @@ function deleteSafetyEvalTask(id){
 }
 
 function exportSafetyEvalTask(id){
-  const row=safetyEvalTaskRows.find(item=>item.id===Number(id));
+  const row=getActiveSafetyEvalTaskRows().find(item=>item.id===Number(id));
   showToast(`导出结果成功：${row?.taskName || id}`);
 }
 
+function executeSafetyEvalCurrentTask(id,isRetry=false){
+  const row=safetyEvalCurrentTaskRows.find(item=>item.id===Number(id));
+  if(!row)return;
+  clearTimeout(safetyEvalCurrentTaskTimers[row.id]);
+  row.taskStatus="执行中";
+  row.progress=20;
+  row.startTime="2026-07-23 18:00";
+  row.endTime="-";
+  renderSafetyEvaluationTaskPage();
+  showToast(`${isRetry?"已重新执行":"已开始执行"}：${row.taskName}`);
+  safetyEvalCurrentTaskTimers[row.id]=setTimeout(()=>{
+    row.taskStatus="已执行";
+    row.progress=100;
+    row.endTime="2026-07-23 18:01";
+    const onCurrentTaskPage=safetyEvalTaskCurrentMode&&document.querySelector(".module-title")?.textContent?.includes("安全评价任务");
+    if(onCurrentTaskPage){renderSafetyEvaluationTaskPage();showToast(`诊断执行完成：${row.taskName}`);}
+  },1200);
+}
+
+function confirmSafetyEvalCurrentTask(id){
+  const row=safetyEvalCurrentTaskRows.find(item=>item.id===Number(id));
+  if(!row||row.taskStatus!=="已执行")return;
+  row.taskStatus="已确认";
+  renderSafetyEvaluationTaskPage();
+  showToast(`已确认结果：${row.taskName}`);
+}
+
 function renderSafetyEvalTaskTable(rows){
-  const columns=getVisibleColumns("safetyEvalTask");
+  const tableKey=safetyEvalTaskCurrentMode?"safetyEvalCurrentTask":"safetyEvalTask";
+  const columns=getVisibleColumns(tableKey);
   return `
-    <table class="safety-eval-task-table" style="min-width:${getTableMinWidth("safetyEvalTask")}px">
+    <table class="safety-eval-task-table" style="min-width:${getTableMinWidth(tableKey)}px">
       <thead>
         <tr>
-          ${renderTableHeaderByColumns("safetyEvalTask")}
+          ${renderTableHeaderByColumns(tableKey)}
         </tr>
       </thead>
       <tbody>
         ${rows.map((row,index)=>`
           <tr>
             ${columns.map(col=>`
-              <td class="${getTableColumnClass("safetyEvalTask",col,columns)}" data-column-key="${escapeAttr(col.key)}" style="${getTableColumnStickyStyle("safetyEvalTask",col,columns)}width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">${col.render(row,index)}</td>
+              <td class="${getTableColumnClass(tableKey,col,columns)}" data-column-key="${escapeAttr(col.key)}" style="${getTableColumnStickyStyle(tableKey,col,columns)}width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">${col.render(row,index)}</td>
             `).join("")}
           </tr>
         `).join("") || `<tr><td colspan="${columns.length}" style="text-align:center;color:var(--muted);height:80px">暂无数据</td></tr>`}
@@ -3387,16 +3497,18 @@ function renderSafetyEvaluationTaskPage(){
   safetyEvalTaskState.page=Math.min(safetyEvalTaskState.page,totalPages);
   const start=(safetyEvalTaskState.page-1)*safetyEvalTaskState.pageSize;
   const pageRows=allRows.slice(start,start+safetyEvalTaskState.pageSize);
+  const options=getActiveSafetyEvalTaskOptions();
+  const tableKey=safetyEvalTaskCurrentMode?"safetyEvalCurrentTask":"safetyEvalTask";
   listPage.innerHTML=`
     <div class="compact-title-row">
-      <div class="module-title">安全评价 / 评价任务管理</div>
+      <div class="module-title">安全评价 / ${safetyEvalTaskCurrentMode?"安全评价任务":"评价任务管理"}</div>
     </div>
     ${renderUnifiedQueryCard(`
       <div class="form-item"><label>任务名称</label><input class="input" id="setTaskName" value="${escapeAttr(safetyEvalTaskState.taskName)}" placeholder="支持模糊搜索"/></div>
       <div class="form-item"><label>任务编号</label><input class="input" id="setTaskCode" value="${escapeAttr(safetyEvalTaskState.taskCode)}" placeholder="请输入唯一任务ID"/></div>
-      <div class="form-item"><label>评价模型</label><select class="select" id="setModel">${renderSafetyEvalTaskOptions(safetyEvalTaskOptions.models,safetyEvalTaskState.modelId,"全部")}</select></div>
-      <div class="form-item"><label>评价对象</label><select class="select" id="setType">${renderSafetyEvalTaskOptions(safetyEvalTaskOptions.types,safetyEvalTaskState.evaluationType,"全部")}</select></div>
-      <div class="form-item"><label>任务状态</label><select class="select" id="setStatus">${renderSafetyEvalTaskOptions(safetyEvalTaskOptions.status,safetyEvalTaskState.taskStatus,"全部")}</select></div>
+      <div class="form-item"><label>评价模型</label><select class="select" id="setModel">${renderSafetyEvalTaskOptions(options.models,safetyEvalTaskState.modelId,"全部")}</select></div>
+      <div class="form-item"><label>评价对象</label><select class="select" id="setType">${renderSafetyEvalTaskOptions(options.types,safetyEvalTaskState.evaluationType,"全部")}</select></div>
+      <div class="form-item"><label>任务状态</label><select class="select" id="setStatus">${renderSafetyEvalTaskOptions(options.status,safetyEvalTaskState.taskStatus,"全部")}</select></div>
       <div class="form-item"><label>执行周期</label><select class="select" id="setCycle">${renderSafetyEvalTaskOptions(safetyEvalTaskOptions.cycles,safetyEvalTaskState.cycleType,"全部")}</select></div>
       <div class="form-item"><label>执行方式</label><select class="select" id="setExecuteMode">${renderSafetyEvalTaskOptions(safetyEvalTaskOptions.executeModes,safetyEvalTaskState.executeMode,"全部")}</select></div>
       <div class="form-item"><label>创建人</label><input class="input" id="setCreator" value="${escapeAttr(safetyEvalTaskState.creator)}" placeholder="支持人员搜索"/></div>
@@ -3410,7 +3522,7 @@ function renderSafetyEvaluationTaskPage(){
           <button class="btn primary" onclick="openSafetyEvalTaskCreateModal()">新增任务</button>
           <button class="btn" onclick="showToast('批量执行功能演示')">批量执行</button>
           <button class="btn" onclick="showToast('导出成功')">导出</button>
-          <button class="column-setting-icon-btn" title="列配置" onclick="openColumnSetting('safetyEvalTask','renderSafetyEvaluationTaskPage')">⚙</button>
+          <button class="column-setting-icon-btn" title="列配置" onclick="openColumnSetting('${tableKey}','renderSafetyEvaluationTaskPage')">⚙</button>
         </div>
       </div>
       <div class="table-wrap roster-table-wrap">

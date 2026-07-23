@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.333";
-const APP_CODE_VERSION_NAME="安全模型权重输入优化版";
-const APP_CODE_VERSION_TIME="2026-07-23 17:00";
-const APP_CODE_VERSION_DESC="权重输入框对齐项目产值上报单位输入样式，并在分组权重合计超过100%时统一标红该分组全部输入框。";
+const APP_CODE_VERSION="EM-20260701-V2.2.334";
+const APP_CODE_VERSION_NAME="安全评价任务专属版";
+const APP_CODE_VERSION_TIME="2026-07-23 18:00";
+const APP_CODE_VERSION_DESC="为安全评价任务建立独立的三层模型任务数据，新增任务期数、四态执行流转和分层评价对象数量。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
