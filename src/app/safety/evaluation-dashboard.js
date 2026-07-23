@@ -19,7 +19,14 @@ function renderSafetyEvaluationManagePage(name){
     return renderSafetyEvaluationMonthlyFillPage(true);
   }
   if(name==="对象管理（禁）")return renderSafetyEvaluationObjectPage();
-  if(name==="评价模型"||name==="安全评价模型")return renderSafetyEvaluationModelPage();
+  if(name==="评价模型"){
+    safetyEvalModelCurrentMode=false;
+    return renderSafetyEvaluationModelPage();
+  }
+  if(name==="安全评价模型"){
+    safetyEvalModelCurrentMode=true;
+    return renderSafetyEvaluationModelPage();
+  }
   if(name==="评价任务管理"||name==="安全评价任务")return renderSafetyEvaluationTaskPage();
   if(name==="评价结果管理")return renderSafetyEvaluationResultPage();
   if(name==="源数据管理")return renderSafetyEvaluationSourcePage();
@@ -585,6 +592,8 @@ tableColumnDefinitions.safetyEvalMonthlyTree=[
   {key:"projectName",title:"项目名称",width:300,align:"left",kind:"entity",render:()=>""},
   {key:"fourMismatch",title:"四要素不一致人数",group:"实名四要素一致性",width:150,align:"center",kind:"input",render:()=>""},
   {key:"fourScore",title:"得分",group:"实名四要素一致性",width:100,align:"center",kind:"score",scoreKey:"fourScore",render:()=>""},
+  {key:"dangerConcealed",title:"是否知情不报",group:"险情信息填报",width:150,align:"center",kind:"radio",render:()=>""},
+  {key:"dangerScore",title:"得分",group:"险情信息填报",width:100,align:"center",kind:"score",scoreKey:"dangerScore",render:()=>""},
   {key:"injury",title:"人身伤亡事故",group:"人身伤亡事故",width:130,align:"center",kind:"input",render:()=>""},
   {key:"pipelineAccident",title:"重大管线事故",group:"人身伤亡事故",width:130,align:"center",kind:"input",render:()=>""},
   {key:"fireAccident",title:"消防事故",group:"人身伤亡事故",width:110,align:"center",kind:"input",render:()=>""},
@@ -606,8 +615,6 @@ tableColumnDefinitions.safetyEvalMonthlyTree=[
   {key:"honorProvincial",title:"省部级",group:"荣誉表彰奖励",width:100,align:"center",kind:"input",render:()=>""},
   {key:"honorDistrict",title:"县区级和企业级",group:"荣誉表彰奖励",width:150,align:"center",kind:"input",render:()=>""},
   {key:"honorScore",title:"得分",group:"荣誉表彰奖励",width:100,align:"center",kind:"score",scoreKey:"honorScore",render:()=>""},
-  {key:"dangerConcealed",title:"是否知情不报",group:"险情信息填报",width:150,align:"center",kind:"radio",render:()=>""},
-  {key:"dangerScore",title:"得分",group:"险情信息填报",width:100,align:"center",kind:"score",scoreKey:"dangerScore",render:()=>""},
   {key:"operation",title:"操作",width:100,align:"center",kind:"action",render:()=>""}
 ];
 
@@ -850,12 +857,12 @@ function renderSafetyEvalMonthlyTreeTable(projectRows){
   companies.forEach((company,companyIndex)=>{
     const companyProjects=company.branches.flatMap(branch=>branch.projects);
     const companyOpen=safetyEvalMonthlyTreeExpandedCompanies.has(company.name);
-    body.push(`<tr class="monthly-tree-company-row"><td><div class="monthly-tree-sequence-cell"><button class="monthly-tree-toggle" title="${companyOpen?"收起":"展开"}" aria-label="${companyOpen?"收起":"展开"}" data-monthly-tree-company="${encodeURIComponent(company.name)}"><img src="./src/assets/${companyOpen?"monthly-tree-collapse.svg":"monthly-tree-expand.svg"}" alt=""/></button><span>${companyIndex+1}</span></div></td><td>${company.name}</td><td>-</td><td>-</td>${renderSafetyEvalMonthlyTreeMetricCells("company",companyProjects,null)}</tr>`);
+    body.push(`<tr class="monthly-tree-company-row"><td><div class="monthly-tree-sequence-cell"><button class="monthly-tree-toggle" title="${companyOpen?"收起":"展开"}" aria-label="${companyOpen?"收起":"展开"}" data-monthly-tree-company="${encodeURIComponent(company.name)}"><img src="./src/assets/${companyOpen?"monthly-tree-collapse.svg":"monthly-tree-expand.svg"}?v=2.2.329" width="16" height="16" alt=""/></button><span>${companyIndex+1}</span></div></td><td>${company.name}</td><td>-</td><td>-</td>${renderSafetyEvalMonthlyTreeMetricCells("company",companyProjects,null)}</tr>`);
     if(!companyOpen)return;
     company.branches.forEach((branch,branchIndex)=>{
       const branchKey=`${company.name}|${branch.name}`;
       const branchOpen=safetyEvalMonthlyTreeExpandedBranches.has(branchKey);
-      body.push(`<tr class="monthly-tree-branch-row"><td><div class="monthly-tree-sequence-cell"><button class="monthly-tree-toggle" title="${branchOpen?"收起":"展开"}" aria-label="${branchOpen?"收起":"展开"}" data-monthly-tree-branch="${encodeURIComponent(branchKey)}"><img src="./src/assets/${branchOpen?"monthly-tree-collapse.svg":"monthly-tree-expand.svg"}" alt=""/></button><span>${companyIndex+1}.${branchIndex+1}</span></div></td><td>-</td><td>${branch.name}</td><td>-</td>${renderSafetyEvalMonthlyTreeMetricCells("branch",branch.projects,null)}</tr>`);
+      body.push(`<tr class="monthly-tree-branch-row"><td><div class="monthly-tree-sequence-cell"><button class="monthly-tree-toggle" title="${branchOpen?"收起":"展开"}" aria-label="${branchOpen?"收起":"展开"}" data-monthly-tree-branch="${encodeURIComponent(branchKey)}"><img src="./src/assets/${branchOpen?"monthly-tree-collapse.svg":"monthly-tree-expand.svg"}?v=2.2.329" width="16" height="16" alt=""/></button><span>${companyIndex+1}.${branchIndex+1}</span></div></td><td>-</td><td>${branch.name}</td><td>-</td>${renderSafetyEvalMonthlyTreeMetricCells("branch",branch.projects,null)}</tr>`);
       if(!branchOpen)return;
       branch.projects.forEach((project,projectIndex)=>{
         body.push(`<tr class="monthly-tree-project-row" data-monthly-project="${encodeURIComponent(project.projectName)}"><td>${companyIndex+1}.${branchIndex+1}.${projectIndex+1}</td><td>-</td><td>-</td><td class="monthly-tree-project-name" title="${escapeAttr(project.projectName)}">${project.projectName}</td>${renderSafetyEvalMonthlyTreeMetricCells("project",[project],project)}</tr>`);
@@ -1904,6 +1911,11 @@ const safetyEvalModelOptions={
   objectTypes:["企业","项目","供应链","岗位","综合对象"]
 };
 
+const safetyEvalCurrentModelOptions={
+  status:["草稿","已发布","已停用","版本中"],
+  objectTypes:["子公司","分公司","项目","敢为","供应链"]
+};
+
 const safetyEvalModelRows=[
   ["MOD-ENT-001","集团安全评价模型","企业","企业",42,100,"v2.0","已发布",8,"2026-07-01 10:20","系统管理员","2026-05-20 09:30","2026-06-30 16:10","2026-06-28 09:00"],
   ["MOD-PRO-001","施工项目周评价模型","项目","项目",58,100,"v2.3","已发布",57,"2026-07-01 09:00","李明","2026-05-22 10:15","2026-06-30 17:25","2026-06-29 14:00"],
@@ -1936,6 +1948,21 @@ const safetyEvalModelRows=[
   publishTime:row[13]
 }));
 
+const safetyEvalCurrentModelRows=[
+  [101,"MOD-COMPANY-001","子公司安全评价模型","子公司",38,100,"v2.1","已发布",9,"2026-07-20 09:30","王安全","2026-04-18 10:00","2026-07-20 09:30","2026-07-20 09:30",3],
+  [102,"MOD-BRANCH-001","分公司安全评价模型","分公司",34,100,"v1.6","已发布",18,"2026-07-19 15:20","李明","2026-05-06 09:20","2026-07-19 15:20","2026-07-19 15:20",3],
+  [103,"MOD-PROJECT-001","项目安全评价模型","项目",46,100,"v3.2","已发布",57,"2026-07-21 08:40","张强","2026-03-12 14:10","2026-07-21 08:40","2026-07-21 08:40",4]
+].map(row=>({
+  id:row[0],modelCode:row[1],modelName:row[2],modelType:row[3],objectType:row[3],indicatorCount:row[4],totalWeight:row[5],currentVersion:row[6],
+  modelStatus:row[7],taskUsageCount:row[8],lastExecuteTime:row[9],creator:row[10],createTime:row[11],updateTime:row[12],publishTime:row[13],versionRecordCount:row[14]
+}));
+
+let safetyEvalModelCurrentMode=false;
+
+function getActiveSafetyEvalModelRows(){
+  return safetyEvalModelCurrentMode?safetyEvalCurrentModelRows:safetyEvalModelRows;
+}
+
 const safetyEvalModelState={
   modelName:"",
   modelCode:"",
@@ -1949,7 +1976,7 @@ const safetyEvalModelState={
 };
 
 function safetyEvalModelTypeTag(value){
-  return tag(value,({企业:"blue",项目:"green",供应链:"orange",岗位:"purple",综合:"cyan",综合对象:"cyan"})[value] || "gray");
+  return tag(value,({企业:"blue",子公司:"blue",分公司:"cyan",项目:"green",供应链:"orange",岗位:"purple",敢为:"purple",综合:"cyan",综合对象:"cyan"})[value] || "gray");
 }
 
 function safetyEvalModelStatusTag(value){
@@ -1965,7 +1992,7 @@ tableColumnDefinitions.safetyEvalModel=[
   {key:"indicatorCount",title:"指标数量",width:100,align:"center",render:row=>row.indicatorCount},
   {key:"totalWeight",title:"权重总和",width:100,align:"center",render:row=>`${row.totalWeight}%`},
   {key:"currentVersion",title:"当前版本",width:110,align:"center",render:row=>row.currentVersion},
-  {key:"versionRecordCount",title:"版本记录",width:100,align:"center",render:row=>row.versionRecordCount},
+  {key:"versionRecordCount",title:"版本记录",width:100,align:"center",render:row=>safetyEvalModelCurrentMode?`<a class="link" onclick="openSafetyEvalModelVersionRecords(${row.id})">${row.versionRecordCount}</a>`:row.versionRecordCount},
   {key:"modelStatus",title:"发布状态",width:110,align:"center",render:row=>safetyEvalModelStatusTag(row.modelStatus)},
   {key:"taskUsageCount",title:"使用任务数",width:110,align:"center",render:row=>row.taskUsageCount},
   {key:"lastExecuteTime",title:"最近执行时间",width:170,align:"center",render:row=>row.lastExecuteTime},
@@ -1975,11 +2002,11 @@ tableColumnDefinitions.safetyEvalModel=[
   {key:"operation",title:"操作",width:320,align:"center",render:row=>`
     <a class="link" onclick="showToast('编辑模型：${row.modelName}')">编辑</a>
     <a class="link" onclick="openSafetyEvalModelDetail(${row.id})">查看</a>
-    <a class="link" onclick="showToast('配置指标：${row.modelName}')">配置指标</a>
+    ${safetyEvalModelCurrentMode?"":`<a class="link" onclick="showToast('配置指标：${row.modelName}')">配置指标</a>`}
     <a class="link" onclick="publishSafetyEvalModel(${row.id})">发布</a>
     <a class="link" onclick="toggleSafetyEvalModelStatus(${row.id})">${row.modelStatus==="已停用"?"启用":"停用"}</a>
-    <a class="link" onclick="copySafetyEvalModel(${row.id})">复制</a>
-    <a class="link danger-link" onclick="deleteSafetyEvalModel(${row.id})">删除</a>
+    ${safetyEvalModelCurrentMode?"":`<a class="link" onclick="copySafetyEvalModel(${row.id})">复制</a>
+    <a class="link danger-link" onclick="deleteSafetyEvalModel(${row.id})">删除</a>`}
   `}
 ];
 
@@ -1989,7 +2016,7 @@ function renderSafetyEvalModelOptions(values,current,allText="全部"){
 
 function getSafetyEvalModelFilteredRows(){
   const s=safetyEvalModelState;
-  return safetyEvalModelRows.filter(row=>{
+  return getActiveSafetyEvalModelRows().filter(row=>{
     if(s.modelName&&!row.modelName.includes(s.modelName))return false;
     if(s.modelCode&&!row.modelCode.includes(s.modelCode))return false;
     if(s.modelStatus&&row.modelStatus!==s.modelStatus)return false;
@@ -2028,7 +2055,7 @@ function changeSafetyEvalModelPage(dir){
 }
 
 function publishSafetyEvalModel(id){
-  const row=safetyEvalModelRows.find(item=>item.id===Number(id));
+  const row=getActiveSafetyEvalModelRows().find(item=>item.id===Number(id));
   if(row){
     row.modelStatus="已发布";
     row.publishTime="2026-07-02 09:20";
@@ -2039,7 +2066,7 @@ function publishSafetyEvalModel(id){
 }
 
 function toggleSafetyEvalModelStatus(id){
-  const row=safetyEvalModelRows.find(item=>item.id===Number(id));
+  const row=getActiveSafetyEvalModelRows().find(item=>item.id===Number(id));
   if(row){
     row.modelStatus=row.modelStatus==="已停用"?"已发布":"已停用";
     showToast(`${row.modelStatus==="已停用"?"已停用":"已启用"}模型：${row.modelName}`);
@@ -2055,6 +2082,71 @@ function copySafetyEvalModel(id){
 function deleteSafetyEvalModel(id){
   const row=safetyEvalModelRows.find(item=>item.id===Number(id));
   showToast(`删除模型演示：${row?.modelName || id}`);
+}
+
+function getSafetyEvalModelVersionRecords(model){
+  const summaries=[
+    "调整评价指标及权重配置，完成模型保存",
+    "优化适用对象范围及自动计算规则",
+    "完成模型初始化与首版指标配置",
+    "补充安全评价指标和数据来源"
+  ];
+  const operators=[model.creator,"王安全","系统管理员","李明"];
+  const baseTime=new Date(String(model.updateTime).replace(/-/g,"/"));
+  return Array.from({length:model.versionRecordCount||1},(_,index)=>{
+    const time=new Date(baseTime.getTime()-index*21*24*60*60*1000);
+    const effectiveTime=Number.isNaN(time.getTime())?model.updateTime:`${time.getFullYear()}-${String(time.getMonth()+1).padStart(2,"0")}-${String(time.getDate()).padStart(2,"0")} ${String(time.getHours()).padStart(2,"0")}:${String(time.getMinutes()).padStart(2,"0")}`;
+    return {
+      index:index+1,
+      operationType:"安全评价模型变更",
+      operator:operators[index%operators.length],
+      effectiveTime,
+      summary:`${index===0?model.currentVersion:`历史版本 ${model.versionRecordCount-index}`}：${summaries[index%summaries.length]}`
+    };
+  });
+}
+
+function openSafetyEvalModelVersionRecords(id){
+  const model=safetyEvalCurrentModelRows.find(item=>item.id===Number(id));
+  if(!model)return;
+  const records=getSafetyEvalModelVersionRecords(model);
+  const html=`
+    <div class="safety-eval-version-modal">
+      <div class="safety-eval-version-model-name">模型名称：<b>${model.modelName}</b></div>
+      <div class="safety-eval-detail-table-wrap">
+        <table class="safety-eval-detail-table safety-eval-version-table">
+          <thead><tr><th>序号</th><th>操作类型</th><th>操作人</th><th>操作生效时间</th><th>版本摘要</th><th>操作</th></tr></thead>
+          <tbody>${records.map(record=>`
+            <tr>
+              <td>${record.index}</td>
+              <td>${record.operationType}</td>
+              <td>${record.operator}</td>
+              <td>${record.effectiveTime}</td>
+              <td class="version-summary-cell" title="${escapeAttr(record.summary)}">${record.summary}</td>
+              <td><button class="link" onclick="openSafetyEvalModelVersionDetail(${model.id},${record.index})">查看</button></td>
+            </tr>
+          `).join("")}</tbody>
+        </table>
+      </div>
+    </div>`;
+  openModal("版本记录",html,`<button class="btn" onclick="closeModal()">关闭</button>`,"large");
+}
+
+function openSafetyEvalModelVersionDetail(modelId,recordIndex){
+  const model=safetyEvalCurrentModelRows.find(item=>item.id===Number(modelId));
+  const record=model&&getSafetyEvalModelVersionRecords(model).find(item=>item.index===Number(recordIndex));
+  if(!model||!record)return;
+  const html=`
+    <div class="detail-info-grid safety-eval-version-detail-grid">
+      <span>模型名称：<b>${model.modelName}</b></span>
+      <span>模型编码：<b>${model.modelCode}</b></span>
+      <span>操作类型：<b>${record.operationType}</b></span>
+      <span>操作人：<b>${record.operator}</b></span>
+      <span>操作生效时间：<b>${record.effectiveTime}</b></span>
+      <span>适用对象类型：<b>${model.objectType}</b></span>
+      <span class="version-detail-summary">版本摘要：<b>${record.summary}</b></span>
+    </div>`;
+  openModal("版本记录详情",html,`<button class="btn" onclick="openSafetyEvalModelVersionRecords(${model.id})">返回</button><button class="btn primary" onclick="closeModal()">关闭</button>`,"large");
 }
 
 const safetyEvalModelDimensionTemplate=[
@@ -2180,7 +2272,8 @@ function renderSafetyEvalModelIndicators(activeIndex){
 }
 
 function openSafetyEvalModelDetail(id){
-  const model=safetyEvalModelRows.find(item=>item.id===Number(id)) || safetyEvalModelRows[0];
+  const activeRows=getActiveSafetyEvalModelRows();
+  const model=activeRows.find(item=>item.id===Number(id)) || activeRows[0];
   const stats=getSafetyEvalModelStats(model);
   const html=`
     <div class="safety-eval-detail-page model-detail-page">
@@ -2246,13 +2339,13 @@ function renderSafetyEvaluationModelPage(){
   const pageRows=allRows.slice(start,start+safetyEvalModelState.pageSize);
   listPage.innerHTML=`
     <div class="compact-title-row">
-      <div class="module-title">安全评价 / 评价模型</div>
+      <div class="module-title">安全评价 / ${safetyEvalModelCurrentMode?"安全评价模型":"评价模型"}</div>
     </div>
     ${renderUnifiedQueryCard(`
       <div class="form-item"><label>模型名称</label><input class="input" id="semName" value="${escapeAttr(safetyEvalModelState.modelName)}" placeholder="支持模糊搜索"/></div>
       <div class="form-item"><label>模型编码</label><input class="input" id="semCode" value="${escapeAttr(safetyEvalModelState.modelCode)}" placeholder="请输入唯一编码"/></div>
       <div class="form-item"><label>模型状态</label><select class="select" id="semStatus">${renderSafetyEvalModelOptions(safetyEvalModelOptions.status,safetyEvalModelState.modelStatus,"全部")}</select></div>
-      <div class="form-item"><label>适用对象类型</label><select class="select" id="semObjectType">${renderSafetyEvalModelOptions(safetyEvalModelOptions.objectTypes,safetyEvalModelState.objectType,"全部")}</select></div>
+      <div class="form-item"><label>适用对象类型</label><select class="select" id="semObjectType">${renderSafetyEvalModelOptions((safetyEvalModelCurrentMode?safetyEvalCurrentModelOptions:safetyEvalModelOptions).objectTypes,safetyEvalModelState.objectType,"全部")}</select></div>
       <div class="form-item"><label>创建人</label><input class="input" id="semCreator" value="${escapeAttr(safetyEvalModelState.creator)}" placeholder="支持搜索"/></div>
       <div class="form-item"><label>发布时间-开始</label><input class="input" type="date" id="semPublishStart" value="${escapeAttr(safetyEvalModelState.publishStartTime)}"/></div>
       <div class="form-item"><label>发布时间-结束</label><input class="input" type="date" id="semPublishEnd" value="${escapeAttr(safetyEvalModelState.publishEndTime)}"/></div>

@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.328";
-const APP_CODE_VERSION_NAME="月度评价布局交互优化版";
-const APP_CODE_VERSION_TIME="2026-07-23 12:00";
-const APP_CODE_VERSION_DESC="拆分月度评价填报查询与数据区域，保持编辑操作前后的表格滚动位置，并将操作列阴影优化为连续的冻结区域边界。";
+const APP_CODE_VERSION="EM-20260701-V2.2.330";
+const APP_CODE_VERSION_NAME="安全评价模型专属版";
+const APP_CODE_VERSION_TIME="2026-07-23 14:00";
+const APP_CODE_VERSION_DESC="为安全评价菜单下的安全评价模型提供独立数据、对象类型字典、精简操作及版本记录下钻，不影响历史评价模型。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
