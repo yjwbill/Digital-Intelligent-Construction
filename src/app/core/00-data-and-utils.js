@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.325";
-const APP_CODE_VERSION_NAME="安全评价模块副本版";
-const APP_CODE_VERSION_TIME="2026-07-22 16:40";
-const APP_CODE_VERSION_DESC="在安全评价菜单下新增安全评价模型和安全评价任务，分别完整复用评价模型与评价任务管理模块。";
+const APP_CODE_VERSION="EM-20260701-V2.2.326";
+const APP_CODE_VERSION_NAME="安全历史功能菜单版";
+const APP_CODE_VERSION_TIME="2026-07-23 10:00";
+const APP_CODE_VERSION_DESC="在企业管理安全菜单下新增历史功能分组，并将对象管理（禁）、评价模型、评价任务管理迁移至该分组。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
@@ -709,13 +709,20 @@ const businessMenus={
         children:[
           {name:"指标管理"},
           {name:"月度评价填报"},
-          {name:"评价模型"},
           {name:"安全评价模型"},
-          {name:"评价任务管理"},
           {name:"安全评价任务"},
           {name:"评价结果管理"},
-          {name:"源数据管理"},
-          {name:"对象管理（禁）"}
+          {name:"源数据管理"}
+        ]
+      },
+      {
+        icon:"🕘",
+        name:"历史功能",
+        open:false,
+        children:[
+          {name:"对象管理（禁）"},
+          {name:"评价模型"},
+          {name:"评价任务管理"}
         ]
       },
       {icon:"🛡️",name:"安全纳管一览",active:false}

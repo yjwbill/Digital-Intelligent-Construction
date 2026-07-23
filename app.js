@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.325-safety-eval-module-copies";
+  const version="2.2.326-safety-history-menu";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",

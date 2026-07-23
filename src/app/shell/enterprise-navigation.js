@@ -203,7 +203,7 @@ function selectBusinessChildMenu(line,gi,ci,name){
   if(line==="safety"&&name==="劳务工花名册")return renderRosterPage();
   if(line==="safety"&&name==="视频监控")return renderSafetyVideoMonitorPage();
   if(line==="safety"&&name==="AI违规抓拍")return renderSafetyAiCapturePage();
-  if(line==="safety"&&parent?.name==="安全评价")return renderSafetyEvaluationManagePage(name);
+  if(line==="safety"&&(parent?.name==="安全评价"||parent?.name==="历史功能"))return renderSafetyEvaluationManagePage(name);
   if(line==="operation")return renderOperationProductionProjectReportPage();
 
   if(line==="safety")return renderSafetyPlaceholder(name);
