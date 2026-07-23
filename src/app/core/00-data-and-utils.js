@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.334";
-const APP_CODE_VERSION_NAME="安全评价任务专属版";
+const APP_CODE_VERSION="EM-20260701-V2.2.337";
+const APP_CODE_VERSION_NAME="安全评价任务选择提示版";
 const APP_CODE_VERSION_TIME="2026-07-23 18:00";
-const APP_CODE_VERSION_DESC="为安全评价任务建立独立的三层模型任务数据，新增任务期数、四态执行流转和分层评价对象数量。";
+const APP_CODE_VERSION_DESC="安全评价任务将评价范围统计移至项目选择标题，并优化子公司、分公司和项目经理列宽。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
