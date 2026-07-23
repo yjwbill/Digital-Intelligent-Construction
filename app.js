@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.274-output-completion-rate";
+  const version="2.2.325-safety-eval-module-copies";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",
@@ -22,6 +22,7 @@
     "src/app/base/data-dictionary.js",
     "src/app/mobile/polish-monthly-output.js",
     "src/app/operation/production-project-report.js",
+    "src/app/operation/interface-sync-exceptions.js",
     "src/app/mobile/project-overview.js",
     "src/app/core/99-initial-route.js"
   ];
