@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.330-safety-eval-model-current";
+  const version="2.2.333-safety-model-weight-input";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",
