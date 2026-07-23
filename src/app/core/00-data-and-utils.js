@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.326";
-const APP_CODE_VERSION_NAME="安全历史功能菜单版";
-const APP_CODE_VERSION_TIME="2026-07-23 10:00";
-const APP_CODE_VERSION_DESC="在企业管理安全菜单下新增历史功能分组，并将对象管理（禁）、评价模型、评价任务管理迁移至该分组。";
+const APP_CODE_VERSION="EM-20260701-V2.2.327";
+const APP_CODE_VERSION_NAME="月度评价险情填报版";
+const APP_CODE_VERSION_TIME="2026-07-23 11:00";
+const APP_CODE_VERSION_DESC="在安全评价月度评价填报中新增险情信息填报，支持项目是否知情不报选择及项目、分公司、子公司得分自动汇总。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,

@@ -575,7 +575,7 @@ const safetyEvalMonthlyTreeValues={};
 let safetyEvalMonthlyTreeEditingProject="";
 let safetyEvalMonthlyTreeDraftValues={};
 let safetyEvalMonthlyTreeExpansionInitialized=false;
-const safetyEvalMonthlyTreeInputKeys=["fourMismatch","injury","pipelineAccident","fireAccident","lateReport","concealedReport","publicOpinion","opinionConceal","administrativePenalty","minorReport","minorApproved","laborDispute","honorNational","honorProvincial","honorDistrict"];
+const safetyEvalMonthlyTreeInputKeys=["fourMismatch","injury","pipelineAccident","fireAccident","lateReport","concealedReport","publicOpinion","opinionConceal","administrativePenalty","minorReport","minorApproved","laborDispute","honorNational","honorProvincial","honorDistrict","dangerConcealed"];
 const safetyEvalMonthlyTreeFixedKeys=["sequence","company","branch","projectName"];
 
 tableColumnDefinitions.safetyEvalMonthlyTree=[
@@ -606,6 +606,8 @@ tableColumnDefinitions.safetyEvalMonthlyTree=[
   {key:"honorProvincial",title:"省部级",group:"荣誉表彰奖励",width:100,align:"center",kind:"input",render:()=>""},
   {key:"honorDistrict",title:"县区级和企业级",group:"荣誉表彰奖励",width:150,align:"center",kind:"input",render:()=>""},
   {key:"honorScore",title:"得分",group:"荣誉表彰奖励",width:100,align:"center",kind:"score",scoreKey:"honorScore",render:()=>""},
+  {key:"dangerConcealed",title:"是否知情不报",group:"险情信息填报",width:150,align:"center",kind:"radio",render:()=>""},
+  {key:"dangerScore",title:"得分",group:"险情信息填报",width:100,align:"center",kind:"score",scoreKey:"dangerScore",render:()=>""},
   {key:"operation",title:"操作",width:100,align:"center",kind:"action",render:()=>""}
 ];
 
@@ -658,7 +660,8 @@ function calculateSafetyEvalMonthlyTreeScores(values){
     penaltyScore:Math.max(0,100-values.administrativePenalty*10),
     minorScore:60+values.minorReport*5+values.minorApproved*30,
     laborScore:Math.max(0,100-values.laborDispute*10),
-    honorScore:100+values.honorNational*40+values.honorProvincial*30+values.honorDistrict*20
+    honorScore:100+values.honorNational*40+values.honorProvincial*30+values.honorDistrict*20,
+    dangerScore:Number(values.dangerConcealed)===1?0:100
   };
 }
 
@@ -679,6 +682,11 @@ function updateSafetyEvalMonthlyTreeInput(projectName,key,value){
   const scores=calculateSafetyEvalMonthlyTreeScores(safetyEvalMonthlyTreeDraftValues);
   const row=document.querySelector(`tr[data-monthly-project="${CSS.escape(projectName)}"]`);
   if(row)row.querySelectorAll("[data-monthly-score-key]").forEach(cell=>cell.textContent=formatSafetyEvalMonthlyTreeScore(scores[cell.dataset.monthlyScoreKey]));
+}
+
+function getSafetyEvalMonthlyDangerAggregateScore(type,rows){
+  const concealedCount=rows.reduce((count,row)=>count+(Number(getSafetyEvalMonthlyTreeProjectValues(row.projectName).dangerConcealed)===1?1:0),0);
+  return Math.max(0,100-concealedCount*(type==="branch"?10:5));
 }
 
 function scheduleSafetyEvalMonthlyTreeInput(projectName,key,value){
@@ -744,6 +752,18 @@ function renderSafetyEvalMonthlyTreeInput(projectName,key){
   return `<input class="monthly-tree-input" type="number" min="0" step="1" value="${safetyEvalMonthlyTreeDraftValues[key]??values[key]}" aria-label="${key}" oninput="scheduleSafetyEvalMonthlyTreeInput('${encodeURIComponent(projectName)}','${key}',this.value)"/>`;
 }
 
+function renderSafetyEvalMonthlyTreeDangerRadio(projectName){
+  const values=getSafetyEvalMonthlyTreeProjectValues(projectName);
+  const current=Number(safetyEvalMonthlyTreeEditingProject===projectName?safetyEvalMonthlyTreeDraftValues.dangerConcealed:values.dangerConcealed)===1?1:0;
+  if(!isSafetyEvalMonthlyTreeEditable()||safetyEvalMonthlyTreeEditingProject!==projectName)return `<span class="monthly-tree-readonly-value">${current===1?"是":"否"}</span>`;
+  const encoded=encodeURIComponent(projectName);
+  const radioName=`monthly-danger-${encoded}`;
+  return `<div class="monthly-tree-radio-group">
+    <label><input type="radio" name="${radioName}" value="1" ${current===1?"checked":""} onchange="scheduleSafetyEvalMonthlyTreeInput('${encoded}','dangerConcealed',this.value)"/>是</label>
+    <label><input type="radio" name="${radioName}" value="0" ${current===0?"checked":""} onchange="scheduleSafetyEvalMonthlyTreeInput('${encoded}','dangerConcealed',this.value)"/>否</label>
+  </div>`;
+}
+
 function renderSafetyEvalMonthlyTreeActions(type,project){
   if(type!=="project"||!project||!isSafetyEvalMonthlyTreeEditable())return "-";
   const encoded=encodeURIComponent(project.projectName);
@@ -764,7 +784,16 @@ function renderSafetyEvalMonthlyTreeMetricCells(type,rows,project){
         ?`<td style="${style}">${renderSafetyEvalMonthlyTreeInput(project.projectName,column.key)}</td>`
         :`<td class="monthly-tree-disabled-cell" style="${style}">-</td>`;
     }
-    const value=type==="project"?scores[column.scoreKey]:getSafetyEvalMonthlyTreeAverage(rows,column.scoreKey);
+    if(column.kind==="radio"){
+      return type==="project"
+        ?`<td style="${style}">${renderSafetyEvalMonthlyTreeDangerRadio(project.projectName)}</td>`
+        :`<td class="monthly-tree-disabled-cell" style="${style}">-</td>`;
+    }
+    const value=type==="project"
+      ?scores[column.scoreKey]
+      :column.scoreKey==="dangerScore"
+        ?getSafetyEvalMonthlyDangerAggregateScore(type,rows)
+        :getSafetyEvalMonthlyTreeAverage(rows,column.scoreKey);
     return `<td class="monthly-tree-score-cell" ${type==="project"?`data-monthly-score-key="${column.scoreKey}"`:""} style="${style}">${formatSafetyEvalMonthlyTreeScore(value)}</td>`;
   }).join("");
 }

@@ -17093,6 +17093,9 @@ body.mobile-mode .mobile-manual-scroll{
 .monthly-tree-disabled-cell{color:#86909c!important;}
 .monthly-fill-tree-table tbody td{color:#4e5969!important;font-size:14px!important;font-weight:400!important;}
 .monthly-tree-readonly-value{color:#4e5969;font-size:14px;font-weight:400;}
+.monthly-tree-radio-group{display:flex;align-items:center;justify-content:center;gap:12px;color:#4e5969;font-size:14px;font-weight:400;white-space:nowrap;}
+.monthly-tree-radio-group label{display:inline-flex;align-items:center;gap:4px;font-weight:400;cursor:pointer;}
+.monthly-tree-radio-group input{margin:0;accent-color:#165dff;}
 .monthly-tree-operation-cell{white-space:nowrap;background:#fff!important;}
 .monthly-tree-company-row .monthly-tree-operation-cell{background:#eef4ff!important;}
 .monthly-tree-branch-row .monthly-tree-operation-cell{background:#f7f9fc!important;}
