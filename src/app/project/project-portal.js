@@ -645,7 +645,7 @@ function renderProjectLogReadonlyFiles(files){
     ${files.map(file=>`
       <div class="project-log-file-upload-item">
         <div class="project-log-file-icon">▤</div>
-        <div><strong>${escapeAttr(file.name)}</strong><span>${file.sizeText||"-"}</span></div>
+        <button type="button" class="project-log-file-preview-trigger" onclick="showToast('打开预览文件')"><strong>${escapeAttr(file.name)}</strong><span>${file.sizeText||"-"}</span></button>
       </div>
     `).join("")}
   </div>`;
@@ -880,10 +880,10 @@ function renderProjectLogFileItem(file,index){
   return `
     <div class="project-log-file-upload-item">
       <div class="project-log-file-icon">▤</div>
-      <div>
+      <button type="button" class="project-log-file-preview-trigger" onclick="showToast('打开预览文件')">
         <strong>${escapeAttr(file.name || "施工日志文件")}</strong>
         <span>${file.sizeText || "-"}</span>
-      </div>
+      </button>
       <button type="button" onclick="removeProjectLogFile(${index})">×</button>
     </div>
   `;
@@ -3092,6 +3092,7 @@ function renderProjectLogPage(){
           <div class="actions">
             <button class="btn project-log-action-btn online" onclick="openProjectLogReportModal()">在线上报</button>
             <button class="btn project-log-action-btn file" onclick="openProjectLogFileReportModal()">文件上报</button>
+            <button class="btn" onclick="exportFilteredProjectLogs()">导出</button>
           </div>
         </div>
         <div class="project-log-filter-row">
@@ -3128,6 +3129,11 @@ function renderProjectLogPage(){
     </div>
   `);
   bindProjectLogControls();
+}
+
+function exportFilteredProjectLogs(){
+  const rows=getProjectLogFilteredRows();
+  showToast(`已按当前筛选条件导出 ${rows.length} 条施工日志文件`);
 }
 
 function bindProjectLogControls(){

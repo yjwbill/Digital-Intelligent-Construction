@@ -195,7 +195,7 @@ function refreshEnterpriseConstructionLogColumns(){
   const meta=getEnterpriseConstructionLogMonthMeta();
   tableColumnDefinitions.enterpriseConstructionLog=[
     {key:"index",title:"序号",width:70,align:"center",render:(row,index)=>(enterpriseConstructionLogState.page-1)*enterpriseConstructionLogState.pageSize+index+1},
-    {key:"projectName",title:"项目名称",width:240,align:"left",render:row=>`<button type="button" class="link" data-log-detail-id="${row.id}">${row.projectName}</button>`},
+    {key:"projectName",title:"项目名称",width:240,align:"left",render:row=>row.projectName},
     {key:"projectStatus",title:"项目状态",width:80,align:"center",render:row=>projectStatusTag(row.projectStatus)},
     {key:"subCompany",title:"子公司",width:130,align:"center",render:row=>row.subCompany},
     {key:"branchCompany",title:"分公司",width:140,align:"center",render:row=>row.branchCompany},
@@ -301,7 +301,6 @@ async function renderEnterpriseConstructionLogPage(){
   if(totalText)totalText.textContent=`共 ${rows.length} 条`;
   if(pageText)pageText.textContent=`第 1 / ${totalPages} 页　每页 ${enterpriseConstructionLogState.pageSize} 条`;
   document.querySelector("[data-enterprise-log-refresh]")?.addEventListener("click",()=>renderEnterpriseConstructionLogPage());
-  document.querySelector("[data-enterprise-log-export]")?.addEventListener("click",()=>showToast("施工日志上报明细导出成功"));
   document.querySelector("[data-enterprise-log-column-setting]")?.addEventListener("click",()=>openColumnSetting("enterpriseConstructionLog","renderEnterpriseConstructionLogTable"));
   renderEnterpriseConstructionLogMonthSwitch();
   renderEnterpriseConstructionLogTable();
@@ -502,7 +501,7 @@ function getEnterpriseConstructionLogProjectById(id){
 
 function renderEnterpriseConstructionLogProjectCard(record){
   return `
-    <button type="button" class="project-log-report-card ${record.mode}" onclick="openEnterpriseConstructionLogReportDetail(${record.projectId},${record.day})">
+    <article class="project-log-report-card ${record.mode}" onclick="openEnterpriseConstructionLogReportDetail(${record.projectId},${record.day})">
       <span class="project-log-mode ${record.mode}">${record.mode==="online"?"在线上报":"文件上报"}</span>
       ${record.mode==="online"?`
         <img src="${record.cover}" alt="${record.title}"/>
@@ -518,8 +517,17 @@ function renderEnterpriseConstructionLogProjectCard(record){
         <p>上传人：${record.uploader}</p>
         <p>上传时间：${record.uploadTime}</p>
       </div>
-    </button>
+      <div class="project-log-card-actions enterprise-project-log-card-actions" onclick="event.stopPropagation()">
+        <button type="button" onclick="exportEnterpriseConstructionLog(${record.projectId},${record.day})">导出</button>
+      </div>
+    </article>
   `;
+}
+
+function exportEnterpriseConstructionLog(projectId,day){
+  const project=getEnterpriseConstructionLogProjectById(projectId);
+  const record=project&&getEnterpriseConstructionLogProjectRecords(project).find(item=>item.day===Number(day));
+  if(record)showToast("施工日志导出成功");
 }
 
 function getEnterpriseConstructionLogProjectCalendarDays(project){
@@ -664,6 +672,7 @@ function renderEnterpriseConstructionLogProjectView(){
           <div>
             <h3>施工日志列表</h3>
           </div>
+          <div class="actions"><button type="button" class="btn" onclick="exportEnterpriseConstructionLogProject()">导出</button></div>
         </div>
         ${renderEnterpriseConstructionLogProjectFilters(records)}
         <div class="project-log-card-grid enterprise-log-project-card-grid">
@@ -698,8 +707,8 @@ function openEnterpriseConstructionLogReportDetail(projectId,day){
     ${renderProjectLogReadonlySection("施工日志文件",renderProjectLogReadonlyFiles(getProjectLogReadonlyFiles(record)))}
     ${renderProjectLogReadonlySection("备注说明",`<div class="project-log-readonly-text">${record.summary}</div>`)}
   `;
-  openModal("施工日志详情",`<div class="project-log-readonly-detail">${content}</div>`,`<button class="btn" onclick="closeModal()">关闭</button>`,"large");
-  modalBox.classList.add("project-log-online-report-modal");
+  openNestedModal("施工日志详情",`<div class="project-log-readonly-detail">${content}</div>`,`<button class="btn" onclick="closeNestedModal(this)">关闭</button>`);
+  document.querySelector(".nested-modal-mask:last-of-type .nested-modal")?.classList.add("enterprise-log-report-detail-modal","project-log-online-report-modal");
 }
 
 function selectEnterpriseConstructionLogProjectDate(date){
@@ -731,6 +740,13 @@ function queryEnterpriseConstructionLogProject(){
 function resetEnterpriseConstructionLogProject(){
   Object.assign(enterpriseConstructionLogProjectViewState,{workArea:"",keyword:"",startDate:"",endDate:"",page:1});
   renderEnterpriseConstructionLogProjectView();
+}
+
+function exportEnterpriseConstructionLogProject(){
+  const project=getEnterpriseConstructionLogProjectById(enterpriseConstructionLogProjectViewState.projectId);
+  const records=project?getEnterpriseConstructionLogProjectRecords(project):[];
+  const filteredRecords=getEnterpriseConstructionLogProjectFilteredRecords(records);
+  showToast(`已按当前筛选条件导出 ${filteredRecords.length} 条施工日志文件`);
 }
 
 function changeEnterpriseConstructionLogProjectMonth(delta){
@@ -775,6 +791,8 @@ Object.assign(window,{
   changeEnterpriseConstructionLogMonth,
   openEnterpriseConstructionLogDetail,
   openEnterpriseConstructionLogReportDetail,
+  exportEnterpriseConstructionLog,
+  exportEnterpriseConstructionLogProject,
   selectEnterpriseConstructionLogProjectDate,
   changeEnterpriseConstructionLogProjectPage,
   changeEnterpriseConstructionLogProjectPageSize

@@ -19065,10 +19065,15 @@ body.mobile-mode .mobile-tabbar .tab-create.active span:after{
 .enterprise-log-project-view .project-log-right-panel{height:100%;}
 .enterprise-log-project-panel-head{height:auto;min-height:42px;margin-bottom:14px;}
 .enterprise-log-project-panel-head>div:first-child{min-width:0;}
+.enterprise-log-project-panel-head>.actions{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;}
+.enterprise-log-project-panel-head>.actions .btn{height:30px;padding:0 14px;font-weight:400;}
 .enterprise-log-project-panel-head h3{margin-bottom:4px;}
 .enterprise-log-project-panel-head span{display:block;overflow:hidden;color:#86909C;font-size:12px;font-weight:700;text-overflow:ellipsis;white-space:nowrap;}
 .enterprise-log-project-month{color:#4E5969;font-size:13px;font-weight:800;white-space:nowrap;}
 .enterprise-log-project-card-grid{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:268px;}
+.enterprise-project-log-card-actions{right:12px;left:auto;justify-content:flex-end;}
+.nested-modal.enterprise-log-report-detail-modal{width:88vw;max-width:calc(100vw - 72px);height:80vh;max-height:80vh;}
+.nested-modal.enterprise-log-report-detail-modal .modal-bd{overflow:auto;padding:16px 18px;background:#F7F8FA;}
 .enterprise-log-project-calendar .project-log-calendar-head>strong{margin-left:auto;color:#697386;font-size:18px;font-weight:800;letter-spacing:2px;}
 .enterprise-log-project-calendar .project-log-calendar-head{margin-bottom:16px;}
 .enterprise-log-project-calendar .project-log-calendar-grid button:disabled{opacity:1;}
@@ -19236,6 +19241,9 @@ body.mobile-mode .mobile-tabbar .tab-create.active span:after{
 .enterprise-log-project-right-panel{overflow-y:auto!important;padding-right:4px;}
 .enterprise-log-project-right-panel .project-log-day-card{flex:0 0 auto;max-height:none;overflow:visible;}
 .enterprise-log-project-right-panel .project-log-calendar-card{flex:0 0 auto;}
+.project-log-file-preview-trigger{min-width:0;flex:1;padding:0;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;}
+.project-log-file-preview-trigger strong,.project-log-file-preview-trigger span{display:block;}
+.project-log-file-preview-trigger:hover strong{color:var(--primary);}
 
 /* V2.2.252 final global overrides */
 .bottom-menu-item.active,.bottom-menu-item.message.active{background:transparent!important;color:inherit!important;border-color:transparent!important;box-shadow:none!important;}
