@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.343";
-const APP_CODE_VERSION_NAME="安全评价任务结果下钻版";
-const APP_CODE_VERSION_TIME="2026-07-23 18:00";
-const APP_CODE_VERSION_DESC="安全评价任务移除项目标签、收窄项目经理列，并新增评价结果数量及结果明细下钻。";
+const APP_CODE_VERSION="EM-20260701-V2.2.347";
+const APP_CODE_VERSION_NAME="纳统看板表格布局优化版";
+const APP_CODE_VERSION_TIME="2026-07-24 15:00";
+const APP_CODE_VERSION_DESC="纳统明细接入标准分页并固定合计行，精简明细标题操作区，优化公司维度列宽与进度条空间。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,

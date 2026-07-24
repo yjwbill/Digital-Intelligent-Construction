@@ -72,7 +72,9 @@ const productionOverviewFilterState={
 };
 const productionStatisticsState={
   industry:"",
-  company:"全部"
+  company:"全部",
+  page:1,
+  pageSize:50
 };
 const productionScreenTemplatePaths={
   overview:"src/app/production/dashboard.html",
@@ -381,9 +383,8 @@ function renderProductionScreenHeader(activeTab="产值看板"){
           ${renderProductionEmergingYearPicker()}
         </div>
       `:isStatistics?`
-        <div class="screen-company screen-month-actions production-statistics-source">
-          <span>${formatProductionStatisticsReportMonth(statisticsData.reportMonth)}</span>
-          <b title="${escapeAttr(statisticsData.sourceFile || "")}">纳统数据</b>
+        <div class="screen-company screen-month-actions">
+          ${renderSafetyMonthPicker("productionStatisticsMonth")}
         </div>
       `:`
         <div class="screen-company screen-month-actions">
@@ -927,6 +928,13 @@ function formatProductionStatisticsAmount(value){
   return `${formatProductionStatisticsNumber(num,0)}万元`;
 }
 
+function formatProductionStatisticsKpiAmount(value){
+  const num=Number(value || 0);
+  if(!Number.isFinite(num))return {value:"-",unit:""};
+  if(Math.abs(num)>=10000)return {value:formatProductionStatisticsNumber(num/10000,2),unit:"亿元"};
+  return {value:formatProductionStatisticsNumber(num,0),unit:"万元"};
+}
+
 function formatProductionStatisticsProgress(numerator,denominator){
   const den=Number(denominator || 0);
   if(!den)return "-";
@@ -1001,12 +1009,38 @@ function getProductionStatisticsFilteredRecords(industry){
 function setProductionStatisticsIndustry(industry){
   productionStatisticsState.industry=industry || "";
   productionStatisticsState.company="全部";
+  productionStatisticsState.page=1;
   renderProductionStatisticsDashboardPreservingScroll();
 }
 
 function setProductionStatisticsCompany(company){
   productionStatisticsState.company=company || "全部";
+  productionStatisticsState.page=1;
   renderProductionStatisticsDashboardPreservingScroll();
+}
+
+function changeProductionStatisticsPage(delta){
+  const industry=getActiveProductionStatisticsIndustry();
+  const records=getProductionStatisticsFilteredRecords(industry).filter(record=>record.recordType!=="total");
+  const totalPages=Math.max(1,Math.ceil(records.length/productionStatisticsState.pageSize));
+  productionStatisticsState.page=Math.max(1,Math.min(totalPages,productionStatisticsState.page+Number(delta || 0)));
+  renderProductionStatisticsDetailsAfterColumnSetting();
+}
+
+function changeProductionStatisticsPageSize(value){
+  productionStatisticsState.pageSize=Math.max(1,Number(value)||50);
+  productionStatisticsState.page=1;
+  renderProductionStatisticsDetailsAfterColumnSetting();
+}
+
+function syncProductionStatisticsHorizontalScroll(source){
+  const root=source?.closest?.(".production-statistics-table-wrap");
+  if(!root)return;
+  const scrollLeft=source.scrollLeft;
+  const detailScroller=root.querySelector(".production-statistics-table-scroller");
+  const totalScroller=root.querySelector(".production-statistics-total-scroller");
+  if(detailScroller)detailScroller.scrollLeft=scrollLeft;
+  if(totalScroller)totalScroller.scrollLeft=scrollLeft;
 }
 
 function renderProductionStatisticsIncludedValue(record){
@@ -1108,20 +1142,17 @@ function renderProductionStatisticsKpis(){
   const overall=data.overall || {};
   const industries=getProductionStatisticsIndustries();
   const includedRate=formatProductionStatisticsProgress(overall.includedCount,overall.entityCount);
+  const planAmount=formatProductionStatisticsKpiAmount(overall.plan2026);
+  const monthAmount=formatProductionStatisticsKpiAmount(overall.month2026);
+  const ytdAmount=formatProductionStatisticsKpiAmount(overall.ytd2026);
   const cards=[
-    {label:"纳统企业",value:overall.entityCount || 0,unit:"家",note:``,tone:"cyan"},
-    {label:"已纳统企业",value:overall.includedCount || 0,unit:"家",note:`纳统率 ${includedRate}`,tone:"green"},
-    {label:"2026计划纳统值",value:formatProductionStatisticsAmount(overall.plan2026),unit:"",note:"按各业态计划汇总",tone:"orange"},
-    {label:"2026年6月纳统值",value:formatProductionStatisticsAmount(overall.month2026),unit:"",note:"按各业态本月汇总",tone:"blue"},
-    {label:"1-6月累计纳统值",value:formatProductionStatisticsAmount(overall.ytd2026),unit:"",note:`计划完成 ${formatProductionStatisticsProgress(overall.ytd2026,overall.plan2026)}`,tone:"purple"}
+    {label:"纳统企业",value:overall.entityCount || 0,unit:"家",note:"",icon:"./src/assets/production-statistics/enterprise.svg"},
+    {label:"已纳统企业",value:overall.includedCount || 0,unit:"家",note:`纳统率 ${includedRate}`,icon:"./src/assets/production-statistics/included-enterprise.svg"},
+    {label:"2026计划纳统值",value:planAmount.value,unit:planAmount.unit,note:"按各业态计划汇总",icon:"./src/assets/production-statistics/plan-2026.svg"},
+    {label:"2026年6月纳统值",value:monthAmount.value,unit:monthAmount.unit,note:"按各业态本月汇总",icon:"./src/assets/production-statistics/month-2026-06.svg"},
+    {label:"1-6月累计纳统值",value:ytdAmount.value,unit:ytdAmount.unit,note:`计划完成 ${formatProductionStatisticsProgress(overall.ytd2026,overall.plan2026)}`,icon:"./src/assets/production-statistics/ytd-2026-h1.svg"}
   ];
-  return cards.map(card=>`
-    <article class="production-statistics-kpi ${card.tone}">
-      <span>${card.label}</span>
-      <strong>${card.value}<em>${card.unit}</em></strong>
-      <p>${card.note}</p>
-    </article>
-  `).join("");
+  return cards.map(card=>renderProductionValueMetric(card.label,card.value,card.unit,card.icon,card.note)).join("");
 }
 
 function renderProductionStatisticsIndustryCards(){
@@ -1146,10 +1177,10 @@ function renderProductionStatisticsIndustryCards(){
           <p><i>累计</i><em>${formatProductionStatisticsAmount(summary.ytd2026)}</em></p>
         </div>
         <div class="production-statistics-progress">
+          <small>纳统率</small>
           <span><i style="width:${progressValue.toFixed(2)}%"></i></span>
           <em>${progressText}</em>
         </div>
-        <small>纳统率 ${includedRate}</small>
       </button>
     `;
   }).join("");
@@ -1196,14 +1227,10 @@ function renderProductionStatisticsCompanies(){
 function renderProductionStatisticsDetailHeader(){
   const industry=getActiveProductionStatisticsIndustry();
   if(!industry)return "";
-  const activeCompany=getActiveProductionStatisticsCompany(industry);
-  const records=getProductionStatisticsFilteredRecords(industry);
   return `
     <div class="production-overview-panel-hd production-statistics-panel-hd">
       <h3>${productionStatisticsText(industry.name)}纳统企业明细</h3>
       <div class="production-statistics-panel-actions">
-        <span>${productionStatisticsText(activeCompany)}</span>
-        <b>${records.length} 行</b>
         <button class="column-setting-icon-btn" type="button" title="列设置" onclick="openProductionStatisticsColumnSetting()">⚙</button>
       </div>
     </div>
@@ -1316,13 +1343,11 @@ function renderProductionStatisticsConfiguredTable(tableKey,records,options={}){
   const minWidth=Math.max(getTableMinWidth(tableKey),columns.length*70);
   return `
     <table class="production-statistics-table ${options.className || ""}" style="min-width:${minWidth}px">
-      <thead>
-        <tr>${renderProductionStatisticsConfiguredHeader(tableKey,columns)}</tr>
-      </thead>
+      ${options.hideHeader?"":`<thead><tr>${renderProductionStatisticsConfiguredHeader(tableKey,columns)}</tr></thead>`}
       <tbody>
         ${records.map((record,index)=>`
           <tr class="${productionStatisticsText(record.recordType)}">
-            ${columns.map(col=>renderProductionStatisticsConfiguredCell(tableKey,record,index,col,mergeRows[index],columns)).join("")}
+            ${columns.map(col=>renderProductionStatisticsConfiguredCell(tableKey,record,index+(Number(options.indexOffset)||0),col,mergeRows[index],columns)).join("")}
           </tr>
         `).join("") || `<tr><td colspan="${Math.max(columns.length,1)}" style="text-align:center;color:#8a94a6;height:80px">暂无数据</td></tr>`}
       </tbody>
@@ -1330,8 +1355,8 @@ function renderProductionStatisticsConfiguredTable(tableKey,records,options={}){
   `;
 }
 
-function renderProductionStatisticsGenericDetails(records,mergeLegalEntity=false){
-  return renderProductionStatisticsConfiguredTable("productionStatisticsDetail",records,{mergeLegalEntity});
+function renderProductionStatisticsGenericDetails(records,mergeLegalEntity=false,options={}){
+  return renderProductionStatisticsConfiguredTable("productionStatisticsDetail",records,{...options,mergeLegalEntity});
 }
 
 function getProductionStatisticsRealEstateMetric(record,period,key){
@@ -1343,8 +1368,8 @@ function renderProductionStatisticsRealEstateMetricCells(record,period){
   return ["output","revenue","investment","salesArea"].map(key=>renderProductionStatisticsMetricCell(getProductionStatisticsRealEstateMetric(record,period,key))).join("");
 }
 
-function renderProductionStatisticsRealEstateDetails(records){
-  return renderProductionStatisticsConfiguredTable("productionStatisticsRealEstateDetail",records,{className:"production-statistics-real-estate-table"});
+function renderProductionStatisticsRealEstateDetails(records,options={}){
+  return renderProductionStatisticsConfiguredTable("productionStatisticsRealEstateDetail",records,{...options,className:"production-statistics-real-estate-table"});
 }
 
 function renderProductionStatisticsDetails(){
@@ -1352,9 +1377,37 @@ function renderProductionStatisticsDetails(){
   if(!industry)return `<div class="project-log-empty">暂无纳统数据</div>`;
   const records=getProductionStatisticsFilteredRecords(industry);
   if(!records.length)return `<div class="project-log-empty">暂无匹配数据</div>`;
-  return industry.name==="房地产业"
-    ? renderProductionStatisticsRealEstateDetails(records)
-    : renderProductionStatisticsGenericDetails(records,industry.name==="建筑业");
+  const totalRows=records.filter(record=>record.recordType==="total");
+  const detailRows=records.filter(record=>record.recordType!=="total");
+  const pageSize=productionStatisticsState.pageSize;
+  const totalPages=Math.max(1,Math.ceil(detailRows.length/pageSize));
+  productionStatisticsState.page=Math.max(1,Math.min(totalPages,productionStatisticsState.page));
+  const start=(productionStatisticsState.page-1)*pageSize;
+  const pageRows=detailRows.slice(start,start+pageSize);
+  const tableKey=getProductionStatisticsDetailTableKey(industry);
+  const minWidth=Math.max(getTableMinWidth(tableKey),getVisibleColumns(tableKey).length*70);
+  const table=industry.name==="房地产业"
+    ? renderProductionStatisticsRealEstateDetails(pageRows,{indexOffset:start})
+    : renderProductionStatisticsGenericDetails(pageRows,industry.name==="建筑业",{indexOffset:start});
+  const totalTable=totalRows.length
+    ? renderProductionStatisticsConfiguredTable(tableKey,totalRows,{className:industry.name==="房地产业"?"production-statistics-real-estate-table":"",hideHeader:true,indexOffset:detailRows.length})
+    : "";
+  return `
+    <div class="production-statistics-table-scroller">${table}</div>
+    ${totalTable?`<div class="production-statistics-total-scroller">${totalTable}</div>`:""}
+    <div class="production-statistics-horizontal-scroll" onscroll="syncProductionStatisticsHorizontalScroll(this)"><div style="width:${minWidth}px"></div></div>
+    <div class="pagination production-statistics-pagination">
+      <span>共 ${detailRows.length} 条</span>
+      <div class="pager">
+        <button class="btn mini" type="button" onclick="changeProductionStatisticsPage(-1)" ${productionStatisticsState.page<=1?"disabled":""}>上一页</button>
+        <b>第 ${productionStatisticsState.page} / ${totalPages} 页</b>
+        <button class="btn mini" type="button" onclick="changeProductionStatisticsPage(1)" ${productionStatisticsState.page>=totalPages?"disabled":""}>下一页</button>
+        <select class="select mini-select" onchange="changeProductionStatisticsPageSize(this.value)">
+          ${[10,20,50].map(size=>`<option value="${size}" ${size===pageSize?"selected":""}>${size}条/页</option>`).join("")}
+        </select>
+      </div>
+    </div>
+  `;
 }
 
 async function renderProductionStatisticsDashboardPage(){
@@ -2193,6 +2246,9 @@ Object.assign(window,{
   changeProductionEmergingPage,
   setProductionStatisticsIndustry,
   setProductionStatisticsCompany,
+  changeProductionStatisticsPage,
+  changeProductionStatisticsPageSize,
+  syncProductionStatisticsHorizontalScroll,
   setProductionOverviewFilter,
   setProductionMajorFilter,
   setProductionOverviewCompletionMode,

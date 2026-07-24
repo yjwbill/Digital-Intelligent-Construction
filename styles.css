@@ -15689,6 +15689,366 @@ body.mobile-mode .mobile-manual-scroll{
 .production-statistics-table .yoy.down{color:#e5484d}
 .production-statistics-table .yoy.flat{color:#7b8493}
 
+/* Production statistics dashboard: compact, reference-aligned presentation. */
+.production-statistics-dashboard{
+  background:#f3f5f8;
+}
+.production-statistics-dashboard .safety-screen-header{
+  background:#fff;
+  border-bottom:1px solid #e8ebf0;
+}
+.production-statistics-body{
+  grid-template-rows:96px 280px minmax(0,1fr);
+  gap:12px;
+  padding:12px;
+}
+.production-statistics-kpi-grid{
+  min-height:96px;
+  align-items:center;
+  padding:10px 14px;
+  border-radius:8px;
+  background:rgba(255,255,255,.72);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.72);
+}
+.production-statistics-kpi-grid,
+.production-statistics-industry-grid,
+.production-statistics-layout{
+  gap:12px;
+}
+.production-statistics-kpi{
+  grid-template-columns:46px minmax(0,1fr);
+  grid-template-rows:auto auto;
+  align-content:center;
+  column-gap:12px;
+  row-gap:3px;
+  padding:14px 16px;
+  border:1px solid #e8ebf0;
+  border-radius:6px;
+  box-shadow:0 1px 3px rgba(31,45,61,.04);
+}
+.production-statistics-kpi::before{
+  grid-row:1 / 3;
+  align-self:center;
+  position:static;
+  width:46px;
+  height:46px;
+  border-radius:6px;
+  background:#eaf3ff;
+  box-shadow:inset 0 0 0 1px rgba(35,120,255,.08);
+}
+.production-statistics-kpi.cyan::before,
+.production-statistics-kpi.green::before,
+.production-statistics-kpi.orange::before,
+.production-statistics-kpi.purple::before{
+  background:#eaf3ff;
+}
+.production-statistics-kpi:nth-child(1)::before{
+  background:url("./src/assets/production-statistics/enterprise.svg") center/36px 36px no-repeat;
+}
+.production-statistics-kpi:nth-child(2)::before{
+  background:url("./src/assets/production-statistics/included-enterprise.svg") center/36px 36px no-repeat;
+}
+.production-statistics-kpi:nth-child(3)::before{
+  background:url("./src/assets/production-statistics/plan-2026.svg") center/36px 36px no-repeat;
+}
+.production-statistics-kpi:nth-child(4)::before{
+  background:url("./src/assets/production-statistics/month-2026-06.svg") center/36px 36px no-repeat;
+}
+.production-statistics-kpi:nth-child(5)::before{
+  background:url("./src/assets/production-statistics/ytd-2026-h1.svg") center/36px 36px no-repeat;
+}
+.production-statistics-kpi span,
+.production-statistics-kpi strong,
+.production-statistics-kpi p{
+  grid-column:2;
+}
+.production-statistics-kpi span{
+  align-self:end;
+  color:#4e5969;
+  font-size:13px;
+  font-weight:500;
+}
+.production-statistics-kpi strong{
+  align-self:start;
+  color:#1677ff;
+  font-size:27px;
+  line-height:30px;
+  font-weight:700;
+}
+.production-statistics-kpi strong em{
+  color:#4e5969;
+  font-size:12px;
+  font-weight:400;
+}
+.production-statistics-kpi p{
+  display:none;
+}
+.production-statistics-industry-grid{
+  grid-template-columns:repeat(6,minmax(0,1fr));
+}
+.production-statistics-industry-card{
+  height:280px;
+  padding:18px 14px;
+  border-color:#e8ebf0;
+  border-radius:6px;
+  box-shadow:0 1px 3px rgba(31,45,61,.04);
+  transition:border-color .15s ease,box-shadow .15s ease;
+}
+.production-statistics-industry-card:hover,
+.production-statistics-industry-card.active{
+  border-color:#1677ff;
+  box-shadow:0 2px 8px rgba(22,119,255,.12);
+}
+.production-statistics-industry-card.active{
+  transform:none;
+  background:#f8fbff;
+}
+.production-statistics-industry-card>span{
+  min-height:20px;
+  gap:7px;
+  font-size:15px;
+  line-height:20px;
+  font-weight:600;
+}
+.production-statistics-industry-card>span::before,
+.production-statistics-industry-card.tone-1>span::before,
+.production-statistics-industry-card.tone-2>span::before,
+.production-statistics-industry-card.tone-3>span::before,
+.production-statistics-industry-card.tone-4>span::before,
+.production-statistics-industry-card.tone-5>span::before{
+  width:3px;
+  height:15px;
+  border-radius:1px;
+  background:#1677ff;
+}
+.production-statistics-industry-card>strong{
+  min-height:16px;
+  margin:4px 0 14px 10px;
+  color:#86909c;
+  font-size:12px;
+  line-height:16px;
+  font-weight:400;
+}
+.production-statistics-industry-meta{
+  gap:8px;
+  margin-bottom:14px;
+}
+.production-statistics-industry-meta b{
+  min-height:44px;
+  grid-template-columns:auto auto;
+  align-content:center;
+  justify-content:center;
+  gap:4px;
+  background:#f5f7fa;
+  color:#1d2129;
+  font-family:D-DIN,Arial,sans-serif;
+  font-size:18px;
+  font-weight:600;
+}
+.production-statistics-industry-meta em{
+  margin-top:2px;
+  font-family:Arial,sans-serif;
+  font-size:11px;
+  font-weight:400;
+}
+.production-statistics-industry-values{
+  gap:8px;
+}
+.production-statistics-industry-values p{
+  min-height:20px;
+  color:#86909c;
+  font-size:12px;
+  line-height:17px;
+  font-weight:400;
+}
+.production-statistics-industry-values em{
+  color:#1d2129;
+  font-weight:400;
+}
+.production-statistics-progress{
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:8px;
+  margin-top:12px;
+}
+.production-statistics-progress span{
+  height:5px;
+}
+.production-statistics-progress em,
+.production-statistics-industry-card small{
+  color:#86909c;
+  font-size:11px;
+  font-weight:400;
+}
+.production-statistics-progress small{
+  margin:0;
+  color:#86909c;
+  font-size:12px;
+  font-weight:400;
+  white-space:nowrap;
+}
+.production-statistics-progress em{
+  color:#1d2129;
+  font-size:12px;
+  font-weight:400;
+}
+.production-statistics-industry-card small{
+  margin-top:2px;
+}
+.production-statistics-layout{
+  grid-template-columns:minmax(300px,28fr) minmax(0,72fr);
+}
+.production-statistics-company-panel,
+.production-statistics-detail-panel{
+  border:1px solid #e8ebf0;
+  border-radius:6px;
+  background:#fff;
+  box-shadow:0 1px 3px rgba(31,45,61,.04);
+  overflow:hidden;
+}
+.production-statistics-panel-hd{
+  min-height:48px;
+  padding:0 14px;
+}
+.production-statistics-panel-hd h3{
+  position:relative;
+  padding-left:10px;
+  font-size:15px;
+  font-weight:600;
+}
+.production-statistics-panel-hd h3::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:50%;
+  width:3px;
+  height:14px;
+  border-radius:1px;
+  background:#1677ff;
+  transform:translateY(-50%);
+}
+.production-statistics-panel-actions{
+  gap:6px;
+}
+.production-statistics-panel-actions span{
+  font-size:12px;
+  font-weight:400;
+}
+.production-statistics-panel-actions b{
+  background:#eaf3ff;
+  color:#1677ff;
+  font-size:12px;
+  font-weight:500;
+}
+.production-statistics-company-list{
+  padding:8px;
+  gap:6px;
+}
+.production-statistics-company-row{
+  min-height:54px;
+  grid-template-columns:minmax(56px,.7fr) 32px 32px minmax(56px,.75fr) minmax(50px,.65fr);
+  gap:3px;
+  padding:6px;
+  border-radius:4px;
+}
+.production-statistics-company-row .name,
+.production-statistics-company-row b{
+  font-size:13px;
+  font-weight:500;
+}
+.production-statistics-company-row em{
+  font-size:11px;
+  font-weight:400;
+}
+.production-statistics-company-row .bar{
+  width:100%;
+  max-width:58px;
+  justify-self:end;
+  gap:3px;
+  overflow:hidden;
+}
+.production-statistics-company-row .bar i{
+  height:5px;
+}
+.production-statistics-table-wrap{
+  display:flex;
+  flex-direction:column;
+  padding:0;
+  overflow:hidden;
+}
+.production-statistics-table-scroller{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.production-statistics-total-scroller{
+  flex:0 0 38px;
+  min-height:38px;
+  overflow:hidden;
+  border-top:1px solid #f2d9bd;
+  background:#fff7ef;
+}
+.production-statistics-horizontal-scroll{
+  flex:0 0 16px;
+  min-height:16px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  background:#fff;
+}
+.production-statistics-horizontal-scroll>div{
+  height:1px;
+}
+.production-statistics-table th,
+.production-statistics-table td{
+  height:38px;
+  padding:0 10px;
+  border-right:1px solid #f0f1f3;
+  font-size:13px;
+  font-weight:400;
+}
+.production-statistics-table th{
+  background:#f5f7fa;
+  color:#4e5969;
+  font-weight:500;
+  text-align:center;
+}
+.production-statistics-table tbody tr:hover td{
+  background:#f7fbff;
+}
+.production-statistics-table td.name,
+.production-statistics-table tr.subtotal td,
+.production-statistics-table tr.total td{
+  font-weight:500;
+}
+.production-statistics-table tr.total td{
+  position:sticky;
+  bottom:0;
+  z-index:4;
+  height:37px;
+  box-shadow:none;
+}
+.production-statistics-table tr.total td.production-statistics-sticky-col{
+  z-index:7;
+}
+.production-statistics-pagination{
+  flex:0 0 48px;
+  min-height:48px;
+  padding:8px 12px;
+  background:#fff;
+}
+.production-statistics-pagination .pager{
+  margin-left:auto;
+}
+@media (max-width:1440px){
+  .production-statistics-body{grid-template-rows:96px 280px minmax(0,1fr);gap:10px;padding:10px}
+  .production-statistics-kpi-grid,.production-statistics-industry-grid,.production-statistics-layout{gap:10px}
+  .production-statistics-kpi{grid-template-columns:38px minmax(0,1fr);padding:10px 12px;column-gap:9px}
+  .production-statistics-kpi::before{width:38px;height:38px}
+  .production-statistics-kpi strong{font-size:23px}
+  .production-statistics-industry-card{height:280px;padding:16px 10px}
+  .production-statistics-company-row{grid-template-columns:minmax(56px,.7fr) 32px 32px minmax(56px,.75fr) minmax(50px,.65fr)}
+}
+
 .production-value-dashboard{
   background:#e9f1fb;
   min-height:100%;
