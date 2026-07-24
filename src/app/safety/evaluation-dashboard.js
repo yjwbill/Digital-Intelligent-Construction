@@ -2515,6 +2515,7 @@ const safetyEvalResultRows=[
   modelName:row[6],
   modelId:row[6],
   modelVersion:row[7],
+  taskCode:`TASK-${row[1].replace("-","")}-001`,
   taskName:row[3]==="项目"?"施工项目月度安全评价任务":row[3]==="供应链"?"供应链安全履约专项评价":row[3]==="岗位"?"关键岗位履职季度评价":"集团月度安全评价任务",
   evaluatedObjectCount:row[3]==="项目"?10:row[3]==="供应链"?18:row[3]==="岗位"?12:8,
   indicatorCount:({ "集团安全评价模型":42,"施工项目周评价模型":58,"供应链安全履约评价模型":31,"关键岗位履职评价模型":26,"专项风险评价模型":39 })[row[6]] || 30,
@@ -3039,11 +3040,11 @@ const safetyEvalTaskRows=[
 }));
 
 const safetyEvalCurrentTaskRows=[
-  [201,"TASK-202607-001","安全评价月度任务","2026-07","自动","未执行",0,9,3,1,"-","-","王安全","2026-07-01 08:00"],
-  [202,"TASK-202606-001","安全评价月度任务","2026-06","自动","执行中",45,10,5,3,"2026-07-23 08:30","-","李明","2026-06-01 08:00"],
-  [203,"TASK-202605-001","安全评价月度任务","2026-05","手动","已执行",100,8,4,2,"2026-05-31 09:00","2026-05-31 09:08","张强","2026-05-01 08:00"],
-  [204,"TASK-202604-001","安全评价月度任务","2026-04","自动","已执行",100,7,3,2,"2026-04-30 08:30","2026-04-30 08:42","王安全","2026-04-01 08:00"]
-].map(row=>({id:row[0],taskCode:row[1],taskName:row[2],taskPeriod:row[3],modelName:"三层安全评价模型组合",modelId:"三层安全评价模型组合",modelNames:["项目安全评价模型","分公司安全评价模型","子公司安全评价模型"],evaluationType:"项目",cycleType:"月度",executeMode:row[4],taskStatus:row[5],progress:row[6],projectCount:row[7],branchCount:row[8],companyCount:row[9],startTime:row[10],endTime:row[11],creator:row[12],createTime:row[13]}));
+  [201,"TASK-202607-001","安全评价月度任务","2026-07","自动","未执行",0,9,9,6,"-","-","王安全","2026-07-01 08:00"],
+  [202,"TASK-202606-001","安全评价月度任务","2026-06","自动","执行中",45,10,10,6,"2026-07-23 08:30","-","李明","2026-06-01 08:00"],
+  [203,"TASK-202605-001","安全评价月度任务","2026-05","手动","已执行",100,8,8,6,"2026-05-31 09:00","2026-05-31 09:08","张强","2026-05-01 08:00"],
+  [204,"TASK-202604-001","安全评价月度任务","2026-04","自动","已执行",100,7,7,5,"2026-04-30 08:30","2026-04-30 08:42","王安全","2026-04-01 08:00"]
+].map(row=>({id:row[0],taskCode:row[1],taskName:row[2],taskPeriod:row[3],modelName:"三层安全评价模型组合",modelId:"三层安全评价模型组合",modelNames:["项目安全评价模型","分公司安全评价模型","子公司安全评价模型"],evaluationType:"项目",cycleType:"月度",executeMode:row[4],taskStatus:row[5],progress:row[6],projectCount:row[7],branchCount:row[8],companyCount:row[9],startTime:row[10],endTime:row[11],creator:row[12],createTime:row[13],scheduledTime:row[4]==="自动"?`${row[3]}-28 08:30`:"-",taskDescription:`${row[3]}安全评价任务，统一调用项目、分公司、子公司三个层级模型完成月度安全诊断。`}));
 
 let safetyEvalTaskCurrentMode=false;
 const safetyEvalCurrentTaskTimers={};
@@ -3125,6 +3126,7 @@ tableColumnDefinitions.safetyEvalCurrentTask=[
   {key:"projectCount",title:"评价项目数",width:110,align:"center",render:row=>row.projectCount},
   {key:"branchCount",title:"评价分公司数",width:120,align:"center",render:row=>row.branchCount},
   {key:"companyCount",title:"评价子公司数",width:120,align:"center",render:row=>row.companyCount},
+  {key:"resultCount",title:"评价结果",width:100,align:"center",render:row=>`<button type="button" class="link" style="border:0;background:none;padding:0;cursor:pointer" onclick="openSafetyEvalCurrentTaskResults(${row.id})">${safetyEvalResultRows.filter(item=>item.taskCode===row.taskCode).length}</button>`},
   {key:"startTime",title:"任务开始时间",width:150,align:"center",render:row=>row.startTime},
   {key:"endTime",title:"任务结束时间",width:150,align:"center",render:row=>row.endTime},
   {key:"creator",title:"创建人",width:80,align:"center",render:row=>row.creator},
@@ -3271,7 +3273,7 @@ function renderSafetyEvalCurrentTaskProjectChooser(){
             <th style="width:100px;text-align:center">项目状态</th>
             <th style="width:112px">子公司</th>
             <th style="width:144px">分公司</th>
-            <th style="width:184px">项目经理</th>
+            <th style="width:147px">项目经理</th>
             <th style="width:120px;text-align:center">安全纳管状态</th>
             <th style="width:150px">项目编号</th>
           </tr>
@@ -3296,12 +3298,12 @@ function renderSafetyEvalCurrentTaskProjectChooser(){
   `;
 }
 
-function renderSafetyEvalCurrentTaskSelectionHint(){
+function renderSafetyEvalCurrentTaskSelectionHint(projectCount=0,branchCount=0,companyCount=0,dynamic=true){
   return `<div style="display:flex;align-items:center;gap:14px;margin-left:14px;font-size:13px;font-weight:400;color:var(--sub);white-space:nowrap">
     <span title="评价范围统计规则" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border:1px solid var(--primary);border-radius:50%;color:var(--primary);font-size:11px;font-weight:600">i</span>
-    <span>已选项目 <strong id="setCurrentTaskProjectCount" style="color:var(--primary)">0</strong> 个</span>
-    <span>涉及分公司 <strong id="setCurrentTaskBranchCount" style="color:var(--primary)">0</strong> 家</span>
-    <span>涉及子公司 <strong id="setCurrentTaskCompanyCount" style="color:var(--primary)">0</strong> 家</span>
+    <span>已选项目 <strong ${dynamic?'id="setCurrentTaskProjectCount"':""} style="color:var(--primary)">${projectCount}</strong> 个</span>
+    <span>涉及分公司 <strong ${dynamic?'id="setCurrentTaskBranchCount"':""} style="color:var(--primary)">${branchCount}</strong> 家</span>
+    <span>涉及子公司 <strong ${dynamic?'id="setCurrentTaskCompanyCount"':""} style="color:var(--primary)">${companyCount}</strong> 家</span>
     <span>分公司、子公司均根据所选项目自动去重</span>
   </div>`;
 }
@@ -3392,13 +3394,13 @@ function openSafetyEvalCurrentTaskCreateModal(editId=null){
           <div class="form-item"><label>任务名称</label><input class="input" id="setCurrentTaskName" value="${escapeAttr(editingRow?.taskName||"2026年07月安全评价任务")}"/></div>
           <div class="form-item"><label>任务期数</label><input class="input" type="month" id="setCurrentTaskPeriod" value="${escapeAttr(editingRow?.taskPeriod||"2026-07")}"/></div>
           <div class="form-item"><label>执行方式</label><select class="select" id="setCurrentTaskExecuteMode" onchange="syncSafetyEvalCurrentTaskExecuteTime()"><option value="自动" ${editingRow?.executeMode!=="手动"?"selected":""}>自动</option><option value="手动" ${editingRow?.executeMode==="手动"?"selected":""}>手动</option></select></div>
-          <div class="form-item"><label>执行时间</label><input class="input" type="datetime-local" id="setCurrentTaskExecuteTime" value="${escapeAttr(editingRow?.scheduledTime?.replace(" ","T")||"2026-07-24T08:30")}" ${editingRow?.executeMode==="手动"?"disabled":""}/></div>
-          <div class="form-item" style="grid-column:1/-1"><label>任务描述</label><textarea class="input" id="setCurrentTaskDesc" style="min-height:68px;resize:vertical;padding-top:8px" placeholder="请输入任务描述"></textarea></div>
+          <div class="form-item" id="setCurrentTaskExecuteTimeField" style="${editingRow?.executeMode==="手动"?"display:none":""}"><label>执行时间</label><input class="input" type="datetime-local" id="setCurrentTaskExecuteTime" value="${escapeAttr(editingRow?.scheduledTime?.replace(" ","T")||"2026-07-24T08:30")}"/></div>
+          <div class="form-item" style="grid-column:1/-1"><label>任务描述</label><textarea class="input" id="setCurrentTaskDesc" style="min-height:68px;resize:vertical;padding-top:8px" placeholder="请输入任务描述">${editingRow?.taskDescription||""}</textarea></div>
         </div>
       </div>
     </div>
     <div class="detail-group">
-      <div class="detail-group-header" style="justify-content:flex-start"><div class="detail-group-title">选择评价项目</div>${renderSafetyEvalCurrentTaskSelectionHint()}<span style="margin-left:auto">${safetyEvalModelTypeTag("项目")}</span></div>
+      <div class="detail-group-header" style="justify-content:flex-start"><div class="detail-group-title">选择评价项目</div>${renderSafetyEvalCurrentTaskSelectionHint()}</div>
       <div class="detail-group-body" id="setCurrentTaskProjectChooser">${renderSafetyEvalCurrentTaskProjectChooser()}</div>
     </div>
   `,`<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveSafetyEvalCurrentTaskCreate(${editingRow?.id??"null"})">保存</button>`,"large");
@@ -3418,16 +3420,41 @@ function openSafetyEvalCurrentTaskDetail(id){
   openModal("查看安全评价任务",`
     <div class="detail-group"><div class="detail-group-header"><div class="detail-group-title">评价模型</div></div><div class="detail-group-body">${renderSafetyEvalCurrentTaskModelFlow()}<div style="margin-top:10px;color:var(--sub)">按项目、分公司、子公司层级递进评价，评价范围均来源于本任务所选项目。</div></div></div>
     <div class="detail-group"><div class="detail-group-header"><div class="detail-group-title">任务基础信息</div></div><div class="detail-group-body"><div class="info-grid">
-      <div class="info-item"><div class="info-label">任务名称</div><strong>${row.taskName}</strong></div><div class="info-item"><div class="info-label">任务期数</div><strong>${row.taskPeriod}</strong></div><div class="info-item"><div class="info-label">执行方式</div><strong>${row.executeMode}</strong></div><div class="info-item"><div class="info-label">任务状态</div><strong>${safetyEvalCurrentTaskStatusTag(row.taskStatus)}</strong></div>
-    </div></div></div>
-    <div class="detail-group"><div class="detail-group-header"><div class="detail-group-title">评价项目</div><span>共 ${projects.length} 个</span></div><div class="detail-group-body"><div class="table-wrap roster-table-wrap" style="max-height:320px;overflow:auto"><table style="min-width:1380px"><thead><tr><th style="width:70px;text-align:center">序号</th><th style="width:320px">项目名称</th><th style="width:100px;text-align:center">项目状态</th><th style="width:140px">子公司</th><th style="width:160px">分公司</th><th style="width:230px">项目经理</th><th style="width:120px;text-align:center">安全纳管状态</th><th style="width:150px">项目编号</th></tr></thead><tbody>${projects.map((item,index)=>`<tr><td style="text-align:center">${index+1}</td><td>${item.projectName}</td><td style="text-align:center">${tag(item.status,item.status==="在建"?"green":"gray")}</td><td>${item.company}</td><td>${item.branch}</td><td>${item.manager} | ${maskPhone(item.managerPhone)} <button type="button" class="link" title="查看完整手机号" onclick="showToast('查看手机号权限')">👁️</button></td><td style="text-align:center">${tag(item.managedStatus,item.managedStatus==="已纳管"?"green":item.managedStatus==="暂停纳管"?"orange":"gray")}</td><td>${item.projectNo}</td></tr>`).join("")}</tbody></table></div></div></div>
+      <div class="info-item"><div class="info-label">任务名称</div><strong>${row.taskName}</strong></div><div class="info-item"><div class="info-label">任务期数</div><strong>${row.taskPeriod}</strong></div><div class="info-item"><div class="info-label">执行方式</div><strong>${row.executeMode}</strong></div>${row.executeMode==="自动"?`<div class="info-item"><div class="info-label">执行时间</div><strong>${row.scheduledTime||"-"}</strong></div>`:""}
+    </div><div style="margin-top:16px"><div class="info-label">任务描述</div><div style="margin-top:6px;line-height:1.7;color:var(--text)">${row.taskDescription||"-"}</div></div></div></div>
+    <div class="detail-group"><div class="detail-group-header" style="justify-content:flex-start"><div class="detail-group-title">选择评价项目</div>${renderSafetyEvalCurrentTaskSelectionHint(row.projectCount,row.branchCount,row.companyCount,false)}</div><div class="detail-group-body"><div class="table-wrap roster-table-wrap" style="max-height:320px;overflow:auto"><table style="min-width:1300px"><thead><tr><th style="width:70px;text-align:center">序号</th><th style="width:320px">项目名称</th><th style="width:100px;text-align:center">项目状态</th><th style="width:140px">子公司</th><th style="width:160px">分公司</th><th style="width:147px">项目经理</th><th style="width:120px;text-align:center">安全纳管状态</th><th style="width:150px">项目编号</th></tr></thead><tbody>${projects.map((item,index)=>`<tr><td style="text-align:center">${index+1}</td><td>${item.projectName}</td><td style="text-align:center">${tag(item.status,item.status==="在建"?"green":"gray")}</td><td>${item.company}</td><td>${item.branch}</td><td>${item.manager} | ${maskPhone(item.managerPhone)} <button type="button" class="link" title="查看完整手机号" onclick="showToast('查看手机号权限')">👁️</button></td><td style="text-align:center">${tag(item.managedStatus,item.managedStatus==="已纳管"?"green":item.managedStatus==="暂停纳管"?"orange":"gray")}</td><td>${item.projectNo}</td></tr>`).join("")}</tbody></table></div></div></div>
+  `,`<button class="btn primary" onclick="closeModal()">关闭</button>`,"large");
+}
+
+function openSafetyEvalCurrentTaskResults(id){
+  const task=safetyEvalCurrentTaskRows.find(item=>item.id===Number(id));
+  if(!task)return;
+  const rows=safetyEvalResultRows.filter(item=>item.taskCode===task.taskCode);
+  openModal(`评价结果—${task.taskPeriod}`,`
+    <div class="detail-group">
+      <div class="detail-group-header"><div class="detail-group-title">任务信息</div><span>共 ${rows.length} 条执行结果</span></div>
+      <div class="detail-group-body"><div class="info-grid">
+        <div class="info-item"><div class="info-label">任务编号</div><strong>${task.taskCode}</strong></div>
+        <div class="info-item"><div class="info-label">任务名称</div><strong>${task.taskName}</strong></div>
+        <div class="info-item"><div class="info-label">任务期数</div><strong>${task.taskPeriod}</strong></div>
+      </div></div>
+    </div>
+    <div class="detail-group">
+      <div class="detail-group-header"><div class="detail-group-title">评价结果</div></div>
+      <div class="detail-group-body"><div class="table-wrap roster-table-wrap" style="max-height:420px;overflow:auto"><table style="min-width:1280px">
+        <thead><tr><th style="width:70px;text-align:center">序号</th><th style="width:150px">结果编号</th><th style="width:210px">评价任务</th><th style="width:110px;text-align:center">评价对象数</th><th style="width:110px;text-align:center">评价指标数</th><th style="width:100px;text-align:center">综合得分</th><th style="width:110px;text-align:center">评价结果</th><th style="width:170px;text-align:center">评价时间</th><th style="width:170px;text-align:center">确认时间</th><th style="width:150px;text-align:center">操作</th></tr></thead>
+        <tbody>${rows.map((row,index)=>`<tr><td style="text-align:center">${index+1}</td><td>${row.resultCode}</td><td>${row.taskName}</td><td style="text-align:center">${row.evaluatedObjectCount}</td><td style="text-align:center">${row.indicatorCount}</td><td style="text-align:center">${row.totalScore}</td><td style="text-align:center">${safetyEvalResultStatusTag(row.resultStatus)}</td><td style="text-align:center">${row.calculateTime}</td><td style="text-align:center">${row.confirmTime}</td><td style="text-align:center"><a class="link" onclick="showSafetyEvalResultDetail(${row.id})">查看详情</a><a class="link" onclick="exportSafetyEvalResult(${row.id})">导出报告</a></td></tr>`).join("")||`<tr><td colspan="10" style="text-align:center;color:var(--muted);height:80px">该任务尚未生成评价结果</td></tr>`}</tbody>
+      </table></div></div>
+    </div>
   `,`<button class="btn primary" onclick="closeModal()">关闭</button>`,"large");
 }
 
 function syncSafetyEvalCurrentTaskExecuteTime(){
   const manual=document.getElementById("setCurrentTaskExecuteMode")?.value==="手动";
   const time=document.getElementById("setCurrentTaskExecuteTime");
-  if(time){time.disabled=manual;if(manual)time.value="";}
+  const field=document.getElementById("setCurrentTaskExecuteTimeField");
+  if(field)field.style.display=manual?"none":"";
+  if(time){if(manual)time.value="";else if(!time.value)time.value="2026-07-24T08:30";}
 }
 
 function saveSafetyEvalCurrentTaskCreate(editId=null){
@@ -3437,6 +3464,7 @@ function saveSafetyEvalCurrentTaskCreate(editId=null){
   const taskPeriod=document.getElementById("setCurrentTaskPeriod")?.value;
   const executeMode=document.getElementById("setCurrentTaskExecuteMode")?.value||"自动";
   const executeTime=document.getElementById("setCurrentTaskExecuteTime")?.value||"";
+  const taskDescription=document.getElementById("setCurrentTaskDesc")?.value.trim()||"";
   if(!taskName){showToast("请输入任务名称");return;}
   if(!taskPeriod){showToast("请选择任务期数");return;}
   if(executeMode==="自动"&&!executeTime){showToast("请选择执行时间");return;}
@@ -3466,6 +3494,7 @@ function saveSafetyEvalCurrentTaskCreate(editId=null){
     startTime:"-",
     endTime:"-",
     scheduledTime:executeTime?executeTime.replace("T"," "):"-",
+    taskDescription,
     creator:"王安全",
     createTime:"2026-07-23 18:30"
   };

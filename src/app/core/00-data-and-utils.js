@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.341";
-const APP_CODE_VERSION_NAME="安全评价结果列表精简版";
+const APP_CODE_VERSION="EM-20260701-V2.2.343";
+const APP_CODE_VERSION_NAME="安全评价任务结果下钻版";
 const APP_CODE_VERSION_TIME="2026-07-23 18:00";
-const APP_CODE_VERSION_DESC="评价结果列表移除评价对象、评价模型和模型版本三列，保留底层结果数据与筛选能力。";
+const APP_CODE_VERSION_DESC="安全评价任务移除项目标签、收窄项目经理列，并新增评价结果数量及结果明细下钻。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
