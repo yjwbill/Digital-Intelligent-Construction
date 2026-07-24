@@ -3126,7 +3126,7 @@ tableColumnDefinitions.safetyEvalCurrentTask=[
   {key:"projectCount",title:"评价项目数",width:110,align:"center",render:row=>row.projectCount},
   {key:"branchCount",title:"评价分公司数",width:120,align:"center",render:row=>row.branchCount},
   {key:"companyCount",title:"评价子公司数",width:120,align:"center",render:row=>row.companyCount},
-  {key:"resultCount",title:"评价结果",width:100,align:"center",render:row=>`<button type="button" class="link" style="border:0;background:none;padding:0;cursor:pointer" onclick="openSafetyEvalCurrentTaskResults(${row.id})">${safetyEvalResultRows.filter(item=>item.taskCode===row.taskCode).length}</button>`},
+  {key:"resultCount",title:"评价结果",width:100,align:"center",render:row=>`<button type="button" class="link" style="border:0;background:none;padding:0;cursor:pointer" onclick="openSafetyEvalCurrentTaskDetail(${row.id},'results')">${safetyEvalResultRows.filter(item=>item.taskCode===row.taskCode).length}</button>`},
   {key:"startTime",title:"任务开始时间",width:150,align:"center",render:row=>row.startTime},
   {key:"endTime",title:"任务结束时间",width:150,align:"center",render:row=>row.endTime},
   {key:"creator",title:"创建人",width:80,align:"center",render:row=>row.creator},
@@ -3411,7 +3411,8 @@ function openSafetyEvalCurrentTaskEdit(id){
   openSafetyEvalCurrentTaskCreateModal(Number(id));
 }
 
-function openSafetyEvalCurrentTaskDetail(id){
+function openSafetyEvalCurrentTaskDetail(id,viewMode="detail"){
+  if(viewMode==="results")return openSafetyEvalCurrentTaskResults(id);
   const row=safetyEvalCurrentTaskRows.find(item=>item.id===Number(id));
   if(!row)return;
   const all=getSafetyEvalCurrentTaskSelectableProjects();
@@ -3448,7 +3449,6 @@ function openSafetyEvalCurrentTaskResults(id){
     </div>
   `,`<button class="btn primary" onclick="closeModal()">关闭</button>`,"large");
 }
-
 function syncSafetyEvalCurrentTaskExecuteTime(){
   const manual=document.getElementById("setCurrentTaskExecuteMode")?.value==="手动";
   const time=document.getElementById("setCurrentTaskExecuteTime");
