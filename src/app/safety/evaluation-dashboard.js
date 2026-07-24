@@ -1919,7 +1919,7 @@ const safetyEvalModelOptions={
 };
 
 const safetyEvalCurrentModelOptions={
-  status:["草稿","已发布","已停用"],
+  status:["草稿","待发布","已发布","已停用"],
   objectTypes:["子公司","分公司","项目","岗位","供应链"]
 };
 
@@ -1987,13 +1987,13 @@ function safetyEvalModelTypeTag(value){
 }
 
 function safetyEvalModelStatusTag(value){
-  return tag(value,({草稿:"gray",已发布:"green",已停用:"red",版本中:"orange"})[value] || "gray");
+  return tag(value,({草稿:"gray",待发布:"orange",已发布:"green",已停用:"red",版本中:"orange"})[value] || "gray");
 }
 
 tableColumnDefinitions.safetyEvalModel=[
   {key:"selection",title:"",width:48,align:"center",render:()=>`<input type="checkbox"/>`},
   {key:"index",title:"序号",width:70,align:"center",render:(row,index)=>(safetyEvalModelState.page-1)*safetyEvalModelState.pageSize+index+1},
-  {key:"modelCode",title:"模型编码",width:140,align:"left",render:row=>row.modelCode},
+  {key:"modelCode",title:"模型编码",width:160,align:"left",render:row=>row.modelCode},
   {key:"modelName",title:"模型名称",width:230,align:"left",render:row=>`<a class="link" onclick="openSafetyEvalModelDetail(${row.id})">${row.modelName}</a>`},
   {key:"objectType",title:"适用对象类型",width:130,align:"center",render:row=>safetyEvalModelTypeTag(row.objectType)},
   {key:"indicatorCount",title:"指标数量",width:100,align:"center",render:row=>row.indicatorCount},
@@ -2006,16 +2006,23 @@ tableColumnDefinitions.safetyEvalModel=[
   {key:"creator",title:"创建人",width:110,align:"center",render:row=>row.creator},
   {key:"createTime",title:"创建时间",width:170,align:"center",render:row=>row.createTime},
   {key:"updateTime",title:"更新时间",width:170,align:"center",render:row=>row.updateTime},
-  {key:"operation",title:"操作",width:320,align:"center",render:row=>`
+  {key:"operation",title:"操作",width:200,align:"center",render:row=>`
     <a class="link" onclick="${safetyEvalModelCurrentMode?`openSafetyEvalModelEdit(${row.id})`:`showToast('编辑模型：${row.modelName}')`}">编辑</a>
     <a class="link" onclick="openSafetyEvalModelDetail(${row.id})">查看</a>
-    ${safetyEvalModelCurrentMode?"":`<a class="link" onclick="showToast('配置指标：${row.modelName}')">配置指标</a>`}
+    ${safetyEvalModelCurrentMode?(row.pendingPublish?`<a class="link" onclick="publishSafetyEvalModel(${row.id})">发布</a>`:""):`<a class="link" onclick="showToast('配置指标：${row.modelName}')">配置指标</a>
     <a class="link" onclick="publishSafetyEvalModel(${row.id})">发布</a>
     <a class="link" onclick="toggleSafetyEvalModelStatus(${row.id})">${row.modelStatus==="已停用"?"启用":"停用"}</a>
-    ${safetyEvalModelCurrentMode?"":`<a class="link" onclick="copySafetyEvalModel(${row.id})">复制</a>
+    <a class="link" onclick="copySafetyEvalModel(${row.id})">复制</a>
     <a class="link danger-link" onclick="deleteSafetyEvalModel(${row.id})">删除</a>`}
   `}
 ];
+
+function syncSafetyEvalModelColumnDefaults(){
+  const modelCode=tableColumnDefinitions.safetyEvalModel.find(column=>column.key==="modelCode");
+  const operation=tableColumnDefinitions.safetyEvalModel.find(column=>column.key==="operation");
+  if(modelCode)modelCode.width=safetyEvalModelCurrentMode?160:140;
+  if(operation)operation.width=safetyEvalModelCurrentMode?200:320;
+}
 
 function renderSafetyEvalModelOptions(values,current,allText="全部"){
   return `<option value="">${allText}</option>${values.map(value=>`<option value="${value}" ${value===current?"selected":""}>${value}</option>`).join("")}`;
@@ -2064,10 +2071,16 @@ function changeSafetyEvalModelPage(dir){
 function publishSafetyEvalModel(id){
   const row=getActiveSafetyEvalModelRows().find(item=>item.id===Number(id));
   if(row){
+    if(safetyEvalModelCurrentMode&&!row.pendingPublish)return;
     row.modelStatus="已发布";
-    row.publishTime="2026-07-02 09:20";
+    row.publishTime=safetyEvalModelCurrentMode?"2026-07-24 21:45":"2026-07-02 09:20";
+    if(safetyEvalModelCurrentMode){
+      const match=String(row.currentVersion||"v1.0").match(/^v(\d+)\.(\d+)$/i);
+      row.currentVersion=match?`v${match[1]}.${Number(match[2])+1}`:"v1.1";
+      row.pendingPublish=false;
+    }
     row.versionRecordCount=(row.versionRecordCount || 0)+1;
-    showToast(`已发布模型：${row.modelName}`);
+    showToast(safetyEvalModelCurrentMode?`发布成功，已生成 ${row.currentVersion} 版本`:`已发布模型：${row.modelName}`);
   }
   renderSafetyEvaluationModelPage();
 }
@@ -2119,7 +2132,6 @@ function openSafetyEvalModelVersionRecords(id){
   const records=getSafetyEvalModelVersionRecords(model);
   const html=`
     <div class="safety-eval-version-modal">
-      <div class="safety-eval-version-model-name">模型名称：<b>${model.modelName}</b></div>
       <div class="safety-eval-detail-table-wrap">
         <table class="safety-eval-detail-table safety-eval-version-table">
           <thead><tr><th>序号</th><th>操作类型</th><th>操作人</th><th>操作生效时间</th><th>版本摘要</th><th>操作</th></tr></thead>
@@ -2309,7 +2321,8 @@ function saveSafetyEvalModelWeights(){
   safetyEvalCurrentModelWeights[String(model.id)]=normalizeSafetyEvalModelWeights(cloneSafetyEvalModelWeights(safetyEvalModelEditDraft));
   safetyEvalCurrentModelGroupWeights[String(model.id)]=safetyEvalModelGroupEditDraft.slice();
   model.updateTime="2026-07-23 16:00";
-  model.versionRecordCount=(model.versionRecordCount||0)+1;
+  model.pendingPublish=true;
+  model.modelStatus="待发布";
   closeModal();
   renderSafetyEvaluationModelPage();
   showToast("保存成功");
@@ -2505,6 +2518,7 @@ function renderSafetyEvalModelTable(rows){
 function renderSafetyEvaluationModelPage(){
   detailPage.style.display="none";
   listPage.style.display="flex";
+  syncSafetyEvalModelColumnDefaults();
   const allRows=getSafetyEvalModelFilteredRows();
   const totalPages=Math.max(1,Math.ceil(allRows.length/safetyEvalModelState.pageSize));
   safetyEvalModelState.page=Math.min(safetyEvalModelState.page,totalPages);
@@ -2527,7 +2541,7 @@ function renderSafetyEvaluationModelPage(){
       <div class="card-hd">
         <div class="card-title">评价模型列表</div>
         <div class="actions">
-          <button class="btn primary" onclick="showToast('新增评价模型功能演示')">新增模型</button>
+          <button class="btn primary" onclick="showToast('${safetyEvalModelCurrentMode?"安全评价v1.0版本暂不支持新增评价模型":"新增评价模型功能演示"}')">新增模型</button>
           ${safetyEvalModelCurrentMode?"":`<button class="btn" onclick="showToast('批量发布功能演示')">批量发布</button>`}
           <button class="btn" onclick="showToast('导出成功')">导出</button>
           <button class="column-setting-icon-btn" title="列配置" onclick="openColumnSetting('safetyEvalModel','renderSafetyEvaluationModelPage')">⚙</button>

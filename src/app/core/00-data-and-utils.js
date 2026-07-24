@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.353";
-const APP_CODE_VERSION_NAME="企业施工日志导出布局优化版";
-const APP_CODE_VERSION_TIME="2026-07-24 21:30";
-const APP_CODE_VERSION_DESC="企业施工日志项目下钻弹框中的导出按钮调整到施工日志列表标题行最右侧。";
+const APP_CODE_VERSION="EM-20260701-V2.2.355";
+const APP_CODE_VERSION_NAME="安全评价模型待发布状态版";
+const APP_CODE_VERSION_TIME="2026-07-24 22:30";
+const APP_CODE_VERSION_DESC="安全评价模型编辑保存后进入待发布状态，点击发布生成新版本后恢复为已发布。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
