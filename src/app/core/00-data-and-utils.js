@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.347";
-const APP_CODE_VERSION_NAME="纳统看板表格布局优化版";
-const APP_CODE_VERSION_TIME="2026-07-24 15:00";
-const APP_CODE_VERSION_DESC="纳统明细接入标准分页并固定合计行，精简明细标题操作区，优化公司维度列宽与进度条空间。";
+const APP_CODE_VERSION="EM-20260701-V2.2.348";
+const APP_CODE_VERSION_NAME="安全评价结果字段优化版";
+const APP_CODE_VERSION_TIME="2026-07-24 16:00";
+const APP_CODE_VERSION_DESC="评价结果管理拆分项目、分公司和子公司评价数量，调整项目综合得分与查看文案，并精简查询条件和批量操作。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,

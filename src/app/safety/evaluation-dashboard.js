@@ -2517,8 +2517,11 @@ const safetyEvalResultRows=[
   modelVersion:row[7],
   taskCode:`TASK-${row[1].replace("-","")}-001`,
   taskName:row[3]==="项目"?"施工项目月度安全评价任务":row[3]==="供应链"?"供应链安全履约专项评价":row[3]==="岗位"?"关键岗位履职季度评价":"集团月度安全评价任务",
-  evaluatedObjectCount:row[3]==="项目"?10:row[3]==="供应链"?18:row[3]==="岗位"?12:8,
+  projectCount:9+(index%7),
+  branchCount:3+(index%4),
+  companyCount:2+(index%3),
   indicatorCount:({ "集团安全评价模型":42,"施工项目周评价模型":58,"供应链安全履约评价模型":31,"关键岗位履职评价模型":26,"专项风险评价模型":39 })[row[6]] || 30,
+  projectScore:row[8],
   totalScore:row[8],
   riskLevel:row[9],
   infoSecurityScore:row[10],
@@ -2537,11 +2540,8 @@ const safetyEvalResultState={
   evalMonth:getCurrentEvalMonth(),
   resultCode:"",
   objectName:"",
-  objectType:"",
   companyName:"",
   branchName:"",
-  modelId:"",
-  riskLevel:"",
   resultStatus:"",
   scoreMin:"",
   scoreMax:"",
@@ -2568,14 +2568,16 @@ tableColumnDefinitions.safetyEvalResult=[
   {key:"index",title:"序号",width:70,align:"center",render:(row,index)=>(safetyEvalResultState.page-1)*safetyEvalResultState.pageSize+index+1},
   {key:"resultCode",title:"结果编号",width:150,align:"left",render:row=>row.resultCode},
   {key:"taskName",title:"评价任务",width:210,align:"left",render:row=>row.taskName},
-  {key:"evaluatedObjectCount",title:"评价对象数",width:110,align:"center",render:row=>row.evaluatedObjectCount},
+  {key:"projectCount",title:"评价项目数",width:110,align:"center",render:row=>row.projectCount},
+  {key:"branchCount",title:"评价分公司数",width:120,align:"center",render:row=>row.branchCount},
+  {key:"companyCount",title:"评价子公司数",width:120,align:"center",render:row=>row.companyCount},
   {key:"indicatorCount",title:"评价指标数",width:110,align:"center",render:row=>row.indicatorCount},
-  {key:"totalScore",title:"综合得分",width:100,align:"center",render:row=>row.totalScore},
+  {key:"projectScore",title:"项目综合得分",width:120,align:"center",render:row=>row.projectScore},
   {key:"resultStatus",title:"评价结果",width:110,align:"center",render:row=>safetyEvalResultStatusTag(row.resultStatus)},
   {key:"calculateTime",title:"评价时间",width:170,align:"center",render:row=>row.calculateTime},
   {key:"confirmTime",title:"确认时间",width:170,align:"center",render:row=>row.confirmTime},
   {key:"operation",title:"操作",width:220,align:"center",render:row=>`
-    <a class="link" onclick="showSafetyEvalResultDetail(${row.id})">查看详情</a>
+    <a class="link" onclick="showSafetyEvalResultDetail(${row.id})">查看</a>
     ${row.resultStatus==="待确认"?`<a class="link" onclick="confirmSafetyEvalResult(${row.id})">确认结果</a>`:""}
     <a class="link" onclick="exportSafetyEvalResult(${row.id})">导出报告</a>
   `}
@@ -2593,14 +2595,11 @@ function getSafetyEvalResultFilteredRows(){
     if(s.evalMonth&&row.evalMonth!==s.evalMonth)return false;
     if(s.resultCode&&!row.resultCode.includes(s.resultCode))return false;
     if(s.objectName&&!row.objectName.includes(s.objectName))return false;
-    if(s.objectType&&row.objectType!==s.objectType)return false;
     if(s.companyName&&row.companyName!==s.companyName)return false;
     if(s.branchName&&row.branchName!==s.branchName)return false;
-    if(s.modelId&&row.modelId!==s.modelId)return false;
-    if(s.riskLevel&&row.riskLevel!==s.riskLevel)return false;
     if(s.resultStatus&&row.resultStatus!==s.resultStatus)return false;
-    if(min!==null&&row.totalScore<min)return false;
-    if(max!==null&&row.totalScore>max)return false;
+    if(min!==null&&row.projectScore<min)return false;
+    if(max!==null&&row.projectScore>max)return false;
     return true;
   });
 }
@@ -2609,11 +2608,8 @@ function querySafetyEvalResults(){
   safetyEvalResultState.evalMonth=document.getElementById("serMonth")?.value || "";
   safetyEvalResultState.resultCode=document.getElementById("serCode")?.value.trim() || "";
   safetyEvalResultState.objectName=document.getElementById("serObject")?.value.trim() || "";
-  safetyEvalResultState.objectType=document.getElementById("serObjectType")?.value || "";
   safetyEvalResultState.companyName=document.getElementById("serCompany")?.value || "";
   safetyEvalResultState.branchName=document.getElementById("serBranch")?.value || "";
-  safetyEvalResultState.modelId=document.getElementById("serModel")?.value || "";
-  safetyEvalResultState.riskLevel=document.getElementById("serRisk")?.value || "";
   safetyEvalResultState.resultStatus=document.getElementById("serStatus")?.value || "";
   safetyEvalResultState.scoreMin=document.getElementById("serScoreMin")?.value || "";
   safetyEvalResultState.scoreMax=document.getElementById("serScoreMax")?.value || "";
@@ -2622,7 +2618,7 @@ function querySafetyEvalResults(){
 }
 
 function resetSafetyEvalResults(){
-  Object.assign(safetyEvalResultState,{evalMonth:getCurrentEvalMonth(),resultCode:"",objectName:"",objectType:"",companyName:"",branchName:"",modelId:"",riskLevel:"",resultStatus:"",scoreMin:"",scoreMax:"",page:1});
+  Object.assign(safetyEvalResultState,{evalMonth:getCurrentEvalMonth(),resultCode:"",objectName:"",companyName:"",branchName:"",resultStatus:"",scoreMin:"",scoreMax:"",page:1});
   renderSafetyEvaluationResultPage();
 }
 
@@ -2695,11 +2691,8 @@ function renderSafetyEvaluationResultPage(){
       <div class="form-item"><label>评价月份</label><input class="input" type="month" id="serMonth" value="${escapeAttr(safetyEvalResultState.evalMonth)}"/></div>
       <div class="form-item"><label>结果编号</label><input class="input" id="serCode" value="${escapeAttr(safetyEvalResultState.resultCode)}" placeholder="支持模糊搜索"/></div>
       <div class="form-item"><label>评价对象</label><input class="input" id="serObject" value="${escapeAttr(safetyEvalResultState.objectName)}" placeholder="支持项目/组织名称搜索"/></div>
-      <div class="form-item"><label>对象类型</label><select class="select" id="serObjectType">${renderSafetyEvalResultOptions(safetyEvalResultOptions.objectTypes,safetyEvalResultState.objectType,"全部")}</select></div>
       <div class="form-item"><label>所属子公司</label><select class="select" id="serCompany">${renderSafetyEvalResultOptions(safetyEvalResultOptions.companies,safetyEvalResultState.companyName,"全部")}</select></div>
       <div class="form-item"><label>所属分公司</label><select class="select" id="serBranch">${renderSafetyEvalResultOptions(safetyEvalResultOptions.branches,safetyEvalResultState.branchName,"全部")}</select></div>
-      <div class="form-item"><label>评价模型</label><select class="select" id="serModel">${renderSafetyEvalResultOptions(safetyEvalResultOptions.models,safetyEvalResultState.modelId,"全部")}</select></div>
-      <div class="form-item"><label>风险等级</label><select class="select" id="serRisk">${renderSafetyEvalResultOptions(safetyEvalResultOptions.riskLevels,safetyEvalResultState.riskLevel,"全部")}</select></div>
       <div class="form-item"><label>结果状态</label><select class="select" id="serStatus">${renderSafetyEvalResultOptions(safetyEvalResultOptions.status,safetyEvalResultState.resultStatus,"全部")}</select></div>
       <div class="form-item"><label>得分区间</label><div style="display:flex;align-items:center;gap:6px"><input class="input" type="number" id="serScoreMin" value="${escapeAttr(safetyEvalResultState.scoreMin)}" placeholder="最低"/><span>-</span><input class="input" type="number" id="serScoreMax" value="${escapeAttr(safetyEvalResultState.scoreMax)}" placeholder="最高"/></div></div>
     `,{title:"查询条件",queryFn:"querySafetyEvalResults()",resetFn:"resetSafetyEvalResults()",gridClass:"search-grid"})}
@@ -2707,8 +2700,6 @@ function renderSafetyEvaluationResultPage(){
       <div class="card-hd">
         <div class="card-title">评价结果列表</div>
         <div class="actions">
-          <button class="btn" onclick="showToast('批量确认功能演示')">批量确认</button>
-          <button class="btn" onclick="showToast('批量归档功能演示')">批量归档</button>
           <button class="btn" onclick="showToast('导出成功')">导出</button>
           <button class="column-setting-icon-btn" title="列配置" onclick="openColumnSetting('safetyEvalResult','renderSafetyEvaluationResultPage')">⚙</button>
         </div>
@@ -3752,8 +3743,11 @@ function appendSafetyEvalTaskExecutionResult(task){
     taskCode:task.taskCode,
     taskName:task.taskName,
     executionNo:sequence,
-    evaluatedObjectCount:task.projectCount,
+    projectCount:task.projectCount,
+    branchCount:task.branchCount,
+    companyCount:task.companyCount,
     indicatorCount:118,
+    projectScore:score,
     totalScore:score,
     riskLevel:score>=80?"风险可控":score>=60?"风险较高":"风险极高",
     infoSecurityScore:Number((score*.2).toFixed(1)),
