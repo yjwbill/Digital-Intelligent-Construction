@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.337-safety-eval-task-selection-hint";
+  const version="2.2.341-safety-eval-result-columns";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",
