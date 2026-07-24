@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.348-safety-evaluation-result-fields";
+  const version="2.2.350-safety-model-list-options";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",

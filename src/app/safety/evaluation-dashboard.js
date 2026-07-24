@@ -1919,8 +1919,8 @@ const safetyEvalModelOptions={
 };
 
 const safetyEvalCurrentModelOptions={
-  status:["草稿","已发布","已停用","版本中"],
-  objectTypes:["子公司","分公司","项目","敢为","供应链"]
+  status:["草稿","已发布","已停用"],
+  objectTypes:["子公司","分公司","项目","岗位","供应链"]
 };
 
 const safetyEvalModelRows=[
@@ -2029,10 +2029,10 @@ function getSafetyEvalModelFilteredRows(){
     if(s.modelStatus&&row.modelStatus!==s.modelStatus)return false;
     if(s.objectType&&row.objectType!==s.objectType)return false;
     if(s.creator&&!row.creator.includes(s.creator))return false;
-    if(s.publishStartTime&&row.publishTime!=="-"&&row.publishTime.slice(0,10)<s.publishStartTime)return false;
-    if(s.publishStartTime&&row.publishTime==="-")return false;
-    if(s.publishEndTime&&row.publishTime!=="-"&&row.publishTime.slice(0,10)>s.publishEndTime)return false;
-    if(s.publishEndTime&&row.publishTime==="-")return false;
+    if(!safetyEvalModelCurrentMode&&s.publishStartTime&&row.publishTime!=="-"&&row.publishTime.slice(0,10)<s.publishStartTime)return false;
+    if(!safetyEvalModelCurrentMode&&s.publishStartTime&&row.publishTime==="-")return false;
+    if(!safetyEvalModelCurrentMode&&s.publishEndTime&&row.publishTime!=="-"&&row.publishTime.slice(0,10)>s.publishEndTime)return false;
+    if(!safetyEvalModelCurrentMode&&s.publishEndTime&&row.publishTime==="-")return false;
     return true;
   });
 }
@@ -2188,8 +2188,37 @@ const safetyEvalModelDimensionTemplate=[
 ];
 
 const safetyEvalCurrentModelWeights={};
+const safetyEvalCurrentModelGroupWeights={};
 let safetyEvalModelEditDraft=null;
+let safetyEvalModelGroupEditDraft=null;
 let safetyEvalModelDetailContext={modelId:null,editing:false};
+
+function getSafetyEvalModelDefaultGroupWeights(){
+  return safetyEvalModelDimensionTemplate.map(group=>Number(group.score)||0);
+}
+
+function getSafetyEvalCurrentModelGroupWeights(modelId){
+  const key=String(modelId);
+  if(!safetyEvalCurrentModelGroupWeights[key])safetyEvalCurrentModelGroupWeights[key]=getSafetyEvalModelDefaultGroupWeights();
+  return safetyEvalCurrentModelGroupWeights[key];
+}
+
+function getSafetyEvalModelDisplayGroupWeights(){
+  if(safetyEvalModelDetailContext.editing&&safetyEvalModelGroupEditDraft)return safetyEvalModelGroupEditDraft;
+  return getSafetyEvalCurrentModelGroupWeights(safetyEvalModelDetailContext.modelId);
+}
+
+function getSafetyEvalModelGroupWeight(groupIndex){
+  return Number(getSafetyEvalModelDisplayGroupWeights()?.[groupIndex])||0;
+}
+
+function getSafetyEvalModelDynamicGroupScore(groupIndex){
+  return 100*getSafetyEvalModelGroupWeight(groupIndex)/100;
+}
+
+function getSafetyEvalModelTotalGroupWeight(){
+  return getSafetyEvalModelDisplayGroupWeights().reduce((sum,value)=>sum+(Number(value)||0),0);
+}
 
 function getSafetyEvalModelDefaultWeights(){
   return safetyEvalModelDimensionTemplate.map(group=>group.children.map(item=>{
@@ -2222,8 +2251,7 @@ function getSafetyEvalModelIndicatorWeight(groupIndex,itemIndex){
 }
 
 function getSafetyEvalModelIndicatorScore(groupIndex,itemIndex){
-  const group=safetyEvalModelDimensionTemplate[groupIndex];
-  return (Number(group?.score)||0)*getSafetyEvalModelIndicatorWeight(groupIndex,itemIndex)/100;
+  return getSafetyEvalModelDynamicGroupScore(groupIndex)*getSafetyEvalModelIndicatorWeight(groupIndex,itemIndex)/100;
 }
 
 function formatSafetyEvalModelWeight(value){
@@ -2252,12 +2280,34 @@ function updateSafetyEvalModelWeight(groupIndex,itemIndex,value){
   }
 }
 
+function updateSafetyEvalModelGroupWeight(groupIndex,value){
+  if(!safetyEvalModelDetailContext.editing||!safetyEvalModelGroupEditDraft)return;
+  safetyEvalModelGroupEditDraft[groupIndex]=Math.min(100,Math.max(0,Number(value)||0));
+  const totalValue=getSafetyEvalModelTotalGroupWeight();
+  document.querySelectorAll("[data-model-group-field]").forEach(field=>field.classList.toggle("over-limit",totalValue>100.01));
+  const total=document.querySelector("[data-model-total-group-weight]");
+  if(total){
+    total.textContent=`权重合计 ${formatSafetyEvalModelWeight(totalValue)}%`;
+    total.classList.toggle("invalid",Math.abs(totalValue-100)>0.01);
+  }
+  const score=document.querySelector(`[data-model-group-score="${groupIndex}"]`);
+  if(score)score.textContent=formatSafetyEvalModelScore(getSafetyEvalModelDynamicGroupScore(groupIndex));
+  const treeScore=document.querySelector(`[data-model-tree-group-score="${groupIndex}"]`);
+  if(treeScore)treeScore.textContent=`${formatSafetyEvalModelScore(getSafetyEvalModelDynamicGroupScore(groupIndex))}分`;
+  safetyEvalModelDimensionTemplate[groupIndex].children.forEach((item,itemIndex)=>{
+    const treeIndicatorScore=document.querySelector(`[data-model-tree-score="${groupIndex}-${itemIndex}"]`);
+    if(treeIndicatorScore)treeIndicatorScore.textContent=`${formatSafetyEvalModelScore(getSafetyEvalModelIndicatorScore(groupIndex,itemIndex))}分`;
+  });
+}
+
 function saveSafetyEvalModelWeights(){
   if(!safetyEvalModelDetailContext.editing||!safetyEvalModelEditDraft)return;
+  if(Math.abs(getSafetyEvalModelTotalGroupWeight()-100)>0.01)return showToast("指标分组权重合计必须等于100%");
   const invalidIndex=safetyEvalModelEditDraft.findIndex((group,index)=>Math.abs(group.reduce((sum,value)=>sum+(Number(value)||0),0)-100)>0.01);
   if(invalidIndex>=0)return showToast(`${safetyEvalModelDimensionTemplate[invalidIndex].name}分组权重合计必须等于100%`);
   const model=safetyEvalCurrentModelRows.find(item=>item.id===Number(safetyEvalModelDetailContext.modelId));
   safetyEvalCurrentModelWeights[String(model.id)]=normalizeSafetyEvalModelWeights(cloneSafetyEvalModelWeights(safetyEvalModelEditDraft));
+  safetyEvalCurrentModelGroupWeights[String(model.id)]=safetyEvalModelGroupEditDraft.slice();
   model.updateTime="2026-07-23 16:00";
   model.versionRecordCount=(model.versionRecordCount||0)+1;
   closeModal();
@@ -2296,21 +2346,25 @@ function renderSafetyEvalModelMetric(label,value,unit,type="blue"){
   `;
 }
 
-function renderSafetyEvalModelStructure(activeIndex=0){
-  const activeGroup=safetyEvalModelDimensionTemplate[activeIndex] || safetyEvalModelDimensionTemplate[0];
+function renderSafetyEvalModelStructure(activeIndex=-1){
   return `
     <section class="model-detail-structure">
       <div class="model-detail-tree">
         <h4>模型结构</h4>
         <div class="model-detail-tree-list">
+          <button class="model-detail-tree-root ${activeIndex===-1?"active":""}" onclick="renderSafetyEvalModelIndicators(-1)">
+            <span>总分</span><b>100分</b>
+          </button>
+          <div class="model-detail-tree-groups">
           ${safetyEvalModelDimensionTemplate.map((group,index)=>`
             <button class="${index===activeIndex?"active":""}" onclick="renderSafetyEvalModelIndicators(${index})">
-              <span>${index+1}. ${group.name}</span><b>${formatSafetyEvalModelScore(getSafetyEvalModelGroupScore(group))}分</b>
+              <span>${index+1}. ${group.name}</span><b ${safetyEvalModelCurrentMode?`data-model-tree-group-score="${index}"`:""}>${formatSafetyEvalModelScore(safetyEvalModelCurrentMode?getSafetyEvalModelDynamicGroupScore(index):getSafetyEvalModelGroupScore(group))}分</b>
             </button>
             <div class="model-detail-tree-children">
               ${group.children.map((item,childIndex)=>`<span>${index+1}.${childIndex+1} ${item.name}<em ${safetyEvalModelCurrentMode?`data-model-tree-score="${index}-${childIndex}"`:""}>${formatSafetyEvalModelScore(safetyEvalModelCurrentMode?getSafetyEvalModelIndicatorScore(index,childIndex):item.score)}分</em></span>`).join("")}
             </div>
           `).join("")}
+          </div>
         </div>
       </div>
       <div class="model-detail-indicators" id="modelDetailIndicators">
@@ -2320,14 +2374,33 @@ function renderSafetyEvalModelStructure(activeIndex=0){
   `;
 }
 
+function renderSafetyEvalModelGroupPanel(){
+  const total=getSafetyEvalModelTotalGroupWeight();
+  return `
+    <div class="model-detail-indicator-head">
+      <h4>指标分组</h4>
+      <span>共 ${safetyEvalModelDimensionTemplate.length} 个分组，总分 100 分${safetyEvalModelDetailContext.editing?`（<em class="model-group-weight-total ${Math.abs(total-100)>0.01?"invalid":""}" data-model-total-group-weight>权重合计 ${formatSafetyEvalModelWeight(total)}%</em>）`:""}</span>
+    </div>
+    <table class="safety-eval-detail-table current-safety-model-group-table">
+      <thead><tr><th>序号</th><th>指标分组</th><th>权重</th><th>分值</th></tr></thead>
+      <tbody>${safetyEvalModelDimensionTemplate.map((group,index)=>`
+        <tr>
+          <td>${index+1}</td><td>${group.name}</td>
+          <td>${safetyEvalModelDetailContext.editing?`<div class="model-weight-input ${total>100.01?"over-limit":""}" data-model-group-field><input type="number" min="0" max="100" step="0.1" value="${formatSafetyEvalModelWeight(getSafetyEvalModelGroupWeight(index))}" oninput="this.value=Math.min(100,Math.max(0,Number(this.value)||0));updateSafetyEvalModelGroupWeight(${index},this.value)"/><span>%</span></div>`:`${formatSafetyEvalModelWeight(getSafetyEvalModelGroupWeight(index))}%`}</td>
+          <td data-model-group-score="${index}">${formatSafetyEvalModelScore(getSafetyEvalModelDynamicGroupScore(index))}</td>
+        </tr>`).join("")}</tbody>
+    </table>`;
+}
+
 function renderSafetyEvalModelIndicatorPanel(activeIndex=0){
+  if(safetyEvalModelCurrentMode&&Number(activeIndex)===-1)return renderSafetyEvalModelGroupPanel();
   const group=safetyEvalModelDimensionTemplate[activeIndex] || safetyEvalModelDimensionTemplate[0];
   const currentModelHeaders=safetyEvalModelCurrentMode?"<th>序号</th>":"";
   const currentModelWeightHeader=safetyEvalModelCurrentMode?"<th>权重</th>":"";
   const legacyDeductHeader=safetyEvalModelCurrentMode?"":"<th>是否扣分</th>";
   return `
     <div class="model-detail-indicator-head">
-      <h4>指标列表（${group.name}）</h4>
+      <h4>${safetyEvalModelCurrentMode?"指标列表":`指标列表（${group.name}）`}</h4>
       <span>共 ${group.children.length} 条，合计 ${formatSafetyEvalModelScore(Number(group.score)||getSafetyEvalModelGroupScore(group))} 分${safetyEvalModelCurrentMode&&safetyEvalModelDetailContext.editing?`，<em class="model-group-weight-total ${Math.abs(getSafetyEvalModelGroupWeightTotal(activeIndex)-100)>0.01?"invalid":""}" data-model-group-weight-total="${activeIndex}">权重合计 ${formatSafetyEvalModelWeight(getSafetyEvalModelGroupWeightTotal(activeIndex))}%</em>`:""}</span>
     </div>
     <table class="safety-eval-detail-table model-detail-indicator-table ${safetyEvalModelCurrentMode?"current-safety-model-indicator-table":""}">
@@ -2356,9 +2429,9 @@ function renderSafetyEvalModelIndicatorPanel(activeIndex=0){
 function renderSafetyEvalModelIndicators(activeIndex){
   const panel=document.getElementById("modelDetailIndicators");
   if(panel)panel.innerHTML=renderSafetyEvalModelIndicatorPanel(activeIndex);
-  document.querySelectorAll(".model-detail-tree-list > button").forEach((button,index)=>{
-    button.classList.toggle("active",index===Number(activeIndex));
-  });
+  document.querySelectorAll(".model-detail-tree-list button").forEach(button=>button.classList.remove("active"));
+  const selector=Number(activeIndex)===-1?".model-detail-tree-root":`.model-detail-tree-groups > button:nth-of-type(${Number(activeIndex)+1})`;
+  document.querySelector(`.model-detail-tree-list ${selector}`)?.classList.add("active");
 }
 
 function openSafetyEvalModelDetail(id,editing=false){
@@ -2367,6 +2440,7 @@ function openSafetyEvalModelDetail(id,editing=false){
   const canEdit=safetyEvalModelCurrentMode&&Boolean(editing);
   safetyEvalModelDetailContext={modelId:model.id,editing:canEdit};
   safetyEvalModelEditDraft=canEdit?cloneSafetyEvalModelWeights(getSafetyEvalCurrentModelWeights(model.id)):null;
+  safetyEvalModelGroupEditDraft=canEdit?getSafetyEvalCurrentModelGroupWeights(model.id).slice():null;
   const stats=getSafetyEvalModelStats(model);
   const html=`
     <div class="safety-eval-detail-page model-detail-page">
@@ -2394,7 +2468,7 @@ function openSafetyEvalModelDetail(id,editing=false){
         ${renderSafetyEvalModelMetric("自动计算",stats.autoCount,"个","blue")}
         ${renderSafetyEvalModelMetric("人工填写",stats.manualCount,"个","orange")}
       </section>
-      ${renderSafetyEvalModelStructure(0)}
+      ${renderSafetyEvalModelStructure(safetyEvalModelCurrentMode?-1:0)}
     </div>
   `;
   openModal(canEdit?"编辑模型":"模型详情",html,canEdit
@@ -2443,18 +2517,18 @@ function renderSafetyEvaluationModelPage(){
     ${renderUnifiedQueryCard(`
       <div class="form-item"><label>模型名称</label><input class="input" id="semName" value="${escapeAttr(safetyEvalModelState.modelName)}" placeholder="支持模糊搜索"/></div>
       <div class="form-item"><label>模型编码</label><input class="input" id="semCode" value="${escapeAttr(safetyEvalModelState.modelCode)}" placeholder="请输入唯一编码"/></div>
-      <div class="form-item"><label>模型状态</label><select class="select" id="semStatus">${renderSafetyEvalModelOptions(safetyEvalModelOptions.status,safetyEvalModelState.modelStatus,"全部")}</select></div>
+      <div class="form-item"><label>模型状态</label><select class="select" id="semStatus">${renderSafetyEvalModelOptions((safetyEvalModelCurrentMode?safetyEvalCurrentModelOptions:safetyEvalModelOptions).status,safetyEvalModelState.modelStatus,"全部")}</select></div>
       <div class="form-item"><label>适用对象类型</label><select class="select" id="semObjectType">${renderSafetyEvalModelOptions((safetyEvalModelCurrentMode?safetyEvalCurrentModelOptions:safetyEvalModelOptions).objectTypes,safetyEvalModelState.objectType,"全部")}</select></div>
       <div class="form-item"><label>创建人</label><input class="input" id="semCreator" value="${escapeAttr(safetyEvalModelState.creator)}" placeholder="支持搜索"/></div>
-      <div class="form-item"><label>发布时间-开始</label><input class="input" type="date" id="semPublishStart" value="${escapeAttr(safetyEvalModelState.publishStartTime)}"/></div>
-      <div class="form-item"><label>发布时间-结束</label><input class="input" type="date" id="semPublishEnd" value="${escapeAttr(safetyEvalModelState.publishEndTime)}"/></div>
+      ${safetyEvalModelCurrentMode?"":`<div class="form-item"><label>发布时间-开始</label><input class="input" type="date" id="semPublishStart" value="${escapeAttr(safetyEvalModelState.publishStartTime)}"/></div>
+      <div class="form-item"><label>发布时间-结束</label><input class="input" type="date" id="semPublishEnd" value="${escapeAttr(safetyEvalModelState.publishEndTime)}"/></div>`}
     `,{title:"查询条件",queryFn:"querySafetyEvalModels()",resetFn:"resetSafetyEvalModels()",gridClass:"search-grid"})}
     <section class="card table-card safety-eval-model-card">
       <div class="card-hd">
         <div class="card-title">评价模型列表</div>
         <div class="actions">
           <button class="btn primary" onclick="showToast('新增评价模型功能演示')">新增模型</button>
-          <button class="btn" onclick="showToast('批量发布功能演示')">批量发布</button>
+          ${safetyEvalModelCurrentMode?"":`<button class="btn" onclick="showToast('批量发布功能演示')">批量发布</button>`}
           <button class="btn" onclick="showToast('导出成功')">导出</button>
           <button class="column-setting-icon-btn" title="列配置" onclick="openColumnSetting('safetyEvalModel','renderSafetyEvaluationModelPage')">⚙</button>
         </div>

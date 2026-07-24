@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.348";
-const APP_CODE_VERSION_NAME="安全评价结果字段优化版";
-const APP_CODE_VERSION_TIME="2026-07-24 16:00";
-const APP_CODE_VERSION_DESC="评价结果管理拆分项目、分公司和子公司评价数量，调整项目综合得分与查看文案，并精简查询条件和批量操作。";
+const APP_CODE_VERSION="EM-20260701-V2.2.350";
+const APP_CODE_VERSION_NAME="安全评价模型列表精简版";
+const APP_CODE_VERSION_TIME="2026-07-24 19:00";
+const APP_CODE_VERSION_DESC="安全评价模型移除批量发布与发布时间查询条件，修正适用对象类型并精简模型状态字典。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
