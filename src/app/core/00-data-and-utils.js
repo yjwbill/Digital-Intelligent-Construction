@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.376-TODO-BATCH-STATUSES";
-const APP_CODE_VERSION_NAME="待办批次状态统一版";
-const APP_CODE_VERSION_TIME="2026-07-25 23:35";
-const APP_CODE_VERSION_DESC="待办触达批次发送状态与消息发送批次统一为待发送、已发送、部分发送、失败、已撤回。";
+const APP_CODE_VERSION="EM-20260701-V2.2.381-ECONOMY-DIAGNOSIS-POLISH";
+const APP_CODE_VERSION_NAME="经济诊断细节优化版";
+const APP_CODE_VERSION_TIME="2026-07-26 01:39";
+const APP_CODE_VERSION_DESC="经济诊断六项指标保持单行，项目类型统一数据字典标签，并优化项目清单命名、对齐和潜亏预警标题。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
@@ -731,11 +731,20 @@ const businessMenus={
   economy:{
     title:"经济管理",
     menus:[
+      {icon:"📺",name:"大屏看板",active:false},
       {icon:"💰",name:"成本总览",active:false},
       {icon:"📑",name:"合同管理",active:false},
       {icon:"🧾",name:"结算管理",active:false},
       {icon:"📈",name:"经营分析",active:false},
-      {icon:"🏦",name:"资金计划",active:false}
+      {icon:"🏦",name:"资金计划",active:false},
+      {
+        icon:"📋",
+        name:"经济开项",
+        open:true,
+        children:[
+          {name:"开项审批",active:true}
+        ]
+      }
     ]
   },
   operation:{

@@ -205,6 +205,8 @@ function selectBusinessChildMenu(line,gi,ci,name){
   if(line==="safety"&&name==="AI违规抓拍")return renderSafetyAiCapturePage();
   if(line==="safety"&&(parent?.name==="安全评价"||parent?.name==="历史功能"))return renderSafetyEvaluationManagePage(name);
   if(line==="operation")return renderOperationProductionProjectReportPage();
+  if(line==="economy"&&parent?.name==="经济开项"&&name==="开项审批")return renderEconomyProjectInitiationPage();
+  if(line==="economy"&&name==="大屏看板")return renderEconomyDashboardPage();
 
   if(line==="safety")return renderSafetyPlaceholder(name);
 
@@ -246,6 +248,7 @@ function selectBusinessSingleMenu(line,i,name){
   if(line==="home"&&name==="施工日志")return renderEnterpriseConstructionLogPage();
   if(line==="safety"&&i===0)return renderSafetyOnlineDashboardPage();
   if(line==="production"&&name==="大屏看板")return renderProductionDashboardByKey(window.__APP_PRODUCTION_DASHBOARD_ROUTE_KEY__ || "overview");
+  if(line==="economy"&&name==="大屏看板")return renderEconomyDashboardPage();
   if(line==="production"&&name==="施工项目一览")return renderConstructionProjectPage();
   if(line==="operation"&&name==="接口同步异常记录")return renderInterfaceSyncExceptionPage();
 

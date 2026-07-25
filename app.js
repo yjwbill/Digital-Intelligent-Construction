@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.376-todo-batch-statuses";
+  const version="2.2.381-economy-diagnosis-polish";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",
@@ -23,6 +23,8 @@
     "src/app/mobile/polish-monthly-output.js",
     "src/app/operation/production-project-report.js",
     "src/app/operation/interface-sync-exceptions.js",
+    "src/app/economy/project-initiation.js",
+    "src/app/economy/dashboard.js",
     "src/app/mobile/project-overview.js",
     "src/app/core/99-initial-route.js"
   ];
