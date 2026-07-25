@@ -1301,13 +1301,13 @@ const receiverDataset = {
     post:["安全总监","生产总监","经济主管"],
     org:["上海隧道","市政集团","上海路桥"],
     person:["张主管","李主管","王领导","金领导"],
-    dynamic:["{%业务操作人直属领导}"]
+    dynamic:["{%业务操作人直属领导}","{%RECTIFY_OWNER%}","业务接口传入"]
   },
   project:{
     post:["项目经理","安全员","质量员","机械员","项目副经理","生产副经理","经济副经理"],
     org:["XXX项目A","XXX项目B"],
     person:["张工","李工","王工","金工"],
-    dynamic:["{%业务操作人}"]
+    dynamic:["{%业务操作人}","{%RECTIFY_OWNER%}","业务接口传入"]
   }
 };
 
@@ -1340,13 +1340,13 @@ const ReceiverEngine = {
       post:["安全总监","生产总监","经济主管"],
       org:["上海隧道","市政集团","上海路桥"],
       person:["张主管","李主管","王领导","金领导"],
-      dynamic:["{%业务操作人直属领导}"]
+      dynamic:["{%业务操作人直属领导}","{%RECTIFY_OWNER%}","业务接口传入"]
     },
     project:{
       post:["项目经理","安全员","质量员","机械员","项目副经理","生产副经理","经济副经理"],
       org:["XXX项目A","XXX项目B"],
       person:["张工","李工","王工","金工"],
-      dynamic:["{%业务操作人}"]
+      dynamic:["{%业务操作人}","{%RECTIFY_OWNER%}","业务接口传入"]
     }
   },
   level:"enterprise",
@@ -1397,13 +1397,13 @@ const ReceiverLevelData = {
     post:["安全总监","生产总监","经济主管"],
     org:["上海隧道","市政集团","上海路桥"],
     person:["张主管","李主管","王领导","金领导"],
-    dynamic:["{%业务操作人直属领导}"]
+    dynamic:["{%业务操作人直属领导}","{%RECTIFY_OWNER%}","业务接口传入"]
   },
   project:{
     post:["项目经理","安全员","质量员","机械员","项目副经理","生产副经理","经济副经理"],
     org:["XXX项目A","XXX项目B"],
     person:["张工","李工","王工","金工"],
-    dynamic:["{%业务操作人}"]
+    dynamic:["{%业务操作人}","{%RECTIFY_OWNER%}","业务接口传入"]
   }
 };
 
@@ -1420,28 +1420,27 @@ function labelMap(type){
   return ({post:"选择岗位",org:"选择组织",person:"选择人员",dynamic:"选择动态参数"})[type]||"";
 }
 
-function renderTemplateTargetPicker(type){
-  if(type==="all") return "";
+function renderMessageReceiverTargetPicker(type,id){
+  if(type==="all")return "";
   const data=getReceiverData(type);
-  return `<label class="target-inner-label">${labelMap(type)}
-    ${renderTemplateCheckTreeSelect("msgTplTargetValue",
-      [{label:"列表",children:data.map(x=>({label:x}))}],
-      "请选择",
-      data
-    )}
-  </label>`;
+  const picker=type==="org" && typeof renderMessageOrganizationTreeMultiSelect==="function"
+    ?renderMessageOrganizationTreeMultiSelect(id,[])
+    :type==="post" && typeof renderMessageRouteMultiSelect==="function"
+      ?renderMessageRouteMultiSelect(id,data,[])
+      :type==="person" && typeof renderMessagePersonPicker==="function"
+        ?renderMessagePersonPicker(id,[])
+      :type==="dynamic" && typeof renderMessageRouteSingleSelect==="function"
+        ?renderMessageRouteSingleSelect(id,data,{ariaLabel:labelMap(type)})
+      :renderTemplateCheckTreeSelect(id,[{label:"列表",children:data.map(x=>({label:x}))}],"请选择",data);
+  return `<label class="target-inner-label">${labelMap(type)}${picker}</label>`;
+}
+
+function renderTemplateTargetPicker(type){
+  return renderMessageReceiverTargetPicker(type,"msgTplTargetValue");
 }
 
 function renderTodoOverdueTargetPicker(type){
-  if(type==="all") return "";
-  const data=getReceiverData(type);
-  return `<label class="target-inner-label">${labelMap(type)}
-    ${renderTemplateCheckTreeSelect("msgTplOverdueTargetValue",
-      [{label:"列表",children:data.map(x=>({label:x}))}],
-      "请选择",
-      data
-    )}
-  </label>`;
+  return renderMessageReceiverTargetPicker(type,"msgTplOverdueTargetValue");
 }
 
 function syncReceiverLevel(){
@@ -1667,13 +1666,16 @@ function getOverdueReceiverLevel(){
 function renderTodoOverdueTargetPicker(type){
   if(type==="all") return "";
   const data=getReceiverDataByLevel(getOverdueReceiverLevel(),type);
-  return `<label class="target-inner-label">${labelMap(type)}
-    ${renderTemplateCheckTreeSelect("msgTplOverdueTargetValue",
-      [{label:"列表",children:data.map(x=>({label:x}))}],
-      "请选择",
-      data
-    )}
-  </label>`;
+  const picker=type==="org" && typeof renderMessageOrganizationTreeMultiSelect==="function"
+    ?renderMessageOrganizationTreeMultiSelect("msgTplOverdueTargetValue",[])
+    :type==="post" && typeof renderMessageRouteMultiSelect==="function"
+      ?renderMessageRouteMultiSelect("msgTplOverdueTargetValue",data,[])
+      :type==="person" && typeof renderMessagePersonPicker==="function"
+        ?renderMessagePersonPicker("msgTplOverdueTargetValue",[])
+      :type==="dynamic" && typeof renderMessageRouteSingleSelect==="function"
+        ?renderMessageRouteSingleSelect("msgTplOverdueTargetValue",data,{ariaLabel:labelMap(type)})
+      :renderTemplateCheckTreeSelect("msgTplOverdueTargetValue",[{label:"列表",children:data.map(x=>({label:x}))}],"请选择",data);
+  return `<label class="target-inner-label">${labelMap(type)}${picker}</label>`;
 }
 
 function syncTemplatePopupStyleLock(){

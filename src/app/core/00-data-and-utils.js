@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.355";
-const APP_CODE_VERSION_NAME="安全评价模型待发布状态版";
-const APP_CODE_VERSION_TIME="2026-07-24 22:30";
-const APP_CODE_VERSION_DESC="安全评价模型编辑保存后进入待发布状态，点击发布生成新版本后恢复为已发布。";
+const APP_CODE_VERSION="EM-20260701-V2.2.360-MESSAGE-PERSON-PICKER";
+const APP_CODE_VERSION_NAME="消息模板指定人员选择版";
+const APP_CODE_VERSION_TIME="2026-07-25 11:36";
+const APP_CODE_VERSION_DESC="消息模板接收人员类型选择指定人员时，使用组织树与人员列表二级弹框完成搜索、多选、分页和确认回填。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,

@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.355-safety-model-pending-publish";
+  const version="2.2.360-message-person-picker";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",

@@ -6812,6 +6812,391 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
   box-sizing:border-box;
 }
 
+/* 消息模板接收路由：岗位多选复用标准多选组件 */
+.message-template-v2220 .message-route-multi-select{
+  --bs-primary:#165dff;
+  width:100%;
+}
+.message-template-v2220 .message-route-single-select{
+  width:100%;
+}
+.message-template-v2220 .message-route-multi-select .base-multi-select__control{
+  min-height:34px;
+  height:34px;
+  padding:0 8px;
+  gap:4px;
+}
+.message-template-v2220 .message-route-multi-select .base-multi-select__tags{
+  min-width:0;
+  flex-wrap:nowrap;
+  overflow:hidden;
+  padding:2px 0;
+}
+.message-template-v2220 .message-route-multi-select .base-multi-select__tag{
+  flex:0 1 auto;
+  height:24px;
+  max-width:96px;
+  padding:0 6px;
+  color:#4e5969;
+  background:#f2f3f5;
+}
+.message-template-v2220 .message-route-multi-select .message-route-count-tag{
+  flex:none;
+  color:#4e5969;
+  white-space:nowrap;
+}
+.message-template-v2220 .message-route-multi-select .base-multi-select__tag-remove{
+  flex:none;
+  color:#86909c;
+}
+.message-template-v2220 .message-route-multi-select .base-multi-select__input{
+  min-width:18px;
+  height:28px;
+  font-size:13px;
+}
+.message-template-v2220 .message-route-multi-select__clear{
+  width:16px;
+  height:16px;
+  padding:0;
+  border:1px solid #c9cdd4;
+  border-radius:50%;
+  color:#86909c;
+  background:#fff;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:12px;
+  line-height:1;
+  cursor:pointer;
+  flex:none;
+}
+.message-template-v2220 .message-route-multi-select__clear[hidden]{display:none !important;}
+.message-template-v2220 .message-route-multi-select__clear:hover{
+  border-color:#165dff;
+  color:#165dff;
+}
+.message-template-v2220 .message-route-multi-select .base-multi-select__dropdown{
+  min-width:260px;
+  padding:4px 0;
+  overflow-y:auto;
+}
+.message-template-v2220 .message-route-multi-select .base-multi-select__option{
+  height:36px;
+  min-height:36px;
+  width:100%;
+  padding:0 12px;
+  border:0;
+  border-radius:0;
+  background:#fff;
+  font-size:14px;
+  font-weight:400;
+  text-align:left;
+}
+.message-template-v2220 .message-route-multi-select .base-multi-select__option:hover{background:#f5f7fa;}
+.message-template-v2220 .message-route-multi-select .message-route-select-all{
+  margin-bottom:4px;
+  border-bottom:1px solid #f2f3f5;
+}
+.message-template-v2220 .message-route-multi-select .base-multi-select__option.is-selected .base-multi-select__label{
+  color:#165dff;
+  font-weight:500;
+}
+.message-template-v2220 .message-route-multi-select .base-multi-select__checkbox{
+  margin-left:auto;
+  order:2;
+}
+.message-template-v2220 .message-route-multi-select .message-route-select-all.is-indeterminate .base-multi-select__checkbox{
+  border-color:#165dff;
+  background:#165dff;
+}
+.message-template-v2220 .message-route-multi-select .message-route-select-all.is-indeterminate .base-multi-select__checkbox::after{
+  content:"";
+  width:7px;
+  height:2px;
+  border:0;
+  background:#fff;
+  transform:none;
+}
+.message-template-v2220 .message-route-org-tree .message-route-tree-dropdown{
+  min-width:360px;
+  padding:6px 0;
+}
+.message-template-v2220 .message-route-org-tree .message-route-tree-item[hidden]{
+  display:none;
+}
+.message-template-v2220 .message-route-org-tree .message-route-tree-option{
+  padding-left:calc(10px + (var(--tree-level,1) - 1) * 20px);
+  padding-right:12px;
+  gap:7px;
+}
+.message-template-v2220 .message-route-org-tree .message-route-tree-option[style*="--tree-level:1"],
+.message-template-v2220 .message-route-org-tree .message-route-tree-option[style*="--tree-level:2"]{
+  font-weight:500;
+}
+.message-template-v2220 .message-route-org-tree .message-route-tree-option .base-multi-select__checkbox{
+  order:0;
+  margin-left:0;
+}
+.message-template-v2220 .message-route-org-tree .message-route-tree-option .base-multi-select__label{
+  order:1;
+  font-weight:inherit;
+}
+.message-template-v2220 .message-route-org-tree .message-route-tree-option.is-indeterminate .base-multi-select__label{
+  color:#165dff;
+}
+.message-template-v2220 .message-route-org-tree .message-route-tree-option.is-indeterminate .base-multi-select__checkbox{
+  border-color:#165dff;
+  background:#165dff;
+}
+.message-template-v2220 .message-route-org-tree .message-route-tree-option.is-indeterminate .base-multi-select__checkbox::after{
+  content:"";
+  width:7px;
+  height:2px;
+  border:0;
+  background:#fff;
+  transform:none;
+}
+.message-template-v2220 .message-route-org-tree .message-route-tree-toggle{
+  width:14px;
+  height:14px;
+  flex:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:#4e5969;
+  font-size:12px;
+  line-height:1;
+  transition:transform .15s ease;
+}
+.message-template-v2220 .message-route-org-tree .message-route-tree-toggle.is-placeholder{
+  visibility:hidden;
+}
+.message-template-v2220 .message-route-org-tree .message-route-tree-item.is-collapsed > .message-route-tree-children{
+  display:none;
+}
+.message-template-v2220 .message-route-org-tree .message-route-tree-item.is-collapsed > .message-route-tree-option .message-route-tree-toggle{
+  transform:rotate(-90deg);
+}
+
+/* 消息模板接收路由：指定人员组织树 + 人员列表选择器 */
+.message-template-v2220 .message-person-picker .base-multi-select__control{
+  cursor:pointer;
+}
+.message-template-v2220 .message-person-picker__placeholder{
+  color:#86909c;
+  font-size:13px;
+  line-height:28px;
+  white-space:nowrap;
+}
+.nested-modal.message-person-picker-modal{
+  width:min(1360px,88vw);
+  height:76vh;
+  max-width:calc(100vw - 64px);
+  max-height:calc(100vh - 64px);
+}
+.nested-modal.message-person-picker-modal .modal-bd{
+  padding:14px;
+  overflow:hidden;
+  background:#f7f8fa;
+}
+.message-person-picker-layout{
+  height:100%;
+  min-height:0;
+  display:grid;
+  grid-template-columns:260px minmax(0,1fr);
+  gap:12px;
+}
+.message-person-picker-org-panel,
+.message-person-picker-user-panel{
+  min-width:0;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:#fff;
+}
+.message-person-picker-panel-title,
+.message-person-picker-user-head{
+  min-height:48px;
+  flex:none;
+  border-bottom:1px solid var(--border);
+  background:#fafbfc;
+}
+.message-person-picker-panel-title{
+  padding:0 14px;
+  display:flex;
+  align-items:center;
+  color:var(--text);
+  font-size:14px;
+  font-weight:600;
+}
+.message-person-picker-org-search{
+  padding:10px 12px 8px;
+  flex:none;
+}
+.message-person-picker-org-search .input{
+  width:100%;
+}
+.message-person-picker-org-tree{
+  flex:1;
+  min-height:0;
+  overflow:auto;
+  padding:2px 8px 10px;
+}
+.message-person-org-node{
+  justify-content:flex-start;
+  min-height:34px;
+  margin-bottom:2px;
+  padding-left:calc(8px + (var(--person-org-level,1) - 1) * 18px);
+  padding-right:8px;
+  gap:5px;
+  font-weight:400;
+}
+.message-person-org-node.active{
+  font-weight:600;
+}
+.message-person-org-toggle{
+  width:14px;
+  height:14px;
+  flex:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:#4e5969;
+  font-size:12px;
+}
+.message-person-org-toggle.is-placeholder{
+  visibility:hidden;
+}
+.message-person-org-icon{
+  width:14px;
+  flex:none;
+  color:#86909c;
+  font-size:12px;
+  text-align:center;
+}
+.message-person-org-node.active .message-person-org-icon,
+.message-person-org-node:hover .message-person-org-icon{
+  color:var(--primary);
+}
+.message-person-org-node .org-node-name{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.message-person-picker-user-head{
+  padding:8px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.message-person-picker-user-title{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  white-space:nowrap;
+}
+.message-person-picker-user-title strong{
+  max-width:220px;
+  overflow:hidden;
+  color:var(--text);
+  font-size:14px;
+  font-weight:600;
+  text-overflow:ellipsis;
+}
+.message-person-picker-user-title span{
+  color:var(--muted);
+  font-size:12px;
+}
+.message-person-picker-query{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+}
+.message-person-picker-query .input{
+  width:210px;
+}
+.message-person-picker-selection-bar{
+  min-height:38px;
+  padding:0 12px;
+  flex:none;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--border);
+  color:var(--sub);
+  font-size:13px;
+}
+.message-person-picker-selection-bar strong{
+  color:var(--primary);
+  font-weight:600;
+}
+.message-person-picker-selection-bar .btn.text{
+  height:28px;
+  padding:0 4px;
+}
+.message-person-picker-table-wrap{
+  flex:1;
+  min-height:0;
+  overflow:auto;
+}
+.message-person-picker-table th,
+.message-person-picker-table td{
+  height:42px;
+  padding:8px 10px;
+  color:var(--text);
+  font-size:14px;
+  font-weight:400;
+}
+.message-person-picker-table th{
+  color:var(--sub);
+  font-weight:600;
+}
+.message-person-picker-table input[type="checkbox"]{
+  width:15px;
+  height:15px;
+  margin:0;
+  vertical-align:middle;
+}
+.message-person-picker-row-disabled td{
+  color:#86909c;
+  background:#fafbfc;
+}
+.message-person-picker-empty{
+  padding:28px 12px !important;
+  color:var(--muted) !important;
+  text-align:center !important;
+}
+.message-person-picker-pagination{
+  min-height:44px;
+  padding:8px 12px;
+  flex:none;
+}
+@media(max-width:1100px){
+  .nested-modal.message-person-picker-modal{
+    width:calc(100vw - 32px);
+    max-width:calc(100vw - 32px);
+  }
+  .message-person-picker-layout{
+    grid-template-columns:220px minmax(0,1fr);
+  }
+  .message-person-picker-user-head{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .message-person-picker-query{
+    width:100%;
+    justify-content:flex-start;
+  }
+}
+
 /* =========================
    数智施工移动端 - 工作台
 ========================= */

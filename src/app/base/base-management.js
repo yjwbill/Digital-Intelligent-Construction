@@ -1980,7 +1980,7 @@ function openMessageTemplateForm(mode){
               <option value="all">全部人</option>
               <option value="post" selected>岗位</option>
               <option value="org">组织</option>
-              <option value="person">指定人</option>
+              <option value="person">指定人员</option>
               <option value="dynamic">动态参数</option>
             </select>
           </label>
@@ -2049,7 +2049,7 @@ function openMessageTemplateForm(mode){
               <option value="all">全部人</option>
               <option value="post">岗位</option>
               <option value="org">组织</option>
-              <option value="person">指定人</option>
+              <option value="person">指定人员</option>
               <option value="dynamic">动态参数</option>
             </select>
           </label>
@@ -2061,7 +2061,7 @@ function openMessageTemplateForm(mode){
         </div>
       </section>
     </div>
-  `,isCreateMode?`<button class="btn" onclick="closeModal()">取消</button><button class="btn" onclick="showToast('预览：PC和移动端消息样式已生成')">预览</button><button class="btn primary" onclick="saveMessageTemplateSendForm()">保存</button>`:`<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="closeModal();showToast('模板已保存')">保存模板</button>`,"large");
+  `,isCreateMode?`<button class="btn" onclick="closeModal()">取消</button><button class="btn" onclick="showToast('预览：PC和移动端消息样式已生成')">预览</button><button class="btn primary" onclick="saveMessageTemplateSendForm()">保存</button>`:`<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveMessageTemplateConfigForm()">保存模板</button>`,"large");
   updateTemplateTitleCount();
   modalBox.classList.add("message-template-modal");
   syncTemplateTriggerRule();
@@ -2069,6 +2069,17 @@ function openMessageTemplateForm(mode){
   if(isSendMode)syncMessageTemplateSendTemplate();
   setTimeout(()=>{refreshTemplateTreeStates("msgTplTargetValue");updateTemplateCheckTreeValue("msgTplTargetValue");},0);
 }
+
+function saveMessageTemplateConfigForm(){
+  const targetType=document.getElementById("msgTplTargetType")?.value || "post";
+  if(targetType==="person" && typeof getMessagePersonPickerValues==="function" && !getMessagePersonPickerValues("msgTplTargetValue").length){
+    showToast("请选择接收人员");
+    return;
+  }
+  closeModal();
+  showToast("模板已保存");
+}
+
 function normalizeTplTreeNode(node){
   const label=node.label ?? node.name ?? node.value ?? "";
   const value=node.value ?? label;
@@ -2111,6 +2122,817 @@ function renderTemplateCheckTreeSelect(id,tree,placeholder,selected=[]){
     <div class="tpl-tree-control" onclick="toggleTemplateTreeDropdown('${id}')"><span class="tpl-tree-value">${selectedText}</span><i>⌄</i></div>
     <div class="tpl-tree-dropdown" onclick="event.stopPropagation()"><div class="tpl-tree-search-row"><span>请选择</span></div>${rows}</div>
   </div>`;
+}
+
+function renderMessageRouteMultiSelectTags(id,selected=[]){
+  if(!selected.length)return "";
+  const first=selected[0];
+  const safeValue=escapeTplAttr(first.value);
+  const safeLabel=escapeTplAttr(first.label);
+  const safeTitle=escapeTplAttr(first.path || first.label);
+  return `<span class="base-multi-select__tag message-route-selection-tag" data-value="${safeValue}" title="${safeTitle}">
+    <span class="base-multi-select__tag-text">${safeLabel}</span>
+    <button class="base-multi-select__tag-remove" type="button" title="移除${safeLabel}" aria-label="移除${safeLabel}" data-value="${safeValue}" onclick="removeMessageRouteMultiTag(event,'${id}',this.dataset.value)">×</button>
+  </span>${selected.length>1?`<span class="base-multi-select__tag message-route-selection-tag message-route-count-tag">+${selected.length-1}</span>`:""}`;
+}
+
+function renderMessageRouteMultiSelect(id,options=[],selected=[],config={}){
+  const normalized=(options||[]).map(option=>{
+    const value=typeof option==="string"?option:(option.value ?? option.label ?? "");
+    const label=typeof option==="string"?option:(option.label ?? option.value ?? "");
+    return {value:String(value),label:String(label)};
+  }).filter(option=>option.value);
+  const placeholder=config.placeholder || "请选择岗位";
+  const searchLabel=config.searchLabel || "搜索岗位";
+  const selectedSet=new Set((selected||[]).map(String));
+  const selectedOptions=normalized.filter(option=>selectedSet.has(option.value));
+  const allSelected=normalized.length>0 && selectedOptions.length===normalized.length;
+  const partlySelected=selectedOptions.length>0 && !allSelected;
+  return `<div id="${id}" class="base-multi-select message-route-multi-select" data-placeholder="${escapeTplAttr(placeholder)}">
+    <div class="base-multi-select__control" tabindex="0" role="combobox" aria-haspopup="listbox" aria-expanded="false" onclick="toggleMessageRouteMultiSelect(event,'${id}')">
+      <div class="base-multi-select__tags">
+        ${renderMessageRouteMultiSelectTags(id,selectedOptions)}
+        <input class="base-multi-select__input" value="" placeholder="${selectedOptions.length?"":escapeTplAttr(placeholder)}" aria-label="${escapeTplAttr(searchLabel)}" onclick="event.stopPropagation();openMessageRouteMultiSelect('${id}')" oninput="filterMessageRouteMultiSelect('${id}',this.value)" onkeydown="handleMessageRouteMultiKey(event,'${id}')"/>
+      </div>
+      <button class="message-route-multi-select__clear" type="button" title="清空已选" aria-label="清空已选" ${selectedOptions.length?"":"hidden"} onclick="clearMessageRouteMultiSelect(event,'${id}')">×</button>
+      <span class="base-multi-select__arrow" aria-hidden="true">⌄</span>
+    </div>
+    <div class="base-multi-select__dropdown" role="listbox" aria-multiselectable="true" style="display:none" onclick="event.stopPropagation()">
+      <button type="button" class="base-multi-select__option message-route-select-all ${allSelected?"is-selected":""} ${partlySelected?"is-indeterminate":""}" role="option" aria-selected="${allSelected}" onclick="toggleAllMessageRouteOptions('${id}')">
+        <span class="base-multi-select__label">全部</span><span class="base-multi-select__checkbox"></span>
+      </button>
+      ${normalized.map(option=>{
+        const safeValue=escapeTplAttr(option.value);
+        const safeLabel=escapeTplAttr(option.label);
+        const isSelected=selectedSet.has(option.value);
+        return `<button type="button" class="base-multi-select__option ${isSelected?"is-selected":""}" role="option" aria-selected="${isSelected}" data-value="${safeValue}" data-label="${safeLabel}" onclick="toggleMessageRouteMultiOption('${id}',this)">
+          <span class="base-multi-select__label">${safeLabel}</span><span class="base-multi-select__checkbox"></span>
+        </button>`;
+      }).join("")}
+    </div>
+  </div>`;
+}
+
+function renderMessageRouteSingleSelect(id,options=[],config={}){
+  const normalized=(options||[]).map(option=>{
+    const value=typeof option==="string"?option:(option.value ?? option.label ?? "");
+    const label=typeof option==="string"?option:(option.label ?? option.value ?? "");
+    return {value:String(value),label:String(label)};
+  }).filter(option=>option.value);
+  const selectedValue=String(config.selectedValue || normalized[0]?.value || "");
+  const ariaLabel=escapeTplAttr(config.ariaLabel || "选择动态参数");
+  return `<select class="select message-route-single-select" id="${id}" aria-label="${ariaLabel}">
+    ${normalized.map(option=>`<option value="${escapeTplAttr(option.value)}" ${option.value===selectedValue?"selected":""}>${escapeTplAttr(option.label)}</option>`).join("")}
+  </select>`;
+}
+
+function getMessageOrganizationRouteTree(){
+  if(typeof orgTreeData==="undefined" || !orgTreeData)return [];
+  const mapNode=(node,level=1,parentPath="")=>{
+    if(!node || level>3)return null;
+    const label=String(node.name || node.shortName || node.code || "");
+    const path=parentPath?`${parentPath} / ${label}`:label;
+    const children=(node.children||[]).map(child=>mapNode(child,level+1,path)).filter(Boolean);
+    return {
+      value:String(node.code || node.id || label),
+      label,
+      path,
+      level,
+      children
+    };
+  };
+  const root=mapNode(orgTreeData);
+  return root?[root]:[];
+}
+
+function flattenMessageOrganizationRouteTree(nodes,result=[]){
+  (nodes||[]).forEach(node=>{
+    result.push(node);
+    flattenMessageOrganizationRouteTree(node.children,result);
+  });
+  return result;
+}
+
+function getMessageOrganizationSelectionState(tree,flat,selected=[]){
+  const selectedSet=new Set();
+  const indeterminateSet=new Set();
+  const selectNode=node=>{
+    selectedSet.add(node.value);
+    (node.children||[]).forEach(selectNode);
+  };
+  (selected||[]).map(String).forEach(value=>{
+    const labelMatches=flat.filter(option=>option.label===value);
+    const matched=flat.find(option=>option.value===value)
+      || flat.find(option=>option.path===value)
+      || (labelMatches.length===1?labelMatches[0]:null);
+    if(matched)selectNode(matched);
+  });
+  const syncNode=node=>{
+    if(!node.children?.length)return selectedSet.has(node.value)?"selected":"empty";
+    const childStates=node.children.map(syncNode);
+    const allSelected=childStates.every(state=>state==="selected");
+    const anySelected=childStates.some(state=>state!=="empty");
+    selectedSet.delete(node.value);
+    indeterminateSet.delete(node.value);
+    if(allSelected)selectedSet.add(node.value);
+    else if(anySelected)indeterminateSet.add(node.value);
+    return allSelected?"selected":anySelected?"indeterminate":"empty";
+  };
+  (tree||[]).forEach(syncNode);
+  return {selectedSet,indeterminateSet};
+}
+
+function renderMessageOrganizationRouteNodes(id,nodes,selectedSet,indeterminateSet,level=1){
+  return (nodes||[]).map(node=>{
+    const safeValue=escapeTplAttr(node.value);
+    const safeLabel=escapeTplAttr(node.label);
+    const safePath=escapeTplAttr(node.path);
+    const hasChildren=!!node.children?.length;
+    const isSelected=selectedSet.has(node.value);
+    const isIndeterminate=indeterminateSet.has(node.value);
+    return `<div class="message-route-tree-item ${hasChildren&&level>1?"is-collapsed":""}" data-route-tree-item data-level="${level}" data-search="${safeLabel}">
+      <button type="button" class="base-multi-select__option message-route-tree-option ${isSelected?"is-selected":""} ${isIndeterminate?"is-indeterminate":""}" role="option" aria-selected="${isSelected}" aria-checked="${isIndeterminate?"mixed":isSelected}" data-value="${safeValue}" data-label="${safeLabel}" data-path="${safePath}" style="--tree-level:${level}" onclick="toggleMessageRouteMultiOption('${id}',this)">
+        <span class="message-route-tree-toggle ${hasChildren?"":"is-placeholder"}" role="button" aria-label="${hasChildren?`展开或收起${safeLabel}`:""}" aria-expanded="${hasChildren&&level===1}" onclick="toggleMessageRouteTreeBranch(event,this)">${hasChildren?"▾":""}</span>
+        <span class="base-multi-select__checkbox"></span>
+        <span class="base-multi-select__label" title="${safePath}">${safeLabel}</span>
+      </button>
+      ${hasChildren?`<div class="message-route-tree-children">${renderMessageOrganizationRouteNodes(id,node.children,selectedSet,indeterminateSet,level+1)}</div>`:""}
+    </div>`;
+  }).join("");
+}
+
+function renderMessageOrganizationTreeMultiSelect(id,selected=[]){
+  const tree=getMessageOrganizationRouteTree();
+  const flat=flattenMessageOrganizationRouteTree(tree,[]);
+  const {selectedSet,indeterminateSet}=getMessageOrganizationSelectionState(tree,flat,selected);
+  const selectedOptions=flat.filter(option=>selectedSet.has(option.value) && !flat.some(parent=>parent.children?.includes(option) && selectedSet.has(parent.value)));
+  return `<div id="${id}" class="base-multi-select message-route-multi-select message-route-org-tree" data-route-mode="org-tree" data-placeholder="请选择组织">
+    <div class="base-multi-select__control" tabindex="0" role="combobox" aria-haspopup="tree" aria-expanded="false" onclick="toggleMessageRouteMultiSelect(event,'${id}')">
+      <div class="base-multi-select__tags">
+        ${renderMessageRouteMultiSelectTags(id,selectedOptions)}
+        <input class="base-multi-select__input" value="" placeholder="${selectedOptions.length?"":"请选择组织"}" aria-label="搜索组织" onclick="event.stopPropagation();openMessageRouteMultiSelect('${id}')" oninput="filterMessageRouteMultiSelect('${id}',this.value)" onkeydown="handleMessageRouteMultiKey(event,'${id}')"/>
+      </div>
+      <button class="message-route-multi-select__clear" type="button" title="清空已选组织" aria-label="清空已选组织" ${selectedOptions.length?"":"hidden"} onclick="clearMessageRouteMultiSelect(event,'${id}')">×</button>
+      <span class="base-multi-select__arrow" aria-hidden="true">⌄</span>
+    </div>
+    <div class="base-multi-select__dropdown message-route-tree-dropdown" role="tree" aria-multiselectable="true" style="display:none" onclick="event.stopPropagation()">
+      ${renderMessageOrganizationRouteNodes(id,tree,selectedSet,indeterminateSet)}
+      ${flat.length?"":`<div class="base-multi-select__empty">暂无组织数据</div>`}
+    </div>
+  </div>`;
+}
+
+function setMessageOrganizationOptionState(option,selected){
+  if(!option)return;
+  option.classList.toggle("is-selected",selected);
+  option.classList.remove("is-indeterminate");
+  const item=option.closest(".message-route-tree-item");
+  item?.querySelectorAll(":scope > .message-route-tree-children .message-route-tree-option").forEach(child=>{
+    child.classList.toggle("is-selected",selected);
+    child.classList.remove("is-indeterminate");
+  });
+}
+
+function refreshMessageOrganizationRouteStates(box){
+  if(!box || box.dataset.routeMode!=="org-tree")return;
+  const parents=[...box.querySelectorAll(".message-route-tree-item")].reverse();
+  parents.forEach(item=>{
+    const parentOption=item.querySelector(":scope > .message-route-tree-option");
+    const childOptions=[...item.querySelectorAll(":scope > .message-route-tree-children > .message-route-tree-item > .message-route-tree-option")];
+    if(!parentOption || !childOptions.length)return;
+    const allSelected=childOptions.every(child=>child.classList.contains("is-selected") && !child.classList.contains("is-indeterminate"));
+    const anySelected=childOptions.some(child=>child.classList.contains("is-selected") || child.classList.contains("is-indeterminate"));
+    parentOption.classList.toggle("is-selected",allSelected);
+    parentOption.classList.toggle("is-indeterminate",anySelected && !allSelected);
+  });
+}
+
+function getMessageRouteSelectionSummaryOptions(box){
+  const selected=[...box.querySelectorAll('.base-multi-select__option[data-value].is-selected')];
+  if(box.dataset.routeMode!=="org-tree")return selected;
+  return selected.filter(option=>{
+    let parentItem=option.closest(".message-route-tree-item")?.parentElement?.closest(".message-route-tree-item");
+    while(parentItem){
+      const parentOption=parentItem.querySelector(":scope > .message-route-tree-option");
+      if(parentOption?.classList.contains("is-selected") && !parentOption.classList.contains("is-indeterminate"))return false;
+      parentItem=parentItem.parentElement?.closest(".message-route-tree-item");
+    }
+    return true;
+  });
+}
+
+function getMessageRouteMultiSelectValues(id){
+  const box=document.getElementById(id);
+  if(!box)return [];
+  return getMessageRouteSelectionSummaryOptions(box).map(option=>option.dataset.value).filter(Boolean);
+}
+
+function getMessageRouteMultiSelectLabels(id){
+  const box=document.getElementById(id);
+  if(!box)return [];
+  const usePath=box.dataset.routeMode==="org-tree";
+  return getMessageRouteSelectionSummaryOptions(box)
+    .map(option=>(usePath?option.dataset.path:option.dataset.label) || option.dataset.label || option.dataset.value)
+    .filter(Boolean);
+}
+
+function updateMessageRouteMultiSelect(id){
+  const box=document.getElementById(id);
+  if(!box)return;
+  refreshMessageOrganizationRouteStates(box);
+  const options=[...box.querySelectorAll('.base-multi-select__option[data-value]')];
+  const selectedOptions=getMessageRouteSelectionSummaryOptions(box);
+  const selected=selectedOptions.map(option=>({value:option.dataset.value,label:option.dataset.label||option.dataset.value,path:option.dataset.path||""}));
+  const tags=box.querySelector(".base-multi-select__tags");
+  const input=box.querySelector(".base-multi-select__input");
+  tags?.querySelectorAll(".message-route-selection-tag").forEach(tag=>tag.remove());
+  if(input)input.insertAdjacentHTML("beforebegin",renderMessageRouteMultiSelectTags(id,selected));
+  if(input){input.value="";input.placeholder=selected.length?"":(box.dataset.placeholder||"请选择");}
+  if(box.dataset.routeMode==="org-tree")box.querySelectorAll(".message-route-tree-item").forEach(item=>{item.hidden=false;});
+  const clear=box.querySelector(".message-route-multi-select__clear");
+  if(clear)clear.hidden=!selected.length;
+  const selectAll=box.querySelector(".message-route-select-all");
+  const allSelected=options.length>0 && selected.length===options.length;
+  selectAll?.classList.toggle("is-selected",allSelected);
+  selectAll?.classList.toggle("is-indeterminate",selected.length>0 && !allSelected);
+  selectAll?.setAttribute("aria-selected",String(allSelected));
+  options.forEach(option=>{
+    option.hidden=false;
+    const optionSelected=option.classList.contains("is-selected");
+    const optionIndeterminate=option.classList.contains("is-indeterminate");
+    option.setAttribute("aria-selected",String(optionSelected));
+    if(box.dataset.routeMode==="org-tree")option.setAttribute("aria-checked",optionIndeterminate?"mixed":String(optionSelected));
+  });
+  box.dataset.values=JSON.stringify(selected.map(option=>option.value));
+}
+
+function setMessageRouteMultiSelectValues(id,values=[]){
+  const box=document.getElementById(id);
+  if(!box)return;
+  const options=[...box.querySelectorAll('.base-multi-select__option[data-value]')];
+  if(box.dataset.routeMode==="org-tree"){
+    options.forEach(option=>{
+      option.classList.remove("is-selected","is-indeterminate");
+    });
+    (values||[]).map(String).forEach(value=>{
+      const labelMatches=options.filter(option=>option.dataset.label===value);
+      const matched=options.find(option=>option.dataset.value===value)
+        || options.find(option=>option.dataset.path===value)
+        || (labelMatches.length===1?labelMatches[0]:null);
+      if(matched)setMessageOrganizationOptionState(matched,true);
+    });
+    refreshMessageOrganizationRouteStates(box);
+    updateMessageRouteMultiSelect(id);
+    return;
+  }
+  const selectedOptions=new Set();
+  (values||[]).map(String).forEach(value=>{
+    const matched=options.find(option=>option.dataset.value===value)
+      || options.find(option=>option.dataset.path===value)
+      || options.find(option=>option.dataset.label===value);
+    if(matched)selectedOptions.add(matched);
+  });
+  options.forEach(option=>option.classList.toggle("is-selected",selectedOptions.has(option)));
+  updateMessageRouteMultiSelect(id);
+}
+
+function positionMessageRouteMultiDropdown(box){
+  const control=box?.querySelector(".base-multi-select__control");
+  const dropdown=box?.querySelector(".base-multi-select__dropdown");
+  if(!control || !dropdown)return;
+  const rect=control.getBoundingClientRect();
+  const viewportHeight=window.innerHeight || document.documentElement.clientHeight || 800;
+  const viewportWidth=window.innerWidth || document.documentElement.clientWidth || 1280;
+  const gap=4;
+  const dropdownHeight=Math.min(dropdown.scrollHeight||260,260);
+  const belowTop=rect.bottom+gap;
+  const aboveTop=rect.top-dropdownHeight-gap;
+  const top=(belowTop+dropdownHeight<=viewportHeight-12 || aboveTop<12)?belowTop:aboveTop;
+  const minWidth=box.classList.contains("message-route-org-tree")?360:260;
+  const width=Math.min(Math.max(rect.width,minWidth),Math.max(260,viewportWidth-24));
+  const left=Math.min(Math.max(12,rect.left),Math.max(12,viewportWidth-width-12));
+  dropdown.style.position="fixed";
+  dropdown.style.left=left+"px";
+  dropdown.style.top=Math.max(12,top)+"px";
+  dropdown.style.width=width+"px";
+  dropdown.style.maxHeight="260px";
+  dropdown.style.zIndex="200001";
+}
+
+function resetMessageRouteMultiDropdown(box){
+  const dropdown=box?.querySelector(".base-multi-select__dropdown");
+  if(!dropdown)return;
+  ["position","left","top","width","maxHeight","zIndex"].forEach(prop=>dropdown.style[prop]="");
+}
+
+function closeMessageRouteMultiSelect(box){
+  if(!box)return;
+  box.classList.remove("is-open");
+  box.querySelector(".base-multi-select__control")?.setAttribute("aria-expanded","false");
+  const dropdown=box.querySelector(".base-multi-select__dropdown");
+  if(dropdown)dropdown.style.display="none";
+  resetMessageRouteMultiDropdown(box);
+}
+
+function openMessageRouteMultiSelect(id){
+  const box=document.getElementById(id);
+  if(!box)return;
+  document.querySelectorAll(".template-tree-select.open").forEach(tree=>{tree.classList.remove("open");resetTemplateDropdownPosition(tree);});
+  document.querySelectorAll(".message-route-multi-select.is-open").forEach(other=>{if(other!==box)closeMessageRouteMultiSelect(other);});
+  box.classList.add("is-open");
+  box.querySelector(".base-multi-select__control")?.setAttribute("aria-expanded","true");
+  const dropdown=box.querySelector(".base-multi-select__dropdown");
+  if(dropdown)dropdown.style.display="block";
+  positionMessageRouteMultiDropdown(box);
+  syncModalDropdownLayer();
+}
+
+function toggleMessageRouteMultiSelect(event,id){
+  event?.stopPropagation?.();
+  const box=document.getElementById(id);
+  if(!box)return;
+  if(box.classList.contains("is-open")){closeMessageRouteMultiSelect(box);syncModalDropdownLayer();}
+  else openMessageRouteMultiSelect(id);
+}
+
+function toggleMessageRouteMultiOption(id,option){
+  const box=document.getElementById(id);
+  if(box?.dataset.routeMode==="org-tree"){
+    const shouldSelect=option?.classList.contains("is-indeterminate") || !option?.classList.contains("is-selected");
+    setMessageOrganizationOptionState(option,shouldSelect);
+    refreshMessageOrganizationRouteStates(box);
+  }else{
+    option?.classList.toggle("is-selected");
+  }
+  updateMessageRouteMultiSelect(id);
+  openMessageRouteMultiSelect(id);
+}
+
+function toggleMessageRouteTreeBranch(event,toggle){
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+  const item=toggle?.closest?.(".message-route-tree-item");
+  if(!item || toggle.classList.contains("is-placeholder"))return;
+  const collapsed=item.classList.toggle("is-collapsed");
+  toggle.setAttribute("aria-expanded",String(!collapsed));
+}
+
+function toggleAllMessageRouteOptions(id){
+  const box=document.getElementById(id);
+  if(!box)return;
+  const options=[...box.querySelectorAll('.base-multi-select__option[data-value]')];
+  const shouldSelect=!options.length || !options.every(option=>option.classList.contains("is-selected"));
+  options.forEach(option=>option.classList.toggle("is-selected",shouldSelect));
+  updateMessageRouteMultiSelect(id);
+  openMessageRouteMultiSelect(id);
+}
+
+function clearMessageRouteMultiSelect(event,id){
+  event?.stopPropagation?.();
+  setMessageRouteMultiSelectValues(id,[]);
+  openMessageRouteMultiSelect(id);
+}
+
+function removeMessageRouteMultiTag(event,id,value){
+  event?.stopPropagation?.();
+  const box=document.getElementById(id);
+  const option=[...box?.querySelectorAll('.base-multi-select__option[data-value]')||[]].find(item=>item.dataset.value===value);
+  if(box?.dataset.routeMode==="org-tree"){
+    setMessageOrganizationOptionState(option,false);
+    refreshMessageOrganizationRouteStates(box);
+  }else{
+    option?.classList.remove("is-selected");
+  }
+  updateMessageRouteMultiSelect(id);
+}
+
+function filterMessageRouteMultiSelect(id,keyword){
+  const box=document.getElementById(id);
+  if(!box)return;
+  const normalized=String(keyword||"").trim().toLowerCase();
+  if(box.dataset.routeMode==="org-tree"){
+    const items=[...box.querySelectorAll(".message-route-tree-item")];
+    if(!normalized){
+      items.forEach(item=>{item.hidden=false;});
+    }else{
+      [...items].reverse().forEach(item=>{
+        const ownMatch=String(item.dataset.search||"").toLowerCase().includes(normalized);
+        const childMatch=[...item.querySelectorAll(":scope > .message-route-tree-children > .message-route-tree-item")].some(child=>!child.hidden);
+        item.hidden=!(ownMatch||childMatch);
+        if(childMatch)item.classList.remove("is-collapsed");
+      });
+    }
+    openMessageRouteMultiSelect(id);
+    return;
+  }
+  box.querySelectorAll('.base-multi-select__option[data-value]').forEach(option=>{option.hidden=!!normalized && !String(option.dataset.label||"").toLowerCase().includes(normalized);});
+  openMessageRouteMultiSelect(id);
+}
+
+function handleMessageRouteMultiKey(event,id){
+  if(event.key==="Escape"){
+    event.preventDefault();
+    closeMessageRouteMultiSelect(document.getElementById(id));
+    syncModalDropdownLayer();
+  }
+}
+
+const messagePersonPickerState={
+  targetId:"",
+  activeOrgId:"",
+  orgKeyword:"",
+  keyword:"",
+  page:1,
+  pageSize:50,
+  draftSelectedIds:[],
+  expandedOrgIds:new Set()
+};
+
+function getMessagePersonPickerUsers(){
+  return typeof orgUserData==="undefined"?[]:orgUserData;
+}
+
+function getMessagePersonOrgPath(orgId){
+  const names=[];
+  let found=typeof findOrgById==="function"?findOrgById(orgId):null;
+  while(found?.node){
+    names.unshift(found.node.name || found.node.shortName || found.node.code || "");
+    if(!found.parent)break;
+    found=findOrgById(found.parent.id);
+  }
+  return names.filter(Boolean).join(" / ");
+}
+
+function resolveMessagePersonPickerIds(values=[]){
+  const users=getMessagePersonPickerUsers().filter(user=>user.status!=="禁用");
+  const result=[];
+  (values||[]).map(value=>String(value||"").trim()).filter(Boolean).forEach(value=>{
+    const direct=users.find(user=>String(user.id)===value);
+    if(direct){
+      if(!result.includes(direct.id))result.push(direct.id);
+      return;
+    }
+    const matches=users.filter(user=>{
+      const fullLabel=`${getMessagePersonOrgPath(user.orgId)} / ${user.name}`;
+      return user.name===value || user.username===value || fullLabel===value;
+    });
+    if(matches.length===1 && !result.includes(matches[0].id))result.push(matches[0].id);
+  });
+  return result;
+}
+
+function getMessagePersonPickerSelectedUsers(id){
+  const box=document.getElementById(id);
+  if(!box)return [];
+  let values=[];
+  try{values=JSON.parse(box.dataset.values||"[]");}catch(error){values=[];}
+  const selectedIds=new Set(resolveMessagePersonPickerIds(values));
+  return getMessagePersonPickerUsers().filter(user=>selectedIds.has(user.id));
+}
+
+function renderMessagePersonPickerTags(id,users=[]){
+  if(!users.length)return "";
+  const first=users[0];
+  const safeId=escapeTplAttr(first.id);
+  const safeName=escapeTplAttr(first.name);
+  const safeTitle=escapeTplAttr(`${getMessagePersonOrgPath(first.orgId)} / ${first.name}`);
+  return `<span class="base-multi-select__tag message-route-selection-tag" data-value="${safeId}" title="${safeTitle}">
+    <span class="base-multi-select__tag-text">${safeName}</span>
+    <button class="base-multi-select__tag-remove" type="button" title="移除${safeName}" aria-label="移除${safeName}" data-value="${safeId}" onclick="removeMessagePersonPickerTag(event,'${id}',this.dataset.value)">×</button>
+  </span>${users.length>1?`<span class="base-multi-select__tag message-route-selection-tag message-route-count-tag">+${users.length-1}</span>`:""}`;
+}
+
+function renderMessagePersonPickerControl(id,selectedIds=[]){
+  const selectedSet=new Set(resolveMessagePersonPickerIds(selectedIds));
+  const users=getMessagePersonPickerUsers().filter(user=>selectedSet.has(user.id));
+  return `<div class="base-multi-select__control" tabindex="0" role="combobox" aria-haspopup="dialog" aria-expanded="false" onclick="openMessagePersonPicker('${id}')" onkeydown="handleMessagePersonPickerControlKey(event,'${id}')">
+    <div class="base-multi-select__tags">
+      ${renderMessagePersonPickerTags(id,users)}
+      ${users.length?"":`<span class="message-person-picker__placeholder">请选择人员</span>`}
+    </div>
+    <button class="message-route-multi-select__clear" type="button" title="清空已选人员" aria-label="清空已选人员" ${users.length?"":"hidden"} onclick="clearMessagePersonPicker(event,'${id}')">×</button>
+    <span class="base-multi-select__arrow" aria-hidden="true">⌄</span>
+  </div>`;
+}
+
+function renderMessagePersonPicker(id,selected=[]){
+  const selectedIds=resolveMessagePersonPickerIds(selected);
+  return `<div id="${id}" class="base-multi-select message-route-multi-select message-person-picker" data-placeholder="请选择人员" data-values="${escapeTplAttr(JSON.stringify(selectedIds))}">
+    ${renderMessagePersonPickerControl(id,selectedIds)}
+  </div>`;
+}
+
+function getMessagePersonPickerValues(id){
+  return getMessagePersonPickerSelectedUsers(id).map(user=>user.id);
+}
+
+function getMessagePersonPickerLabels(id){
+  return getMessagePersonPickerSelectedUsers(id).map(user=>user.name);
+}
+
+function setMessagePersonPickerValues(id,values=[]){
+  const box=document.getElementById(id);
+  if(!box)return;
+  const selectedIds=resolveMessagePersonPickerIds(values);
+  box.dataset.values=JSON.stringify(selectedIds);
+  box.innerHTML=renderMessagePersonPickerControl(id,selectedIds);
+}
+
+function clearMessagePersonPicker(event,id){
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+  setMessagePersonPickerValues(id,[]);
+}
+
+function removeMessagePersonPickerTag(event,id,userId){
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+  setMessagePersonPickerValues(id,getMessagePersonPickerValues(id).filter(value=>value!==userId));
+}
+
+function handleMessagePersonPickerControlKey(event,id){
+  if(event.key==="Enter" || event.key===" "){
+    event.preventDefault();
+    openMessagePersonPicker(id);
+  }
+}
+
+function getMessagePersonOrgDescendantIds(orgId){
+  const found=typeof findOrgById==="function"?findOrgById(orgId):null;
+  if(!found?.node)return [];
+  const result=[];
+  const collect=node=>{
+    if(!node)return;
+    result.push(node.id);
+    (node.children||[]).forEach(collect);
+  };
+  collect(found.node);
+  return result;
+}
+
+function getMessagePersonOrgUsers(orgId){
+  const orgIds=new Set(getMessagePersonOrgDescendantIds(orgId));
+  return getMessagePersonPickerUsers().filter(user=>orgIds.has(user.orgId));
+}
+
+function messagePersonOrgTreeMatches(node,keyword){
+  if(!keyword)return true;
+  const normalized=String(keyword).trim().toLowerCase();
+  const own=String(node?.name||node?.shortName||node?.code||"").toLowerCase().includes(normalized);
+  return own || (node?.children||[]).some(child=>messagePersonOrgTreeMatches(child,normalized));
+}
+
+function renderMessagePersonOrganizationNodes(node,level=1){
+  if(!node || !messagePersonOrgTreeMatches(node,messagePersonPickerState.orgKeyword))return "";
+  const hasChildren=!!node.children?.length;
+  const forceExpand=!!messagePersonPickerState.orgKeyword;
+  const expanded=forceExpand || messagePersonPickerState.expandedOrgIds.has(node.id);
+  const active=messagePersonPickerState.activeOrgId===node.id;
+  const safeId=escapeTplAttr(node.id);
+  const safeName=escapeTplAttr(node.name || node.shortName || node.code || "");
+  return `<div class="message-person-org-tree-item" data-org-id="${safeId}">
+    <div class="org-tree-node message-person-org-node ${active?"active":""}" data-org-id="${safeId}" style="--person-org-level:${level}" onclick="selectMessagePersonOrgNode(this.dataset.orgId)">
+      <span class="message-person-org-toggle ${hasChildren?"":"is-placeholder"}" aria-hidden="true" onclick="toggleMessagePersonOrgNode(event,this.closest('.message-person-org-node').dataset.orgId)">${hasChildren?(expanded?"▾":"▸"):""}</span>
+      <span class="message-person-org-icon" aria-hidden="true">${hasChildren?"▣":"□"}</span>
+      <span class="org-node-name" title="${safeName}">${safeName}</span>
+    </div>
+    ${hasChildren&&expanded?`<div class="message-person-org-children">${node.children.map(child=>renderMessagePersonOrganizationNodes(child,level+1)).join("")}</div>`:""}
+  </div>`;
+}
+
+function getMessagePersonFilteredUsers(){
+  const activeOrgId=messagePersonPickerState.activeOrgId || (typeof orgTreeData!=="undefined"?orgTreeData.id:"");
+  const keyword=String(messagePersonPickerState.keyword||"").trim().toLowerCase();
+  return getMessagePersonOrgUsers(activeOrgId)
+    .filter(user=>{
+      if(!keyword)return true;
+      return [user.name,user.username,user.phone,getMessagePersonOrgPath(user.orgId),getPostNameById(user.postId),getUserRoleNames(user)]
+        .some(value=>String(value||"").toLowerCase().includes(keyword));
+    })
+    .sort((a,b)=>{
+      const orgCompare=getMessagePersonOrgPath(a.orgId).localeCompare(getMessagePersonOrgPath(b.orgId),"zh-CN");
+      return orgCompare || String(a.name||"").localeCompare(String(b.name||""),"zh-CN");
+    });
+}
+
+function getMessagePersonPageData(){
+  const list=getMessagePersonFilteredUsers();
+  const totalPages=Math.max(1,Math.ceil(list.length/messagePersonPickerState.pageSize));
+  messagePersonPickerState.page=Math.min(Math.max(1,messagePersonPickerState.page),totalPages);
+  const start=(messagePersonPickerState.page-1)*messagePersonPickerState.pageSize;
+  return {list,totalPages,start,pageRows:list.slice(start,start+messagePersonPickerState.pageSize)};
+}
+
+function renderMessagePersonPickerModalBody(){
+  const active=typeof findOrgById==="function"?findOrgById(messagePersonPickerState.activeOrgId)?.node:null;
+  const {list,totalPages,start,pageRows}=getMessagePersonPageData();
+  const selectedSet=new Set(messagePersonPickerState.draftSelectedIds);
+  const selectableRows=pageRows.filter(user=>user.status!=="禁用");
+  const allPageSelected=selectableRows.length>0 && selectableRows.every(user=>selectedSet.has(user.id));
+  const partlyPageSelected=!allPageSelected && selectableRows.some(user=>selectedSet.has(user.id));
+  return `<div class="message-person-picker-layout">
+    <aside class="message-person-picker-org-panel">
+      <div class="message-person-picker-panel-title">组织树</div>
+      <div class="message-person-picker-org-search">
+        <input class="input" id="messagePersonOrgKeyword" value="${escapeTplAttr(messagePersonPickerState.orgKeyword)}" placeholder="请输入组织名称" oninput="filterMessagePersonOrgTree(this.value)"/>
+      </div>
+      <div class="message-person-picker-org-tree" id="messagePersonOrgTreeBody">
+        ${(typeof orgTreeData!=="undefined"?renderMessagePersonOrganizationNodes(orgTreeData):"") || '<div class="message-person-picker-empty">暂无匹配的组织</div>'}
+      </div>
+    </aside>
+    <section class="message-person-picker-user-panel">
+      <div class="message-person-picker-user-head">
+        <div class="message-person-picker-user-title">
+          <strong>${escapeTplAttr(active?.name || "全部组织")}人员</strong>
+          <span>共 ${list.length} 人</span>
+        </div>
+        <div class="message-person-picker-query">
+          <input class="input" id="messagePersonKeyword" value="${escapeTplAttr(messagePersonPickerState.keyword)}" placeholder="姓名 / 账号 / 手机号" onkeydown="if(event.key==='Enter')searchMessagePersonPicker()"/>
+          <button class="btn" type="button" onclick="resetMessagePersonPickerSearch()">重置</button>
+          <button class="btn primary" type="button" onclick="searchMessagePersonPicker()">查询</button>
+        </div>
+      </div>
+      <div class="message-person-picker-selection-bar">
+        <span>已选 <strong id="messagePersonSelectedCount">${messagePersonPickerState.draftSelectedIds.length}</strong> 人</span>
+        <button class="btn text" type="button" onclick="clearMessagePersonDraftSelection()">清空已选</button>
+      </div>
+      <div class="table-wrap message-person-picker-table-wrap">
+        <table class="message-person-picker-table" style="min-width:1040px">
+          <thead><tr>
+            <th style="width:52px;text-align:center"><input id="messagePersonPageSelectAll" type="checkbox" ${allPageSelected?"checked":""} data-indeterminate="${partlyPageSelected}" onchange="toggleMessagePersonPageSelection(this.checked)" aria-label="全选当前页人员"/></th>
+            <th style="width:70px;text-align:center">序号</th>
+            <th style="width:100px">姓名</th>
+            <th style="width:70px;text-align:center">性别</th>
+            <th style="width:130px">手机号</th>
+            <th style="width:120px">账号</th>
+            <th style="width:190px">所属组织</th>
+            <th style="width:110px">岗位</th>
+            <th style="width:130px">角色</th>
+            <th style="width:80px;text-align:center">状态</th>
+          </tr></thead>
+          <tbody>
+            ${pageRows.map((user,index)=>{
+              const disabled=user.status==="禁用";
+              return `<tr class="${disabled?"message-person-picker-row-disabled":""}">
+                <td style="text-align:center"><input class="message-person-row-check" type="checkbox" value="${escapeTplAttr(user.id)}" ${selectedSet.has(user.id)?"checked":""} ${disabled?"disabled":""} onchange="toggleMessagePersonSelection(this.value,this.checked)" aria-label="选择${escapeTplAttr(user.name)}"/></td>
+                <td style="text-align:center">${start+index+1}</td>
+                <td>${escapeTplAttr(user.name)}</td>
+                <td style="text-align:center">${escapeTplAttr(user.gender||"-")}</td>
+                <td>${escapeTplAttr(typeof maskPhone==="function"?maskPhone(user.phone):user.phone||"-")}</td>
+                <td>${escapeTplAttr(user.username||"-")}</td>
+                <td title="${escapeTplAttr(getMessagePersonOrgPath(user.orgId))}">${escapeTplAttr(getOrgNameById(user.orgId))}</td>
+                <td>${escapeTplAttr(getPostNameById(user.postId))}</td>
+                <td>${escapeTplAttr(getUserRoleNames(user))}</td>
+                <td style="text-align:center">${user.status==="启用"?tag("启用","green"):tag("禁用","gray")}</td>
+              </tr>`;
+            }).join("") || '<tr><td colspan="10" class="message-person-picker-empty">暂无人员数据</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination message-person-picker-pagination">
+        <span>共 ${list.length} 条</span>
+        <div class="pager">
+          <button class="btn mini" type="button" ${messagePersonPickerState.page<=1?"disabled":""} onclick="changeMessagePersonPickerPage(-1)">上一页</button>
+          <b>第 ${messagePersonPickerState.page} / ${totalPages} 页</b>
+          <button class="btn mini" type="button" ${messagePersonPickerState.page>=totalPages?"disabled":""} onclick="changeMessagePersonPickerPage(1)">下一页</button>
+          <select class="select mini-select" onchange="changeMessagePersonPickerPageSize(this.value)">
+            ${[20,50,100].map(size=>`<option value="${size}" ${messagePersonPickerState.pageSize===size?"selected":""}>${size}条/页</option>`).join("")}
+          </select>
+        </div>
+      </div>
+    </section>
+  </div>`;
+}
+
+function syncMessagePersonPageSelectAllState(){
+  const checkbox=document.getElementById("messagePersonPageSelectAll");
+  if(checkbox)checkbox.indeterminate=checkbox.dataset.indeterminate==="true";
+}
+
+function updateMessagePersonPickerModal(){
+  const body=document.querySelector(".message-person-picker-modal .modal-bd");
+  if(!body)return;
+  body.innerHTML=renderMessagePersonPickerModalBody();
+  syncMessagePersonPageSelectAllState();
+}
+
+function openMessagePersonPicker(targetId){
+  if(typeof openNestedModal!=="function"){
+    showToast("人员选择组件加载失败");
+    return;
+  }
+  document.querySelectorAll(".nested-modal-mask .message-person-picker-modal").forEach(modal=>modal.closest(".nested-modal-mask")?.remove());
+  messagePersonPickerState.targetId=targetId;
+  messagePersonPickerState.activeOrgId=typeof orgTreeData!=="undefined"?orgTreeData.id:"";
+  messagePersonPickerState.orgKeyword="";
+  messagePersonPickerState.keyword="";
+  messagePersonPickerState.page=1;
+  messagePersonPickerState.pageSize=50;
+  messagePersonPickerState.draftSelectedIds=getMessagePersonPickerValues(targetId);
+  messagePersonPickerState.expandedOrgIds=new Set(messagePersonPickerState.activeOrgId?[messagePersonPickerState.activeOrgId]:[]);
+  openNestedModal("选择人员",renderMessagePersonPickerModalBody(),`<button class="btn" type="button" onclick="cancelMessagePersonPicker(this)">取消</button><button class="btn primary" type="button" onclick="confirmMessagePersonPicker(this)">确定</button>`);
+  const modal=document.querySelector(".nested-modal-mask:last-of-type .nested-modal");
+  if(modal){
+    modal.classList.add("message-person-picker-modal");
+    modal.querySelector(".modal-hd span")?.setAttribute("id","messagePersonPickerTitle");
+    modal.setAttribute("aria-labelledby","messagePersonPickerTitle");
+    modal.querySelector(".modal-hd .close")?.setAttribute("onclick","cancelMessagePersonPicker(this)");
+  }
+  document.getElementById(targetId)?.querySelector(".base-multi-select__control")?.setAttribute("aria-expanded","true");
+  syncMessagePersonPageSelectAllState();
+}
+
+function cancelMessagePersonPicker(el){
+  document.getElementById(messagePersonPickerState.targetId)?.querySelector(".base-multi-select__control")?.setAttribute("aria-expanded","false");
+  closeNestedModal(el);
+}
+
+function confirmMessagePersonPicker(el){
+  setMessagePersonPickerValues(messagePersonPickerState.targetId,messagePersonPickerState.draftSelectedIds);
+  document.getElementById(messagePersonPickerState.targetId)?.querySelector(".base-multi-select__control")?.setAttribute("aria-expanded","false");
+  closeNestedModal(el);
+}
+
+function toggleMessagePersonOrgNode(event,orgId){
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+  if(messagePersonPickerState.expandedOrgIds.has(orgId))messagePersonPickerState.expandedOrgIds.delete(orgId);
+  else messagePersonPickerState.expandedOrgIds.add(orgId);
+  updateMessagePersonPickerModal();
+}
+
+function selectMessagePersonOrgNode(orgId){
+  messagePersonPickerState.activeOrgId=orgId;
+  messagePersonPickerState.page=1;
+  updateMessagePersonPickerModal();
+}
+
+function filterMessagePersonOrgTree(keyword){
+  messagePersonPickerState.orgKeyword=String(keyword||"");
+  const tree=document.getElementById("messagePersonOrgTreeBody");
+  if(tree){
+    const html=typeof orgTreeData!=="undefined"?renderMessagePersonOrganizationNodes(orgTreeData):"";
+    tree.innerHTML=html || '<div class="message-person-picker-empty">暂无匹配的组织</div>';
+  }
+}
+
+function searchMessagePersonPicker(){
+  messagePersonPickerState.keyword=document.getElementById("messagePersonKeyword")?.value.trim() || "";
+  messagePersonPickerState.page=1;
+  updateMessagePersonPickerModal();
+}
+
+function resetMessagePersonPickerSearch(){
+  messagePersonPickerState.keyword="";
+  messagePersonPickerState.page=1;
+  updateMessagePersonPickerModal();
+}
+
+function toggleMessagePersonSelection(userId,checked){
+  const user=getMessagePersonPickerUsers().find(item=>item.id===userId);
+  if(!user || user.status==="禁用")return;
+  const selected=new Set(messagePersonPickerState.draftSelectedIds);
+  if(checked)selected.add(userId);
+  else selected.delete(userId);
+  messagePersonPickerState.draftSelectedIds=[...selected];
+  const count=document.getElementById("messagePersonSelectedCount");
+  if(count)count.textContent=messagePersonPickerState.draftSelectedIds.length;
+  syncMessagePersonPageSelectAllStateFromRows();
+}
+
+function syncMessagePersonPageSelectAllStateFromRows(){
+  const checkbox=document.getElementById("messagePersonPageSelectAll");
+  if(!checkbox)return;
+  const rows=[...document.querySelectorAll(".message-person-picker-modal .message-person-row-check:not(:disabled)")];
+  checkbox.checked=rows.length>0 && rows.every(row=>row.checked);
+  checkbox.indeterminate=!checkbox.checked && rows.some(row=>row.checked);
+}
+
+function toggleMessagePersonPageSelection(checked){
+  const selected=new Set(messagePersonPickerState.draftSelectedIds);
+  getMessagePersonPageData().pageRows.filter(user=>user.status!=="禁用").forEach(user=>{
+    if(checked)selected.add(user.id);
+    else selected.delete(user.id);
+  });
+  messagePersonPickerState.draftSelectedIds=[...selected];
+  updateMessagePersonPickerModal();
+}
+
+function clearMessagePersonDraftSelection(){
+  messagePersonPickerState.draftSelectedIds=[];
+  updateMessagePersonPickerModal();
+}
+
+function changeMessagePersonPickerPage(step){
+  const {totalPages}=getMessagePersonPageData();
+  messagePersonPickerState.page=Math.min(totalPages,Math.max(1,messagePersonPickerState.page+Number(step||0)));
+  updateMessagePersonPickerModal();
+}
+
+function changeMessagePersonPickerPageSize(value){
+  messagePersonPickerState.pageSize=Math.max(1,Number(value)||50);
+  messagePersonPickerState.page=1;
+  updateMessagePersonPickerModal();
 }
 
 function renderTemplateBizFilterTreeSelect(){
@@ -2230,13 +3052,14 @@ function selectTemplateSingleTreeValue(id,value){
 function syncModalDropdownLayer(){
   const box=document.getElementById("modalBox");
   if(!box)return;
-  const hasOpen=!!box.querySelector(".template-tree-select.open,.template-param-menu.open,.hazard-cascader.single.open");
+  const hasOpen=!!box.querySelector(".template-tree-select.open,.message-route-multi-select.is-open,.template-param-menu.open,.hazard-cascader.single.open");
   box.classList.toggle("modal-dropdown-open",hasOpen);
 }
 
 document.addEventListener("click",function(e){
   if(!e.target.closest?.(".template-param-insert"))document.getElementById("msgTplParamMenu")?.classList.remove("open");
   if(!e.target.closest?.(".template-tree-select"))document.querySelectorAll(".template-tree-select.open").forEach(x=>{x.classList.remove("open");resetTemplateDropdownPosition(x);});
+  if(!e.target.closest?.(".message-route-multi-select"))document.querySelectorAll(".message-route-multi-select.is-open").forEach(closeMessageRouteMultiSelect);
   syncModalDropdownLayer();
 });
 
@@ -2411,7 +3234,7 @@ function renderMessageCreateForm(mode,template){
       <label>接收范围
         <select class="select" id="msgCreateTargetType">
           <option ${template?.targetType==="指定岗位"?"selected":""}>指定岗位</option>
-          <option ${template?.targetType==="指定人"?"selected":""}>指定人</option>
+          <option ${template?.targetType==="指定人" || template?.targetType==="指定人员"?"selected":""}>指定人员</option>
           <option ${template?.targetType==="指定组织"?"selected":""}>指定组织</option>
           <option ${template?.targetType==="动态参数"?"selected":""}>动态参数</option>
           <option ${template?.targetType==="所有人"?"selected":""}>所有人</option>
@@ -2505,7 +3328,7 @@ function applyMessageCreateTemplate(template){
   const fields={
     msgCreateBiz:template.biz,
     msgCreateChannel:template.channel,
-    msgCreateTargetType:template.targetType,
+    msgCreateTargetType:template.targetType==="指定人"?"指定人员":template.targetType,
     msgCreateTargetValue:template.targetValue,
     msgCreateTitle:template.title,
     msgCreateContent:template.content,
@@ -2534,6 +3357,7 @@ function getTemplateTargetTypeValue(targetType){
     "指定组织":"org",
     "组织":"org",
     "指定人":"person",
+    "指定人员":"person",
     "人员":"person",
     "动态参数":"dynamic"
   };
@@ -2541,7 +3365,7 @@ function getTemplateTargetTypeValue(targetType){
 }
 
 function getTemplateTargetTypeLabel(type){
-  const map={all:"所有人",post:"指定岗位",org:"指定组织",person:"指定人",dynamic:"动态参数"};
+  const map={all:"所有人",post:"指定岗位",org:"指定组织",person:"指定人员",dynamic:"动态参数"};
   return map[type] || type || "--";
 }
 
@@ -2580,6 +3404,19 @@ function applyMessageTemplateToSendForm(template){
   const targetTypeEl=document.getElementById("msgTplTargetType");
   if(targetTypeEl)targetTypeEl.value=targetType;
   if(typeof syncTemplateTargetSelector==="function")syncTemplateTargetSelector();
+  const targetValues=String(template.targetValue||"").split(/[，,、]/).map(value=>value.trim()).filter(Boolean);
+  if((targetType==="post" || targetType==="org") && typeof setMessageRouteMultiSelectValues==="function"){
+    setMessageRouteMultiSelectValues("msgTplTargetValue",targetValues);
+  }
+  if(targetType==="person" && typeof setMessagePersonPickerValues==="function"){
+    const personValues=Array.isArray(template.targetIds) && template.targetIds.length?template.targetIds:targetValues;
+    setMessagePersonPickerValues("msgTplTargetValue",personValues);
+  }
+  if(targetType==="dynamic"){
+    const targetSelect=document.getElementById("msgTplTargetValue");
+    const targetValue=String(template.targetValue||"").trim();
+    if(targetSelect && [...targetSelect.options].some(option=>option.value===targetValue))targetSelect.value=targetValue;
+  }
 
   const jump=document.getElementById("msgTplJumpSwitch");
   if(jump)jump.checked=!!template.jumpLink;
@@ -2617,8 +3454,17 @@ function clearMessageTemplateSendForm(type){
 function getTemplateTargetValueForSend(){
   const type=document.getElementById("msgTplTargetType")?.value || "post";
   if(type==="all")return "所有人";
+  const targetPicker=document.getElementById("msgTplTargetValue");
+  if(targetPicker?.classList.contains("message-person-picker")){
+    const labels=getMessagePersonPickerLabels("msgTplTargetValue");
+    if(labels.length)return labels.join("，");
+  }
+  if(targetPicker?.classList.contains("message-route-multi-select")){
+    return getMessageRouteMultiSelectLabels("msgTplTargetValue").join("，");
+  }
+  if(targetPicker?.classList.contains("message-route-single-select"))return targetPicker.value || "";
   try{
-    const checked=getTemplateTreeCheckedLeaves(document.getElementById("msgTplTargetValue"));
+    const checked=getTemplateTreeCheckedLeaves(targetPicker);
     const values=checked.map(x=>x.dataset.label || x.value).filter(Boolean);
     if(values.length)return values.join("，");
   }catch(e){}
@@ -2629,6 +3475,10 @@ function getTemplateTargetValueForSend(){
 function saveMessageTemplateSendForm(){
   const type=document.getElementById("msgTplFormType")?.value || "消息通知";
   const targetType=document.getElementById("msgTplTargetType")?.value || "post";
+  if(targetType==="person" && typeof getMessagePersonPickerValues==="function" && !getMessagePersonPickerValues("msgTplTargetValue").length){
+    showToast("请选择接收人员");
+    return;
+  }
   const tplId=document.getElementById("msgTplSendTemplateSelect")?.value || "";
   const tpl=getMessageTemplateById(tplId);
   const jumpEnabled=!!document.getElementById("msgTplJumpSwitch")?.checked;
@@ -2647,6 +3497,7 @@ function saveMessageTemplateSendForm(){
     channel:document.getElementById("msgTplChannel")?.value || "站内信",
     targetType:getTemplateTargetTypeLabel(targetType),
     targetValue:getTemplateTargetValueForSend(),
+    targetIds:targetType==="person" && typeof getMessagePersonPickerValues==="function"?getMessagePersonPickerValues("msgTplTargetValue"):[],
     jumpLink:jumpEnabled ? (tpl?.jumpLink || "") : "",
     popup:popupEnabled?"开启":"关闭",
     popupStyle:document.getElementById("msgTplPopupStyle")?.value || getMessageCreatePopupStyle(type),
