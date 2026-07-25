@@ -1164,7 +1164,7 @@ function toggleRoleStatus(roleId){
 
 /* ---------- 消息管理：模板、发送记录、消息记录 ---------- */
 function messageStatusTag(v){
-  const map={启用:"green",禁用:"gray",已发送:"green",待发送:"orange",发送中:"blue",部分发送:"orange",部分失败:"orange",失败:"red",已撤回:"gray",发送成功:"green",发送失败:"red",未读:"orange",已读:"green",未点击:"gray",已点击:"blue",开启:"orange",关闭:"gray"};
+  const map={启用:"green",禁用:"gray",已发送:"green",待发送:"orange",发送中:"blue",部分发送:"orange",部分失败:"orange",失败:"red",已撤回:"gray",发送成功:"green",发送失败:"red",已送达:"green",送达失败:"red",未读:"orange",已读:"green",未点击:"gray",已点击:"blue",未办理:"gray",办理中:"orange",已办理:"green",开启:"orange",关闭:"gray"};
   return tag(v,map[v]||"gray");
 }
 
@@ -1232,6 +1232,7 @@ function getMessageSendFiltered(){
 
 function getMessageRecordFiltered(){
   return messageRecordData.filter(x=>{
+    if(!["消息通知","预警通知","通知公告"].includes(x.type))return false;
     if(messageAdminState.recordType&&x.type!==messageAdminState.recordType)return false;
     const bizList=messageAdminState.recordBizList||[];
     if(bizList.length && !bizList.some(b=>x.biz.includes(b.replace(/ \/ /g,">").replace(/\//g,">").trim()) || x.biz.includes(b.split(" / ").pop())))return false;
@@ -1252,6 +1253,22 @@ function getMessageRecordFiltered(){
     if(messageAdminState.recordClick&&x.clickStatus!==messageAdminState.recordClick)return false;
     const kw=messageAdminState.recordKeyword||"";
     if(kw && !(x.title.includes(kw)||x.content.includes(kw)||x.receiver.includes(kw)||x.account.includes(kw)||x.project.includes(kw)||x.batchNo.includes(kw)))return false;
+    return true;
+  });
+}
+
+function getMessageTodoReachFiltered(){
+  return messageTodoReachRecordData.filter(x=>{
+    const bizList=messageAdminState.todoBizList||[];
+    if(bizList.length&&!bizList.some(b=>x.biz.includes(b.replace(/ \/ /g,">").replace(/\//g,">").trim())||x.biz.includes(b.split(" / ").pop())))return false;
+    const titleKw=messageAdminState.todoTitle||"";
+    if(titleKw&&!x.todoTitle.includes(titleKw))return false;
+    const receiverKw=messageAdminState.todoReceiver||"";
+    if(receiverKw&&!x.receiver.includes(receiverKw))return false;
+    if(messageAdminState.todoDeliver&&x.deliverStatus!==messageAdminState.todoDeliver)return false;
+    if(messageAdminState.todoRead&&x.readStatus!==messageAdminState.todoRead)return false;
+    if(messageAdminState.todoClick&&x.clickStatus!==messageAdminState.todoClick)return false;
+    if(messageAdminState.todoHandle&&x.handleStatus!==messageAdminState.todoHandle)return false;
     return true;
   });
 }
@@ -1294,15 +1311,27 @@ function syncMessageAdminFilters(scope){
     messageAdminState.recordKeyword="";
     renderMessageRecordPage();
   }
+  if(scope==="todo"){
+    messageAdminState.todoBizList=getTemplateTreeCheckedLeaves(document.getElementById("msgTodoBizTreeFilter")).map(x=>x.dataset.label||x.value);
+    messageAdminState.todoBiz=messageAdminState.todoBizList.join("、");
+    messageAdminState.todoTitle=document.getElementById("msgTodoTitle")?.value.trim() || "";
+    messageAdminState.todoReceiver=document.getElementById("msgTodoReceiver")?.value.trim() || "";
+    messageAdminState.todoDeliver=document.getElementById("msgTodoDeliver")?.value || "";
+    messageAdminState.todoRead=document.getElementById("msgTodoRead")?.value || "";
+    messageAdminState.todoClick=document.getElementById("msgTodoClick")?.value || "";
+    messageAdminState.todoHandle=document.getElementById("msgTodoHandle")?.value || "";
+    renderMessageRecordPage();
+  }
 }
 
 function resetMessageAdminFilters(scope){
   Object.keys(messageAdminState).forEach(k=>{
-    if(k.toLowerCase().startsWith(scope))messageAdminState[k]=Array.isArray(messageAdminState[k])?[]:"";
+    if(k!=="recordTab"&&k.toLowerCase().startsWith(scope))messageAdminState[k]=Array.isArray(messageAdminState[k])?[]:"";
   });
   if(scope==="template")renderMessageTemplatePage();
   if(scope==="send")renderMessageSendRecordPage();
   if(scope==="record")renderMessageRecordPage();
+  if(scope==="todo")renderMessageRecordPage();
 }
 
 function messageAdminHeader(title,sub){
@@ -1374,7 +1403,7 @@ function openMessageTemplatePreview(id){
 tableColumnDefinitions.messageTemplate=[
   {key:"index",title:"序号",width:70,align:"center",render:(x,i)=>i+1},
   {key:"type",title:"消息类型",width:120,align:"center",render:x=>messageStatusTag(x.type)},
-  {key:"biz",title:"业务分类",width:150,align:"center",render:x=>tag(x.biz,"blue")},
+  {key:"biz",title:"业务分类",width:160,align:"center",render:x=>tag(x.biz,"blue")},
   {key:"title",title:"消息标题",width:220,align:"left",render:x=>x.title},
   {key:"content",title:"消息内容",width:300,align:"left",render:x=>`<span class="message-admin-ellipsis">${x.content}</span>`},
   {key:"channel",title:"发送通道",width:100,align:"center",render:x=>x.channel},
@@ -1570,7 +1599,7 @@ tableColumnDefinitions.messageSend=[
   {key:"index",title:"序号",width:70,align:"center",render:(x,i)=>i+1},
   {key:"status",title:"发送状态",width:100,align:"center",render:x=>messageStatusTag(x.status)},
   {key:"type",title:"消息类型",width:120,align:"center",render:x=>messageStatusTag(x.type)},
-  {key:"biz",title:"业务分类",width:140,align:"center",render:x=>tag(x.biz,"blue")},
+  {key:"biz",title:"业务分类",width:160,align:"center",render:x=>tag(x.biz,"blue")},
   {key:"title",title:"消息标题",width:220,align:"left",render:x=>x.title},
   {key:"content",title:"消息内容",width:280,align:"left",render:x=>`<span class="message-admin-ellipsis">${x.content}</span>`},
   {key:"sendTime",title:"发送时间",width:170,align:"center",render:x=>x.sendTime||"--"},
@@ -1698,7 +1727,7 @@ function renderMessageSendRecordPage(){
 tableColumnDefinitions.messageRecord=[
   {key:"index",title:"序号",width:70,align:"center",render:(x,i)=>i+1},
   {key:"type",title:"消息类型",width:120,align:"center",render:x=>messageStatusTag(x.type)},
-  {key:"biz",title:"业务分类",width:140,align:"center",render:x=>tag(x.biz,"blue")},
+  {key:"biz",title:"业务分类",width:160,align:"center",render:x=>tag(x.biz,"blue")},
   {key:"title",title:"消息标题",width:220,align:"left",render:x=>x.title||"--"},
   {key:"content",title:"消息内容",width:280,align:"left",render:x=>`<span class="message-admin-ellipsis">${x.content||"--"}</span>`},
   {key:"receiver",title:"接收人",width:130,align:"left",render:x=>`${x.receiver||"--"}${x.account?`<span class="message-admin-muted">${x.account}</span>`:""}`},
@@ -1711,15 +1740,46 @@ tableColumnDefinitions.messageRecord=[
   {key:"readTime",title:"阅读时间",width:170,align:"center",render:x=>x.readTime||"--"},
   {key:"clickStatus",title:"点击状态",width:120,align:"center",render:x=>messageStatusTag(x.clickStatus||"--")},
   {key:"clickTime",title:"点击时间",width:170,align:"center",render:x=>x.clickTime||"--"},
-  {key:"batchNo",title:"发送批次号",width:180,align:"left",render:x=>x.batchNo||"--"},
+  {key:"batchNo",title:"发送批次号",width:180,align:"left",render:x=>x.batchNo?`<a class="link" onclick="openMessageBatchDetail('${x.batchNo}')">${x.batchNo}</a>`:"--"},
   {key:"channel",title:"发送通道",width:120,align:"center",render:x=>x.channel||"--"},
   {key:"failReason",title:"失败原因",width:180,align:"left",render:x=>x.failReason||"--"},
   {key:"operation",title:"操作",width:120,align:"center",render:x=>`<a class="link" onclick="openMessageRecordDetail('${x.id}')">查看</a> ${x.deliverStatus==="发送失败"?`<a class="link" onclick="retryMessageRecord('${x.id}')">重发</a>`:""}`}
 ];
 
+function messageTodoBizTag(value){
+  const colorMap={安全管理:"orange",生产管理:"blue",劳务管理:"green",设备管理:"red",产值管理:"blue",基础管理:"gray"};
+  return tag(value,colorMap[value]||"blue");
+}
+
+tableColumnDefinitions.messageTodoReach=[
+  {key:"index",title:"序号",width:70,align:"center",render:(x,i)=>i+1},
+  {key:"biz",title:"业务分类",width:160,align:"center",render:x=>messageTodoBizTag(x.biz)},
+  {key:"todoTitle",title:"待办标题",width:220,align:"left",render:x=>x.todoTitle||"--"},
+  {key:"todoContent",title:"待办内容",width:300,align:"left",render:x=>`<span class="message-admin-ellipsis">${x.todoContent||"--"}</span>`},
+  {key:"receiver",title:"接收人",width:120,align:"left",render:x=>x.receiver||"--"},
+  {key:"org",title:"接收人组织",width:170,align:"left",render:x=>x.org||"--"},
+  {key:"project",title:"接收人项目",width:190,align:"left",render:x=>x.project||"--"},
+  {key:"post",title:"接收人岗位",width:130,align:"left",render:x=>x.post||"--"},
+  {key:"deliverStatus",title:"送达状态",width:110,align:"center",render:x=>messageStatusTag(x.deliverStatus||"--")},
+  {key:"deliverTime",title:"送达时间",width:165,align:"center",render:x=>x.deliverTime||"--"},
+  {key:"readStatus",title:"阅读状态",width:100,align:"center",render:x=>messageStatusTag(x.readStatus||"--")},
+  {key:"readTime",title:"阅读时间",width:165,align:"center",render:x=>x.readTime||"--"},
+  {key:"clickStatus",title:"点击状态",width:100,align:"center",render:x=>messageStatusTag(x.clickStatus||"--")},
+  {key:"clickTime",title:"点击时间",width:165,align:"center",render:x=>x.clickTime||"--"},
+  {key:"handleStatus",title:"办理状态",width:100,align:"center",render:x=>messageStatusTag(x.handleStatus||"--")},
+  {key:"handleTime",title:"办理时间",width:165,align:"center",render:x=>x.handleTime||"--"},
+  {key:"batchNo",title:"发送批次号",width:180,align:"left",render:x=>x.batchNo?`<a class="link" onclick="openMessageBatchDetail('${x.batchNo}')">${x.batchNo}</a>`:"--"},
+  {key:"failReason",title:"失败原因",width:200,align:"left",render:x=>x.failReason||"--"},
+  {key:"operation",title:"操作",width:150,align:"center",render:x=>`<a class="link" onclick="openMessageTodoReachDetail('${x.id}')">查看</a>${x.deliverStatus==="送达失败"?` <a class="link" onclick="retryMessageTodoReach('${x.id}')">重新推送</a>`:""}`}
+];
+
 function renderMessageRecordBizFilterTreeSelect(){
   const tree=messageBizDictionary.map(group=>({label:group.name,value:group.name,children:group.children.map(child=>({label:child,value:`${group.name} / ${child}`}))}));
   return renderTemplateCheckTreeSelect("msgRecordBizTreeFilter",tree,"请选择业务分类",messageAdminState.recordBizList||[]);
+}
+function renderMessageTodoBizFilterTreeSelect(){
+  const tree=messageBizDictionary.map(group=>({label:group.name,value:group.name,children:group.children.map(child=>({label:child,value:`${group.name} / ${child}`}))}));
+  return renderTemplateCheckTreeSelect("msgTodoBizTreeFilter",tree,"请选择业务分类",messageAdminState.todoBizList||[]);
 }
 function setMessageRecordStatFilter(type,value){
   if(type==="deliver")messageAdminState.recordDeliver=messageAdminState.recordDeliver===value?"":value;
@@ -1731,11 +1791,96 @@ function renderMessageRecordStatItem(filterType,value,count,label){
   const active=(filterType==="deliver"&&messageAdminState.recordDeliver===value)||(filterType==="read"&&messageAdminState.recordRead===value)||(filterType==="click"&&messageAdminState.recordClick===value);
   return `<button class="message-stat-option ${active?'active':''}" onclick="setMessageRecordStatFilter('${filterType}','${value}')"><strong>${count}</strong><span>${label}</span></button>`;
 }
+
+function setMessageRecordTab(tab){
+  if(tab!=="message"&&tab!=="todo")return;
+  messageAdminState.recordTab=tab;
+  renderMessageRecordPage();
+}
+
+function renderMessageRecordTitleRow(){
+  const activeTab=messageAdminState.recordTab==="todo"?"todo":"message";
+  return `
+    <div class="compact-title-row output-forecast-title-row message-record-title-row">
+      <div class="module-title">用户触达明细</div>
+      <div class="screen-tabs output-forecast-tabs message-record-tabs">
+        <button class="${activeTab==="message"?"active":""}" onclick="setMessageRecordTab('message')">消息发送明细</button>
+        <button class="${activeTab==="todo"?"active":""}" onclick="setMessageRecordTab('todo')">待办触达明细</button>
+      </div>
+    </div>
+  `;
+}
+
+function setMessageTodoStatFilter(type,value){
+  const keyMap={deliver:"todoDeliver",read:"todoRead",click:"todoClick",handle:"todoHandle"};
+  const key=keyMap[type];
+  if(!key)return;
+  messageAdminState[key]=messageAdminState[key]===value?"":value;
+  renderMessageRecordPage();
+}
+
+function renderMessageTodoStatItem(filterType,value,count,label){
+  const keyMap={deliver:"todoDeliver",read:"todoRead",click:"todoClick",handle:"todoHandle"};
+  const active=messageAdminState[keyMap[filterType]]===value;
+  return `<button class="message-stat-option ${active?'active':''}" onclick="setMessageTodoStatFilter('${filterType}','${value}')"><strong>${count}</strong><span>${label}</span></button>`;
+}
+
+function renderMessageTodoReachPage(){
+  const list=getMessageTodoReachFiltered();
+  const all=messageTodoReachRecordData;
+  const queryFields=`
+    <div class="form-item"><label>业务分类</label>${renderMessageTodoBizFilterTreeSelect()}</div>
+    <div class="form-item"><label>待办标题</label><input class="input" id="msgTodoTitle" placeholder="请输入待办标题" value="${escapeAttr(messageAdminState.todoTitle||'')}"/></div>
+    <div class="form-item"><label>接收人</label><input class="input" id="msgTodoReceiver" placeholder="请输入接收人姓名" value="${escapeAttr(messageAdminState.todoReceiver||'')}"/></div>
+    <div class="form-item"><label>送达状态</label><select class="select" id="msgTodoDeliver"><option value="">全部</option><option>已送达</option><option>送达失败</option></select></div>
+    <div class="form-item"><label>阅读状态</label><select class="select" id="msgTodoRead"><option value="">全部</option><option>未读</option><option>已读</option></select></div>
+    <div class="form-item"><label>点击状态</label><select class="select" id="msgTodoClick"><option value="">全部</option><option>未点击</option><option>已点击</option></select></div>
+    <div class="form-item"><label>办理状态</label><select class="select" id="msgTodoHandle"><option value="">全部</option><option>未办理</option><option>办理中</option><option>已办理</option></select></div>
+  `;
+  const statsHtml=`
+    <div class="stats message-record-stats message-todo-record-stats">
+      <div class="stat message-record-stat-group"><div class="stat-name">送达状态</div><div class="message-call-stat-grid stat-click-grid">${renderMessageTodoStatItem("deliver","已送达",all.filter(x=>x.deliverStatus==="已送达").length,"已送达")}${renderMessageTodoStatItem("deliver","送达失败",all.filter(x=>x.deliverStatus==="送达失败").length,"送达失败")}</div></div>
+      <div class="stat message-record-stat-group"><div class="stat-name">阅读状态</div><div class="message-call-stat-grid stat-click-grid">${renderMessageTodoStatItem("read","未读",all.filter(x=>x.readStatus==="未读").length,"未读")}${renderMessageTodoStatItem("read","已读",all.filter(x=>x.readStatus==="已读").length,"已读")}</div></div>
+      <div class="stat message-record-stat-group"><div class="stat-name">点击状态</div><div class="message-call-stat-grid stat-click-grid">${renderMessageTodoStatItem("click","未点击",all.filter(x=>x.clickStatus==="未点击").length,"未点击")}${renderMessageTodoStatItem("click","已点击",all.filter(x=>x.clickStatus==="已点击").length,"已点击")}</div></div>
+      <div class="stat message-record-stat-group"><div class="stat-name">办理状态</div><div class="message-call-stat-grid stat-click-grid message-todo-handle-grid">${renderMessageTodoStatItem("handle","未办理",all.filter(x=>x.handleStatus==="未办理").length,"未办理")}${renderMessageTodoStatItem("handle","办理中",all.filter(x=>x.handleStatus==="办理中").length,"办理中")}${renderMessageTodoStatItem("handle","已办理",all.filter(x=>x.handleStatus==="已办理").length,"已办理")}</div></div>
+    </div>
+  `;
+
+  listPage.innerHTML=`
+    ${renderMessageRecordTitleRow()}
+    ${renderUnifiedQueryCard(queryFields,{id:"messageTodoQueryCard",gridClass:"search-grid message-record-search-grid",queryFn:"syncMessageAdminFilters('todo')",resetFn:"resetMessageAdminFilters('todo')"})}
+    ${renderUnifiedStatsCard(statsHtml)}
+    ${renderUnifiedTableCard({
+      title:"待办触达明细",
+      tableKey:"messageTodoReach",
+      tableId:"messageTodoReachTable",
+      theadId:"messageTodoReachThead",
+      tbodyId:"messageTodoReachTbody",
+      totalId:"messageTodoReachTotalText",
+      total:list.length,
+      renderFnName:"renderMessageRecordPage",
+      refreshAction:"renderMessageRecordPage();showToast('已刷新待办触达数据')",
+      exportAction:"showToast('导出成功：待办触达明细.xlsx')"
+    })}
+  `;
+  setSelectValue("msgTodoDeliver",messageAdminState.todoDeliver);
+  setSelectValue("msgTodoRead",messageAdminState.todoRead);
+  setSelectValue("msgTodoClick",messageAdminState.todoClick);
+  setSelectValue("msgTodoHandle",messageAdminState.todoHandle);
+  renderTableByColumns("messageTodoReach",list,"messageTodoReachTbody");
+  setTimeout(()=>refreshTemplateTreeStates("msgTodoBizTreeFilter"),0);
+}
+
 function renderMessageRecordPage(){
   detailPage.style.display="none";
   listPage.style.display="flex";
+  messageAdminState.recordTab=messageAdminState.recordTab==="todo"?"todo":"message";
+  if(messageAdminState.recordTab==="todo"){
+    renderMessageTodoReachPage();
+    return;
+  }
   const list=getMessageRecordFiltered();
-  const all=messageRecordData;
+  const all=messageRecordData.filter(x=>["消息通知","预警通知","通知公告"].includes(x.type));
   const success=all.filter(x=>x.deliverStatus==="发送成功").length;
   const failed=all.filter(x=>x.deliverStatus==="发送失败").length;
   const unread=all.filter(x=>x.readStatus==="未读").length;
@@ -1743,7 +1888,7 @@ function renderMessageRecordPage(){
   const unclicked=all.filter(x=>x.clickStatus==="未点击").length;
   const clicked=all.filter(x=>x.clickStatus==="已点击").length;
   const queryFields=`
-    <div class="form-item"><label>消息类型</label><select class="select" id="msgRecordType"><option value="">全部</option><option>消息通知</option><option>预警通知</option><option>待办任务</option></select></div>
+    <div class="form-item"><label>消息类型</label><select class="select" id="msgRecordType"><option value="">全部</option><option>消息通知</option><option>预警通知</option><option>通知公告</option></select></div>
     <div class="form-item"><label>消息标题</label><input class="input" id="msgRecordTitle" placeholder="请输入消息标题" value="${messageAdminState.recordTitle||''}"/></div>
     <div class="form-item"><label>消息内容</label><input class="input" id="msgRecordContent" placeholder="请输入消息内容" value="${messageAdminState.recordContent||''}"/></div>
     <div class="form-item"><label>业务分类</label>${renderMessageRecordBizFilterTreeSelect()}</div>
@@ -1761,11 +1906,11 @@ function renderMessageRecordPage(){
   `;
 
   listPage.innerHTML=`
-    ${messageAdminHeader("消息记录","按接收人查看每一条消息触达明细，包含送达、阅读、点击和失败原因")}
+    ${renderMessageRecordTitleRow()}
     ${renderUnifiedQueryCard(queryFields,{gridClass:"search-grid message-record-search-grid",queryFn:"syncMessageAdminFilters('record')",resetFn:"resetMessageAdminFilters('record')"})}
     ${renderUnifiedStatsCard(statsHtml)}
     ${renderUnifiedTableCard({
-      title:"触达明细",
+      title:"消息发送明细",
       tableKey:"messageRecord",
       tableId:"messageRecordTable",
       theadId:"messageRecordThead",
@@ -3609,6 +3754,37 @@ function openMessageSendDetail(id){
   `,`<button class="btn" onclick="closeModal()">关闭</button><button class="btn primary" onclick="openSendReadStats('${x.batchNo}')">查看阅读统计</button>`,"large");
 }
 
+function openMessageBatchDetail(batchNo){
+  const send=getSendRecordByBatch(batchNo);
+  if(send){
+    openMessageSendDetail(send.id);
+    return;
+  }
+
+  const records=messageTodoReachRecordData.filter(item=>item.batchNo===batchNo);
+  if(!records.length){
+    showToast("未找到该发送批次");
+    return;
+  }
+  const sample=records[0];
+  const delivered=records.filter(item=>item.deliverStatus==="已送达").length;
+  const failed=records.filter(item=>item.deliverStatus==="送达失败").length;
+  const read=records.filter(item=>item.readStatus==="已读").length;
+  const handled=records.filter(item=>item.handleStatus==="已办理").length;
+  openModal("发送批次详情",`
+    <div class="message-admin-detail">
+      ${info("发送批次号",batchNo)}${info("消息类型","待办任务")}${info("业务分类",sample.biz)}${info("发送状态",failed?"部分失败":"已发送")}
+      ${info("应发人数",records.length)}${info("送达人数",delivered)}${info("失败人数",failed)}${info("已读人数",read)}
+      ${info("已办理人数",handled)}${info("首次送达时间",records.map(item=>item.deliverTime).filter(Boolean).sort()[0]||"--")}
+      <div class="message-admin-content"><strong>${sample.todoTitle}</strong>${sample.todoContent}</div>
+      <div class="message-admin-mini-title">接收人明细</div>
+      <table><thead><tr><th>接收人</th><th>组织/项目</th><th>送达</th><th>阅读</th><th>办理</th></tr></thead><tbody>${records.map(item=>`<tr><td>${item.receiver}</td><td>${item.org} / ${item.project}</td><td>${messageStatusTag(item.deliverStatus)}</td><td>${messageStatusTag(item.readStatus)}</td><td>${messageStatusTag(item.handleStatus)}</td></tr>`).join("")}</tbody></table>
+    </div>
+  `,`<button class="btn" onclick="closeModal()">关闭</button>`,"large");
+}
+
+window.openMessageBatchDetail=openMessageBatchDetail;
+
 function openSendReadStats(batchNo){
   openSendRecordDrilldown(batchNo,"read");
 }
@@ -3676,4 +3852,45 @@ function retryMessageRecord(id){
   closeModal();
   renderMessageRecordPage();
   showToast("该接收人消息已重发成功");
+}
+
+function getMessageOperationTime(){
+  const now=new Date();
+  const pad=value=>String(value).padStart(2,"0");
+  return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+}
+
+function openMessageTodoReachDetail(id){
+  const x=messageTodoReachRecordData.find(item=>item.id===id);
+  if(!x)return;
+  openModal("待办触达详情",`
+    <div class="message-admin-detail">
+      ${info("业务分类",x.biz)}${info("接收人",x.receiver)}${info("接收人组织",x.org)}${info("接收人项目",x.project)}
+      ${info("接收人岗位",x.post)}${info("发送批次号",x.batchNo)}${info("送达状态",x.deliverStatus)}${info("送达时间",x.deliverTime||"--")}
+      ${info("阅读状态",x.readStatus)}${info("阅读时间",x.readTime||"--")}${info("点击状态",x.clickStatus)}${info("点击时间",x.clickTime||"--")}
+      ${info("办理状态",x.handleStatus)}${info("办理时间",x.handleTime||"--")}${info("失败原因",x.failReason||"--")}
+      <div class="message-admin-content"><strong>${x.todoTitle}</strong>${x.todoContent}</div>
+    </div>
+  `,`<button class="btn" onclick="closeModal()">关闭</button>${x.deliverStatus==="送达失败"?`<button class="btn primary" onclick="retryMessageTodoReach('${x.id}')">重新推送</button>`:""}`,"large");
+}
+
+function retryMessageTodoReach(id){
+  const x=messageTodoReachRecordData.find(item=>item.id===id);
+  if(!x)return;
+  if(x.deliverStatus!=="送达失败"){
+    showToast("仅送达失败的待办支持重新推送");
+    return;
+  }
+  x.deliverStatus="已送达";
+  x.deliverTime=getMessageOperationTime();
+  x.readStatus="未读";
+  x.readTime="";
+  x.clickStatus="未点击";
+  x.clickTime="";
+  x.handleStatus="未办理";
+  x.handleTime="";
+  x.failReason="";
+  closeModal();
+  renderMessageRecordPage();
+  showToast("待办已重新推送成功");
 }

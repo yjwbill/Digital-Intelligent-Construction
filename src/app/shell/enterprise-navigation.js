@@ -196,9 +196,9 @@ function selectBusinessChildMenu(line,gi,ci,name){
   if(line==="base"&&name==="组织管理")return renderOrgManagementPage();
   if(line==="base"&&name==="岗位管理")return renderPostManagementPage();
   if(line==="base"&&name==="角色管理")return renderRoleManagementPage();
-  if(line==="base"&&name==="消息模板")return renderMessageTemplatePage();
-  if(line==="base"&&name==="发送记录")return renderMessageSendRecordPage();
-  if(line==="base"&&name==="消息记录")return renderMessageRecordPage();
+  if(line==="base"&&name==="模板管理")return renderMessageTemplatePage();
+  if(line==="base"&&name==="发送批次记录")return renderMessageSendRecordPage();
+  if(line==="base"&&name==="用户触达明细")return renderMessageRecordPage();
 
   if(line==="safety"&&name==="劳务工花名册")return renderRosterPage();
   if(line==="safety"&&name==="视频监控")return renderSafetyVideoMonitorPage();

@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.360-MESSAGE-PERSON-PICKER";
-const APP_CODE_VERSION_NAME="消息模板指定人员选择版";
-const APP_CODE_VERSION_TIME="2026-07-25 11:36";
-const APP_CODE_VERSION_DESC="消息模板接收人员类型选择指定人员时，使用组织树与人员列表二级弹框完成搜索、多选、分页和确认回填。";
+const APP_CODE_VERSION="EM-20260701-V2.2.368-MESSAGE-BIZ-COLUMN-WIDTH";
+const APP_CODE_VERSION_NAME="消息业务分类列宽优化版";
+const APP_CODE_VERSION_TIME="2026-07-25 21:35";
+const APP_CODE_VERSION_DESC="消息&待办管理相关列表的业务分类默认列宽统一为160px。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
@@ -574,12 +574,12 @@ const businessMenus={
       },
       {
         icon:"✉️",
-        name:"消息管理",
+        name:"消息&待办管理",
         open:false,
         children:[
-          {name:"消息模板"},
-          {name:"发送记录"},
-          {name:"消息记录"}
+          {name:"模板管理"},
+          {name:"发送批次记录"},
+          {name:"用户触达明细"}
         ]
       }
     ]
@@ -852,7 +852,7 @@ let messageTemplateData=[
     id:"tpl-001",
     code:"MSG-SAFE-DAILY-001",
     type:"消息通知",
-    biz:"安全>安全每日监督",
+    biz:"安全管理>安全每日监督",
     title:"每日安全监督填报提醒",
     content:"今日共${projectCount}个项目需进行安全每日监督，剩余${unfilledCount}个项目未填报，请关注",
     channel:"站内信",
@@ -868,7 +868,7 @@ let messageTemplateData=[
     id:"tpl-002",
     code:"MSG-SAFE-RECTIFY-002",
     type:"消息通知",
-    biz:"安全>隐患排查",
+    biz:"安全管理>隐患整改",
     title:"隐患整改闭环提醒",
     content:"${projectName}存在${riskCount}项隐患超期未闭环，请及时完成整改复核",
     channel:"站内信",
@@ -884,7 +884,7 @@ let messageTemplateData=[
     id:"tpl-003",
     code:"MSG-NOTICE-VERSION-003",
     type:"消息通知",
-    biz:"通用",
+    biz:"通用>版本更新",
     title:"版本更新提醒",
     content:"数智施工正式发布V${versionNo}版本，详情请点击消息查看",
     channel:"站内信",
@@ -900,7 +900,7 @@ let messageTemplateData=[
     id:"tpl-004",
     code:"MSG-WARN-DEVICE-004",
     type:"预警通知",
-    biz:"生产>设备",
+    biz:"设备管理>塔机管理",
     title:"履带吊限重提醒",
     content:"${projectName}的${deviceName}吊重${weight}吨，已超过预警值，请关注",
     channel:"站内信",
@@ -917,7 +917,7 @@ let messageTemplateData=[
     id:"tpl-005",
     code:"MSG-TODO-RECTIFY-005",
     type:"待办任务",
-    biz:"安全>隐患整改",
+    biz:"安全管理>隐患整改",
     title:"隐患整改待办任务",
     content:"${projectName}存在${riskCount}项隐患需完成整改，请在${deadline}前闭环处理",
     channel:"站内信",
@@ -948,9 +948,12 @@ let messageTemplateData=[
 
 const messageBizDictionary=[
   {name:"项目管理",children:["项目认领","项目变更","项目创建审批"]},
+  {name:"生产管理",children:["施工日志","实际产值上报","新兴业务认定"]},
+  {name:"产值管理",children:["产值计划","产值上报","产值审批"]},
   {name:"劳务管理",children:["花名册","抽查管理","进退场管理"]},
   {name:"安全管理",children:["隐患整改","违章管理","安全每日监督"]},
   {name:"设备管理",children:["视频监控","塔机管理","扬尘设备"]},
+  {name:"基础管理",children:["组织管理","人员管理","消息管理"]},
   {name:"通用",children:["版本更新","企业宣传","制度文件"]}
 ];
 
@@ -967,7 +970,7 @@ let messageSendRecordData=[
     source:"定时任务",
     templateId:"tpl-001",
     type:"消息通知",
-    biz:"安全>安全每日监督",
+    biz:"安全管理>安全每日监督",
     title:"每日安全监督填报提醒",
     content:"今日共247个项目需进行安全每日监督，剩余66个项目未填报，请关注",
     channel:"站内信",
@@ -1011,7 +1014,7 @@ let messageSendRecordData=[
     source:"业务接口",
     templateId:"tpl-002",
     type:"消息通知",
-    biz:"安全>隐患排查",
+    biz:"安全管理>隐患整改",
     title:"安全纳管状态更新提醒",
     content:"大外环西段项目状态已由在建变更为停工，安全纳管状态调整为暂停纳管。",
     channel:"站内信",
@@ -1033,7 +1036,7 @@ let messageSendRecordData=[
     source:"业务接口",
     templateId:"tpl-004",
     type:"预警通知",
-    biz:"生产>设备",
+    biz:"设备管理>塔机管理",
     title:"履带吊限重提醒",
     content:"示范线项目1#履带吊吊重46吨，限重48吨，吊重比92%，已超过预警值。",
     channel:"站内信",
@@ -1055,7 +1058,7 @@ let messageSendRecordData=[
     source:"手动发布",
     templateId:"",
     type:"通知公告",
-    biz:"企业宣传",
+    biz:"通用>企业宣传",
     title:"直面问题抓整改 凝心聚力促发展",
     content:"希望各单位打通企业人员主数据，快速登记管理人员。",
     channel:"站内信",
@@ -1074,12 +1077,25 @@ let messageSendRecordData=[
 ];
 
 let messageRecordData=[
-  {id:"msg-001",batchNo:"MS202606090001",receiver:"王安全",account:"wangsafe",org:"市政集团",project:"机场联络线工程",post:"安全总监",type:"消息通知",biz:"安全>安全每日监督",title:"每日安全监督填报提醒",content:"机场联络线工程今日安全每日监督未填报，请及时处理。",channel:"站内信",deliverStatus:"发送成功",readStatus:"未读",sendTime:"2026-06-09 17:00:02",readTime:"",clickStatus:"未点击",clickTime:"",failReason:""},
-  {id:"msg-002",batchNo:"MS202606090001",receiver:"张项目",account:"zhangpm",org:"上海隧道",project:"大外环西段",post:"项目经理",type:"消息通知",biz:"安全>安全每日监督",title:"每日安全监督填报提醒",content:"大外环西段今日安全每日监督未填报，请及时处理。",channel:"站内信",deliverStatus:"发送成功",readStatus:"已读",sendTime:"2026-06-09 17:00:02",readTime:"2026-06-09 17:20:11",clickStatus:"已点击",clickTime:"2026-06-09 17:21:36",failReason:""},
-  {id:"msg-003",batchNo:"MS202606090002",receiver:"李项目",account:"lipm",org:"上海隧道",project:"湾区金融中心项目",post:"项目经理",type:"通知公告",biz:"通用",title:"V2.8.4 安全在线全面升级",content:"安全在线实名制区域更新、实名制专版更新，管理更高效。",channel:"站内信",deliverStatus:"发送成功",readStatus:"未读",sendTime:"2026-06-08 10:22:24",readTime:"",clickStatus:"未点击",clickTime:"",failReason:""},
-  {id:"msg-004",batchNo:"MS202606090003",receiver:"陈安全",account:"chensafe",org:"上海路桥",project:"上海市轨道交通23号线",post:"安全员",type:"消息通知",biz:"安全>隐患排查",title:"安全纳管状态更新提醒",content:"项目状态已由在建变更为停工，安全纳管状态调整为暂停纳管。",channel:"站内信",deliverStatus:"发送成功",readStatus:"已读",sendTime:"2026-06-09 08:25:11",readTime:"2026-06-09 09:11:03",clickStatus:"已点击",clickTime:"2026-06-09 09:12:18",failReason:""},
-  {id:"msg-005",batchNo:"MS202606090003",receiver:"赵经理",account:"zhaopm",org:"上海路桥",project:"北方数据中心项目",post:"项目经理",type:"消息通知",biz:"安全>隐患排查",title:"安全纳管状态更新提醒",content:"项目状态已由在建变更为停工，安全纳管状态调整为暂停纳管。",channel:"站内信",deliverStatus:"发送失败",readStatus:"未读",sendTime:"2026-06-09 08:25:11",readTime:"",clickStatus:"未点击",clickTime:"",failReason:"账号已停用"},
-  {id:"msg-006",batchNo:"MS202606090004",receiver:"刘设备",account:"liudevice",org:"市政集团",project:"示范线项目",post:"设备管理员",type:"预警通知",biz:"生产>设备",title:"履带吊限重提醒",content:"示范线项目1#履带吊吊重46吨，吊重比92%，已超过预警值。",channel:"站内信",deliverStatus:"发送成功",readStatus:"已读",sendTime:"2026-06-09 07:40:16",readTime:"2026-06-09 07:46:20",clickStatus:"已点击",clickTime:"2026-06-09 07:47:08",failReason:""}
+  {id:"msg-001",batchNo:"MS202606090001",receiver:"王安全",account:"wangsafe",org:"市政集团",project:"机场联络线工程",post:"安全总监",type:"消息通知",biz:"安全管理>安全每日监督",title:"每日安全监督填报提醒",content:"机场联络线工程今日安全每日监督未填报，请及时处理。",channel:"站内信",deliverStatus:"发送成功",readStatus:"未读",sendTime:"2026-06-09 17:00:02",readTime:"",clickStatus:"未点击",clickTime:"",failReason:""},
+  {id:"msg-002",batchNo:"MS202606090001",receiver:"张项目",account:"zhangpm",org:"上海隧道",project:"大外环西段",post:"项目经理",type:"消息通知",biz:"安全管理>安全每日监督",title:"每日安全监督填报提醒",content:"大外环西段今日安全每日监督未填报，请及时处理。",channel:"站内信",deliverStatus:"发送成功",readStatus:"已读",sendTime:"2026-06-09 17:00:02",readTime:"2026-06-09 17:20:11",clickStatus:"已点击",clickTime:"2026-06-09 17:21:36",failReason:""},
+  {id:"msg-003",batchNo:"MS202606090002",receiver:"李项目",account:"lipm",org:"上海隧道",project:"湾区金融中心项目",post:"项目经理",type:"通知公告",biz:"通用>版本更新",title:"V2.8.4 安全在线全面升级",content:"安全在线实名制区域更新、实名制专版更新，管理更高效。",channel:"站内信",deliverStatus:"发送成功",readStatus:"未读",sendTime:"2026-06-08 10:22:24",readTime:"",clickStatus:"未点击",clickTime:"",failReason:""},
+  {id:"msg-004",batchNo:"MS202606090003",receiver:"陈安全",account:"chensafe",org:"上海路桥",project:"上海市轨道交通23号线",post:"安全员",type:"消息通知",biz:"安全管理>隐患整改",title:"安全纳管状态更新提醒",content:"项目状态已由在建变更为停工，安全纳管状态调整为暂停纳管。",channel:"站内信",deliverStatus:"发送成功",readStatus:"已读",sendTime:"2026-06-09 08:25:11",readTime:"2026-06-09 09:11:03",clickStatus:"已点击",clickTime:"2026-06-09 09:12:18",failReason:""},
+  {id:"msg-005",batchNo:"MS202606090003",receiver:"赵经理",account:"zhaopm",org:"上海路桥",project:"北方数据中心项目",post:"项目经理",type:"消息通知",biz:"安全管理>隐患整改",title:"安全纳管状态更新提醒",content:"项目状态已由在建变更为停工，安全纳管状态调整为暂停纳管。",channel:"站内信",deliverStatus:"发送失败",readStatus:"未读",sendTime:"2026-06-09 08:25:11",readTime:"",clickStatus:"未点击",clickTime:"",failReason:"账号已停用"},
+  {id:"msg-006",batchNo:"MS202606090004",receiver:"刘设备",account:"liudevice",org:"市政集团",project:"示范线项目",post:"设备管理员",type:"预警通知",biz:"设备管理>塔机管理",title:"履带吊限重提醒",content:"示范线项目1#履带吊吊重46吨，吊重比92%，已超过预警值。",channel:"站内信",deliverStatus:"发送成功",readStatus:"已读",sendTime:"2026-06-09 07:40:16",readTime:"2026-06-09 07:46:20",clickStatus:"已点击",clickTime:"2026-06-09 07:47:08",failReason:""}
+];
+
+let messageTodoReachRecordData=[
+  {id:"todo-001",batchNo:"TD202607250001",biz:"安全管理>安全每日监督",todoTitle:"月度安全评价结果确认",todoContent:"2026年7月安全评价任务已执行完成，请确认本期评价结果。",receiver:"王安全",org:"上海隧道",project:"大外环西段",post:"安全总监",deliverStatus:"已送达",deliverTime:"2026-07-25 08:30:02",readStatus:"已读",readTime:"2026-07-25 08:36:18",clickStatus:"已点击",clickTime:"2026-07-25 08:37:06",handleStatus:"已办理",handleTime:"2026-07-25 09:02:44",failReason:""},
+  {id:"todo-002",batchNo:"TD202607250001",biz:"安全管理>安全每日监督",todoTitle:"月度安全评价结果确认",todoContent:"2026年7月安全评价任务已执行完成，请确认本期评价结果。",receiver:"陈安全",org:"市政集团",project:"机场联络线工程",post:"安全负责人",deliverStatus:"已送达",deliverTime:"2026-07-25 08:30:03",readStatus:"未读",readTime:"",clickStatus:"未点击",clickTime:"",handleStatus:"未办理",handleTime:"",failReason:""},
+  {id:"todo-003",batchNo:"TD202607250002",biz:"生产管理>施工日志",todoTitle:"施工日志待补报",todoContent:"湾区金融中心项目2026年7月24日施工日志尚未上报，请及时补报。",receiver:"李项目",org:"上海隧道",project:"湾区金融中心项目",post:"项目经理",deliverStatus:"送达失败",deliverTime:"",readStatus:"--",readTime:"",clickStatus:"--",clickTime:"",handleStatus:"--",handleTime:"",failReason:"接收人账号已停用"},
+  {id:"todo-004",batchNo:"TD202607250003",biz:"生产管理>实际产值上报",todoTitle:"实际产值上报审批",todoContent:"上海隧道西南分公司2026年7月实际产值上报已提交，请完成审批。",receiver:"赵经营",org:"上海隧道",project:"--",post:"经营管理岗",deliverStatus:"已送达",deliverTime:"2026-07-25 09:15:12",readStatus:"已读",readTime:"2026-07-25 09:20:08",clickStatus:"已点击",clickTime:"2026-07-25 09:21:16",handleStatus:"办理中",handleTime:"",failReason:""},
+  {id:"todo-005",batchNo:"TD202607250004",biz:"劳务管理>花名册",todoTitle:"劳务人员实名信息待完善",todoContent:"示范线项目有12名劳务人员实名四要素信息不完整，请核验并补充。",receiver:"周劳务",org:"市政集团",project:"示范线项目",post:"劳务管理员",deliverStatus:"已送达",deliverTime:"2026-07-25 09:40:25",readStatus:"已读",readTime:"2026-07-25 09:48:31",clickStatus:"已点击",clickTime:"2026-07-25 09:49:10",handleStatus:"已办理",handleTime:"2026-07-25 10:18:56",failReason:""},
+  {id:"todo-006",batchNo:"TD202607250005",biz:"设备管理>塔机管理",todoTitle:"设备预警待处置",todoContent:"示范线项目1#履带吊连续触发限重预警，请完成现场核查与处置。",receiver:"刘设备",org:"市政集团",project:"示范线项目",post:"设备管理员",deliverStatus:"已送达",deliverTime:"2026-07-25 10:05:42",readStatus:"已读",readTime:"2026-07-25 10:08:13",clickStatus:"未点击",clickTime:"",handleStatus:"未办理",handleTime:"",failReason:""},
+  {id:"todo-007",batchNo:"TD202607250006",biz:"安全管理>隐患整改",todoTitle:"隐患整改即将超期",todoContent:"上海市轨道交通23号线隐患整改距离截止时间不足4小时，请尽快处理。",receiver:"孙安全",org:"上海路桥",project:"上海市轨道交通23号线",post:"安全员",deliverStatus:"送达失败",deliverTime:"",readStatus:"--",readTime:"",clickStatus:"--",clickTime:"",handleStatus:"--",handleTime:"",failReason:"站内消息通道响应超时"},
+  {id:"todo-008",batchNo:"TD202607250007",biz:"产值管理>产值计划",todoTitle:"年度产值计划待填报",todoContent:"北方数据中心项目2026年度产值计划尚未完成填报，请及时处理。",receiver:"赵经理",org:"上海路桥",project:"北方数据中心项目",post:"项目经理",deliverStatus:"已送达",deliverTime:"2026-07-25 10:36:09",readStatus:"未读",readTime:"",clickStatus:"未点击",clickTime:"",handleStatus:"未办理",handleTime:"",failReason:""},
+  {id:"todo-009",batchNo:"TD202607250008",biz:"生产管理>新兴业务认定",todoTitle:"新兴业务认定信息复核",todoContent:"大外环西段新兴业务认定金额发生调整，请复核订单项目与认定附件。",receiver:"张项目",org:"上海隧道",project:"大外环西段",post:"项目经理",deliverStatus:"已送达",deliverTime:"2026-07-25 11:02:18",readStatus:"已读",readTime:"2026-07-25 11:06:22",clickStatus:"已点击",clickTime:"2026-07-25 11:07:41",handleStatus:"已办理",handleTime:"2026-07-25 11:28:05",failReason:""},
+  {id:"todo-010",batchNo:"TD202607250009",biz:"基础管理>组织管理",todoTitle:"项目组织信息变更确认",todoContent:"机场联络线工程所属分公司信息已调整，请确认项目组织关系。",receiver:"吴组织",org:"隧道股份",project:"机场联络线工程",post:"组织管理员",deliverStatus:"已送达",deliverTime:"2026-07-25 11:25:33",readStatus:"已读",readTime:"2026-07-25 11:33:27",clickStatus:"已点击",clickTime:"2026-07-25 11:34:02",handleStatus:"办理中",handleTime:"",failReason:""}
 ];
 
 const messageAdminState={
@@ -1112,7 +1128,16 @@ const messageAdminState={
   recordDeliver:"",
   recordRead:"",
   recordClick:"",
-  recordKeyword:""
+  recordKeyword:"",
+  recordTab:"message",
+  todoBiz:"",
+  todoBizList:[],
+  todoTitle:"",
+  todoReceiver:"",
+  todoDeliver:"",
+  todoRead:"",
+  todoClick:"",
+  todoHandle:""
 };
 
 const messageSendDrillState={
