@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.368-message-biz-column-width";
+  const version="2.2.376-todo-batch-statuses";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",

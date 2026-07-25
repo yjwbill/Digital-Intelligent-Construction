@@ -1206,6 +1206,7 @@ function getMessageTemplateFiltered(){
 
 function getMessageSendFiltered(){
   return messageSendRecordData.filter(x=>{
+    if(x.type==="待办任务"||x.type==="代办任务")return false;
     if(messageAdminState.sendType&&x.type!==messageAdminState.sendType)return false;
     if(messageAdminState.sendStatus&&x.status!==messageAdminState.sendStatus)return false;
     if(messageAdminState.sendTrigger&&getSendTriggerMode(x)!==messageAdminState.sendTrigger)return false;
@@ -1523,7 +1524,8 @@ function setSendDrillStatFilter(type,value){
   if(type==="deliver")messageSendDrillState.deliver=messageSendDrillState.deliver===value?"":value;
   if(type==="read")messageSendDrillState.read=messageSendDrillState.read===value?"":value;
   if(type==="click")messageSendDrillState.click=messageSendDrillState.click===value?"":value;
-  renderSendDrillModalBody();
+  if(document.getElementById("messageSendDetailReach"))renderMessageSendDetailReach(messageSendDrillState.batchNo);
+  else renderSendDrillModalBody();
 }
 
 function renderSendDrillStatItem(type,value,count,label){
@@ -1582,6 +1584,35 @@ function renderSendDrillModalBody(){
   renderTableByColumns("messageRecord",list,"sendDrillRecordTbody");
 }
 
+function renderMessageSendDetailReach(batchNo){
+  messageSendDrillState.batchNo=batchNo;
+  const list=getSendDrillRecords();
+  const container=document.getElementById("messageSendDetailReach");
+  if(!container)return;
+  container.innerHTML=`
+    <section class="card unified-stats-card send-drill-stats-card">
+      <div class="card-bd">${renderSendDrillStats()}</div>
+    </section>
+    <section class="card table-card send-drill-table-card">
+      <div class="card-hd">
+        <div class="card-title">触达明细</div>
+        <div class="actions">
+          <button class="btn" onclick="renderMessageSendDetailReach('${batchNo}');showToast('已刷新触达明细')">刷新</button>
+          <button class="btn primary" onclick="showToast('导出成功：触达明细.xlsx')">导出</button>
+        </div>
+      </div>
+      <div class="table-wrap roster-table-wrap">
+        <table style="min-width:${getTableMinWidth('messageRecord')}px">
+          <thead><tr>${renderTableHeaderByColumns('messageRecord')}</tr></thead>
+          <tbody id="messageSendDetailReachTbody"></tbody>
+        </table>
+      </div>
+      <div class="pagination"><span>共 ${list.length} 条</span><span>第 1 / 1 页　每页 50 条</span></div>
+    </section>
+  `;
+  renderTableByColumns("messageRecord",list,"messageSendDetailReachTbody");
+}
+
 function openSendRecordDrilldown(batchNo,type){
   messageSendDrillState.batchNo=batchNo;
   messageSendDrillState.deliver="";
@@ -1621,15 +1652,183 @@ tableColumnDefinitions.messageSend=[
   {key:"operation",title:"操作",width:180,align:"center",render:x=>`<a class="link" onclick="openMessageSendDetail('${x.id}')">查看</a> ${x.status==="待发送"?`<a class="link" onclick="sendPendingMessage('${x.id}')">发送</a>`:""} ${x.failCount?`<a class="link" onclick="retrySendRecord('${x.id}')">重发</a>`:""} ${["已发送","部分发送","部分失败"].includes(x.status)?`<a class="link" onclick="withdrawSendRecord('${x.id}')">撤回</a>`:""}`}
 ];
 
+function setMessageSendBatchTab(tab){
+  if(tab!=="message"&&tab!=="todo")return;
+  messageAdminState.sendTab=tab;
+  renderMessageSendRecordPage();
+}
+
+function renderMessageSendBatchTitleRow(){
+  const activeTab=messageAdminState.sendTab==="todo"?"todo":"message";
+  return `
+    <div class="compact-title-row output-forecast-title-row message-record-title-row">
+      <div class="module-title">发送批次明细</div>
+      <div class="screen-tabs output-forecast-tabs message-record-tabs">
+        <button class="${activeTab==="message"?"active":""}" onclick="setMessageSendBatchTab('message')">消息发送批次</button>
+        <button class="${activeTab==="todo"?"active":""}" onclick="setMessageSendBatchTab('todo')">待办触达批次</button>
+      </div>
+    </div>
+  `;
+}
+
+function getMessageTodoBatchData(){
+  const batches=new Map();
+  messageTodoReachRecordData.forEach((item,index)=>{
+    if(!batches.has(item.batchNo))batches.set(item.batchNo,{batchNo:item.batchNo,records:[],firstIndex:index});
+    batches.get(item.batchNo).records.push(item);
+  });
+  return Array.from(batches.values()).map((batch,index)=>{
+    const records=batch.records;
+    const sample=records[0];
+    const sentCount=records.filter(x=>x.deliverStatus==="已送达").length;
+    const readCount=records.filter(x=>x.readStatus==="已读").length;
+    const clickCount=records.filter(x=>x.clickStatus==="已点击").length;
+    const handleCount=records.filter(x=>x.handleStatus==="已办理").length;
+    const failedCount=records.length-sentCount;
+    const withdrawnCount=records.filter(x=>x.deliverStatus==="已撤回").length;
+    const pendingCount=records.filter(x=>x.deliverStatus==="待发送").length;
+    const modes=["业务接口","定时任务","手动发送"];
+    return {
+      batchNo:batch.batchNo,
+      status:withdrawnCount===records.length?"已撤回":pendingCount===records.length?"待发送":failedCount?(sentCount?"部分发送":"失败"):"已发送",
+      biz:sample.biz,todoTitle:sample.todoTitle,todoContent:sample.todoContent,
+      sendTime:records.map(x=>x.deliverTime).filter(Boolean).sort()[0]||"--",
+      shouldCount:records.length,sentCount,readCount,clickCount,handleCount,
+      touchRate:calcPercent(sentCount,records.length),readRate:calcPercent(readCount,sentCount),
+      clickRate:calcPercent(clickCount,readCount),handleRate:calcPercent(handleCount,sentCount),
+      triggerMode:modes[index%modes.length],targetType:index%3===0?"指定人员":index%3===1?"指定岗位":"组织",
+      receivers:records.map(x=>x.receiver),targetValue:records.map(x=>x.receiver).join("、"),jumpLink:"/pages/todo/detail?batchNo="+batch.batchNo,
+      jump:"开启",popup:index%2===0?"开启":"关闭",popupStyle:index%2===0?"普通样式":"--"
+    };
+  });
+}
+
+function getMessageTodoBatchFiltered(){
+  return getMessageTodoBatchData().filter(x=>{
+    const bizList=messageAdminState.todoBatchBizList||[];
+    if(bizList.length&&!bizList.some(v=>v===x.biz||x.biz.startsWith(v+">")))return false;
+    if(messageAdminState.todoBatchTitle&&!x.todoTitle.includes(messageAdminState.todoBatchTitle))return false;
+    if(messageAdminState.todoBatchContent&&!x.todoContent.includes(messageAdminState.todoBatchContent))return false;
+    if(messageAdminState.todoBatchReceiver&&!x.receivers.some(name=>name.includes(messageAdminState.todoBatchReceiver)))return false;
+    if(messageAdminState.todoBatchStatus&&x.status!==messageAdminState.todoBatchStatus)return false;
+    if(messageAdminState.todoBatchTrigger&&x.triggerMode!==messageAdminState.todoBatchTrigger)return false;
+    return true;
+  });
+}
+
+function syncMessageTodoBatchFilters(){
+  messageAdminState.todoBatchBizList=getTemplateTreeCheckedLeaves(document.getElementById("msgTodoBatchBizTreeFilter")).map(x=>x.dataset.label||x.value);
+  messageAdminState.todoBatchTitle=document.getElementById("msgTodoBatchTitle")?.value.trim()||"";
+  messageAdminState.todoBatchContent=document.getElementById("msgTodoBatchContent")?.value.trim()||"";
+  messageAdminState.todoBatchReceiver=document.getElementById("msgTodoBatchReceiver")?.value.trim()||"";
+  messageAdminState.todoBatchStatus=document.getElementById("msgTodoBatchStatus")?.value||"";
+  messageAdminState.todoBatchTrigger=document.getElementById("msgTodoBatchTrigger")?.value||"";
+  renderMessageTodoBatchPage();
+}
+
+function resetMessageTodoBatchFilters(){
+  messageAdminState.todoBatchBizList=[];messageAdminState.todoBatchTitle="";messageAdminState.todoBatchContent="";messageAdminState.todoBatchReceiver="";
+  messageAdminState.todoBatchStatus="";messageAdminState.todoBatchTrigger="";
+  renderMessageTodoBatchPage();
+}
+
+function renderMessageTodoBatchBizFilter(){
+  const tree=messageBizDictionary.map(group=>({label:group.name,value:group.name,children:group.children.map(child=>({label:child,value:`${group.name} / ${child}`}))}));
+  return renderTemplateCheckTreeSelect("msgTodoBatchBizTreeFilter",tree,"请选择业务分类",messageAdminState.todoBatchBizList||[]);
+}
+
+function setMessageTodoBatchStatusFilter(value){
+  messageAdminState.todoBatchStatus=messageAdminState.todoBatchStatus===value?"":value;
+  renderMessageTodoBatchPage();
+}
+
+function renderMessageTodoBatchStatusStat(value,count){
+  const active=messageAdminState.todoBatchStatus===value;
+  return `<button class="message-stat-option ${active?'active':''}" onclick="setMessageTodoBatchStatusFilter('${value}')"><strong>${count}</strong><span>${value}</span></button>`;
+}
+
+function renderMessageTodoBatchPage(){
+  const list=getMessageTodoBatchFiltered();
+  const all=getMessageTodoBatchData();
+  const queryFields=`
+    <div class="form-item"><label>业务分类</label>${renderMessageTodoBatchBizFilter()}</div>
+    <div class="form-item"><label>待办标题</label><input class="input" id="msgTodoBatchTitle" placeholder="请输入待办标题" value="${escapeAttr(messageAdminState.todoBatchTitle||'')}"/></div>
+    <div class="form-item"><label>待办内容</label><input class="input" id="msgTodoBatchContent" placeholder="请输入待办内容" value="${escapeAttr(messageAdminState.todoBatchContent||'')}"/></div>
+    <div class="form-item"><label>触达用户姓名</label><input class="input" id="msgTodoBatchReceiver" placeholder="请输入触达用户姓名" value="${escapeAttr(messageAdminState.todoBatchReceiver||'')}"/></div>
+    <div class="form-item"><label>发送状态</label><select class="select" id="msgTodoBatchStatus"><option value="">全部</option><option>待发送</option><option>已发送</option><option>部分发送</option><option>失败</option><option>已撤回</option></select></div>
+    <div class="form-item"><label>触发方式</label><select class="select" id="msgTodoBatchTrigger"><option value="">全部</option><option>业务接口</option><option>定时任务</option><option>手动发送</option></select></div>`;
+  const sent=all.reduce((n,x)=>n+x.sentCount,0),read=all.reduce((n,x)=>n+x.readCount,0),clicked=all.reduce((n,x)=>n+x.clickCount,0),handled=all.reduce((n,x)=>n+x.handleCount,0);
+  const statsHtml=`<div class="stats message-record-stats message-todo-record-stats">
+    <div class="stat message-record-stat-group todo-batch-status-group"><div class="stat-name">发送状态</div><div class="message-call-stat-grid stat-click-grid five-col">${["待发送","已发送","部分发送","失败","已撤回"].map(status=>renderMessageTodoBatchStatusStat(status,all.filter(x=>x.status===status).length)).join("")}</div></div>
+    <div class="stat message-record-stat-group"><div class="stat-name">指标统计</div><div class="message-call-stat-grid stat-click-grid">${renderMessageSendMetricStat("触达率",calcPercent(sent,all.reduce((n,x)=>n+x.shouldCount,0)),"实发 / 应发")}${renderMessageSendMetricStat("阅读率",calcPercent(read,sent),"已读 / 实发")}</div></div>
+    <div class="stat message-record-stat-group"><div class="stat-name">互动统计</div><div class="message-call-stat-grid stat-click-grid">${renderMessageSendMetricStat("点击率",calcPercent(clicked,read),"点击 / 已读")}${renderMessageSendMetricStat("办理率",calcPercent(handled,sent),"办理 / 实发")}</div></div>
+  </div>`;
+  listPage.innerHTML=`
+    ${renderMessageSendBatchTitleRow()}
+    ${renderUnifiedQueryCard(queryFields,{gridClass:"search-grid message-record-search-grid",queryFn:"syncMessageTodoBatchFilters()",resetFn:"resetMessageTodoBatchFilters()"})}
+    ${renderUnifiedStatsCard(statsHtml)}
+    ${renderUnifiedTableCard({title:"待办触达批次",tableKey:"messageTodoBatch",tableId:"messageTodoBatchTable",theadId:"messageTodoBatchThead",tbodyId:"messageTodoBatchTbody",totalId:"messageTodoBatchTotalText",total:list.length,renderFnName:"renderMessageTodoBatchPage",refreshAction:"renderMessageTodoBatchPage();showToast('已刷新待办触达批次')",exportAction:"showToast('导出成功：待办触达批次.xlsx')"})}
+  `;
+  setSelectValue("msgTodoBatchStatus",messageAdminState.todoBatchStatus);
+  setSelectValue("msgTodoBatchTrigger",messageAdminState.todoBatchTrigger);
+  renderTableByColumns("messageTodoBatch",list,"messageTodoBatchTbody");
+  setTimeout(()=>refreshTemplateTreeStates("msgTodoBatchBizTreeFilter"),0);
+}
+
+tableColumnDefinitions.messageTodoBatch=[
+  {key:"index",title:"序号",width:70,align:"center",render:(x,i)=>i+1},
+  {key:"status",title:"发送状态",width:110,align:"center",render:x=>messageStatusTag(x.status)},
+  {key:"biz",title:"业务分类",width:160,align:"center",render:x=>messageTodoBizTag(x.biz)},
+  {key:"todoTitle",title:"待办标题",width:220,align:"left",render:x=>x.todoTitle},
+  {key:"todoContent",title:"待办内容",width:300,align:"left",render:x=>`<span class="message-admin-ellipsis">${x.todoContent}</span>`},
+  {key:"sendTime",title:"发送时间",width:170,align:"center",render:x=>x.sendTime},
+  {key:"shouldCount",title:"应发人数",width:100,align:"right",render:x=>x.shouldCount},
+  {key:"sentCount",title:"实发人数",width:100,align:"right",render:x=>x.sentCount},
+  {key:"touchRate",title:"触达率",width:90,align:"center",render:x=>x.touchRate},
+  {key:"readCount",title:"已读人数",width:100,align:"right",render:x=>x.readCount},
+  {key:"readRate",title:"阅读率",width:90,align:"center",render:x=>x.readRate},
+  {key:"clickCount",title:"点击人数",width:100,align:"right",render:x=>x.clickCount},
+  {key:"clickRate",title:"点击率",width:90,align:"center",render:x=>x.clickRate},
+  {key:"handleCount",title:"办理人数",width:100,align:"right",render:x=>x.handleCount},
+  {key:"handleRate",title:"办理率",width:90,align:"center",render:x=>x.handleRate},
+  {key:"triggerMode",title:"触发方式",width:110,align:"center",render:x=>tag(x.triggerMode,x.triggerMode==="业务接口"?"green":x.triggerMode==="定时任务"?"orange":"blue")},
+  {key:"targetType",title:"接收人员类型",width:130,align:"center",render:x=>x.targetType},
+  {key:"targetValue",title:"接收对象选择",width:190,align:"left",render:x=>x.targetValue},
+  {key:"jump",title:"是否跳转",width:100,align:"center",render:x=>messageStatusTag(x.jump)},
+  {key:"jumpLink",title:"跳转链接",width:240,align:"left",render:x=>x.jumpLink},
+  {key:"popup",title:"是否弹框",width:100,align:"center",render:x=>messageStatusTag(x.popup)},
+  {key:"popupStyle",title:"弹框样式",width:110,align:"center",render:x=>x.popupStyle},
+  {key:"operation",title:"操作",width:190,align:"center",render:x=>`<a class="link" onclick="openMessageBatchDetail('${x.batchNo}')">查看</a> <a class="link" onclick="retryMessageTodoBatch('${x.batchNo}')">重新触达</a> <a class="link" onclick="withdrawMessageTodoBatch('${x.batchNo}')">撤回</a>`}
+];
+
+function retryMessageTodoBatch(batchNo){
+  messageTodoReachRecordData.filter(x=>x.batchNo===batchNo&&x.deliverStatus==="送达失败").forEach(x=>{x.deliverStatus="已送达";x.deliverTime="2026-07-25 22:55:00";x.failReason="";x.readStatus="未读";x.clickStatus="未点击";x.handleStatus="未办理";});
+  renderMessageTodoBatchPage();showToast("待办已重新触达");
+}
+
+function withdrawMessageTodoBatch(batchNo){
+  openModal("撤回确认",`<div style="padding:12px 0">确认撤回该待办触达批次吗？</div>`,`<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="confirmWithdrawMessageTodoBatch('${batchNo}')">确认撤回</button>`);
+}
+
+function confirmWithdrawMessageTodoBatch(batchNo){
+  messageTodoReachRecordData.filter(x=>x.batchNo===batchNo).forEach(x=>x.deliverStatus="已撤回");
+  closeModal();renderMessageTodoBatchPage();showToast("待办触达批次已撤回");
+}
+
 function renderMessageSendRecordPage(){
   detailPage.style.display="none";
   listPage.style.display="flex";
+  messageAdminState.sendTab=messageAdminState.sendTab==="todo"?"todo":"message";
+  if(messageAdminState.sendTab==="todo"){
+    renderMessageTodoBatchPage();
+    return;
+  }
   const list=getMessageSendFiltered();
   const should=list.reduce((sum,x)=>sum+x.shouldCount,0);
   const sent=list.reduce((sum,x)=>sum+x.sentCount,0);
   const read=list.reduce((sum,x)=>sum+x.readCount,0);
   const clicked=list.reduce((sum,x)=>sum+x.clickCount,0);
-  const all=messageSendRecordData;
+  const all=messageSendRecordData.filter(x=>x.type!=="待办任务"&&x.type!=="代办任务");
   const statusCounts={
     wait:all.filter(x=>x.status==="待发送").length,
     sent:all.filter(x=>x.status==="已发送").length,
@@ -1645,11 +1844,10 @@ function renderMessageSendRecordPage(){
   const typeCounts={
     notice:all.filter(x=>x.type==="消息通知").length,
     announcement:all.filter(x=>x.type==="通知公告").length,
-    todo:all.filter(x=>x.type==="待办任务" || x.type==="代办任务").length,
     warning:all.filter(x=>x.type==="预警通知").length
   };
   const queryFields=`
-    <div class="form-item"><label>消息类型</label><select class="select" id="msgSendType"><option value="">全部</option><option>消息通知</option><option>通知公告</option><option value="待办任务">代办任务</option><option>预警通知</option></select></div>
+    <div class="form-item"><label>消息类型</label><select class="select" id="msgSendType"><option value="">全部</option><option>消息通知</option><option>通知公告</option><option>预警通知</option></select></div>
     <div class="form-item"><label>消息标题</label><input class="input" id="msgSendTitle" placeholder="请输入消息标题" value="${messageAdminState.sendTitle||''}"/></div>
     <div class="form-item"><label>消息内容</label><input class="input" id="msgSendContent" placeholder="请输入消息内容" value="${messageAdminState.sendContent||''}"/></div>
     <div class="form-item"><label>业务分类</label>${renderMessageSendBizFilterTreeSelect()}</div>
@@ -1662,10 +1860,9 @@ function renderMessageSendRecordPage(){
     <div class="stats message-send-stats">
       <div class="stat message-send-stat-group type-group">
         <div class="stat-name">消息类型</div>
-        <div class="message-call-stat-grid stat-click-grid four-col">
+        <div class="message-call-stat-grid stat-click-grid">
           ${renderMessageSendTypeStat("消息通知",typeCounts.notice,"消息通知")}
           ${renderMessageSendTypeStat("通知公告",typeCounts.announcement,"通知公告")}
-          ${renderMessageSendTypeStat("待办任务",typeCounts.todo,"代办任务")}
           ${renderMessageSendTypeStat("预警通知",typeCounts.warning,"预警通知")}
         </div>
       </div>
@@ -1699,7 +1896,7 @@ function renderMessageSendRecordPage(){
   `;
 
   listPage.innerHTML=`
-    ${messageAdminHeader("发送记录","按发送批次查看每一次消息发送的内容、范围、状态和触达统计")}
+    ${renderMessageSendBatchTitleRow()}
     ${renderUnifiedQueryCard(queryFields,{gridClass:"search-grid message-send-search-grid",queryFn:"syncMessageAdminFilters('send')",resetFn:"resetMessageAdminFilters('send')"})}
     ${renderUnifiedStatsCard(statsHtml)}
     ${renderUnifiedTableCard({
@@ -3741,17 +3938,24 @@ function toggleMessageTemplateStatus(id){
 function openMessageSendDetail(id){
   const x=messageSendRecordData.find(item=>item.id===id);
   if(!x)return;
-  const details=messageRecordData.filter(r=>r.batchNo===x.batchNo);
-  openModal("发送记录详情",`
+  messageSendDrillState.batchNo=x.batchNo;
+  messageSendDrillState.deliver="";
+  messageSendDrillState.read="";
+  messageSendDrillState.click="";
+  openModal("发送批次记录详情",`
     <div class="message-admin-detail">
       ${info("发送批次号",x.batchNo)}${info("发送来源",x.source)}${info("消息类型",x.type)}${info("业务分类",x.biz)}
       ${info("发送状态",x.status)}${info("发送通道",x.channel)}${info("接收范围",x.targetType)}${info("接收目标",x.targetValue)}
       ${info("应发人数",x.shouldCount)}${info("实发人数",x.sentCount)}${info("已读人数",x.readCount)}${info("失败人数",x.failCount)}
-      <div class="message-admin-content"><strong>${x.title}</strong>${x.content}</div>
-      <div class="message-admin-mini-title">接收人明细预览</div>
-      <table><thead><tr><th>接收人</th><th>组织/项目</th><th>送达</th><th>阅读</th></tr></thead><tbody>${details.map(r=>`<tr><td>${r.receiver}</td><td>${r.org} / ${r.project}</td><td>${messageStatusTag(r.deliverStatus)}</td><td>${messageStatusTag(r.readStatus)}</td></tr>`).join("")}</tbody></table>
+      <div class="message-admin-content message-batch-content">
+        <div class="message-batch-content-title">${x.title}</div>
+        <div class="message-batch-content-body">${x.content}</div>
+      </div>
+      <div id="messageSendDetailReach" class="send-drill-modal message-send-detail-reach"></div>
     </div>
-  `,`<button class="btn" onclick="closeModal()">关闭</button><button class="btn primary" onclick="openSendReadStats('${x.batchNo}')">查看阅读统计</button>`,"large");
+  `,`<button class="btn" onclick="closeModal()">关闭</button>`,"large");
+  modalBox.classList.add("send-drill-modal-box");
+  renderMessageSendDetailReach(x.batchNo);
 }
 
 function openMessageBatchDetail(batchNo){
@@ -3776,7 +3980,10 @@ function openMessageBatchDetail(batchNo){
       ${info("发送批次号",batchNo)}${info("消息类型","待办任务")}${info("业务分类",sample.biz)}${info("发送状态",failed?"部分失败":"已发送")}
       ${info("应发人数",records.length)}${info("送达人数",delivered)}${info("失败人数",failed)}${info("已读人数",read)}
       ${info("已办理人数",handled)}${info("首次送达时间",records.map(item=>item.deliverTime).filter(Boolean).sort()[0]||"--")}
-      <div class="message-admin-content"><strong>${sample.todoTitle}</strong>${sample.todoContent}</div>
+      <div class="message-admin-content message-batch-content">
+        <div class="message-batch-content-title">${sample.todoTitle}</div>
+        <div class="message-batch-content-body">${sample.todoContent}</div>
+      </div>
       <div class="message-admin-mini-title">接收人明细</div>
       <table><thead><tr><th>接收人</th><th>组织/项目</th><th>送达</th><th>阅读</th><th>办理</th></tr></thead><tbody>${records.map(item=>`<tr><td>${item.receiver}</td><td>${item.org} / ${item.project}</td><td>${messageStatusTag(item.deliverStatus)}</td><td>${messageStatusTag(item.readStatus)}</td><td>${messageStatusTag(item.handleStatus)}</td></tr>`).join("")}</tbody></table>
     </div>

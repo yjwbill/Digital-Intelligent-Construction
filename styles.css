@@ -4863,6 +4863,17 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
   line-height:22px;
   white-space:normal;
 }
+.message-batch-content-title{
+  display:block;
+  color:var(--text);
+  font-weight:600;
+}
+.message-batch-content-body{
+  display:block;
+  margin-top:6px;
+  color:var(--sub);
+  font-weight:400;
+}
 .message-admin-mini-title{
   margin-top:4px;
   color:var(--sub);
@@ -5785,6 +5796,12 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
 .message-record-stat-group .message-call-stat-grid{
   grid-template-columns:repeat(2,minmax(0,1fr));
 }
+.message-record-stat-group .message-call-stat-grid.five-col{
+  grid-template-columns:repeat(5,minmax(0,1fr));
+}
+.message-todo-record-stats .todo-batch-status-group{
+  grid-column:span 2;
+}
 .message-record-stat-group .message-stat-option{
   cursor:pointer;
 }
@@ -6448,6 +6465,16 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
   flex:1;
   min-height:0;
   margin-bottom:0;
+}
+.message-admin-detail > .message-send-detail-reach{
+  grid-column:1 / -1;
+  width:100%;
+  min-width:0;
+}
+.message-send-detail-reach .send-drill-table-card,
+.message-send-detail-reach .table-wrap{
+  width:100%;
+  min-width:0;
 }
 
 

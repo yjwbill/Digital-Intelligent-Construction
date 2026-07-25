@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.368-MESSAGE-BIZ-COLUMN-WIDTH";
-const APP_CODE_VERSION_NAME="消息业务分类列宽优化版";
-const APP_CODE_VERSION_TIME="2026-07-25 21:35";
-const APP_CODE_VERSION_DESC="消息&待办管理相关列表的业务分类默认列宽统一为160px。";
+const APP_CODE_VERSION="EM-20260701-V2.2.376-TODO-BATCH-STATUSES";
+const APP_CODE_VERSION_NAME="待办批次状态统一版";
+const APP_CODE_VERSION_TIME="2026-07-25 23:35";
+const APP_CODE_VERSION_DESC="待办触达批次发送状态与消息发送批次统一为待发送、已发送、部分发送、失败、已撤回。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
@@ -578,7 +578,7 @@ const businessMenus={
         open:false,
         children:[
           {name:"模板管理"},
-          {name:"发送批次记录"},
+          {name:"发送批次明细"},
           {name:"用户触达明细"}
         ]
       }
@@ -1117,6 +1117,13 @@ const messageAdminState={
   sendStatus:"",
   sendTrigger:"",
   sendKeyword:"",
+  sendTab:"message",
+  todoBatchBizList:[],
+  todoBatchTitle:"",
+  todoBatchContent:"",
+  todoBatchReceiver:"",
+  todoBatchStatus:"",
+  todoBatchTrigger:"",
   recordType:"",
   recordBizList:[],
   recordTitle:"",
