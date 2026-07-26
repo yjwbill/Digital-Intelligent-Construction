@@ -1,4 +1,5 @@
 (function(){
+  const appRootUrl=new URL(document.querySelector("base")?.href || "./",document.baseURI);
   const enterpriseLineRoutes={
     home:"home-project-album",
     production:"src/app/production/dashboard.html",
@@ -68,7 +69,7 @@
         path=`src/app/pages/${target}.html`;
       }
     }
-    const url=new URL(path,document.baseURI);
+    const url=new URL(path,appRootUrl);
     Object.entries(params).forEach(([key,value])=>{
       if(value!==undefined&&value!==null&&value!=="")url.searchParams.set(key,String(value));
     });

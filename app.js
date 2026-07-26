@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.381-economy-diagnosis-polish";
+  const version="2.2.382-economy-top-nav-direct-route-fix";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",

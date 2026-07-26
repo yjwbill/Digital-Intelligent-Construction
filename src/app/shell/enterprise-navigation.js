@@ -40,6 +40,13 @@ function activateProductionDashboardMenu(){
   collapseInactiveGroups("production");
 }
 
+function activateEconomyDashboardMenu(){
+  clearBusinessMenuActive("economy");
+  const first=businessMenus.economy?.menus?.find(item=>item.name==="大屏看板");
+  if(first)first.active=true;
+  collapseInactiveGroups("economy");
+}
+
 function activateEnterpriseHomeMenu(){
   clearBusinessMenuActive("home");
   const first=businessMenus.home?.menus?.[0];
@@ -157,6 +164,12 @@ if(line==="home"){
   renderSideMenu(line);
   renderProductionDashboardByKey("overview");
   showToast("已切换到生产条线");
+}else if(line==="economy"){
+  activateEconomyDashboardMenu();
+  if(typeof economyDashboardState!=="undefined")economyDashboardState.tab="diagnosis";
+  renderSideMenu(line);
+  renderEconomyDashboardPage();
+  showToast("已切换到经济条线");
 }else if(line==="base"){
   activateBaseOrgMenu();
   renderSideMenu(line);

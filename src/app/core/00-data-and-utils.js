@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.381-ECONOMY-DIAGNOSIS-POLISH";
-const APP_CODE_VERSION_NAME="经济诊断细节优化版";
-const APP_CODE_VERSION_TIME="2026-07-26 01:39";
-const APP_CODE_VERSION_DESC="经济诊断六项指标保持单行，项目类型统一数据字典标签，并优化项目清单命名、对齐和潜亏预警标题。";
+const APP_CODE_VERSION="EM-20260701-V2.2.382-ECONOMY-TOP-NAV-DIRECT";
+const APP_CODE_VERSION_NAME="经济诊断顶部直达版";
+const APP_CODE_VERSION_TIME="2026-07-26 12:21";
+const APP_CODE_VERSION_DESC="企业管理点击顶部经济菜单后自动激活大屏看板并直接展示经济诊断，同时修复顶部业务切换后的路由目录重复拼接。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
