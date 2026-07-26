@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.382-economy-top-nav-direct-route-fix";
+  const version="2.2.388-economy-report-default-fullscreen";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",
@@ -24,6 +24,7 @@
     "src/app/operation/production-project-report.js",
     "src/app/operation/interface-sync-exceptions.js",
     "src/app/economy/project-initiation.js",
+    "src/app/economy/economy-analysis-report.js",
     "src/app/economy/dashboard.js",
     "src/app/mobile/project-overview.js",
     "src/app/core/99-initial-route.js"

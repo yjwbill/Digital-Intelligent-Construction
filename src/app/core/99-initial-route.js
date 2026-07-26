@@ -12,14 +12,14 @@
     home:{0:"home-project-album",1:"src/app/home/construction-log.html"},
     production:{0:"src/app/production/dashboard.html",1:"src/app/production/dashboard-projects.html"},
     safety:{0:"safety-dashboard",7:"safety-managed-overview"},
-    economy:{0:"src/app/economy/dashboard.html",1:"economy-cost",2:"economy-contract",3:"economy-settlement",4:"economy-analysis",5:"economy-fund-plan"}
+    economy:{0:"src/app/economy/dashboard.html",1:"economy-contract"}
   };
   const enterpriseChildRoutes={
     base:{0:"base-org-permission",1:"base-message-management",2:"base-data-config"},
     production:{2:"production-progress",3:"src/app/production/risk-management.html",4:"src/app/production/output-management.html",5:"production-quality",6:"src/app/production/supplier-performance.html",7:"production-low-carbon"},
     safety:{1:"safety-real-name",2:"safety-video",3:"safety-major-risk",4:"safety-minor-accident",5:"safety-daily-supervision",6:"safety-evaluation"},
     operation:{0:"operation-production-project"},
-    economy:{6:"src/app/economy/project-initiation.html"}
+    economy:{2:"src/app/economy/project-initiation.html"}
   };
   const projectLineRoutes={
     home:"project-home-overview",

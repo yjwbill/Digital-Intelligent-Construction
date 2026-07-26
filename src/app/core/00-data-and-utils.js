@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.382-ECONOMY-TOP-NAV-DIRECT";
-const APP_CODE_VERSION_NAME="经济诊断顶部直达版";
-const APP_CODE_VERSION_TIME="2026-07-26 12:21";
-const APP_CODE_VERSION_DESC="企业管理点击顶部经济菜单后自动激活大屏看板并直接展示经济诊断，同时修复顶部业务切换后的路由目录重复拼接。";
+const APP_CODE_VERSION="EM-20260701-V2.2.388-ECONOMY-REPORT-DEFAULT-FULLSCREEN";
+const APP_CODE_VERSION_NAME="经济诊断布局优化版";
+const APP_CODE_VERSION_TIME="2026-07-26 12:59";
+const APP_CODE_VERSION_DESC="经济诊断移除额外蓝灰背景并保持内容间距，项目清单压缩列宽完整适配一屏，超长项目名称使用省略号。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
@@ -732,11 +732,7 @@ const businessMenus={
     title:"经济管理",
     menus:[
       {icon:"📺",name:"大屏看板",active:false},
-      {icon:"💰",name:"成本总览",active:false},
       {icon:"📑",name:"合同管理",active:false},
-      {icon:"🧾",name:"结算管理",active:false},
-      {icon:"📈",name:"经营分析",active:false},
-      {icon:"🏦",name:"资金计划",active:false},
       {
         icon:"📋",
         name:"经济开项",
