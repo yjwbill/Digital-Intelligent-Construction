@@ -51,7 +51,7 @@ npx serve .
 
 ## 当前版本
 
-`EM-20260701-V2.2.388-ECONOMY-REPORT-DEFAULT-FULLSCREEN`
+`EM-20260701-V2.2.389-PROJECT-ECONOMY-OVERVIEW`
 
 本版本优化企业管理 > 经济 > 大屏看板 > 经济诊断：移除页面额外蓝灰色背景并沿用原内容间距；诊断项目清单改为一屏自适应列宽，缩小项目名称列，超长项目名称单行省略显示。
 

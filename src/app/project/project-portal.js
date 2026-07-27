@@ -1138,6 +1138,8 @@ function submitProjectLogFileReport(){
 }
 
 function renderProjectPortalPage(name){
+  if(pcPortalState.projectLine==="economy"&&name==="经济总览")return renderProjectEconomyOverviewPage();
+  if(pcPortalState.projectLine==="economy"&&name==="项目基本信息")return renderProjectPlaceholderPage("项目基本信息");
   if(pcPortalState.projectLine==="production"&&name==="里程碑节点")return renderProjectMilestoneNodePage();
   if(pcPortalState.projectLine==="production"&&name==="风险管控清单")return renderProjectRiskControlPage();
   if(pcPortalState.projectLine==="production"&&name==="创奖管理")return renderProjectAwardManagementPage();

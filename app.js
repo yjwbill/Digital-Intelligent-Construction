@@ -1,8 +1,9 @@
 (function(){
-  const version="2.2.388-economy-report-default-fullscreen";
+  const version="2.2.389-project-economy-overview";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",
+    "src/app/project/economy-overview.js",
     "src/app/project/project-portal.js",
     "src/app/shell/enterprise-navigation.js",
     "src/app/safety/labor-video-roster.js",

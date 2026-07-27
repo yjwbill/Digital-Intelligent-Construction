@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.388-ECONOMY-REPORT-DEFAULT-FULLSCREEN";
-const APP_CODE_VERSION_NAME="经济诊断布局优化版";
-const APP_CODE_VERSION_TIME="2026-07-26 12:59";
-const APP_CODE_VERSION_DESC="经济诊断移除额外蓝灰背景并保持内容间距，项目清单压缩列宽完整适配一屏，超长项目名称使用省略号。";
+const APP_CODE_VERSION="EM-20260701-V2.2.389-PROJECT-ECONOMY-OVERVIEW";
+const APP_CODE_VERSION_NAME="项目经济总览版";
+const APP_CODE_VERSION_TIME="2026-07-27 18:30";
+const APP_CODE_VERSION_DESC="项目管理新增经济总览与项目基本信息菜单，经济总览按当前项目展示基本信息、风险预警、实时指标和趋势分析。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
@@ -1211,7 +1211,7 @@ const projectPortalMenus={
     ]
   },
   safety:{title:"安全",menus:[{icon:"🛡️",name:"安全应用占位",active:true}]},
-  economy:{title:"经济",menus:[{icon:"💴",name:"经济应用占位",active:true}]}
+  economy:{title:"经济",menus:[{icon:"▣",name:"经济总览",active:true},{icon:"▤",name:"项目基本信息"}]}
 };
 let currentList=[...workers];
 let activeStat=null;
