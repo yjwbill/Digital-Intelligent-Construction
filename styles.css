@@ -18536,6 +18536,9 @@ body.mobile-mode .mobile-manual-scroll{
 .project-log-risk-info span{color:#4E5969;font-size:13px;font-weight:800;}
 .project-log-risk-info strong{color:#1D2129;font-size:13px;font-weight:900;}
 .project-log-risk-form{display:grid;gap:10px;}
+.project-log-radio-group{min-height:34px;display:flex;align-items:center;gap:16px;border:1px solid var(--border);border-radius:4px;background:#fff;padding:0 12px;}
+.project-log-radio-option{display:inline-flex;align-items:center;gap:6px;color:#1D2129;font-size:13px;font-weight:800;line-height:20px;cursor:pointer;}
+.project-log-radio-option input{width:14px;height:14px;margin:0;accent-color:var(--primary);}
 .project-log-photo-upload{display:flex;align-items:flex-start;gap:16px;}
 .project-log-photo-upload button{width:112px;height:112px;border:1px dashed #C8D6EA;border-radius:6px;background:#FAFCFF;color:#6B7A90;display:grid;place-items:center;cursor:pointer;}
 .project-log-photo-upload button span{font-size:34px;font-weight:300;line-height:1;}
