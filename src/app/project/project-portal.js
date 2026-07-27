@@ -590,6 +590,10 @@ function getProjectLogReadonlyWeekday(date){
 
 function getProjectLogReadonlyOnlineDetail(row){
   const variation=Number(row.seed??row.id)%4;
+  const risks=Array.isArray(row.risks)&&row.risks.length?row.risks:[
+    ["风险类型","深基坑开挖","风险名称","附属结构土方开挖","风险等级","II级","是否完成","否","是否受控","是","风险情况","风险可控","风险进展情况","现场监测数据正常，风险处于受控状态"],
+    ["风险类型","承重支模架","风险名称","主体结构模板支撑","风险等级","II级","是否完成","否","是否受控","是","风险情况","风险可控","风险进展情况","按专项方案组织施工，验收记录齐全"]
+  ];
   return {
     temperature:`${22+variation}℃`,
     weather:variation===2?"小雨":"晴",
@@ -601,10 +605,7 @@ function getProjectLogReadonlyOnlineDetail(row){
     ],
     today:[{area:row.workArea,content:row.summary,progress:`${82+variation*3}%`,remark:"现场材料、机具及安全防护检查正常"}],
     tomorrow:[{area:row.workArea,content:"继续开展主体结构施工及现场安全巡查",progress:"90%",remark:"提前落实材料进场计划"}],
-    risks:[
-      ["风险类型","深基坑开挖","风险名称","附属结构土方开挖","风险等级","II级","是否完成","否","是否受控","是","风险情况","现场监测数据正常，风险处于受控状态"],
-      ["风险类型","承重支模架","风险名称","主体结构模板支撑","风险等级","II级","是否完成","否","是否受控","是","风险情况","按专项方案组织施工，验收记录齐全"]
-    ],
+    risks,
     photos:[{name:row.title,url:row.cover || "./src/assets/project-log-building.png"}],
     stop:variation===3?"因短时降雨暂停室外作业2小时，已完成复工安全检查。":"无停工情况。"
   };
@@ -808,25 +809,78 @@ function removeProjectLogWorkRow(btn){
   refreshProjectLogWorkIndexes(type);
 }
 
-function renderProjectLogRiskRows(){
-  const risks=[
+function getProjectLogRiskFieldValue(risk,label){
+  if(!Array.isArray(risk))return "";
+  const index=risk.findIndex(item=>item===label);
+  return index>=0?risk[index+1]||"":"";
+}
+
+function getProjectLogRiskBaseRows(){
+  return [
     ["风险类型","深基坑开挖","风险名称","深基坑开挖","风险等级","II级","计划开始日期","2026-01-01","计划完成日期","2026-09-16","实际开始日期","2026-03-26","风险描述","附属土方开挖","挂牌领导","蔡群群","计划持续时间","258天"],
     ["风险类型","承重支模架","风险名称","承重支模架","风险等级","II级","计划开始日期","2026-03-31","计划完成日期","2026-11-15","实际开始日期","2026-04-15","风险描述","附属主体结构","挂牌领导","蔡群群","计划持续时间","229天"]
   ];
-  return risks.map((risk,index)=>`
-    <div class="project-log-risk-row">
+}
+
+function renderProjectLogRiskSituationRadio(index,value=""){
+  const options=["风险可控","风险预警"];
+  return `<div class="project-log-radio-group" role="radiogroup" aria-label="风险情况">
+    ${options.map(option=>`
+      <label class="project-log-radio-option">
+        <input type="radio" class="project-log-risk-situation" name="projectLogRiskSituation${index}" value="${option}" ${option===value?"checked":""} required/>
+        <span>${option}</span>
+      </label>
+    `).join("")}
+  </div>`;
+}
+
+function renderProjectLogRiskRows(savedRisks=[]){
+  const risks=getProjectLogRiskBaseRows();
+  return risks.map((risk,index)=>{
+    const savedRisk=savedRisks[index];
+    const completeValue=getProjectLogRiskFieldValue(savedRisk,"是否完成")||"否";
+    const controlledValue=getProjectLogRiskFieldValue(savedRisk,"是否受控")||"是";
+    const situationValue=getProjectLogRiskFieldValue(savedRisk,"风险情况");
+    const progressValue=getProjectLogRiskFieldValue(savedRisk,"风险进展情况");
+    return `
+    <div class="project-log-risk-row" data-project-log-risk-index="${index}">
       <div class="project-log-risk-info">
         ${Array.from({length:Math.ceil(risk.length/2)},(_,i)=>`
           <div><span>${risk[i*2]}</span><strong>${risk[i*2+1]}</strong></div>
         `).join("")}
       </div>
       <div class="project-log-risk-form">
-        <div class="form-item"><label>是否完成 <em>*</em></label><select class="select"><option>否</option><option>是</option></select></div>
-        <div class="form-item"><label>是否受控 <em>*</em></label><select class="select"><option selected>是</option><option>否</option></select></div>
-        <div class="form-item"><label>风险情况 <em>*</em></label><textarea class="input" placeholder="请输入"></textarea></div>
+        <div class="form-item"><label>是否完成 <em>*</em></label><select class="select"><option ${completeValue==="否"?"selected":""}>否</option><option ${completeValue==="是"?"selected":""}>是</option></select></div>
+        <div class="form-item"><label>是否受控 <em>*</em></label><select class="select"><option ${controlledValue==="是"?"selected":""}>是</option><option ${controlledValue==="否"?"selected":""}>否</option></select></div>
+        <div class="form-item"><label>风险情况 <em>*</em></label>${renderProjectLogRiskSituationRadio(index,situationValue)}</div>
+        <div class="form-item"><label>风险进展情况 <em>*</em></label><textarea class="input project-log-risk-progress" placeholder="请输入" required>${escapeAttr(progressValue)}</textarea></div>
       </div>
     </div>
-  `).join("");
+  `;
+  }).join("");
+}
+
+function collectProjectLogRiskRows(){
+  const baseRows=getProjectLogRiskBaseRows();
+  const rows=[...document.querySelectorAll(".project-log-risk-row")];
+  const reports=[];
+  for(const row of rows){
+    const index=Number(row.dataset.projectLogRiskIndex)||0;
+    const situation=row.querySelector(".project-log-risk-situation:checked")?.value||"";
+    const progress=row.querySelector(".project-log-risk-progress")?.value.trim()||"";
+    if(!situation){
+      showToast("请选择风险情况");
+      row.querySelector(".project-log-risk-situation")?.focus();
+      return null;
+    }
+    if(!progress){
+      showToast("请输入风险进展情况");
+      row.querySelector(".project-log-risk-progress")?.focus();
+      return null;
+    }
+    reports.push([...baseRows[index],"是否完成",row.querySelector("select")?.value||"否","是否受控",row.querySelectorAll("select")[1]?.value||"是","风险情况",situation,"风险进展情况",progress]);
+  }
+  return reports;
 }
 
 function renderProjectLogPersonInput(id,value){
@@ -994,7 +1048,7 @@ function openProjectLogReportModal(editRow=null){
 
       <section class="project-log-report-section">
         <h3>风险情况</h3>
-        ${renderProjectLogRiskRows()}
+        ${renderProjectLogRiskRows(detail?.risks)}
       </section>
 
       <section class="project-log-report-section">
@@ -1044,6 +1098,8 @@ function openProjectLogFileReportModal(editRow=null){
 }
 
 function submitProjectLogReport(){
+  const risks=collectProjectLogRiskRows();
+  if(!risks)return;
   const editing=projectLogEditingRow;
   const recorder=document.getElementById("projectLogReportRecorder")?.value || "楼力栋";
   const date=document.getElementById("projectLogReportDate")?.value || "2026-07-09";
@@ -1070,6 +1126,7 @@ function submitProjectLogReport(){
     fileName:"",
     fileSize:"",
     summary:firstContent || "完成施工日志在线上报。",
+    risks,
     cover:projectLogReportPhotoList[0]?.url || ""
   };
   projectLogDeletedKeys.delete(getProjectLogRecordKey(newRow));
