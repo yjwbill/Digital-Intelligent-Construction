@@ -1318,7 +1318,7 @@ function openProjectLogFileReportModal(editRow=null){
             ${renderProjectLogFileUpload()}
           </div>
           <div class="form-item project-log-file-remark-item">
-            <label>备注说明</label>
+            <label>当日施工情况描述</label>
             <textarea class="input project-log-stop-textarea" id="projectLogFileReportRemark" placeholder="请输入备注说明">${escapeAttr(editRow?.summary||"")}</textarea>
           </div>
         </div>
