@@ -361,6 +361,8 @@ function getProjectLogRows(){
 }
 let projectLogReportPhotoList=[];
 let projectLogReportFileList=[];
+let projectLogCurrentAssignment=null;
+const projectLogAssignments=[];
 
 function getProjectLogFilteredRows(){
   return getProjectLogRows().filter(row=>{
@@ -594,6 +596,8 @@ function getProjectLogReadonlyOnlineDetail(row){
     ["风险类型","深基坑开挖","风险名称","附属结构土方开挖","风险等级","II级","是否完成","否","是否受控","是","风险情况","风险可控","风险进展情况","现场监测数据正常，风险处于受控状态"],
     ["风险类型","承重支模架","风险名称","主体结构模板支撑","风险等级","II级","是否完成","否","是否受控","是","风险情况","风险可控","风险进展情况","按专项方案组织施工，验收记录齐全"]
   ];
+  const today=Array.isArray(row.today)&&row.today.length?row.today:[{area:row.workArea,subitem:"主体结构施工",position:"主体结构区",content:row.summary,progress:"按计划推进",imageName:"",reporter:row.uploader,remark:"现场材料、机具及安全防护检查正常"}];
+  const tomorrow=Array.isArray(row.tomorrow)&&row.tomorrow.length?row.tomorrow:[{area:row.workArea,subitem:"主体结构施工",position:"主体结构区",content:"继续开展主体结构施工及现场安全巡查",progress:"计划继续推进",imageName:"",reporter:row.uploader,remark:"提前落实材料进场计划"}];
   return {
     temperature:`${22+variation}℃`,
     weather:variation===2?"小雨":"晴",
@@ -603,8 +607,8 @@ function getProjectLogReadonlyOnlineDetail(row){
       ["分包管理人员",String(11+variation)],
       ["劳务人员",String(36+variation*3)]
     ],
-    today:[{area:row.workArea,content:row.summary,progress:`${82+variation*3}%`,remark:"现场材料、机具及安全防护检查正常"}],
-    tomorrow:[{area:row.workArea,content:"继续开展主体结构施工及现场安全巡查",progress:"90%",remark:"提前落实材料进场计划"}],
+    today,
+    tomorrow,
     risks,
     photos:[{name:row.title,url:row.cover || "./src/assets/project-log-building.png"}],
     stop:variation===3?"因短时降雨暂停室外作业2小时，已完成复工安全检查。":"无停工情况。"
@@ -614,8 +618,8 @@ function getProjectLogReadonlyOnlineDetail(row){
 function renderProjectLogReadonlyWorkTable(rows,showProgress=true){
   return `
     <table class="project-log-report-table project-log-readonly-work-table">
-      <thead><tr><th>序号</th><th>施工工区</th><th>工作内容</th>${showProgress?"<th>工作进度</th>":""}<th>备注</th></tr></thead>
-      <tbody>${rows.map((item,index)=>`<tr><td>${index+1}</td><td>${item.area}</td><td>${item.content}</td>${showProgress?`<td>${item.progress}</td>`:""}<td>${item.remark||"-"}</td></tr>`).join("")}</tbody>
+      <thead><tr><th>序号</th><th>施工工区</th><th>施工分项</th><th>施工部位</th><th>工作内容</th>${showProgress?"<th>工作进度</th>":""}<th>图片</th><th>填报人</th><th>备注</th></tr></thead>
+      <tbody>${rows.map((item,index)=>`<tr><td>${index+1}</td><td>${item.area}</td><td>${item.subitem||"-"}</td><td>${item.position||"-"}</td><td>${item.content}</td>${showProgress?`<td>${item.progress}</td>`:""}<td>${item.imageUrl?`<button type="button" class="project-log-work-thumb-btn" onclick="openProjectLogWorkImagePreview('${escapeAttr(item.imageUrl)}','${escapeAttr(item.imageName||"工作图片")}')"><img class="project-log-work-thumb" src="${item.imageUrl}" alt="${escapeAttr(item.imageName||"工作图片")}"/></button>`:item.imageName||"-"}</td><td>${item.reporter||"-"}</td><td>${item.remark||"-"}</td></tr>`).join("")}</tbody>
     </table>
   `;
 }
@@ -736,6 +740,10 @@ function confirmDeleteProjectLog(id){
 
 function renderProjectLogWorkAreaOptions(value=""){
   const areas=[...new Set(getProjectLogRows().map(row=>row.workArea))];
+  if(value&&!areas.includes(value))areas.unshift(value);
+  ["主体结构区","附属结构区","基坑施工区","材料加工区"].forEach(area=>{
+    if(!areas.includes(area))areas.push(area);
+  });
   return `<option value="">请选择工区</option>${areas.map(area=>`<option value="${escapeAttr(area)}" ${area===value?"selected":""}>${area}</option>`).join("")}`;
 }
 
@@ -743,11 +751,15 @@ function renderProjectLogWorkTable(type="today",defaultRows=null){
   const isToday=type==="today";
   const rows=Array.isArray(defaultRows)?defaultRows:(isToday?[{
     area:"主体结构区",
+    subitem:"主体结构施工",
+    position:"主体结构区",
     content:"完成钢筋绑扎、模板加固及现场安全巡查",
-    progress:"85",
+    progress:"按计划推进",
+    imageName:"",
+    reporter:getProjectLogWorkReporterByArea("主体结构区"),
     remark:"现场材料已完成验收"
   }]:[]);
-  const columnCount=isToday?6:5;
+  const columnCount=isToday?10:9;
   const emptyRow=`
     <tr class="project-log-report-empty-row"><td colspan="${columnCount}">暂无数据</td></tr>
   `;
@@ -756,29 +768,121 @@ function renderProjectLogWorkTable(type="today",defaultRows=null){
       <span>工作内容${isToday?'<em>*</em>':""}</span>
       <button class="btn primary small" onclick="addProjectLogWorkRow('${type}')">添加</button>
     </div>
-    <table class="project-log-report-table">
-      <thead>
-        <tr><th>序号</th><th>施工工区</th><th>工作内容</th>${isToday?"<th>工作进度</th>":""}<th>备注</th><th>操作</th></tr>
-      </thead>
-      <tbody id="projectLogWorkTbody-${type}">
-        ${rows.length?rows.map((row,index)=>renderProjectLogWorkRow(type,row,index)).join(""):emptyRow}
-      </tbody>
-    </table>
+    <div class="project-log-work-table-wrap">
+      <table class="project-log-report-table project-log-work-table">
+        <thead>
+          <tr><th>序号</th><th>施工工区</th><th>施工分项</th><th>施工部位</th><th>工作内容</th>${isToday?"<th>工作进度</th>":""}<th>图片</th><th>填报人</th><th>备注</th><th>操作</th></tr>
+        </thead>
+        <tbody id="projectLogWorkTbody-${type}">
+          ${rows.length?rows.map((row,index)=>renderProjectLogWorkRow(type,row,index)).join(""):emptyRow}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function getProjectLogWorkReporterByArea(area,fallback=""){
+  const assignments=[projectLogCurrentAssignment,...projectLogAssignments].filter(Boolean);
+  const match=assignments.find(item=>item.area===area);
+  const names=getProjectLogAssignmentNames(match);
+  return names.length?names.join("、"):fallback||document.getElementById("projectLogReportRecorder")?.value||"楼力栋";
+}
+
+function renderProjectLogWorkImageUpload(row={}){
+  const name=row.imageName||"";
+  const url=row.imageUrl||"";
+  return `
+    <div class="project-log-work-image-upload" data-project-log-work-image-name="${escapeAttr(name)}" data-project-log-work-image-url="${escapeAttr(url)}">
+      <input type="file" accept="image/*" hidden onchange="handleProjectLogWorkImageFile(this)"/>
+      <button type="button" class="btn small" onclick="this.previousElementSibling?.click()">上传</button>
+      <div class="project-log-work-image-preview ${url?"has-image":""}">
+        ${url?`<button type="button" onclick="openProjectLogWorkImagePreview('${escapeAttr(url)}','${escapeAttr(name||"工作图片")}')"><img src="${url}" alt="${escapeAttr(name||"工作图片")}"/></button>`:`<em>无图</em>`}
+      </div>
+    </div>
   `;
 }
 
 function renderProjectLogWorkRow(type,row={},index=0){
   const isToday=type==="today";
+  const reporter=getProjectLogWorkReporterByArea(row.area||"",row.reporter||"");
   return `
     <tr class="project-log-report-work-row" data-project-log-work-type="${type}">
       <td class="project-log-work-index">${index+1}</td>
-      <td><select class="select project-log-work-area">${renderProjectLogWorkAreaOptions(row.area || "")}</select></td>
+      <td><select class="select project-log-work-area" onchange="syncProjectLogWorkReporter(this)">${renderProjectLogWorkAreaOptions(row.area || "")}</select></td>
+      <td><input class="input project-log-work-subitem" value="${escapeAttr(row.subitem || "")}" placeholder="请输入施工分项"/></td>
+      <td><input class="input project-log-work-position" value="${escapeAttr(row.position || "")}" placeholder="请输入施工部位"/></td>
       <td><input class="input project-log-work-content" value="${escapeAttr(row.content || "")}" placeholder="请输入工作内容"/></td>
-      ${isToday?`<td><div class="project-log-percent-input"><input class="input project-log-work-progress" type="number" min="0" max="100" value="${escapeAttr(row.progress || "")}" placeholder="请输入"/><span>%</span></div></td>`:""}
+      ${isToday?`<td><input class="input project-log-work-progress" value="${escapeAttr(row.progress || "")}" placeholder="请输入工作进度"/></td>`:""}
+      <td>${renderProjectLogWorkImageUpload(row)}</td>
+      <td><input class="input project-log-work-reporter" value="${escapeAttr(reporter)}" readonly/></td>
       <td><input class="input project-log-work-remark" value="${escapeAttr(row.remark || "")}" placeholder="请输入备注"/></td>
       <td><button class="btn danger small" onclick="removeProjectLogWorkRow(this)">删除</button></td>
     </tr>
   `;
+}
+
+function syncProjectLogWorkReporter(select){
+  const row=select?.closest(".project-log-report-work-row");
+  const reporter=row?.querySelector(".project-log-work-reporter");
+  if(reporter)reporter.value=getProjectLogWorkReporterByArea(select.value,reporter.value);
+  const assignment=[projectLogCurrentAssignment,...projectLogAssignments].filter(Boolean).find(item=>item.area===select.value);
+  const subitem=row?.querySelector(".project-log-work-subitem");
+  if(assignment&&subitem&&!subitem.value)subitem.value=assignment.subitem||"";
+  syncProjectLogRecorderFromWorkRows();
+}
+
+function refreshProjectLogWorkReporters(){
+  document.querySelectorAll(".project-log-report-work-row").forEach(row=>{
+    const area=row.querySelector(".project-log-work-area")?.value||"";
+    const reporter=row.querySelector(".project-log-work-reporter");
+    if(reporter)reporter.value=getProjectLogWorkReporterByArea(area,reporter.value);
+    const assignment=[projectLogCurrentAssignment,...projectLogAssignments].filter(Boolean).find(item=>item.area===area);
+    const subitem=row.querySelector(".project-log-work-subitem");
+    if(assignment&&subitem&&!subitem.value)subitem.value=assignment.subitem||"";
+  });
+  syncProjectLogRecorderFromWorkRows();
+}
+
+function handleProjectLogWorkImageFile(input){
+  const file=input?.files?.[0];
+  if(!file)return;
+  const upload=input.closest(".project-log-work-image-upload");
+  if(upload){
+    upload.dataset.projectLogWorkImageName=file.name;
+    const reader=new FileReader();
+    reader.onload=event=>{
+      const url=event.target.result;
+      upload.dataset.projectLogWorkImageUrl=url;
+      const preview=upload.querySelector(".project-log-work-image-preview");
+      if(preview){
+        preview.classList.add("has-image");
+        preview.innerHTML=`<button type="button" onclick="openProjectLogWorkImagePreview('${escapeAttr(url)}','${escapeAttr(file.name)}')"><img src="${url}" alt="${escapeAttr(file.name)}"/></button>`;
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+  input.value="";
+}
+
+function openProjectLogWorkImagePreview(url,name="工作图片"){
+  if(!url)return;
+  openNestedModal("图片预览",`<div class="project-log-work-image-viewer"><img src="${url}" alt="${escapeAttr(name)}"/></div>`,`<button class="btn" type="button" onclick="closeNestedModal(this)">关闭</button>`);
+  document.querySelector(".nested-modal-mask:last-of-type .nested-modal")?.classList.add("project-log-work-image-modal");
+}
+
+function collectProjectLogWorkRows(type){
+  const rows=[...document.querySelectorAll(`#projectLogWorkTbody-${type} .project-log-report-work-row`)];
+  return rows.map(row=>({
+    area:row.querySelector(".project-log-work-area")?.value||"",
+    subitem:row.querySelector(".project-log-work-subitem")?.value.trim()||"",
+    position:row.querySelector(".project-log-work-position")?.value.trim()||"",
+    content:row.querySelector(".project-log-work-content")?.value.trim()||"",
+    progress:row.querySelector(".project-log-work-progress")?.value||"",
+    imageName:row.querySelector(".project-log-work-image-upload")?.dataset.projectLogWorkImageName||"",
+    imageUrl:row.querySelector(".project-log-work-image-upload")?.dataset.projectLogWorkImageUrl||"",
+    reporter:row.querySelector(".project-log-work-reporter")?.value||"",
+    remark:row.querySelector(".project-log-work-remark")?.value.trim()||""
+  })).filter(row=>row.area||row.subitem||row.position||row.content||row.progress||row.imageName||row.remark);
 }
 
 function refreshProjectLogWorkIndexes(type){
@@ -790,7 +894,7 @@ function refreshProjectLogWorkIndexes(type){
     if(cell)cell.textContent=String(index+1);
   });
   if(!rows.length){
-    tbody.innerHTML=`<tr class="project-log-report-empty-row"><td colspan="${type==="today"?6:5}">暂无数据</td></tr>`;
+    tbody.innerHTML=`<tr class="project-log-report-empty-row"><td colspan="${type==="today"?10:9}">暂无数据</td></tr>`;
   }
 }
 
@@ -799,7 +903,7 @@ function addProjectLogWorkRow(type){
   if(!tbody)return;
   tbody.querySelector(".project-log-report-empty-row")?.remove();
   const index=tbody.querySelectorAll(".project-log-report-work-row").length;
-  tbody.insertAdjacentHTML("beforeend",renderProjectLogWorkRow(type,{area:"",content:"",progress:"",remark:""},index));
+  tbody.insertAdjacentHTML("beforeend",renderProjectLogWorkRow(type,{area:"",subitem:"",position:"",content:"",progress:"",imageName:"",reporter:"",remark:""},index));
 }
 
 function removeProjectLogWorkRow(btn){
@@ -881,6 +985,139 @@ function collectProjectLogRiskRows(){
     reports.push([...baseRows[index],"是否完成",row.querySelector("select")?.value||"否","是否受控",row.querySelectorAll("select")[1]?.value||"是","风险情况",situation,"风险进展情况",progress]);
   }
   return reports;
+}
+
+function getProjectLogAssignmentPeople(assignment){
+  if(!assignment)return [];
+  if(Array.isArray(assignment.people)&&assignment.people.length)return assignment.people;
+  if(assignment.personName)return [{
+    id:assignment.personId||"",
+    name:assignment.personName,
+    job:assignment.personJob||"管理人员",
+    phone:assignment.personPhone||""
+  }];
+  return [];
+}
+
+function getProjectLogAssignmentNames(assignment){
+  return getProjectLogAssignmentPeople(assignment).map(item=>item.name).filter(Boolean);
+}
+
+function getProjectLogRecorderValue(defaultName="楼力栋"){
+  const workNames=[...document.querySelectorAll(".project-log-work-reporter")]
+    .flatMap(input=>String(input.value||"").split(/[、,，]/))
+    .map(name=>name.trim())
+    .filter(Boolean);
+  const names=[...new Set(workNames)];
+  return names.length?names.join("、"):defaultName;
+}
+
+function syncProjectLogRecorderFromWorkRows(){
+  const recorder=document.getElementById("projectLogReportRecorder");
+  if(recorder)recorder.value=getProjectLogRecorderValue(recorder.value||"楼力栋");
+}
+
+function renderProjectLogRecorderReadonly(id,selectedName="楼力栋"){
+  return `<input class="input project-log-recorder-readonly" id="${id}" value="${escapeAttr(selectedName)}" readonly/>`;
+}
+
+function getProjectLogSubitemOptions(){
+  return ["主体结构施工","附属结构施工","深基坑开挖","承重支模架","钢筋模板工程","机电安装工程","现场安全巡查"];
+}
+
+function getProjectLogManagementPersonnel(){
+  const currentProject=pcPortalState.currentProject;
+  const project=getCurrentProjectContext();
+  const assignerName=project?.projectManager||"赵菁";
+  const canBeAssigned=worker=>worker.name!==assignerName&&worker.job!=="项目经理";
+  const managerRows=(Array.isArray(workers)?workers:[])
+    .filter(worker=>worker.type==="管理人员"&&worker.status!=="已退场"&&canBeAssigned(worker))
+    .map(worker=>({
+      id:`worker-${worker.id}`,
+      name:worker.name,
+      job:worker.job||"管理人员",
+      phone:worker.phone||"",
+      project:worker.project||"",
+      source:"实名制"
+    }));
+  const currentProjectRows=managerRows.filter(worker=>worker.project===currentProject);
+  const rows=currentProjectRows.length?currentProjectRows:managerRows;
+  if(rows.length)return rows;
+  return [
+    {id:"fallback-safety",name:"陈安全",job:"安全员",phone:"138****6608",project:currentProject,source:"项目管理人员"},
+    {id:"fallback-production",name:"赵经理",job:"生产经理",phone:"136****8812",project:currentProject,source:"项目管理人员"},
+    {id:"fallback-quality",name:"刘质量",job:"质量员",phone:"139****6021",project:currentProject,source:"项目管理人员"}
+  ];
+}
+
+function renderProjectLogAssignmentToolbar(){
+  const peopleText=getProjectLogAssignmentNames(projectLogCurrentAssignment).join("、");
+  const text=projectLogCurrentAssignment?`已分配：${projectLogCurrentAssignment.area} / ${projectLogCurrentAssignment.subitem} / ${peopleText}`:"未分配填报人员";
+  return `
+    <div class="project-log-report-toolbar">
+      <span id="projectLogAssignmentInfo">${text}</span>
+      <button class="btn primary" type="button" onclick="openProjectLogAssignmentModal()">分配</button>
+    </div>
+  `;
+}
+
+function openProjectLogAssignmentModal(){
+  const currentArea=document.getElementById("projectLogReportArea")?.value||projectLogCurrentAssignment?.area||"主体结构区";
+  const currentSubitem=projectLogCurrentAssignment?.subitem||"主体结构施工";
+  const currentPersonIds=getProjectLogAssignmentPeople(projectLogCurrentAssignment).map(item=>item.id);
+  const managers=getProjectLogManagementPersonnel();
+  const body=`
+    <div class="project-log-assignment-form">
+      <div class="form-item">
+        <label>工区 <em>*</em></label>
+        <select class="select" id="projectLogAssignArea">${renderProjectLogWorkAreaOptions(currentArea)}</select>
+      </div>
+      <div class="form-item">
+        <label>分部分项 <em>*</em></label>
+        <select class="select" id="projectLogAssignSubitem">
+          <option value="">请选择分部分项</option>
+          ${getProjectLogSubitemOptions().map(item=>`<option value="${escapeAttr(item)}" ${item===currentSubitem?"selected":""}>${item}</option>`).join("")}
+        </select>
+      </div>
+      <div class="form-item">
+        <label>分配人员 <em>*</em></label>
+        <div class="project-log-assignment-source" id="projectLogAssignPeople">
+          ${managers.map(item=>`
+            <label class="project-log-assignment-person">
+              <input type="checkbox" value="${escapeAttr(item.id)}" ${currentPersonIds.includes(item.id)?"checked":""}/>
+              <span><strong>${escapeAttr(item.name)}</strong><em>${escapeAttr(item.job)} · ${escapeAttr(item.project||pcPortalState.currentProject)} · ${escapeAttr(item.source)}</em></span>
+            </label>
+          `).join("")}
+        </div>
+      </div>
+    </div>
+  `;
+  openNestedModal("分配施工日志填报",body,`<button class="btn" type="button" onclick="closeNestedModal(this)">取消</button><button class="btn primary" type="button" onclick="confirmProjectLogAssignment(this)">确定</button>`);
+  document.querySelector(".nested-modal-mask:last-of-type .nested-modal")?.classList.add("project-log-assignment-modal");
+}
+
+function confirmProjectLogAssignment(btn){
+  const area=document.getElementById("projectLogAssignArea")?.value||"";
+  const subitem=document.getElementById("projectLogAssignSubitem")?.value||"";
+  const personIds=[...document.querySelectorAll("#projectLogAssignPeople input:checked")].map(input=>input.value);
+  if(!area)return showToast("请选择工区");
+  if(!subitem)return showToast("请选择分部分项");
+  if(!personIds.length)return showToast("请选择分配人员");
+  const people=getProjectLogManagementPersonnel()
+    .filter(item=>personIds.includes(item.id))
+    .map(item=>({id:item.id,name:item.name,job:item.job,phone:item.phone}));
+  if(!people.length)return showToast("分配人员不存在");
+  const personNames=people.map(item=>item.name).join("、");
+  projectLogCurrentAssignment={id:Date.now(),date:document.getElementById("projectLogReportDate")?.value||"",area,subitem,people};
+  projectLogAssignments.unshift(projectLogCurrentAssignment);
+  const areaSelect=document.getElementById("projectLogReportArea");
+  if(areaSelect)areaSelect.value=area;
+  const info=document.getElementById("projectLogAssignmentInfo");
+  if(info)info.textContent=`已分配：${area} / ${subitem} / ${personNames}`;
+  refreshProjectLogWorkReporters();
+  syncProjectLogRecorderFromWorkRows();
+  closeNestedModal(btn);
+  showToast(`已分配给${personNames}填报`);
 }
 
 function renderProjectLogPersonInput(id,value){
@@ -998,7 +1235,7 @@ function removeProjectLogPhoto(index){
   refreshProjectLogPhotoPreview();
 }
 
-function renderProjectLogReportBaseInfo(prefix="projectLogReport",defaultArea="主体结构区",mode="online",defaultDate="2026-07-09"){
+function renderProjectLogReportBaseInfo(prefix="projectLogReport",defaultArea="主体结构区",mode="online",defaultDate="2026-07-09",defaultRecorder="楼力栋"){
   const today=defaultDate;
   const isFile=mode==="file";
   return `
@@ -1012,7 +1249,7 @@ function renderProjectLogReportBaseInfo(prefix="projectLogReport",defaultArea="�
           <div class="form-item"><label>星期 <em>*</em></label><input class="input" value="星期四" disabled/></div>
           <div class="form-item"><label>温度 <em>*</em></label><div class="project-log-unit-input"><input class="input" placeholder="请输入"/><span>℃</span></div></div>
           <div class="form-item"><label>天气是否影响工作 <em>*</em></label><select class="select"><option value="">请选择天气是否影响工作</option><option>是</option><option>否</option></select></div>
-          <div class="form-item"><label>记录人姓名 <em>*</em></label><input class="input" id="${prefix}Recorder" value="楼力栋" disabled/></div>
+          <div class="form-item"><label>记录人姓名 <em>*</em></label>${renderProjectLogRecorderReadonly(`${prefix}Recorder`,defaultRecorder)}</div>
         `}
       </div>
     </section>
@@ -1021,11 +1258,13 @@ function renderProjectLogReportBaseInfo(prefix="projectLogReport",defaultArea="�
 
 function openProjectLogReportModal(editRow=null){
   if(!editRow)projectLogEditingRow=null;
+  projectLogCurrentAssignment=editRow?.assignment||null;
   const detail=editRow?getProjectLogReadonlyOnlineDetail(editRow):null;
   projectLogReportPhotoList=detail?.photos?.map(photo=>({...photo}))||[];
   openModal(editRow?"编辑施工日志":"施工日志在线上报",`
     <div class="project-log-online-report">
-      ${renderProjectLogReportBaseInfo("projectLogReport",editRow?.workArea||"主体结构区","online",editRow?.date||"2026-07-09")}
+      ${renderProjectLogAssignmentToolbar()}
+      ${renderProjectLogReportBaseInfo("projectLogReport",editRow?.workArea||projectLogCurrentAssignment?.area||"主体结构区","online",editRow?.date||"2026-07-09",editRow?.uploader||getProjectLogAssignmentNames(projectLogCurrentAssignment).join("、")||"楼力栋")}
 
       <section class="project-log-report-section">
         <h3>人员信息</h3>
@@ -1052,12 +1291,6 @@ function openProjectLogReportModal(editRow=null){
       </section>
 
       <section class="project-log-report-section">
-        <h3>施工照片</h3>
-        <p class="project-log-upload-hint">最多上传9张施工照片</p>
-        ${renderProjectLogPhotoUpload()}
-      </section>
-
-      <section class="project-log-report-section">
         <h3>发生停工情况</h3>
         <textarea class="input project-log-stop-textarea" placeholder="请输入"></textarea>
       </section>
@@ -1068,6 +1301,7 @@ function openProjectLogReportModal(editRow=null){
     <button class="btn primary" onclick="submitProjectLogReport()">${editRow?"保存修改":"提交上报"}</button>
   `,"large");
   modalBox.classList.add("project-log-online-report-modal");
+  refreshProjectLogWorkReporters();
 }
 
 function openProjectLogFileReportModal(editRow=null){
@@ -1100,13 +1334,18 @@ function openProjectLogFileReportModal(editRow=null){
 function submitProjectLogReport(){
   const risks=collectProjectLogRiskRows();
   if(!risks)return;
+  refreshProjectLogWorkReporters();
+  const today=collectProjectLogWorkRows("today");
+  const tomorrow=collectProjectLogWorkRows("tomorrow");
   const editing=projectLogEditingRow;
-  const recorder=document.getElementById("projectLogReportRecorder")?.value || "楼力栋";
+  const recorder=getProjectLogRecorderValue("楼力栋");
+  const recorderInput=document.getElementById("projectLogReportRecorder");
+  if(recorderInput)recorderInput.value=recorder;
   const date=document.getElementById("projectLogReportDate")?.value || "2026-07-09";
   const area=document.getElementById("projectLogReportArea")?.value || "主体结构区";
   const now=new Date();
   const uploadTime=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")} ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
-  const firstContent=document.querySelector("#projectLogWorkTbody-today .project-log-work-content")?.value?.trim();
+  const firstContent=today[0]?.content||"";
   if(editing){
     const oldKey=getProjectLogRecordKey(editing);
     projectLogDeletedKeys.add(oldKey);
@@ -1126,8 +1365,11 @@ function submitProjectLogReport(){
     fileName:"",
     fileSize:"",
     summary:firstContent || "完成施工日志在线上报。",
+    today,
+    tomorrow,
     risks,
-    cover:projectLogReportPhotoList[0]?.url || ""
+    assignment:projectLogCurrentAssignment?{...projectLogCurrentAssignment}:null,
+    cover:editing?.cover || ""
   };
   projectLogDeletedKeys.delete(getProjectLogRecordKey(newRow));
   projectLogCustomRows.unshift(newRow);
@@ -1140,6 +1382,7 @@ function submitProjectLogReport(){
   projectLogState.selectedDate=date;
   closeModal();
   projectLogEditingRow=null;
+  projectLogCurrentAssignment=null;
   renderProjectLogPage();
   showToast(editing?"施工日志修改成功":"施工日志上报成功");
 }

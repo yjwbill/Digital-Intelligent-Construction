@@ -18566,6 +18566,8 @@ body.mobile-mode .mobile-manual-scroll{
 .project-log-detail-cover img{width:100%;height:300px;border-radius:8px;object-fit:cover;}
 .project-log-online-report-modal.large{width:86vw;height:82vh;}
 .project-log-online-report{display:grid;gap:10px;color:#1D2129;}
+.project-log-report-toolbar{height:44px;border:1px solid #D8E6FF;border-radius:8px;background:#F5F9FF;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 14px;color:#1D2129;font-size:13px;font-weight:800;}
+.project-log-report-toolbar span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#4E5969;}
 .project-log-report-section{border:1px solid #EEF2F7;border-radius:8px;background:#fff;padding:18px 20px;}
 .project-log-report-section h3{height:22px;margin:0 0 18px;padding-left:12px;border-left:4px solid #165DFF;color:#1D2129;font-size:16px;font-weight:900;line-height:22px;}
 .project-log-report-grid{display:grid;gap:14px 18px;}
@@ -18575,6 +18577,7 @@ body.mobile-mode .mobile-manual-scroll{
 .project-log-online-report .form-item label em,.project-log-report-table-head em{color:#F53F3F;font-style:normal;margin-left:2px;}
 .project-log-online-report .input,.project-log-online-report .select{height:34px;border-radius:4px;}
 .project-log-online-report textarea.input{height:auto;min-height:72px;padding-top:8px;line-height:22px;resize:vertical;}
+.project-log-recorder-readonly{background:#F7F8FA!important;color:#4E5969!important;cursor:default;}
 .project-log-unit-input{height:34px;display:grid;grid-template-columns:minmax(0,1fr) 42px;border:1px solid var(--border);border-radius:4px;background:#fff;overflow:hidden;}
 .project-log-unit-input .input{height:32px;border:0!important;border-radius:0!important;text-align:center;}
 .project-log-unit-input span{display:flex;align-items:center;justify-content:center;border-left:1px solid var(--border);background:#F7F8FA;color:#4E5969;font-size:13px;font-weight:800;}
@@ -18588,6 +18591,23 @@ body.mobile-mode .mobile-manual-scroll{
 .project-log-report-table th:nth-child(4),.project-log-report-table td:nth-child(4){width:110px;}
 .project-log-report-table th:nth-child(5),.project-log-report-table td:nth-child(5){width:180px;}
 .project-log-work-content{min-width:260px;}
+.project-log-work-table-wrap{width:100%;overflow-x:auto;}
+.project-log-work-table{min-width:1560px;}
+.project-log-work-table th:nth-child(2),.project-log-work-table td:nth-child(2){width:150px;}
+.project-log-work-table th:nth-child(3),.project-log-work-table td:nth-child(3),.project-log-work-table th:nth-child(4),.project-log-work-table td:nth-child(4){width:160px;}
+.project-log-work-table th:nth-last-child(4),.project-log-work-table td:nth-last-child(4){width:210px;}
+.project-log-work-table th:nth-last-child(3),.project-log-work-table td:nth-last-child(3){width:130px;}
+.project-log-work-table th:nth-last-child(2),.project-log-work-table td:nth-last-child(2){width:180px;}
+.project-log-work-table .input,.project-log-work-table .select{width:100%;min-width:0;}
+.project-log-work-image-upload{min-height:72px;display:grid;grid-template-columns:52px 72px;align-items:center;gap:8px;}
+.project-log-work-image-preview{width:68px;height:68px;border:1px dashed #C8D6EA;border-radius:4px;background:#FAFCFF;display:grid;place-items:center;overflow:hidden;color:#A8B2C1;font-size:12px;font-style:normal;font-weight:700;}
+.project-log-work-image-preview button,.project-log-work-thumb-btn{width:68px;height:68px;border:0;background:transparent;padding:0;display:block;cursor:pointer;}
+.project-log-work-image-preview img,.project-log-work-thumb{width:68px;height:68px;border-radius:4px;object-fit:cover;display:block;}
+.project-log-work-image-preview button:hover img,.project-log-work-thumb-btn:hover img{outline:2px solid #165DFF;}
+.project-log-work-image-preview.has-image{border-style:solid;background:#fff;}
+.project-log-work-image-modal{width:760px;}
+.project-log-work-image-viewer{height:520px;display:flex;align-items:center;justify-content:center;background:#0F172A;border-radius:8px;overflow:hidden;}
+.project-log-work-image-viewer img{max-width:100%;max-height:100%;object-fit:contain;display:block;}
 .project-log-percent-input{height:34px;display:grid;grid-template-columns:minmax(0,1fr) 34px;border:1px solid var(--border);border-radius:4px;background:#fff;overflow:hidden;}
 .project-log-percent-input .input{height:32px;border:0!important;border-radius:0!important;text-align:center;}
 .project-log-percent-input span{display:flex;align-items:center;justify-content:center;border-left:1px solid var(--border);background:#F7F8FA;color:#4E5969;font-size:13px;font-weight:800;}
@@ -18602,6 +18622,17 @@ body.mobile-mode .mobile-manual-scroll{
 .project-log-radio-group{min-height:34px;display:flex;align-items:center;gap:16px;border:1px solid var(--border);border-radius:4px;background:#fff;padding:0 12px;}
 .project-log-radio-option{display:inline-flex;align-items:center;gap:6px;color:#1D2129;font-size:13px;font-weight:800;line-height:20px;cursor:pointer;}
 .project-log-radio-option input{width:14px;height:14px;margin:0;accent-color:var(--primary);}
+.project-log-assignment-modal{width:640px;}
+.project-log-assignment-form{display:grid;gap:14px;}
+.project-log-assignment-form .form-item label{font-size:13px;color:#4E5969;font-weight:800;}
+.project-log-assignment-form .form-item label em{color:#F53F3F;font-style:normal;margin-left:2px;}
+.project-log-assignment-form .select{height:34px;border-radius:4px;}
+.project-log-assignment-source{display:grid;gap:8px;max-height:180px;overflow:auto;border:1px solid #EEF2F7;border-radius:8px;background:#F7F8FA;padding:10px;}
+.project-log-assignment-person{min-height:42px;border:1px solid #EEF2F7;border-radius:6px;background:#fff;padding:8px 10px;display:grid;grid-template-columns:18px minmax(0,1fr);align-items:center;gap:8px;cursor:pointer;}
+.project-log-assignment-person input{width:14px;height:14px;margin:0;accent-color:var(--primary);}
+.project-log-assignment-person span{min-width:0;display:grid;gap:2px;}
+.project-log-assignment-person strong{color:#1D2129;font-size:13px;font-weight:900;}
+.project-log-assignment-person em{color:#86909C;font-size:12px;font-weight:700;font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .project-log-photo-upload{display:flex;align-items:flex-start;gap:16px;}
 .project-log-photo-upload button{width:112px;height:112px;border:1px dashed #C8D6EA;border-radius:6px;background:#FAFCFF;color:#6B7A90;display:grid;place-items:center;cursor:pointer;}
 .project-log-photo-upload button span{font-size:34px;font-weight:300;line-height:1;}
