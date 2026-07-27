@@ -324,6 +324,21 @@ button{cursor:pointer}
   min-height:0;
   overflow:hidden;
 }
+#listPage>.project-economy-info-page{height:100%;overflow:auto}
+.project-economy-info-section-title button[onclick="saveProjectEconomyInfo()"]{display:none}
+.project-economy-info-subtitle{justify-content:space-between}
+.project-economy-info-subtitle>span{display:flex;align-items:center;gap:10px}
+.project-economy-info-subtitle>.btn{height:30px;padding:0 14px;color:var(--primary);border-color:var(--primary);background:#fff}
+#listPage .project-economy-form-grid.three{grid-template-columns:repeat(4,minmax(0,1fr))}
+.project-economy-view-field{min-height:56px}
+#listPage .project-economy-view-field>span{display:flex;align-items:center;min-height:22px;color:#4E5969;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif;font-size:13px;line-height:20px;font-weight:700}
+#listPage .project-economy-view-field>strong{margin-top:3px;color:#1D2129;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif;font-size:14px;line-height:22px;font-weight:800}
+.project-economy-view-field>strong em{font-style:normal;font-weight:800}
+.project-economy-edit-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px 24px;padding:4px}
+.project-economy-edit-grid .form-item>span{display:flex;align-items:center;min-height:24px;color:#4e5969;font-size:13px}
+.project-economy-edit-input{display:flex;align-items:center;gap:8px}
+.project-economy-edit-input .input{min-width:0;flex:1}
+.project-economy-edit-input em{font-style:normal;white-space:nowrap}
 #listPage>.compact-title-row,
 #listPage>.card:not(.table-card){flex-shrink:0}
 #detailPage{height:100%;overflow:auto;min-height:0}
