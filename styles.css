@@ -339,6 +339,54 @@ button{cursor:pointer}
 .project-economy-edit-input{display:flex;align-items:center;gap:8px}
 .project-economy-edit-input .input{min-width:0;flex:1}
 .project-economy-edit-input em{font-style:normal;white-space:nowrap}
+.project-economy-contract-plan-table table{min-width:1380px;table-layout:fixed}
+.project-economy-contract-plan-table th:nth-child(1){width:72px}
+.project-economy-contract-plan-table th:nth-child(2){width:150px}
+.project-economy-contract-plan-table th:nth-child(3){width:210px}
+.project-economy-contract-plan-table th:nth-child(4){width:140px}
+.project-economy-contract-plan-table th:nth-child(5){width:180px}
+.project-economy-contract-plan-table th:nth-child(6),.project-economy-contract-plan-table th:nth-child(9){width:155px}
+.project-economy-contract-plan-table th:nth-child(7){width:80px}
+.project-economy-contract-plan-table th:nth-child(8){width:190px}
+.project-economy-contract-plan-table td{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.project-economy-contract-plan-table tfoot td:first-child{text-align:center}
+#listPage .project-economy-info-section-title .btn{height:30px;padding:0 14px;color:var(--primary);border-color:var(--primary);background:#fff}
+#listPage .project-economy-material-process-table td:not(:first-child){text-align:center}
+#listPage .project-economy-material-process-table td:not(:first-child)>span{display:inline-block;margin-right:7px}
+#listPage .project-economy-material-process-table .project-economy-source{vertical-align:middle}
+#listPage .project-economy-contract-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:none}
+#listPage .project-economy-contract-stats .project-economy-contract-summary{display:block;padding:14px 16px;background:#f7faff;border-radius:6px}
+#listPage .project-economy-contract-summary>strong{display:block;margin-bottom:12px;color:var(--primary);font-size:14px}
+#listPage .project-economy-contract-summary>div{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+#listPage .project-economy-contract-summary span{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:0;color:#4E5969;font-size:13px}
+#listPage .project-economy-contract-summary span em{font-style:normal;white-space:nowrap}
+#listPage .project-economy-contract-summary span b{color:#1D2129;font-size:14px;font-weight:800;white-space:nowrap}
+.project-economy-signed-contract-table table{min-width:1870px;table-layout:fixed}
+.project-economy-signed-contract-table th:nth-child(1){width:72px}
+.project-economy-signed-contract-table th:nth-child(2){width:300px}
+.project-economy-signed-contract-table th:nth-child(3){width:145px}
+.project-economy-signed-contract-table th:nth-child(4){width:100px}
+.project-economy-signed-contract-table th:nth-child(5){width:220px}
+.project-economy-signed-contract-table th:nth-child(6){width:190px}
+.project-economy-signed-contract-table th:nth-child(7){width:130px}
+.project-economy-signed-contract-table th:nth-child(8){width:150px}
+.project-economy-signed-contract-table th:nth-child(9){width:150px}
+.project-economy-signed-contract-table th:nth-child(10){width:120px}
+.project-economy-signed-contract-table th:nth-child(11){width:120px}
+.project-economy-signed-contract-table th:nth-child(12){width:150px}
+.project-economy-signed-contract-table th,.project-economy-signed-contract-table td{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.project-economy-signed-contract-table tr>*:nth-child(12){position:sticky;right:0;z-index:3;background:#fff}
+.project-economy-signed-contract-table tr>*:nth-child(11){position:sticky;right:150px;z-index:3;background:#fff}
+.project-economy-signed-contract-table tr>*:nth-child(10){position:sticky;right:270px;z-index:3;background:#fff}
+.project-economy-signed-contract-table tr>*:nth-child(9){position:sticky;right:390px;z-index:3;background:#fff}
+.project-economy-signed-contract-table tr>*:nth-child(8){position:sticky;right:540px;z-index:3;background:#fff;box-shadow:-8px 0 12px -10px rgba(29,33,41,.7)}
+.project-economy-signed-contract-table thead tr>*:nth-child(n+8){z-index:5;background:#f7f8fa}
+.project-economy-signed-contract-table tfoot tr>*{background:#fff;font-weight:600}
+.project-economy-signed-contract-table tfoot td:first-child{text-align:center}
+.project-economy-contract-tag{display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:24px;padding:0 10px;border-radius:4px;font-size:12px;font-weight:500}
+.project-economy-contract-tag.green{background:#e8ffea;color:#00a870}
+.project-economy-contract-tag.gray{background:#f2f3f5;color:#86909c}
+.project-economy-contract-tag.blue{background:#e8f3ff;color:#165dff}
 #listPage>.compact-title-row,
 #listPage>.card:not(.table-card){flex-shrink:0}
 #detailPage{height:100%;overflow:auto;min-height:0}
