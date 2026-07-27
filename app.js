@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.406-project-log-work-image-viewer";
+  const version="2.2.412-project-log-file-name-hard-fit";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",

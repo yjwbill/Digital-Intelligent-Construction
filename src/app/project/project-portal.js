@@ -342,22 +342,85 @@ function getProjectLogRecordKey(row){
   return `${row.projectName||pcPortalState.currentProject}|${row.date}`;
 }
 
+function removeProjectLogCustomRowForEdit(editing){
+  if(!editing)return;
+  const targetId=editing.sourceId||editing.id;
+  const targetMode=editing.sourceMode||editing.mode;
+  for(let index=projectLogCustomRows.length-1;index>=0;index--){
+    const row=projectLogCustomRows[index];
+    if(String(row.id)===String(targetId)||(row.projectName===(editing.projectName||pcPortalState.currentProject)&&row.date===editing.date&&row.mode===targetMode)){
+      projectLogCustomRows.splice(index,1);
+    }
+  }
+}
+
 function getCurrentProjectLogProject(){
   return getCurrentProjectContext();
 }
 
 function getProjectLogRows(){
   const project=getCurrentProjectLogProject();
-  if(!project)return projectLogCustomRows;
+  if(!project)return sortProjectLogRows(mergeProjectLogRowsByDate(projectLogCustomRows));
   const generated=["2026-06","2026-07"].flatMap(monthValue=>{
     const meta=getEnterpriseConstructionLogMonthMetaByValue(monthValue);
     return Array.from({length:meta.days},(_,index)=>index+1)
       .filter(day=>getEnterpriseConstructionLogDayStateForMonth(project,day,monthValue)==="reported")
-      .map(day=>getEnterpriseConstructionLogReportRecord(project,day,monthValue));
+      .map(day=>({...getEnterpriseConstructionLogReportRecord(project,day,monthValue),projectName:project.projectName}));
   });
-  return [...projectLogCustomRows.filter(row=>row.projectName===project.projectName&&!projectLogDeletedKeys.has(getProjectLogRecordKey(row))),...generated.filter(row=>!projectLogDeletedKeys.has(getProjectLogRecordKey({...row,projectName:project.projectName})))]
-    .filter((row,index,rows)=>rows.findIndex(item=>item.date===row.date)===index)
-    .sort((a,b)=>b.date.localeCompare(a.date));
+  const customRows=projectLogCustomRows.filter(row=>row.projectName===project.projectName&&!projectLogDeletedKeys.has(getProjectLogRecordKey(row)));
+  const customDateKeys=new Set(customRows.map(row=>getProjectLogRecordKey(row)));
+  const sourceRows=[
+    ...customRows,
+    ...generated.filter(row=>!customDateKeys.has(getProjectLogRecordKey(row))&&!projectLogDeletedKeys.has(getProjectLogRecordKey(row)))
+  ];
+  return sortProjectLogRows(mergeProjectLogRowsByDate(sourceRows));
+}
+
+function sortProjectLogRows(rows){
+  return rows.sort((a,b)=>(Number(b.customUpdatedAt)||0)-(Number(a.customUpdatedAt)||0)||b.date.localeCompare(a.date));
+}
+
+function mergeProjectLogRowsByDate(rows){
+  const groups=new Map();
+  rows.forEach(row=>{
+    const key=getProjectLogRecordKey(row);
+    if(!groups.has(key))groups.set(key,[]);
+    groups.get(key).push(row);
+  });
+  return [...groups.values()].map(group=>mergeProjectLogDateGroup(group));
+}
+
+function mergeProjectLogDateGroup(group){
+  const online=group.find(row=>row.mode==="online")||null;
+  const file=group.find(row=>row.mode==="file")||null;
+  const primary=online||file||group[0];
+  const latest=group.slice().sort((a,b)=>String(b.uploadTime||"").localeCompare(String(a.uploadTime||"")))[0]||primary;
+  const areas=[...new Set(group.map(row=>row.workArea).filter(Boolean))];
+  const uploaders=[...new Set(group.map(row=>row.uploader).filter(Boolean))];
+  const customUpdatedAt=Math.max(0,...group.map(row=>Number(row.customUpdatedAt)||0));
+  const hasOnline=Boolean(online);
+  const hasFile=Boolean(file);
+  return {
+    ...primary,
+    id:`project-log-${primary.projectName||pcPortalState.currentProject}-${primary.date}`,
+    sourceId:primary.id,
+    sourceMode:primary.mode,
+    mode:hasOnline&&hasFile?"merged":primary.mode,
+    hasOnline,
+    hasFile,
+    onlineRecord:online,
+    fileRecord:file,
+    title:hasOnline&&hasFile?"施工日志":primary.title,
+    workArea:areas.join("、")||primary.workArea,
+    uploader:uploaders.join("、")||primary.uploader,
+    uploadTime:latest.uploadTime||primary.uploadTime,
+    customUpdatedAt,
+    fileName:file?.fileName||primary.fileName||"",
+    fileSize:file?.fileSize||primary.fileSize||"",
+    files:file?.files||primary.files||[],
+    summary:online?.summary||file?.summary||primary.summary||"",
+    cover:online?.cover||primary.cover||""
+  };
 }
 let projectLogReportPhotoList=[];
 let projectLogReportFileList=[];
@@ -367,7 +430,7 @@ const projectLogAssignments=[];
 function getProjectLogFilteredRows(){
   return getProjectLogRows().filter(row=>{
     if(!row.date.startsWith(projectLogState.month+"-"))return false;
-    if(projectLogState.workArea&&row.workArea!==projectLogState.workArea)return false;
+    if(projectLogState.workArea&&!String(row.workArea||"").split("、").includes(projectLogState.workArea))return false;
     if(projectLogState.keyword&&!(row.title.includes(projectLogState.keyword)||row.uploader.includes(projectLogState.keyword)||row.workArea.includes(projectLogState.keyword)||row.summary.includes(projectLogState.keyword)||row.fileName.includes(projectLogState.keyword)))return false;
     if(projectLogState.startDate&&row.date<projectLogState.startDate)return false;
     if(projectLogState.endDate&&row.date>projectLogState.endDate)return false;
@@ -384,10 +447,12 @@ function getProjectLogPagedRows(){
 }
 
 function renderProjectLogCard(row){
+  const modeLabel=row.mode==="merged"?"在线+文件":row.mode==="online"?"在线上报":"文件上报";
+  const previewMode=row.hasOnline||row.mode==="online"?"online":"file";
   return `
     <article class="project-log-report-card ${row.mode}" data-project-log-detail="${row.id}" onclick="openProjectLogDetail('${escapeAttr(row.id)}')">
-      <span class="project-log-mode ${row.mode}">${row.mode==="online"?"在线上报":"文件上报"}</span>
-      ${row.mode==="online"?`
+      <span class="project-log-mode ${row.mode}">${modeLabel}</span>
+      ${previewMode==="online"?`
         <img src="${row.cover || "./src/assets/project-log-building.png"}" alt="${row.title}"/>
       `:`
         <div class="project-log-file-box">
@@ -515,12 +580,12 @@ function renderProjectLogSelectedDay(){
       ${rows.length?rows.map(row=>`
         <button class="project-log-day-item" data-project-log-detail="${row.id}" onclick="openProjectLogDetail('${escapeAttr(row.id)}')">
           <div>
-            <strong class="${row.mode}">${row.mode==="online"?"在线上报":"文件上报"}</strong>
+            <strong class="${row.mode}">${row.mode==="merged"?"在线+文件":row.mode==="online"?"在线上报":"文件上报"}</strong>
             <p>施工区域：${row.workArea}</p>
             <p>上传人：${row.uploader}</p>
             <p>上传时间：${row.uploadTime}</p>
           </div>
-          ${row.mode==="online"?`<img src="${row.cover || "./src/assets/project-log-building.png"}" alt="${row.title}"/>`:`<span class="project-log-day-file">PDF</span>`}
+          ${row.hasOnline||row.mode==="online"?`<img src="${row.cover || "./src/assets/project-log-building.png"}" alt="${row.title}"/>`:`<span class="project-log-day-file">PDF</span>`}
         </button>
       `).join(""):`<div class="project-log-empty">当天暂无上报内容</div>`}
     </section>
@@ -656,6 +721,20 @@ function renderProjectLogReadonlyFiles(files){
   </div>`;
 }
 
+function renderProjectLogReadonlyFileUploadSection(row){
+  if(!row)return "";
+  return renderProjectLogReadonlySection("文件上传",`
+    <div class="project-detail-info-grid">
+      ${renderProjectLogReadonlyField("工区选择",row.workArea)}
+      ${renderProjectLogReadonlyField("日期",row.date)}
+    </div>
+    <div class="project-log-readonly-subtitle">施工相关附件</div>
+    ${renderProjectLogReadonlyFiles(getProjectLogReadonlyFiles(row))}
+    <div class="project-log-readonly-subtitle">当日施工情况描述</div>
+    <div class="project-log-readonly-text">${row.summary||"-"}</div>
+  `);
+}
+
 function renderProjectLogReadonlyBaseInfo(row,projectName){
   if(row.mode==="file")return `
     <div class="project-detail-info-grid">
@@ -681,17 +760,19 @@ function renderProjectLogReadonlyBaseInfo(row,projectName){
 function openProjectLogDetail(id){
   const row=getProjectLogRows().find(item=>String(item.id)===String(id));
   if(!row)return;
-  const baseInfo=renderProjectLogReadonlyBaseInfo(row,pcPortalState.currentProject);
-  const content=row.mode==="online"?(()=>{
-    const detail=getProjectLogReadonlyOnlineDetail(row);
+  const onlineRow=row.onlineRecord||((row.mode==="online"||row.mode==="merged")?row:null);
+  const fileRow=row.fileRecord||(row.mode==="file"?row:null);
+  const baseInfo=renderProjectLogReadonlyBaseInfo(onlineRow||fileRow||row,pcPortalState.currentProject);
+  const content=onlineRow?(()=>{
+    const detail=getProjectLogReadonlyOnlineDetail(onlineRow);
     return `
       ${renderProjectLogReadonlySection("基础信息",baseInfo)}
       ${renderProjectLogReadonlySection("人员信息",`<div class="project-detail-info-grid three">${detail.personnel.map(item=>renderProjectLogReadonlyField(item[0],`${item[1]}人`)).join("")}</div>`)}
       ${renderProjectLogReadonlySection("今日主要工作",renderProjectLogReadonlyWorkTable(detail.today))}
       ${renderProjectLogReadonlySection("明日主要工作",renderProjectLogReadonlyWorkTable(detail.tomorrow,false))}
       ${renderProjectLogReadonlySection("风险情况",renderProjectLogReadonlyRiskCards(detail.risks))}
-      ${renderProjectLogReadonlySection("施工照片",renderProjectLogReadonlyPhotos(detail.photos))}
       ${renderProjectLogReadonlySection("发生停工情况",`<div class="project-log-readonly-text">${detail.stop}</div>`)}
+      ${fileRow?renderProjectLogReadonlyFileUploadSection(fileRow):""}
     `;
   })():`
     ${renderProjectLogReadonlySection("基础信息",baseInfo)}
@@ -1346,17 +1427,12 @@ function submitProjectLogReport(){
   const now=new Date();
   const uploadTime=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")} ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
   const firstContent=today[0]?.content||"";
-  if(editing){
-    const oldKey=getProjectLogRecordKey(editing);
-    projectLogDeletedKeys.add(oldKey);
-    for(let index=projectLogCustomRows.length-1;index>=0;index--){
-      if(getProjectLogRecordKey(projectLogCustomRows[index])===oldKey)projectLogCustomRows.splice(index,1);
-    }
-  }
+  removeProjectLogCustomRowForEdit(editing);
   const newRow={
     id:editing?.id||Date.now(),
     projectName:pcPortalState.currentProject,
     mode:"online",
+    customUpdatedAt:Date.now(),
     date,
     title:"在线上报施工日志",
     workArea:area,
@@ -1374,6 +1450,7 @@ function submitProjectLogReport(){
   projectLogDeletedKeys.delete(getProjectLogRecordKey(newRow));
   projectLogCustomRows.unshift(newRow);
   projectLogStatusMap[date]="uploaded";
+  projectLogState.month=date.slice(0,7);
   projectLogState.page=1;
   projectLogState.workArea="";
   projectLogState.keyword="";
@@ -1401,17 +1478,12 @@ function submitProjectLogFileReport(){
   const uploadTime=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")} ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
   const totalSize=projectLogReportFileList.reduce((sum,file)=>sum+(Number(file.size)||0),0);
   const firstFile=projectLogReportFileList[0];
-  if(editing){
-    const oldKey=getProjectLogRecordKey(editing);
-    projectLogDeletedKeys.add(oldKey);
-    for(let index=projectLogCustomRows.length-1;index>=0;index--){
-      if(getProjectLogRecordKey(projectLogCustomRows[index])===oldKey)projectLogCustomRows.splice(index,1);
-    }
-  }
+  removeProjectLogCustomRowForEdit(editing);
   const newRow={
     id:editing?.id||Date.now(),
     projectName:pcPortalState.currentProject,
     mode:"file",
+    customUpdatedAt:Date.now(),
     date,
     title:"文件上报施工日志",
     workArea:area,
@@ -1425,6 +1497,7 @@ function submitProjectLogFileReport(){
   projectLogDeletedKeys.delete(getProjectLogRecordKey(newRow));
   projectLogCustomRows.unshift(newRow);
   projectLogStatusMap[date]="uploaded";
+  projectLogState.month=date.slice(0,7);
   projectLogState.page=1;
   projectLogState.workArea="";
   projectLogState.keyword="";
@@ -3386,7 +3459,7 @@ function renderProjectDetailPage(){
 
 function renderProjectLogPage(){
   const rows=getProjectLogPagedRows();
-  const areas=[...new Set(getProjectLogRows().map(row=>row.workArea))];
+  const areas=[...new Set(getProjectLogRows().flatMap(row=>String(row.workArea||"").split("、")).filter(Boolean))];
   renderProjectPageShell("施工日志","",`
     <div class="project-log-template-page">
       <section class="card project-log-list-panel">
