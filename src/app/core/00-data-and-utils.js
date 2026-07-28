@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.425-ECONOMY-PROJECT-SOURCE-DRILLDOWN";
-const APP_CODE_VERSION_NAME="经济诊断项目数据联动下钻版";
-const APP_CODE_VERSION_TIME="2026-07-28 21:50";
-const APP_CODE_VERSION_DESC="经济诊断实时引用施工项目主数据，国际版仅展示城建国际项目、国内版排除城建国际；项目名称支持全屏下钻并复用项目端经济总览渲染。";
+const APP_CODE_VERSION="EM-20260701-V2.2.426-ECONOMY-INDEX-COLUMN-WIDTH";
+const APP_CODE_VERSION_NAME="经济诊断序号列宽修复版";
+const APP_CODE_VERSION_TIME="2026-07-28 22:15";
+const APP_CODE_VERSION_DESC="通用列设置支持按列配置最小宽度，经济诊断序号列最小宽度调整为 40px，保存后按用户设置稳定回显。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
@@ -2025,6 +2025,7 @@ function getDefaultColumnConfig(tableKey){
     key:col.key,
     title:col.title,
     width:col.width || 120,
+    minWidth:Number(col.minWidth)||60,
     visible:col.defaultHidden!==true,
     order:index + 1,
     align:col.align || "left"
@@ -2046,6 +2047,7 @@ function getColumnConfig(tableKey){
     return old?{
       ...def,
       width:Number(old.width)||def.width,
+      minWidth:def.minWidth,
       visible:old.visible!==false,
       order:Number(old.order)||def.order,
       align:old.align||def.align||"left"
@@ -2163,7 +2165,7 @@ function openColumnSetting(tableKey,afterSaveFnName){
                 </td>
                 <td>${col.title}</td>
                 <td>
-                  <input type="number" class="col-width" min="60" max="600" value="${col.width}">
+                  <input type="number" class="col-width" min="${col.minWidth||60}" max="600" value="${col.width}">
                 </td>
                 <td>
                   <select class="col-align">
@@ -2228,7 +2230,7 @@ function saveColumnSetting(tableKey,afterSaveFnName){
     key:row.dataset.key,
     title:tableColumnDefinitions[tableKey].find(c=>c.key===row.dataset.key)?.title || row.dataset.key,
     visible:row.querySelector(".col-visible").checked,
-    width:Math.max(60,Number(row.querySelector(".col-width").value)||120),
+    width:Math.max(Number(tableColumnDefinitions[tableKey].find(c=>c.key===row.dataset.key)?.minWidth)||60,Number(row.querySelector(".col-width").value)||120),
     align:row.querySelector(".col-align")?.value || "left",
     order:Number(row.querySelector(".col-order").value)||999
   }));
