@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.414-project-economy-trend-tooltip";
+  const version="2.2.419-project-log-shared-risk-milestone";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",
