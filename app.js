@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.423-economy-diagnosis-table-sort";
+  const version="2.2.425-economy-project-source-drilldown";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",

@@ -362,6 +362,42 @@ function createConstructionProject(x,i){
     completedSettled:finished && i%2===0?"是":"否",resumeInTwoWeeks:stopped && i%2===0?"是":"否"
   };
 }
+const constructionProjectCsvSeed=[
+  ["粉岭北新发展区余下阶段－地盘平整和基础设施工程（西）","海外项目(含港澳)类","城建国际","上海隧道工程股份有限公司香港分公司",1236500000,"何偉洪","香港特别行政区/北区","香港特别行政区北区同兴车行有限公司西北约87米","大湾区域","香港土木工程署",0,"",60400,0,0,"2025-12-16","2030-09-03","","2025-12-16","","在建","市政","子公司一般项目","否","上海城建国际工程有限公司","无","否","否","否","2026-04-21","SUCG062026040006","SUCG062026030003","ProjectMdm00201727","已登记",45,1,"已筹划",120,2,"已上传"],
+  ["澳门逸园跑狗场原址土地市民运动公园建造工程 – 第一区","海外项目(含港澳)类","城建国际","上海隧道工程股份有限公司澳门分公司",1195240000,"梁子麟","澳门特别行政区/","澳门特别行政区白朗古将军大马路31","大湾区域","澳门特别行政区政府公共建设局",0,"",119000,0,0,"2026-01-12","2029-04-17","","2026-01-12","","在建","建筑","子公司一般项目","否","上海城建国际工程有限公司","无","否","否","否","2026-04-21","SUCG062026040005","SUCG062026030002","ProjectMdm00200557","已登记",45,3,"已筹划",120,3,"已上传"],
+  ["大潭山隧道及其连接线设计连建造工程 - 隧道及南连接线","海外项目(含港澳)类","城建国际","上海隧道工程股份有限公司澳门分公司",982562899,"黄健","澳门特别行政区/","澳门特别行政区伟龙马路","大湾区域","澳门特别行政区政府公共建设局",0,"",58422.77,0,0,"2025-06-25","2029-01-08","","2025-06-25","","在建","市政","子公司一般项目","否","上海城建国际工程有限公司","无","否","否","否","2026-04-21","SUCG062026040004","SUCG062025090018","ProjectMdm00151113","已登记",45,3,"已筹划",120,3,"已上传"],
+  ["黄大仙雨水排放系统改善工程","海外项目(含港澳)类","城建国际","上海隧道工程股份有限公司香港分公司",1147010000,"李铿","香港特别行政区/黄大仙区","香港特别行政区黄大仙区太子道东698号宝光商业中心1楼101/102室","大湾区域","香港特别行政区政府渠务署",0,"",54690,0,0,"2024-07-24","2028-12-07","","2024-07-24","","在建","环境","子公司一般项目","否","上海城建国际工程有限公司","无","否","否","否","2026-04-21","SUCG062026040003","SUCG062025090016","ProjectMdm00158645","已登记",45,3,"已筹划",120,3,"已上传"],
+  ["轻轨东线南段设计连建造工程","海外项目(含港澳)类","城建国际","上海隧道工程股份有限公司澳门分公司",1948208000,"马元","澳门特别行政区/","澳门特别行政区北安大马路","大湾区域","澳门特别行政区政府公共建设局",0,"",132097,0,0,"2023-07-21","2028-02-28","","2023-07-21","","在建","轨交","子公司一般项目","否","上海城建国际工程有限公司","无","否","否","否","2026-04-21","SUCG062026040002","SUCG062025090013","ProjectMdm020767","已登记",45,2,"已筹划",120,2,"已上传"],
+  ["新加坡地铁C991项目","海外项目(含港澳)类","城建国际","优泰地下工程私人有限公司",1772000000,"彭芝青","","Sungei Kadut Street 1, North, Singapore","境外区域","新加坡陆路交通管理局",0,"",88600,0,0,"2026-01-12","2035-03-30","","2026-01-12","","在建","轨交","子公司一般项目","否","上海城建国际工程有限公司","无","否","否","否","2026-03-31","SUCG062026030007","SUCG062026030004","ProjectMdm00203305","已登记",45,8,"已筹划",120,9,"已上传"],
+  ["新加坡跨岛线二期CR203项目","海外项目(含港澳)类","城建国际","上海隧道工程股份（新加坡）有限公司",2871270000,"CHANG EUN SEOK","","Turf Club Road, Central, Singapore","境外区域","新加坡陆路交通管理局",0,"",143497.29,0,0,"2024-05-28","2032-06-30","","2024-05-28","","在建","轨交","子公司一般项目","否","上海城建国际工程有限公司","无","否","否","否","2026-03-31","SUCG062026030006","SUCG062025090008","ProjectMdm027998","已登记",45,2,"已筹划",120,7,"已上传"],
+  ["新加坡樟宜机场T5新建项目之T2连通结构工程标段","海外项目(含港澳)类","城建国际","上海隧道工程股份（新加坡）有限公司",3345230000,"LOW CHYE CHIN","","Tanah Merah Coast Road, East, Singapore","境外区域","新加坡陆路交通管理局",0,"",277881.8,0,0,"2023-10-03","2028-10-04","","2023-10-03","","在建","机场","子公司一般项目","否","上海城建国际工程有限公司","无","否","否","否","2026-03-31","SUCG062026030005","SUCG062025090007","ProjectMdm000152","已登记",45,2,"已筹划",120,7,"已上传"],
+  ["新加坡地铁跨岛线 CR202标","海外项目(含港澳)类","城建国际","上海隧道工程股份（新加坡）有限公司",3946148000,"YOON SUK IL","","Fairway Drive, Central, Singapore","境外区域","新加坡陆路交通管理局",0,"",163780.34,0,0,"2022-12-06","2032-06-30","","2022-12-06","","在建","轨交","子公司一般项目","否","上海城建国际工程有限公司","无","否","否","否","2026-03-31","SUCG062026030004","SUCG062025090006","ProjectMdm000154","已登记",45,1,"已筹划",120,7,"已上传"],
+  ["新加坡南北交通廊道N109A 项目","海外项目(含港澳)类","城建国际","上海隧道工程股份（新加坡）有限公司",3004000000,"THAM KOK WENG","","Ang Mo Kio Avenue 1, North-East, Singapore","境外区域","新加坡陆路交通管理局",0,"",117072.39,0,0,"2019-01-02","2029-07-07","","2019-01-02","","在建","市政","子公司一般项目","否","上海城建国际工程有限公司","无","否","否","否","2026-03-31","SUCG062026030003","SUCG062026030005","ProjectMdm090918","已登记",45,1,"已筹划",120,7,"已上传"],
+  ["新加坡地铁跨岛线一期CR102项目","海外项目(含港澳)类","城建国际","上海隧道工程股份（新加坡）有限公司",3634800000,"JEONG CHANGYOON","","3 Aviation Park Road, Singapore 499980","境外区域","新加坡陆路交通管理局",0,"",148019.44,0,0,"2021-12-17","2029-12-31","","2021-12-17","","在建","轨交","子公司一般项目","否","上海城建国际工程有限公司","无","否","否","否","2026-03-25","SUCG062026030002","SUCG062025090005","ProjectMdm013331","已登记",45,0,"已筹划",120,8,"已上传"]
+];
+function createConstructionProjectFromCsv(row,index){
+  const [projectName,productionBizType,subCompany,branchCompany,projectCostYuan,projectManager,provinceCity,detailAddress,region,builder,accumulatedOutput,remainingWorkload,yearPlanOutput,monthlyAccumulatedOutput,currentMonthOutput,planStart,planEnd,planDuration,actualStart,actualEnd,projectStatus,projectType,controlLevel,integratedManagement,totalContractor,keyCustomer,isShareInternal,isSubCompanyInternal,isKeyProject,approvalDate,projectCode,productionProjectNo,orderProjectNo,registered,shouldRegisterDays,actualRegisterDays,planned,shouldPlanDays,actualPlanDays,constructionPermit]=row;
+  const projectCost=Number(projectCostYuan||0)/10000;
+  const accumulated=Number(accumulatedOutput||0);
+  return {
+    id:1000+index,projectName,projectCode,subCompany,branchCompany,projectStatus,projectManager,managerPhone:"",region,provinceCity,projectType,
+    implementationMode:"",controlLevel,integratedManagement,orderProjectNo,productionProjectNo,generalContractor:totalContractor,builder,
+    contractProjectManager:"",productionBizType,keyCustomer,constructionPermit,projectCost,approvalDate,contractStartMonth:planStart.slice(0,7),
+    contractEndMonth:planEnd.slice(0,7),totalContractor,detailAddress,accumulatedOutput:accumulated,
+    remainingWorkload:remainingWorkload===""?Math.max(0,projectCost-accumulated):Number(remainingWorkload||0),yearPlanOutput:Number(yearPlanOutput||0),
+    monthlyAccumulatedOutput:Number(monthlyAccumulatedOutput||0),currentMonthOutput:Number(currentMonthOutput||0),planStart,planEnd,
+    planDuration:Number(planDuration||0),actualStart,actualEnd,registered,shouldRegisterDays:Number(shouldRegisterDays||0),
+    actualRegisterDays:Number(actualRegisterDays||0),planned,shouldPlanDays:Number(shouldPlanDays||0),actualPlanDays:Number(actualPlanDays||0),
+    isShareInternal,isSubCompanyInternal,isConstructionProject:"是",isMajorRisk:"否",isSafetyManaged:"是",isKeyProject,
+    completedSettled:"否",resumeInTwoWeeks:"否"
+  };
+}
+let constructionProjectCsvSeedAdded=false;
+constructionProjectCsvSeed.map((row,index)=>createConstructionProjectFromCsv(row,index+1)).forEach(project=>{
+  const exists=constructionProjectData.some(item=>item.projectCode===project.projectCode||item.productionProjectNo===project.productionProjectNo);
+  if(!exists){constructionProjectData.push(project);constructionProjectCsvSeedAdded=true;}
+});
+if(constructionProjectCsvSeedAdded&&typeof persistMasterData==="function")persistMasterData("projects",constructionProjectData);
 let constructionProjectCurrentList=[...constructionProjectData];
 let constructionProjectBaseFilteredList=[...constructionProjectData];
 let constructionProjectActiveStat=null;
@@ -423,7 +459,7 @@ tableColumnDefinitions.constructionProject=[
   {key:"orderProjectNo",title:"订单项目编号",width:150,render:r=>r.orderProjectNo},
   {key:"generalContractor",title:"总包单位",width:160,render:r=>r.generalContractor},
   {key:"keyCustomer",title:"重点客户",width:120,render:r=>r.keyCustomer||"无"},
-  {key:"constructionPermit",title:"施工许可证",width:110,align:"center",render:r=>tag(r.constructionPermit,r.constructionPermit==="已办理"?"green":"orange")},
+  {key:"constructionPermit",title:"施工许可证",width:110,align:"center",render:r=>tag(r.constructionPermit,["已办理","已上传"].includes(r.constructionPermit)?"green":"orange")},
   {key:"registered",title:"基本信息登记",width:130,align:"center",render:r=>tag(r.registered,r.registered==="已登记"?"green":"orange")},
   {key:"shouldRegisterDays",title:"应登记天数",width:110,align:"right",render:r=>r.shouldRegisterDays},
   {key:"actualRegisterDays",title:"实际登记天数",width:120,align:"right",render:r=>r.actualRegisterDays},

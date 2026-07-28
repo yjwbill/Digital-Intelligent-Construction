@@ -67,7 +67,15 @@ function getProjectEconomyOverviewData(project){
   };
 }
 
-function setProjectEconomyPeriod(value){projectEconomyOverviewState.period=value||"2026-06";renderProjectEconomyOverviewPage();}
+function setProjectEconomyPeriod(value){
+  projectEconomyOverviewState.period=value||"2026-06";
+  const embed=document.getElementById("economyProjectOverviewEmbed");
+  if(embed&&window.__economyProjectOverviewEmbedProject){
+    embed.innerHTML=renderProjectEconomyOverviewContent(window.__economyProjectOverviewEmbedProject);
+    return;
+  }
+  renderProjectEconomyOverviewPage();
+}
 function renderProjectEconomySectionTitle(title,extra=""){return `<div class="project-economy-section-title"><span></span><strong>${title}</strong>${extra}</div>`;}
 function renderProjectEconomyTrendSvg(item){
   const values=item.series.map(point=>point.value).concat(item.threshold),min=Math.min(...values),max=Math.max(...values),range=Math.max(1,max-min);
@@ -84,14 +92,11 @@ function renderProjectEconomyTrendCard(item){
   const valueText=`${item.value.toLocaleString('zh-CN',{maximumFractionDigits:2})}${item.unit}`;
   return `<article class="project-economy-trend-card ${item.color}"><h4>${item.name}<span title="指标说明">i</span></h4><strong>${valueText}</strong><div class="project-economy-trend-chart">${renderProjectEconomyTrendSvg(item)}<em>${item.threshold}${item.unit}</em>${renderProjectEconomyTrendHover(item)}</div></article>`;
 }
-function renderProjectEconomyOverviewPage(){
-  const project=getCurrentProjectContext();
-  if(!project)return renderProjectPlaceholderPage("经济总览");
+function renderProjectEconomyOverviewContent(project){
+  if(!project)return "";
   const data=getProjectEconomyOverviewData(project);
   const [province,city]=(project.provinceCity||"上海市/上海市").split("/");
-  detailPage.style.display="none";
-  listPage.style.display="flex";
-  listPage.innerHTML=`<div class="project-economy-overview-page">
+  return `<div class="project-economy-overview-page">
     <header class="project-economy-overview-header"><div><span>↗</span><h1>数智施工项目经济管理平台</h1></div><div class="project-economy-header-actions"><label>诊断期数</label>${renderProjectEconomyPeriodPicker()}<button class="btn primary" onclick="showToast('月度检验报告下载成功')"><span aria-hidden="true">⇩</span>月度检验报告</button></div></header>
     <div class="project-economy-dashboard-grid">
       <div class="project-economy-left">
@@ -101,4 +106,12 @@ function renderProjectEconomyOverviewPage(){
       </div>
       <div class="project-economy-right"><section class="project-economy-panel project-economy-live-panel">${renderProjectEconomySectionTitle("实时项目数据")}<div class="project-economy-live-metrics">${[["开累产值(万元)",data.contract/10,"▰"],["开累营收(万元)",data.completed/10,"▰"],["开累产值完成率",data.progress,"%"]].map(([label,value,unit])=>`<div><i>${unit}</i><strong>${Number(value).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}<em>${unit==="%"?"%":""}</em></strong><span>${label}</span></div>`).join("")}</div></section><section class="project-economy-panel project-economy-trends-panel">${renderProjectEconomySectionTitle("实时趋势分析",'<em>（近5次）</em><div class="project-economy-trend-legend"><span>⌁ 实际值</span><span>┄ 阈值</span></div>')}<div class="project-economy-trend-grid">${data.trends.map(renderProjectEconomyTrendCard).join("")}</div></section></div>
     </div></div>`;
+}
+function renderProjectEconomyOverviewPage(){
+  const project=getCurrentProjectContext();
+  if(!project)return renderProjectPlaceholderPage("经济总览");
+  window.__economyProjectOverviewEmbedProject=null;
+  detailPage.style.display="none";
+  listPage.style.display="flex";
+  listPage.innerHTML=renderProjectEconomyOverviewContent(project);
 }
