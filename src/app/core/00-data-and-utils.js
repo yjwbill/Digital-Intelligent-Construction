@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.430-PROJECT-ECONOMY-FONT-BASELINE";
-const APP_CODE_VERSION_NAME="项目经济总览字号规范版";
-const APP_CODE_VERSION_TIME="2026-07-28 23:40";
-const APP_CODE_VERSION_DESC="项目管理经济总览的项目卡片字段和值明确保持 14px，预警明细表头与内容统一为 14px，实时趋势分析卡片标题提升至 12px。";
+const APP_CODE_VERSION="EM-20260701-V2.2.432-PROJECT-ECONOMY-THUNDER-WARNING";
+const APP_CODE_VERSION_NAME="项目经济雷级预警版";
+const APP_CODE_VERSION_TIME="2026-07-28 19:14";
+const APP_CODE_VERSION_DESC="项目经济总览预警明细等级替换为一颗雷、二颗雷 SVG；国际版一级风险状态与预警明细按国际版经济预警数据字典动态取值，移除国内版预警叫法。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,

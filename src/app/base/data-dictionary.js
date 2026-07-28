@@ -171,7 +171,9 @@ function getDataDictionaryPalette(row){
 
 function renderDataDictionaryPaletteTagV2284(row){
   const palette=getDataDictionaryPalette(row);
-  return `<span class="dict-value-name" style="color:${palette.text};border-color:${palette.border};background:${palette.bg}">${row.name}</span>`;
+  const level=Number(row.level)||1;
+  const prefix=level>1?"↳ ":"";
+  return `<span class="dict-value-name" style="margin-left:${(level-1)*24}px;color:${palette.text};border-color:${palette.border};background:${palette.bg}">${prefix}${row.name}</span>`;
 }
 
 function renderDataDictionaryStatusTagV2284(status){
@@ -208,6 +210,8 @@ function buildDataDictionaryPayloadV2284(){
       status:item.status==="启用"?"ENABLED":"DISABLED",
       sortNo:index+1,
       palette:getDataDictionaryPaletteKeyV2284(item.palette),
+      level:Number(item.level)||1,
+      parentCode:item.parentCode || "",
       remark:item.remark || "",
       createdAt:"",
       updatedAt:""
@@ -246,6 +250,8 @@ function applyDataDictionaryPayloadV2284(payload){
         code:item.itemCode || item.code,
         status:item.status==="DISABLED"?"禁用":"启用",
         palette:normalizeDataDictionaryPaletteV2284(item.palette),
+        level:Number(item.level)||1,
+        parentCode:item.parentCode || "",
         remark:item.remark || ""
       });
     });
@@ -256,13 +262,55 @@ function applyDataDictionaryPayloadV2284(payload){
   return true;
 }
 
+const economyWarningInternationalDictionaryV2431={
+  type:{name:"经济预警指标（国际版）",code:"ECONOMY_WARNING_INDEX_INTL",remark:"国际版经济预警指标两级字典，GJ-XX 为一级指标，GJ-XX-XX 为二级指标"},
+  values:[
+    {name:"目标成本预警",code:"GJ-01",level:1,parentCode:"",palette:4},
+    {name:"目标成本额度预警（cost清单额度预警）",code:"GJ-01-01",level:2,parentCode:"GJ-01",palette:4},
+    {name:"目标利润率预警",code:"GJ-02",level:1,parentCode:"",palette:3},
+    {name:"资金预警",code:"GJ-02-02",level:2,parentCode:"GJ-02",palette:3},
+    {name:"分包合同产值计量预警",code:"GJ-02-03",level:2,parentCode:"GJ-02",palette:3},
+    {name:"主材超领预警（钢材、砼、水泥）",code:"GJ-02-04",level:2,parentCode:"GJ-02",palette:3},
+    {name:"工期异常预警",code:"GJ-02-05",level:2,parentCode:"GJ-02",palette:3},
+    {name:"结算预警",code:"GJ-03",level:1,parentCode:"",palette:2},
+    {name:"结算金额预警",code:"GJ-03-06",level:2,parentCode:"GJ-03",palette:2},
+    {name:"结算周期预警",code:"GJ-03-07",level:2,parentCode:"GJ-03",palette:2},
+    {name:"拖欠款预警",code:"GJ-04",level:1,parentCode:"",palette:5},
+    {name:"拖欠款金额预警",code:"GJ-04-08",level:2,parentCode:"GJ-04",palette:5},
+    {name:"拖欠款账龄预警",code:"GJ-04-09",level:2,parentCode:"GJ-04",palette:5}
+  ]
+};
+
+function ensureEconomyWarningInternationalDictionaryV2431(){
+  const definition=economyWarningInternationalDictionaryV2431;
+  let changed=false;
+  if(!dataDictionaryListV2284.some(item=>item.code===definition.type.code)){
+    dataDictionaryListV2284.push({...definition.type});
+    changed=true;
+  }
+  const rows=dataDictionaryValuesV2284[definition.type.code] || (dataDictionaryValuesV2284[definition.type.code]=[]);
+  definition.values.forEach(seed=>{
+    const current=rows.find(item=>item.code===seed.code);
+    if(current){
+      if(!current.level){current.level=seed.level;changed=true;}
+      if(seed.parentCode && !current.parentCode){current.parentCode=seed.parentCode;changed=true;}
+      return;
+    }
+    rows.push({...seed,status:"启用",remark:seed.level===1?"国际版一级经济预警指标":"国际版二级经济预警指标"});
+    changed=true;
+  });
+  return changed;
+}
+
 function ensureDataDictionaryLocalLoadedV2284(){
   if(dataDictionaryStateV2284.localLoaded || dataDictionaryStateV2284.localLoading)return;
   dataDictionaryStateV2284.localLoading=true;
+  ensureEconomyWarningInternationalDictionaryV2431();
   const seed=buildDataDictionaryPayloadV2284();
   const stored=window.EMMasterData?.ensure("dictionaries",[seed]);
   const payload=Array.isArray(stored) && stored[0] ? stored[0] : seed;
   applyDataDictionaryPayloadV2284(payload);
+  if(ensureEconomyWarningInternationalDictionaryV2431())syncDataDictionaryToLocalStoreV2284();
   dataDictionaryStateV2284.localLoaded=true;
   dataDictionaryStateV2284.localLoading=false;
 }

@@ -25,6 +25,34 @@ function renderProjectEconomyPeriodPanel(){
 function renderProjectEconomyPeriodPicker(){return `<div class="SafetyMonthPicker project-economy-period-picker" onclick="event.stopPropagation()"><button type="button" class="SafetyMonthPicker__input" id="projectEconomyPeriodInput" onclick="toggleProjectEconomyPeriodPicker(event)"><span class="SafetyMonthPicker__calendar" aria-hidden="true">▣</span><span class="SafetyMonthPicker__value">${getProjectEconomyPeriodLabel(projectEconomyOverviewState.period)}</span><span class="SafetyMonthPicker__arrow" aria-hidden="true">⌄</span></button><div class="SafetyMonthPicker__panel" id="projectEconomyPeriodPanel"></div></div>`;}
 document.addEventListener("click",closeProjectEconomyPeriodPicker);
 
+const projectEconomyInternationalWarningFallback=[
+  {name:"目标成本预警",code:"GJ-01",level:1,parentCode:""},
+  {name:"目标成本额度预警（cost清单额度预警）",code:"GJ-01-01",level:2,parentCode:"GJ-01"},
+  {name:"目标利润率预警",code:"GJ-02",level:1,parentCode:""},
+  {name:"资金预警",code:"GJ-02-02",level:2,parentCode:"GJ-02"},
+  {name:"分包合同产值计量预警",code:"GJ-02-03",level:2,parentCode:"GJ-02"},
+  {name:"主材超领预警（钢材、砼、水泥）",code:"GJ-02-04",level:2,parentCode:"GJ-02"},
+  {name:"工期异常预警",code:"GJ-02-05",level:2,parentCode:"GJ-02"},
+  {name:"结算预警",code:"GJ-03",level:1,parentCode:""},
+  {name:"结算金额预警",code:"GJ-03-06",level:2,parentCode:"GJ-03"},
+  {name:"结算周期预警",code:"GJ-03-07",level:2,parentCode:"GJ-03"},
+  {name:"拖欠款预警",code:"GJ-04",level:1,parentCode:""},
+  {name:"拖欠款金额预警",code:"GJ-04-08",level:2,parentCode:"GJ-04"},
+  {name:"拖欠款账龄预警",code:"GJ-04-09",level:2,parentCode:"GJ-04"}
+];
+function getProjectEconomyInternationalWarningItems(){
+  if(typeof ensureDataDictionaryLocalLoadedV2284==="function")ensureDataDictionaryLocalLoadedV2284();
+  const rows=typeof dataDictionaryValuesV2284!=="undefined"?(dataDictionaryValuesV2284.ECONOMY_WARNING_INDEX_INTL||[]):[];
+  return rows.length?rows:projectEconomyInternationalWarningFallback;
+}
+function getProjectEconomyInternationalWarningName(code){
+  return getProjectEconomyInternationalWarningItems().find(item=>item.code===code)?.name || projectEconomyInternationalWarningFallback.find(item=>item.code===code)?.name || code;
+}
+function renderProjectEconomyThunderLevel(value){
+  const count=Number(value)===2?2:1;
+  return `<img class="project-economy-thunder-level" src="./src/assets/economy-warning/${count===2?"two-thunders.svg":"one-thunder.svg"}" alt="${count===2?"二颗雷":"一颗雷"}"/>`;
+}
+
 function getProjectEconomyOverviewData(project){
   const seed=Number(project?.id)||1;
   const contract=Number(project?.projectCost)||67920.4;
@@ -32,28 +60,46 @@ function getProjectEconomyOverviewData(project){
   const progress=contract?completed/contract*100:0;
   const levels=["red","orange","yellow","blue"];
   const riskColor=levels[seed%levels.length];
+  const international=getProjectEconomyOverviewEdition(project)==="international";
   const trendNames=["分包分供等合同实际总额(万元)","主体劳务分包含同签订数(个)","专业分包合同匹配率","存货(万元)","资金结余(万元)","单个分包商最大产值计量率","项目管理费使用度","实际税负成本(万元)","关键节点偏差(天)","总包结算价(万元)","结算上报时长(天)","劳务人员一周变化率"];
+  const domesticAlerts=[
+    {name:"分包分供等合同预警",color:seed%2?"red":"orange"},
+    {name:"潜亏预警（目标利润率负向偏差）",color:riskColor}
+  ];
+  const internationalAlerts=[
+    {name:getProjectEconomyInternationalWarningName("GJ-01"),color:seed%2?"red":"orange"},
+    {name:getProjectEconomyInternationalWarningName("GJ-02"),color:riskColor}
+  ];
+  const domesticWarnings=[
+    ["分包分供等合同预警","合同额度预警",2,"分包分供合同实际签署总额超过签署总额控制标准","2026-06-18"],
+    ["潜亏预警","增值税税负预警",2,"进项税额低于计划值，存在税负上升风险","2026-06-15"],
+    ["潜亏预警","项目管理费预警",1,"项目管理费使用度超过阶段控制标准","2026-06-12"],
+    ["潜亏预警","资金存货目标利润率关联预警",1,"存货与目标利润率出现负向偏差","2026-06-08"]
+  ];
+  const internationalWarningCodes=[
+    ["GJ-01","GJ-01-01",2,"cost清单额度超过目标成本控制标准","2026-06-18"],
+    ["GJ-02","GJ-02-02",2,"项目资金使用情况触发目标利润率风险阈值","2026-06-15"],
+    ["GJ-03","GJ-03-06",1,"结算金额与过程确认金额存在异常偏差","2026-06-12"],
+    ["GJ-04","GJ-04-09",1,"拖欠款账龄超过国际项目管理控制标准","2026-06-08"]
+  ];
+  const internationalWarnings=internationalWarningCodes.map(([parentCode,childCode,count,message,date])=>[
+    getProjectEconomyInternationalWarningName(parentCode),
+    getProjectEconomyInternationalWarningName(childCode),
+    count,message,date
+  ]);
   return {
     riskColor,
     riskLabel:{red:"高风险",orange:"较高风险",yellow:"一般风险",blue:"低风险"}[riskColor],
     contract,completed,progress,
     targetProfit:(1.2+(seed%7)*.15).toFixed(2),
-    alerts:[
-      {name:"分包分供等合同预警",color:seed%2?"red":"orange"},
-      {name:"潜亏预警（目标利润率负向偏差）",color:riskColor}
-    ],
+    alerts:international?internationalAlerts:domesticAlerts,
     reminders:[
       ["完工风险存货(万元)",(32.3+seed*1.1).toFixed(2),"danger"],
       ["安措费核销比例",`${8+seed%9}.00%`,""],
       ["安措费剩余核销金额(万元)",(72.5+seed*2.4).toFixed(2),""],
       ["项目管理费使用度",`${88+seed%14}.60%`,seed%3===0?"danger":""]
     ],
-    warnings:[
-      ["分包分供等合同预警","合同额度预警","严重","分包分供合同实际签署总额超过签署总额控制标准","2026-06-18"],
-      ["潜亏预警","增值税税负预警","较高","进项税额低于计划值，存在税负上升风险","2026-06-15"],
-      ["潜亏预警","项目管理费预警","较高","项目管理费使用度超过阶段控制标准","2026-06-12"],
-      ["潜亏预警","资金存货目标利润率关联预警","一般","存货与目标利润率出现负向偏差","2026-06-08"]
-    ],
+    warnings:international?internationalWarnings:domesticWarnings,
     trends:trendNames.map((name,index)=>{
       const base=Math.max(0,(seed*13+index*17)%160);
       const unit=name.includes("率")?"%":name.includes("天")?"天":name.includes("个")?"个":"万元";
@@ -104,7 +150,7 @@ function renderProjectEconomyOverviewEditionContent(project,edition){
       <div class="project-economy-left">
         <section class="project-economy-project-card ${data.riskColor}"><div class="project-economy-project-head"><h2>${project.projectName}</h2><div>风险状态：<b>${data.riskLabel}</b><i></i></div></div><div class="project-economy-project-info">${[["所属公司",`${project.subCompany}/${project.branchCompany}`],["建设单位",project.builder],["项目经理",project.projectManager],["项目状态",project.projectStatus],["项目板块",project.projectType],["项目区域",project.region||`${province}${city}`],["计划开工",project.planStart||"2026-01-15"],["计划完工",project.planEnd||"2027-12-20"],["项目工期",`${project.planDuration||365}天`],["项目合同总额",`${(data.contract/10).toLocaleString('zh-CN',{maximumFractionDigits:2})}万元`],["目标利润率（含税）",`${data.targetProfit}%`]].map(([label,value])=>`<div><span>${label}：</span><strong>${value||"-"}</strong></div>`).join("")}</div></section>
         <div class="project-economy-risk-row"><section class="project-economy-panel">${renderProjectEconomySectionTitle("一级指标风险状态")}<div class="project-economy-risk-list">${data.alerts.map(item=>`<div class="${item.color}"><strong>${item.name}</strong><i></i></div>`).join("")}</div></section><section class="project-economy-panel">${renderProjectEconomySectionTitle("提醒指标")}<div class="project-economy-reminders">${data.reminders.map(([label,value,state])=>`<div class="${state}"><strong>${value}</strong><span>${label}</span></div>`).join("")}</div></section></div>
-        <section class="project-economy-panel project-economy-warning-panel">${renderProjectEconomySectionTitle("预警明细")}<div class="table-wrap"><table><thead><tr><th>一级指标</th><th>二级指标</th><th>等级</th><th>预警提示</th><th>预警日期</th></tr></thead><tbody>${data.warnings.map((row,index)=>`<tr><td><i class="project-economy-level-block ${index===0?'red':index===1?'orange':index===2?'yellow':'blue'}"></i>${row[0]}</td><td>${row[1]}</td><td><span class="project-economy-level-bombs">${row[2]==="严重"?"●●●":row[2]==="较高"?"●●":"●"}</span></td><td>${row[3]}</td><td class="center">${row[4]}</td></tr>`).join("")}</tbody></table></div></section>
+        <section class="project-economy-panel project-economy-warning-panel">${renderProjectEconomySectionTitle("预警明细")}<div class="table-wrap"><table><thead><tr><th>一级指标</th><th>二级指标</th><th>等级</th><th>预警提示</th><th>预警日期</th></tr></thead><tbody>${data.warnings.map((row,index)=>`<tr><td><i class="project-economy-level-block ${index===0?'red':index===1?'orange':index===2?'yellow':'blue'}"></i>${row[0]}</td><td>${row[1]}</td><td><span class="project-economy-level-bombs">${renderProjectEconomyThunderLevel(row[2])}</span></td><td>${row[3]}</td><td class="center">${row[4]}</td></tr>`).join("")}</tbody></table></div></section>
       </div>
       <div class="project-economy-right"><section class="project-economy-panel project-economy-live-panel">${renderProjectEconomySectionTitle("实时项目数据")}<div class="project-economy-live-metrics">${[["开累产值(万元)",data.contract/10,"▰"],["开累营收(万元)",data.completed/10,"▰"],["开累产值完成率",data.progress,"%"]].map(([label,value,unit])=>`<div><i>${unit}</i><strong>${Number(value).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}<em>${unit==="%"?"%":""}</em></strong><span>${label}</span></div>`).join("")}</div></section><section class="project-economy-panel project-economy-trends-panel">${renderProjectEconomySectionTitle("实时趋势分析",'<em>（近5次）</em><div class="project-economy-trend-legend"><span>⌁ 实际值</span><span>┄ 阈值</span></div>')}<div class="project-economy-trend-grid">${data.trends.map(renderProjectEconomyTrendCard).join("")}</div></section></div>
     </div></div>`;

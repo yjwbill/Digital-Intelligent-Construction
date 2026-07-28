@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.430-project-economy-font-baseline";
+  const version="2.2.432-project-economy-thunder-warning";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",
