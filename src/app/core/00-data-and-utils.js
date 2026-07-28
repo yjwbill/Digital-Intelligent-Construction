@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.434-ECONOMY-WARNING-PALETTE";
-const APP_CODE_VERSION_NAME="国际项目类型字典版";
-const APP_CODE_VERSION_TIME="2026-07-28 19:53";
-const APP_CODE_VERSION_DESC="新增国际项目类型数据字典，按顺序初始化非港澳JV项目、港澳JV项目、非JV项目、JV项目、投资类（含类投资）、非投资类六个字典值，并兼容旧缓存自动补全。";
+const APP_CODE_VERSION="EM-20260701-V2.2.437-PROJECT-ECONOMY-INTERNATIONAL-FIELDS";
+const APP_CODE_VERSION_NAME="项目经济国际版字段精简版";
+const APP_CODE_VERSION_TIME="2026-07-28 21:50";
+const APP_CODE_VERSION_DESC="精简项目经济项目基本信息国际版过程动态，移除工期动态及工程关键节点偏差，并将国际版展示的数据来源标签统一命名为子公司。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,

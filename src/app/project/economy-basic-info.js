@@ -10,7 +10,7 @@ function projectEconomySectionTitle(title){return `<div class="project-economy-i
 function projectEconomySubTitle(title,key=""){const groupKey=key||`group-${encodeURIComponent(title)}`;return `<h3 class="project-economy-info-subtitle" data-group="${groupKey}"><span><i></i>${title}</span></h3>`;}
 function openProjectEconomySectionEditor(title,button){
   const section=button.closest(".project-economy-info-card");
-  const fields=Array.from(section.querySelectorAll(".project-economy-view-field")).map(field=>({label:field.dataset.label,unit:field.dataset.unit,source:field.dataset.source,options:field.dataset.options,value:(field.querySelector("strong")?.textContent||"").replace(field.dataset.unit||"","").trim().replace(/^-$|^暂无$/g,"")}));
+  const fields=Array.from(section.querySelectorAll('.project-economy-view-field:not([data-readonly="true"])')).map(field=>({label:field.dataset.label,unit:field.dataset.unit,source:field.dataset.source,options:field.dataset.options,value:(field.querySelector("strong")?.textContent||"").replace(field.dataset.unit||"","").trim().replace(/^-$|^暂无$/g,"")}));
   openProjectEconomyFieldsEditor(title,fields);
 }
 function openProjectEconomyFieldsEditor(title,fields){
@@ -19,7 +19,7 @@ function openProjectEconomyFieldsEditor(title,fields){
 }
 function openProjectEconomyGroupEditor(key,title,button){
   const heading=button.closest(".project-economy-info-subtitle");let node=heading.nextElementSibling;const fields=[];
-  while(node&&!node.classList.contains("project-economy-info-subtitle")){node.querySelectorAll?.(".project-economy-view-field").forEach(field=>fields.push({label:field.dataset.label,unit:field.dataset.unit,source:field.dataset.source,options:field.dataset.options,value:(field.querySelector("strong")?.textContent||"").replace(field.dataset.unit||"","").trim().replace(/^-$|^暂无$/g,"")}));node=node.nextElementSibling;}
+  while(node&&!node.classList.contains("project-economy-info-subtitle")){node.querySelectorAll?.('.project-economy-view-field:not([data-readonly="true"])').forEach(field=>fields.push({label:field.dataset.label,unit:field.dataset.unit,source:field.dataset.source,options:field.dataset.options,value:(field.querySelector("strong")?.textContent||"").replace(field.dataset.unit||"","").trim().replace(/^-$|^暂无$/g,"")}));node=node.nextElementSibling;}
   projectEconomyInfoState.editingGroup=key;openProjectEconomyFieldsEditor(title,fields);
 }
 function saveProjectEconomyGroupEditor(fields){const store=getProjectEconomyInfoStore();const scrollTop=document.querySelector(".project-economy-info-page")?.scrollTop||0;fields.forEach((field,index)=>{store[field.label]=document.querySelector(`[data-economy-edit-index="${index}"]`)?.value??field.value;});closeModal();renderProjectEconomyBasicInfoPage();requestAnimationFrame(()=>{const page=document.querySelector(".project-economy-info-page");if(page)page.scrollTop=scrollTop;});showToast("保存成功");}
@@ -49,7 +49,12 @@ function renderProjectEconomyBasicInfoPage(){
   const contract=Number(project.projectCost)||67920364.89;
   const data={contract:contract<1000000?contract*10000:contract,profit:(1.2+(Number(project.id||1)%7)*.15).toFixed(2)};
   detailPage.style.display="none";listPage.style.display="block";listPage.style.overflow="auto";
-  listPage.innerHTML=`<div class="project-economy-info-page">${renderProjectEconomySummary(project)}<nav class="project-economy-info-tabs">${[["basic","项目基本信息"],["planning","项目经济筹划"],["process","过程动态信息"],["settlement","结算动态"]].map(([key,label])=>`<button data-key="${key}" class="${projectEconomyInfoState.active===key?"active":""}" onclick="scrollProjectEconomyInfo('${key}')">${label}</button>`).join("")}</nav>${renderProjectEconomyBasic(project,data)}${renderProjectEconomyPlanning(data)}${renderProjectEconomyProcess()}${renderProjectEconomySettlement(data)}</div>`;
+  const international=typeof getProjectEconomyOverviewEdition==="function"?getProjectEconomyOverviewEdition(project)==="international":project.subCompany==="城建国际";
+  listPage.innerHTML=international?renderProjectEconomyBasicInfoInternational(project,data):renderProjectEconomyBasicInfoDomestic(project,data);
+}
+
+function renderProjectEconomyBasicInfoDomestic(project,data){
+  return `<div class="project-economy-info-page">${renderProjectEconomySummary(project)}<nav class="project-economy-info-tabs">${[["basic","项目基本信息"],["planning","项目经济筹划"],["process","过程动态信息"],["settlement","结算动态"]].map(([key,label])=>`<button data-key="${key}" class="${projectEconomyInfoState.active===key?"active":""}" onclick="scrollProjectEconomyInfo('${key}')">${label}</button>`).join("")}</nav>${renderProjectEconomyBasic(project,data)}${renderProjectEconomyPlanning(data)}${renderProjectEconomyProcess()}${renderProjectEconomySettlement(data)}</div>`;
 }
 
 function renderProjectEconomyPlanning(data){
@@ -97,8 +102,9 @@ function renderProjectEconomyProcess(){
   const signedContractTotal=rows.reduce((sum,row)=>sum+row[1],0);
   const signedSettlementTotal=rows.reduce((sum,row)=>sum+row[10],0);
   const materials=[
-    ["进度理论用量","26020","0","2283.49","0","0","0"],
-    ["开累领用量","25991","0","1980.6","-","-","-"]
+    ["开累领用量","25991","0","1980.6","-","-","-"],
+    ["节点进度理论用量","26020","0","2283.49","0","0","0"],
+    ["合同总用量","26692","0","2464","0","0","0"]
   ];
   const contractSummary=[
     ["已签合同总额","71,775,315.29 元"],["专业类型","11,028,408.52 元"],["劳务类型","20,114,442.07 元"],["材料类型","39,997,038.70 元"],["其他类型","635,426.00 元"]
@@ -125,4 +131,74 @@ function renderProjectEconomyProcess(){
       <tfoot><tr><td>合计</td><td></td><td>${projectEconomyMoney(signedContractTotal)}</td><td colspan="4"></td><td></td><td></td><td></td><td></td><td>${projectEconomyMoney(signedSettlementTotal)}</td></tr></tfoot>
     </table></div>
   </section>`;
+}
+
+function projectEconomyInternationalField(label,value,unit="",source="子公司",options="",readonly=false){
+  const current=getProjectEconomyInfoStore()[label];
+  const shown=current===undefined?value:current;
+  return `<div class="project-detail-field project-economy-view-field" data-label="${label}" data-unit="${unit}" data-source="${source||""}" data-options="${options}" data-readonly="${readonly}"><span>${label} ${source?projectEconomySource(source):""}</span><strong>${shown===""||shown==null?"-":shown}${unit?` <em>${unit}</em>`:""}</strong></div>`;
+}
+function getProjectInternationalType(project){
+  const types=["非港澳JV项目","港澳JV项目","非JV项目","JV项目","投资类（含类投资）","非投资类"];
+  if(types.includes(project.projectType))return project.projectType;
+  const branch=String(project.branchCompany||"");
+  if(branch.includes("香港")||branch.includes("澳门"))return "港澳JV项目";
+  const seed=String(project.id||project.projectCode||"").split("").reduce((sum,char)=>sum+char.charCodeAt(0),0);
+  return types[seed%types.length];
+}
+function renderProjectEconomyInternationalBasic(project,data,projectType){
+  return `<section id="projectEconomyInfo-basic" class="project-economy-info-card project-economy-info-international">${projectEconomySectionTitle("项目基本信息")}${projectEconomySubTitle("项目属性","international-project-attributes")}<div class="project-economy-form-grid four">${[
+    ["项目类型",projectType,"","生产项目",["非港澳JV项目","港澳JV项目","非JV项目","JV项目","投资类（含类投资）","非投资类"].join(","),true],
+    ["项目状态",project.projectStatus||"在建","","生产项目","",true],
+    ["总包合同价（不含税）",projectEconomyMoney(data.contract/1.09),"元","生产项目","",true]
+  ].map(item=>projectEconomyInternationalField(...item)).join("")}</div></section>`;
+}
+function renderProjectEconomyInternationalPlanning(data){
+  return `<section id="projectEconomyInfo-planning" class="project-economy-info-card project-economy-info-international">${projectEconomySectionTitle("项目经济筹划")}${projectEconomySubTitle("目标经济指标","international-targets")}<div class="project-economy-form-grid four">${[
+    ["计提利润率","4.50","%"],["财务费用","1280000.00","元"],["预计税金成本","3560000.00","元"]
+  ].map(item=>projectEconomyInternationalField(...item)).join("")}</div>${projectEconomySubTitle("主材料总量筹划","international-material-plan")}<div class="project-economy-form-grid four">${[
+    ["合同钢筋总用量","4860","吨"],["合同水泥总用量","12800","吨"],["合同商品混凝土总用量","58200","方"]
+  ].map(item=>projectEconomyInternationalField(...item)).join("")}</div></section>`;
+}
+function renderProjectEconomyInternationalProcess(project,projectType){
+  const contractRows=[
+    ["GJ-FB-2026-001","主体结构专业分包合同","专业",32500000,28600000],
+    ["GJ-FB-2026-002","土建劳务分包合同","劳务",18600000,14200000],
+    ["GJ-FB-2026-003","机电安装专业分包合同","专业",12800000,8350000]
+  ];
+  const measuredTotal=contractRows.reduce((sum,row)=>sum+row[4],0);
+  const signedTotal=contractRows.reduce((sum,row)=>sum+row[3],0);
+  const isJv=["港澳JV项目","JV项目"].includes(projectType);
+  const materials=[
+    ["开累领用量","42600","0","3680","0","0","9250"],
+    ["节点进度理论用量","41500","0","3520","0","0","8960"],
+    ["合同总用量","58200","0","4860","0","0","12800"]
+  ];
+  return `<section id="projectEconomyInfo-process" class="project-economy-info-card project-economy-info-international">${projectEconomySectionTitle("过程动态信息")}
+    ${projectEconomySubTitle("COST清单动态","international-cost")}<div class="project-economy-form-grid four">${[
+      ["COST总额实际数（不含税）","86450000.00","元","子公司","",false],
+      ["COST清单项合同实际签署总额",projectEconomyMoney(signedTotal),"元","合同管理","",true]
+    ].map(item=>projectEconomyInternationalField(...item)).join("")}</div>
+    ${projectEconomySubTitle("资金及产值动态","international-output")}<div class="project-economy-form-grid four">${[
+      ["当期资金结余","-3860000.00","元","子公司"],["开累产值","78260000.00","元","产值营收上报","",true],["项目营收","74820000.00","元","子公司"]
+    ].map(item=>projectEconomyInternationalField(...item)).join("")}</div>
+    ${projectEconomySubTitle("分包计量动态","international-subcontract")}<div class="table-wrap project-economy-info-table project-economy-international-contract-table"><table><thead><tr><th>序号</th><th>分包合同编号</th><th>分包合同名称</th><th>合同类型</th><th>实际签署合同额（元）</th><th>开累计量产值（元）</th></tr></thead><tbody>${contractRows.map((row,index)=>`<tr><td>${index+1}</td><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>${projectEconomyMoney(row[3])}</td><td>${projectEconomyMoney(row[4])}</td></tr>`).join("")}</tbody><tfoot><tr><td>合计</td><td colspan="3"></td><td>${projectEconomyMoney(signedTotal)}</td><td>${projectEconomyMoney(measuredTotal)}</td></tr></tfoot></table></div>
+    ${projectEconomySubTitle("主材料过程动态","international-material-process")}<div class="table-wrap project-economy-info-table compact project-economy-material-process-table"><table><thead><tr><th></th><th>商品混凝土（方）</th><th>预拌混凝土（方）</th><th>钢筋（吨）</th><th>钢板（吨）</th><th>钢绞线（吨）</th><th>水泥（吨）</th></tr></thead><tbody>${materials.map(row=>`<tr><td>${row[0]}</td>${row.slice(1).map(value=>`<td><span>${value}</span>${projectEconomySource("子公司")}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+    ${projectEconomySubTitle("利润及汇率动态","international-profit")}<div class="project-economy-form-grid four">${[["考核利润率","3.80","%"],["汇率","0.923600","","汇率服务"]].map(item=>projectEconomyInternationalField(...item)).join("")}</div>
+    ${isJv?`${projectEconomySubTitle("JV项目动态","international-jv")}<div class="project-economy-form-grid four">${[["项目分成比例","55.00","%"],["我方投入资金","28600000.00","元"],["我方管理人员数量","18","人"],["合作方投入资金","23400000.00","元"],["合作方管理人员数量","12","人"]].map(item=>projectEconomyInternationalField(...item)).join("")}</div>`:""}
+  </section>`;
+}
+function renderProjectEconomyInternationalSettlement(project){
+  return `<section id="projectEconomyInfo-settlement" class="project-economy-info-card project-economy-info-international">${projectEconomySectionTitle("结算动态")}${projectEconomySubTitle("结算测算","international-settlement-estimate")}<div class="project-economy-form-grid four">${[
+    ["完工后实际签证额","1850000.00","元"],["项目预计实际总成本","116800000.00","元"],["业主已计量产值（不含税）","75600000.00","元"]
+  ].map(item=>projectEconomyInternationalField(...item)).join("")}</div>${projectEconomySubTitle("结算节点","international-settlement-milestones")}<div class="project-economy-form-grid four">${[
+    ["对外结算初稿上报日期","2026-06-20",""],["项目完工日期",project.planEnd||"2027-12-20","","进度管理","",true],["业主出具结算书日期（对外）","",""],["项目内部结算完成时间","",""]
+  ].map(item=>projectEconomyInternationalField(...item)).join("")}</div>${projectEconomySubTitle("应收款动态","international-receivables")}<div class="project-economy-form-grid four">${[
+    ["到期应收未收款","6280000.00","元"],["到期应收未收款账龄","3","月"]
+  ].map(item=>projectEconomyInternationalField(...item)).join("")}</div></section>`;
+}
+function renderProjectEconomyBasicInfoInternational(project,data){
+  const projectType=getProjectInternationalType(project);
+  const tabs=[["basic","项目基本信息"],["planning","项目经济筹划"],["process","过程动态信息"],["settlement","结算动态"]];
+  return `<div class="project-economy-info-page international">${renderProjectEconomySummary(project)}<nav class="project-economy-info-tabs project-economy-info-tabs-with-edition">${tabs.map(([key,label])=>`<button data-key="${key}" class="${projectEconomyInfoState.active===key?"active":""}" onclick="scrollProjectEconomyInfo('${key}')">${label}</button>`).join("")}<span class="project-economy-info-edition">国际版</span></nav>${renderProjectEconomyInternationalBasic(project,data,projectType)}${renderProjectEconomyInternationalPlanning(data)}${renderProjectEconomyInternationalProcess(project,projectType)}${renderProjectEconomyInternationalSettlement(project)}</div>`;
 }
