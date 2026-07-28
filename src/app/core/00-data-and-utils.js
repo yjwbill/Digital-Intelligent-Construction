@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.421-ECONOMY-DIAGNOSIS-EDITIONS";
-const APP_CODE_VERSION_NAME="经济诊断国内国际双版本版";
-const APP_CODE_VERSION_TIME="2026-07-28 19:00";
-const APP_CODE_VERSION_DESC="经济诊断标题后新增国内版、国际版切换，国际版暂时复用国内版内容，并加宽项目、类型、区域和诊断月份筛选控件。";
+const APP_CODE_VERSION="EM-20260701-V2.2.423-ECONOMY-DIAGNOSIS-TABLE-SORT";
+const APP_CODE_VERSION_NAME="经济诊断清单排序增强版";
+const APP_CODE_VERSION_TIME="2026-07-28 20:20";
+const APP_CODE_VERSION_DESC="经济诊断项目清单接入通用刷新、导出和列设置组件，并为合同金额、产值进度及四类预警增加正序、倒序、取消三态排序。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
