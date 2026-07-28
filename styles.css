@@ -186,7 +186,7 @@ button{cursor:pointer}
   display:none;
   z-index:210;
 }
-.org-dropdown{width:310px}
+.org-dropdown{width:310px;max-height:min(70vh,620px);overflow-y:auto;overscroll-behavior:contain}
 .user-dropdown{width:230px}
 .org-switch.open .org-dropdown,
 .user-menu.open .user-dropdown{display:block}

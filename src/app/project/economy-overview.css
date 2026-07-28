@@ -33,3 +33,8 @@
 .project-economy-trend-tooltip em{overflow:hidden;color:#4e5969;font-size:12px;font-style:normal;text-overflow:ellipsis;white-space:nowrap}
 .project-economy-trend-tooltip strong{color:#1d2129;font-family:D-DIN,DIN,Arial,sans-serif;font-size:13px;white-space:nowrap}
 .project-economy-trend-hit:hover>i,.project-economy-trend-hit:focus-within>i,.project-economy-trend-hit:hover .project-economy-trend-tooltip,.project-economy-trend-hit:focus-within .project-economy-trend-tooltip{display:block}
+
+/* Keep project economy overview text aligned with the dashboard readability baseline. */
+.project-economy-project-info,.project-economy-project-info span,.project-economy-project-info strong{font-size:14px}
+.project-economy-warning-panel th,.project-economy-warning-panel td{font-size:14px}
+.project-economy-trend-card h4{font-size:12px}

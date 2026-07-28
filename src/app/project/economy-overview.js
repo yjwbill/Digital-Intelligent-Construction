@@ -92,12 +92,14 @@ function renderProjectEconomyTrendCard(item){
   const valueText=`${item.value.toLocaleString('zh-CN',{maximumFractionDigits:2})}${item.unit}`;
   return `<article class="project-economy-trend-card ${item.color}"><h4>${item.name}<span title="指标说明">i</span></h4><strong>${valueText}</strong><div class="project-economy-trend-chart">${renderProjectEconomyTrendSvg(item)}<em>${item.threshold}${item.unit}</em>${renderProjectEconomyTrendHover(item)}</div></article>`;
 }
-function renderProjectEconomyOverviewContent(project){
+function getProjectEconomyOverviewEdition(project){return project?.subCompany==="城建国际"?"international":"domestic";}
+function renderProjectEconomyOverviewEditionContent(project,edition){
   if(!project)return "";
   const data=getProjectEconomyOverviewData(project);
   const [province,city]=(project.provinceCity||"上海市/上海市").split("/");
-  return `<div class="project-economy-overview-page">
-    <header class="project-economy-overview-header"><div><span>↗</span><h1>数智施工项目经济管理平台</h1></div><div class="project-economy-header-actions"><label>诊断期数</label>${renderProjectEconomyPeriodPicker()}<button class="btn primary" onclick="showToast('月度检验报告下载成功')"><span aria-hidden="true">⇩</span>月度检验报告</button></div></header>
+  const editionName=edition==="international"?"国际版":"国内版";
+  return `<div class="project-economy-overview-page ${edition}">
+    <header class="project-economy-overview-header"><div><span>↗</span><h1>数智施工项目经济管理平台 -${editionName}</h1></div><div class="project-economy-header-actions"><label>诊断期数</label>${renderProjectEconomyPeriodPicker()}<button class="btn primary" onclick="showToast('月度检验报告下载成功')"><span aria-hidden="true">⇩</span>月度检验报告</button></div></header>
     <div class="project-economy-dashboard-grid">
       <div class="project-economy-left">
         <section class="project-economy-project-card ${data.riskColor}"><div class="project-economy-project-head"><h2>${project.projectName}</h2><div>风险状态：<b>${data.riskLabel}</b><i></i></div></div><div class="project-economy-project-info">${[["所属公司",`${project.subCompany}/${project.branchCompany}`],["建设单位",project.builder],["项目经理",project.projectManager],["项目状态",project.projectStatus],["项目板块",project.projectType],["项目区域",project.region||`${province}${city}`],["计划开工",project.planStart||"2026-01-15"],["计划完工",project.planEnd||"2027-12-20"],["项目工期",`${project.planDuration||365}天`],["项目合同总额",`${(data.contract/10).toLocaleString('zh-CN',{maximumFractionDigits:2})}万元`],["目标利润率（含税）",`${data.targetProfit}%`]].map(([label,value])=>`<div><span>${label}：</span><strong>${value||"-"}</strong></div>`).join("")}</div></section>
@@ -106,6 +108,11 @@ function renderProjectEconomyOverviewContent(project){
       </div>
       <div class="project-economy-right"><section class="project-economy-panel project-economy-live-panel">${renderProjectEconomySectionTitle("实时项目数据")}<div class="project-economy-live-metrics">${[["开累产值(万元)",data.contract/10,"▰"],["开累营收(万元)",data.completed/10,"▰"],["开累产值完成率",data.progress,"%"]].map(([label,value,unit])=>`<div><i>${unit}</i><strong>${Number(value).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}<em>${unit==="%"?"%":""}</em></strong><span>${label}</span></div>`).join("")}</div></section><section class="project-economy-panel project-economy-trends-panel">${renderProjectEconomySectionTitle("实时趋势分析",'<em>（近5次）</em><div class="project-economy-trend-legend"><span>⌁ 实际值</span><span>┄ 阈值</span></div>')}<div class="project-economy-trend-grid">${data.trends.map(renderProjectEconomyTrendCard).join("")}</div></section></div>
     </div></div>`;
+}
+function renderProjectEconomyOverviewDomesticContent(project){return renderProjectEconomyOverviewEditionContent(project,"domestic");}
+function renderProjectEconomyOverviewInternationalContent(project){return renderProjectEconomyOverviewEditionContent(project,"international");}
+function renderProjectEconomyOverviewContent(project){
+  return getProjectEconomyOverviewEdition(project)==="international"?renderProjectEconomyOverviewInternationalContent(project):renderProjectEconomyOverviewDomesticContent(project);
 }
 function renderProjectEconomyOverviewPage(){
   const project=getCurrentProjectContext();

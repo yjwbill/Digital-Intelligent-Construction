@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.426-economy-index-column-width";
+  const version="2.2.430-project-economy-font-baseline";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",

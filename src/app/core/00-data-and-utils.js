@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.426-ECONOMY-INDEX-COLUMN-WIDTH";
-const APP_CODE_VERSION_NAME="经济诊断序号列宽修复版";
-const APP_CODE_VERSION_TIME="2026-07-28 22:15";
-const APP_CODE_VERSION_DESC="通用列设置支持按列配置最小宽度，经济诊断序号列最小宽度调整为 40px，保存后按用户设置稳定回显。";
+const APP_CODE_VERSION="EM-20260701-V2.2.430-PROJECT-ECONOMY-FONT-BASELINE";
+const APP_CODE_VERSION_NAME="项目经济总览字号规范版";
+const APP_CODE_VERSION_TIME="2026-07-28 23:40";
+const APP_CODE_VERSION_DESC="项目管理经济总览的项目卡片字段和值明确保持 14px，预警明细表头与内容统一为 14px，实时趋势分析卡片标题提升至 12px。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,

@@ -93,7 +93,7 @@ function renderPcContextSwitcher(){
 }
 
 function getProjectContextOptions(){
-  return Array.isArray(constructionProjectData)?constructionProjectData.slice(0,38):[];
+  return Array.isArray(constructionProjectData)?constructionProjectData:[];
 }
 
 function getCurrentProjectContext(){
