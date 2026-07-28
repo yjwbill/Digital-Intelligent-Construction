@@ -51,7 +51,9 @@ npx serve .
 
 ## 当前版本
 
-`EM-20260701-V2.2.432-PROJECT-ECONOMY-THUNDER-WARNING`
+`EM-20260701-V2.2.433-INTERNATIONAL-PROJECT-TYPE-DICTIONARY`
+
+本版本新增“国际项目类型”数据字典，编码为 `INTERNATIONAL_PROJECT_TYPE`，依次初始化非港澳JV项目、港澳JV项目、非JV项目、JV项目、投资类（含类投资）、非投资类，并支持旧浏览器缓存自动补全。
 
 本版本将项目经济总览预警明细等级替换为用户提供的一颗雷、二颗雷 SVG，模拟数据仅使用这两种等级；国际版一级风险状态和预警明细名称统一读取国际版经济预警指标数据字典，国内版保持原有命名。
 

@@ -1,3 +1,10 @@
+EM-20260701-V2.2.433-INTERNATIONAL-PROJECT-TYPE-DICTIONARY
+
+1. 新增“国际项目类型”数据字典，字典编码为 `INTERNATIONAL_PROJECT_TYPE`。
+2. 按 `01` 至 `06` 初始化六个国际项目类型字典值，并保持需求给定顺序。
+3. 同步更新页面初始化、旧缓存迁移、种子数据和演示数据。
+
+---
 EM-20260701-V2.2.432-PROJECT-ECONOMY-THUNDER-WARNING
 
 1. 项目管理 > 经济 > 经济总览的预警等级使用用户提供的一颗雷、二颗雷 SVG。

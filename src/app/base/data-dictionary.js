@@ -302,15 +302,46 @@ function ensureEconomyWarningInternationalDictionaryV2431(){
   return changed;
 }
 
+const internationalProjectTypeDictionaryV2433={
+  type:{name:"国际项目类型",code:"INTERNATIONAL_PROJECT_TYPE",remark:"国际项目 JV 与投资属性分类字典"},
+  values:[
+    {name:"非港澳JV项目",code:"01",palette:2},
+    {name:"港澳JV项目",code:"02",palette:6},
+    {name:"非JV项目",code:"03",palette:0},
+    {name:"JV项目",code:"04",palette:5},
+    {name:"投资类（含类投资）",code:"05",palette:3},
+    {name:"非投资类",code:"06",palette:1}
+  ]
+};
+
+function ensureInternationalProjectTypeDictionaryV2433(){
+  const definition=internationalProjectTypeDictionaryV2433;
+  let changed=false;
+  if(!dataDictionaryListV2284.some(item=>item.code===definition.type.code)){
+    dataDictionaryListV2284.push({...definition.type});
+    changed=true;
+  }
+  const rows=dataDictionaryValuesV2284[definition.type.code] || (dataDictionaryValuesV2284[definition.type.code]=[]);
+  definition.values.forEach(seed=>{
+    if(rows.some(item=>item.code===seed.code))return;
+    rows.push({...seed,level:1,parentCode:"",status:"启用",remark:"国际项目类型标准字典值"});
+    changed=true;
+  });
+  return changed;
+}
+
 function ensureDataDictionaryLocalLoadedV2284(){
   if(dataDictionaryStateV2284.localLoaded || dataDictionaryStateV2284.localLoading)return;
   dataDictionaryStateV2284.localLoading=true;
   ensureEconomyWarningInternationalDictionaryV2431();
+  ensureInternationalProjectTypeDictionaryV2433();
   const seed=buildDataDictionaryPayloadV2284();
   const stored=window.EMMasterData?.ensure("dictionaries",[seed]);
   const payload=Array.isArray(stored) && stored[0] ? stored[0] : seed;
   applyDataDictionaryPayloadV2284(payload);
-  if(ensureEconomyWarningInternationalDictionaryV2431())syncDataDictionaryToLocalStoreV2284();
+  const economyWarningChanged=ensureEconomyWarningInternationalDictionaryV2431();
+  const internationalProjectTypeChanged=ensureInternationalProjectTypeDictionaryV2433();
+  if(economyWarningChanged||internationalProjectTypeChanged)syncDataDictionaryToLocalStoreV2284();
   dataDictionaryStateV2284.localLoaded=true;
   dataDictionaryStateV2284.localLoading=false;
 }

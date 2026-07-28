@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.432-PROJECT-ECONOMY-THUNDER-WARNING";
-const APP_CODE_VERSION_NAME="项目经济雷级预警版";
-const APP_CODE_VERSION_TIME="2026-07-28 19:14";
-const APP_CODE_VERSION_DESC="项目经济总览预警明细等级替换为一颗雷、二颗雷 SVG；国际版一级风险状态与预警明细按国际版经济预警数据字典动态取值，移除国内版预警叫法。";
+const APP_CODE_VERSION="EM-20260701-V2.2.433-INTERNATIONAL-PROJECT-TYPE-DICTIONARY";
+const APP_CODE_VERSION_NAME="国际项目类型字典版";
+const APP_CODE_VERSION_TIME="2026-07-28 19:53";
+const APP_CODE_VERSION_DESC="新增国际项目类型数据字典，按顺序初始化非港澳JV项目、港澳JV项目、非JV项目、JV项目、投资类（含类投资）、非投资类六个字典值，并兼容旧缓存自动补全。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,

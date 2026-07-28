@@ -103,6 +103,16 @@
       "status": "ENABLED",
       "createdAt": "2026-07-28 00:00:00",
       "updatedAt": "2026-07-28 00:00:00"
+    },
+    {
+      "id": "dict-type-INTERNATIONAL_PROJECT_TYPE",
+      "dictCode": "INTERNATIONAL_PROJECT_TYPE",
+      "dictName": "国际项目类型",
+      "remark": "国际项目 JV 与投资属性分类字典",
+      "sortNo": 11,
+      "status": "ENABLED",
+      "createdAt": "2026-07-28 00:00:00",
+      "updatedAt": "2026-07-28 00:00:00"
     }
   ],
   "dictItems": [
@@ -861,6 +871,90 @@
       "sortNo": 13,
       "palette": "purple",
       "remark": "国际版二级经济预警指标",
+      "createdAt": "2026-07-28 00:00:00",
+      "updatedAt": "2026-07-28 00:00:00"
+    },
+    {
+      "id": "dict-item-INTERNATIONAL_PROJECT_TYPE-001",
+      "dictCode": "INTERNATIONAL_PROJECT_TYPE",
+      "itemCode": "01",
+      "itemName": "非港澳JV项目",
+      "level": 1,
+      "parentCode": "",
+      "status": "ENABLED",
+      "sortNo": 1,
+      "palette": "blue",
+      "remark": "国际项目类型标准字典值",
+      "createdAt": "2026-07-28 00:00:00",
+      "updatedAt": "2026-07-28 00:00:00"
+    },
+    {
+      "id": "dict-item-INTERNATIONAL_PROJECT_TYPE-002",
+      "dictCode": "INTERNATIONAL_PROJECT_TYPE",
+      "itemCode": "02",
+      "itemName": "港澳JV项目",
+      "level": 1,
+      "parentCode": "",
+      "status": "ENABLED",
+      "sortNo": 2,
+      "palette": "cyan",
+      "remark": "国际项目类型标准字典值",
+      "createdAt": "2026-07-28 00:00:00",
+      "updatedAt": "2026-07-28 00:00:00"
+    },
+    {
+      "id": "dict-item-INTERNATIONAL_PROJECT_TYPE-003",
+      "dictCode": "INTERNATIONAL_PROJECT_TYPE",
+      "itemCode": "03",
+      "itemName": "非JV项目",
+      "level": 1,
+      "parentCode": "",
+      "status": "ENABLED",
+      "sortNo": 3,
+      "palette": "gray",
+      "remark": "国际项目类型标准字典值",
+      "createdAt": "2026-07-28 00:00:00",
+      "updatedAt": "2026-07-28 00:00:00"
+    },
+    {
+      "id": "dict-item-INTERNATIONAL_PROJECT_TYPE-004",
+      "dictCode": "INTERNATIONAL_PROJECT_TYPE",
+      "itemCode": "04",
+      "itemName": "JV项目",
+      "level": 1,
+      "parentCode": "",
+      "status": "ENABLED",
+      "sortNo": 4,
+      "palette": "purple",
+      "remark": "国际项目类型标准字典值",
+      "createdAt": "2026-07-28 00:00:00",
+      "updatedAt": "2026-07-28 00:00:00"
+    },
+    {
+      "id": "dict-item-INTERNATIONAL_PROJECT_TYPE-005",
+      "dictCode": "INTERNATIONAL_PROJECT_TYPE",
+      "itemCode": "05",
+      "itemName": "投资类（含类投资）",
+      "level": 1,
+      "parentCode": "",
+      "status": "ENABLED",
+      "sortNo": 5,
+      "palette": "orange",
+      "remark": "国际项目类型标准字典值",
+      "createdAt": "2026-07-28 00:00:00",
+      "updatedAt": "2026-07-28 00:00:00"
+    },
+    {
+      "id": "dict-item-INTERNATIONAL_PROJECT_TYPE-006",
+      "dictCode": "INTERNATIONAL_PROJECT_TYPE",
+      "itemCode": "06",
+      "itemName": "非投资类",
+      "level": 1,
+      "parentCode": "",
+      "status": "ENABLED",
+      "sortNo": 6,
+      "palette": "green",
+      "remark": "国际项目类型标准字典值",
       "createdAt": "2026-07-28 00:00:00",
       "updatedAt": "2026-07-28 00:00:00"
     }
