@@ -40,3 +40,25 @@
 .project-economy-trend-card h4{font-size:12px}
 .project-economy-level-bombs{display:inline-flex;align-items:center;justify-content:center;min-width:42px;letter-spacing:0}
 .project-economy-thunder-level{display:block;width:auto;height:23px;max-width:42px;object-fit:contain}
+
+/* Shared economy diagnosis warning palette. */
+.project-economy-project-card.red{border-color:#FF0013}
+.project-economy-project-card.orange{border-color:#FF9933}
+.project-economy-project-card.yellow{border-color:#FFF44F}
+.project-economy-project-card.blue{border-color:#4596E2}
+.project-economy-project-card.red .project-economy-project-head i{background:#FF0013}
+.project-economy-project-card.orange .project-economy-project-head i{background:#FF9933}
+.project-economy-project-card.yellow .project-economy-project-head i{background:#FFF44F}
+.project-economy-project-card.blue .project-economy-project-head i{background:#4596E2}
+.project-economy-risk-list>div.red{border-color:#FF0013}
+.project-economy-risk-list>div.red i{background:#FF0013}
+.project-economy-risk-list>div.orange{border-color:#FF9933}
+.project-economy-risk-list>div.orange i{background:#FF9933}
+.project-economy-risk-list>div.yellow{border-color:#FFF44F}
+.project-economy-risk-list>div.yellow i{background:#FFF44F}
+.project-economy-risk-list>div.blue{border-color:#4596E2}
+.project-economy-risk-list>div.blue i{background:#4596E2}
+.project-economy-level-block.red{background:#FF0013}
+.project-economy-level-block.orange{background:#FF9933}
+.project-economy-level-block.yellow{background:#FFF44F}
+.project-economy-level-block.blue{background:#4596E2}

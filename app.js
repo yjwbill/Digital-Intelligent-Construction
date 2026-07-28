@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.433-international-project-type-dictionary";
+  const version="2.2.434-economy-warning-palette";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",

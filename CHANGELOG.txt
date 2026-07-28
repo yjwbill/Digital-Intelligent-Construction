@@ -1,3 +1,10 @@
+EM-20260701-V2.2.434-ECONOMY-WARNING-PALETTE
+
+1. 统一经济诊断相关业务的一级预警色值：红 #FF0013、橙 #FF9933、黄 #FFF44F、蓝 #4596E2。
+2. 企业经济诊断、项目经济总览及经济分析报告中的预警色块、边框、图例和图表使用同一套业务色值。
+3. 仅调整经济预警语义色，不影响平台主色及其他业务状态色。
+
+---
 EM-20260701-V2.2.433-INTERNATIONAL-PROJECT-TYPE-DICTIONARY
 
 1. 新增“国际项目类型”数据字典，字典编码为 `INTERNATIONAL_PROJECT_TYPE`。

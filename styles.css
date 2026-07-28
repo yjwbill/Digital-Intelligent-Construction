@@ -8266,6 +8266,28 @@ body.entry-mode .digital-entry-footer{position:fixed;left:50%;bottom:80px;transf
 .construction-project-detail-modal-content{height:100%;min-height:0;}
 .construction-project-detail-modal-content .project-detail-page-v218{height:100%;min-height:0;overflow:auto;}
 
+/* Economy diagnosis warning palette: red, orange, yellow and blue are business constants. */
+.economy-diagnosis-metric.red .production-value-icon{background:#FF0013}
+.economy-diagnosis-metric.orange .production-value-icon{background:#FF9933}
+.economy-diagnosis-metric.yellow .production-value-icon{background:#FFF44F}
+.economy-diagnosis-metric.blue .production-value-icon{background:#4596E2}
+.economy-level-metric.red strong,.economy-level-metric.red em{color:#FF0013}
+.economy-level-metric.orange strong,.economy-level-metric.orange em{color:#FF9933}
+.economy-level-metric.yellow strong,.economy-level-metric.yellow em{color:#FFF44F}
+.economy-level-metric.blue strong,.economy-level-metric.blue em{color:#4596E2}
+.economy-warning-card-values .red{color:#FF0013}
+.economy-warning-card-values .red strong{background:#FF0013}
+.economy-warning-card-values .orange{color:#FF9933}
+.economy-warning-card-values .orange strong{background:#FF9933}
+.economy-warning-card-values .yellow{color:#FFF44F}
+.economy-warning-card-values .yellow strong{background:#FFF44F;color:#1D2129}
+.economy-warning-card-values .blue{color:#4596E2}
+.economy-warning-card-values .blue strong{background:#4596E2}
+.economy-warning-mark.red{background:#FF0013}
+.economy-warning-mark.orange{background:#FF9933}
+.economy-warning-mark.yellow{background:#FFF44F}
+.economy-warning-mark.blue{background:#4596E2}
+
 /* V2.2.255 major engineering project dashboard */
 .production-major-dashboard{height:100%;min-height:0;overflow:auto;background:#F1F3F7;}
 .production-major-dashboard .safety-screen-header{min-width:0;box-sizing:border-box;}
