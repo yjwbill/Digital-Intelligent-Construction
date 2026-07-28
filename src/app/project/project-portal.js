@@ -513,13 +513,22 @@ function getProjectLogCalendarDays(){
   const prevDays=new Date(year,month-1,0).getDate();
   const offset=first.getDay();
   const days=[];
+  const project=getCurrentProjectLogProject();
+  const uploadedDates=new Set(getProjectLogRows().map(row=>row.date));
+  const todayValue=getProjectLogTodayValue();
   for(let i=offset-1;i>=0;i--)days.push({day:prevDays-i,muted:true});
   for(let day=1;day<=totalDays;day++){
     const date=`${year}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
-    const project=getCurrentProjectLogProject();
     const key=`${project?.projectName||""}|${date}`;
-    const customReported=projectLogCustomRows.some(row=>row.projectName===project?.projectName&&row.date===date&&!projectLogDeletedKeys.has(key));
-    const status=projectLogDeletedKeys.has(key)?"missing":customReported?"reported":getEnterpriseConstructionLogDayStateForMonth(project,day,projectLogState.month);
+    const status=projectLogDeletedKeys.has(key)
+      ?"missing"
+      :uploadedDates.has(date)
+        ?"uploaded"
+        :date>todayValue
+          ?"not-started"
+          :project?.projectStatus==="停工"
+            ?"stopped"
+            :"missing";
     days.push({day,date,status:status==="reported"?"uploaded":status,selected:projectLogState.selectedDate===date});
   }
   let next=1;
@@ -1316,7 +1325,18 @@ function removeProjectLogPhoto(index){
   refreshProjectLogPhotoPreview();
 }
 
-function renderProjectLogReportBaseInfo(prefix="projectLogReport",defaultArea="主体结构区",mode="online",defaultDate="2026-07-09",defaultRecorder="楼力栋"){
+function getProjectLogTodayValue(){
+  const now=new Date();
+  return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+}
+
+function syncProjectLogReportWeekday(prefix){
+  const date=document.getElementById(`${prefix}Date`)?.value||getProjectLogTodayValue();
+  const weekday=document.getElementById(`${prefix}Weekday`);
+  if(weekday)weekday.value=getProjectLogReadonlyWeekday(date);
+}
+
+function renderProjectLogReportBaseInfo(prefix="projectLogReport",defaultArea="主体结构区",mode="online",defaultDate=getProjectLogTodayValue(),defaultRecorder="楼力栋"){
   const today=defaultDate;
   const isFile=mode==="file";
   return `
@@ -1325,9 +1345,9 @@ function renderProjectLogReportBaseInfo(prefix="projectLogReport",defaultArea="�
       <div class="project-log-report-grid four">
         ${isFile?"":`<div class="form-item"><label>项目名称 <em>*</em></label><input class="input" value="${escapeAttr(pcPortalState.currentProject)}" disabled/></div>`}
         <div class="form-item"><label>工区 <em>*</em></label><select class="select" id="${prefix}Area">${renderProjectLogWorkAreaOptions(defaultArea)}</select></div>
-        <div class="form-item"><label>日期 <em>*</em></label><input class="input" id="${prefix}Date" type="date" value="${today}"/></div>
+        <div class="form-item"><label>日期 <em>*</em></label><input class="input" id="${prefix}Date" type="date" value="${today}" onchange="syncProjectLogReportWeekday('${prefix}')"/></div>
         ${isFile?"":`
-          <div class="form-item"><label>星期 <em>*</em></label><input class="input" value="星期四" disabled/></div>
+          <div class="form-item"><label>星期 <em>*</em></label><input class="input" id="${prefix}Weekday" value="${getProjectLogReadonlyWeekday(today)}" disabled/></div>
           <div class="form-item"><label>温度 <em>*</em></label><div class="project-log-unit-input"><input class="input" placeholder="请输入"/><span>℃</span></div></div>
           <div class="form-item"><label>天气是否影响工作 <em>*</em></label><select class="select"><option value="">请选择天气是否影响工作</option><option>是</option><option>否</option></select></div>
           <div class="form-item"><label>记录人姓名 <em>*</em></label>${renderProjectLogRecorderReadonly(`${prefix}Recorder`,defaultRecorder)}</div>
@@ -1341,11 +1361,12 @@ function openProjectLogReportModal(editRow=null){
   if(!editRow)projectLogEditingRow=null;
   projectLogCurrentAssignment=editRow?.assignment||null;
   const detail=editRow?getProjectLogReadonlyOnlineDetail(editRow):null;
+  const reportDate=editRow?.date||getProjectLogTodayValue();
   projectLogReportPhotoList=detail?.photos?.map(photo=>({...photo}))||[];
   openModal(editRow?"编辑施工日志":"施工日志在线上报",`
     <div class="project-log-online-report">
       ${renderProjectLogAssignmentToolbar()}
-      ${renderProjectLogReportBaseInfo("projectLogReport",editRow?.workArea||projectLogCurrentAssignment?.area||"主体结构区","online",editRow?.date||"2026-07-09",editRow?.uploader||getProjectLogAssignmentNames(projectLogCurrentAssignment).join("、")||"楼力栋")}
+      ${renderProjectLogReportBaseInfo("projectLogReport",editRow?.workArea||projectLogCurrentAssignment?.area||"主体结构区","online",reportDate,editRow?.uploader||getProjectLogAssignmentNames(projectLogCurrentAssignment).join("、")||"楼力栋")}
 
       <section class="project-log-report-section">
         <h3>人员信息</h3>
@@ -1388,9 +1409,10 @@ function openProjectLogReportModal(editRow=null){
 function openProjectLogFileReportModal(editRow=null){
   if(!editRow)projectLogEditingRow=null;
   projectLogReportFileList=editRow?getProjectLogReadonlyFiles(editRow).map(file=>({...file,size:0})):[];
+  const reportDate=editRow?.date||getProjectLogTodayValue();
   openModal(editRow?"编辑施工日志":"施工日志文件上报",`
     <div class="project-log-online-report">
-      ${renderProjectLogReportBaseInfo("projectLogFileReport",editRow?.workArea||"主体结构区","file",editRow?.date||"2026-07-09")}
+      ${renderProjectLogReportBaseInfo("projectLogFileReport",editRow?.workArea||"主体结构区","file",reportDate)}
       <section class="project-log-report-section">
         <h3>施工日志文件</h3>
         <div class="project-log-report-grid file">
@@ -1422,7 +1444,7 @@ function submitProjectLogReport(){
   const recorder=getProjectLogRecorderValue("楼力栋");
   const recorderInput=document.getElementById("projectLogReportRecorder");
   if(recorderInput)recorderInput.value=recorder;
-  const date=document.getElementById("projectLogReportDate")?.value || "2026-07-09";
+  const date=document.getElementById("projectLogReportDate")?.value || getProjectLogTodayValue();
   const area=document.getElementById("projectLogReportArea")?.value || "主体结构区";
   const now=new Date();
   const uploadTime=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")} ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
@@ -1471,7 +1493,7 @@ function submitProjectLogFileReport(){
   }
   const editing=projectLogEditingRow;
   const recorder=document.getElementById("projectLogFileReportRecorder")?.value || editing?.uploader || "楼力栋";
-  const date=document.getElementById("projectLogFileReportDate")?.value || "2026-07-09";
+  const date=document.getElementById("projectLogFileReportDate")?.value || getProjectLogTodayValue();
   const area=document.getElementById("projectLogFileReportArea")?.value || "主体结构区";
   const remark=document.getElementById("projectLogFileReportRemark")?.value?.trim() || "";
   const now=new Date();
