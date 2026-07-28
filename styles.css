@@ -18572,7 +18572,6 @@ body.mobile-mode .mobile-manual-scroll{
 .project-log-report-toolbar span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#4E5969;}
 .project-log-report-section{border:1px solid #EEF2F7;border-radius:8px;background:#fff;padding:18px 20px;}
 .project-log-report-section h3{height:22px;margin:0 0 18px;padding-left:12px;border-left:4px solid #165DFF;color:#1D2129;font-size:16px;font-weight:900;line-height:22px;}
-.project-log-report-table th em{color:#F53F3F;font-style:normal;margin-left:2px;}
 .project-log-report-grid{display:grid;gap:14px 18px;}
 .project-log-report-grid.four,.project-log-report-grid.three{grid-template-columns:repeat(4,minmax(0,1fr));}
 .project-log-report-grid.file{grid-template-columns:repeat(4,minmax(0,1fr));align-items:start;}
@@ -18611,14 +18610,6 @@ body.mobile-mode .mobile-manual-scroll{
 .project-log-work-image-modal{width:760px;}
 .project-log-work-image-viewer{height:520px;display:flex;align-items:center;justify-content:center;background:#0F172A;border-radius:8px;overflow:hidden;}
 .project-log-work-image-viewer img{max-width:100%;max-height:100%;object-fit:contain;display:block;}
-.project-log-milestone-table-wrap{width:100%;overflow-x:auto;}
-.project-log-milestone-table{min-width:1280px;}
-.project-log-milestone-table th:nth-child(2),.project-log-milestone-table td:nth-child(2){width:200px;}
-.project-log-milestone-table th:nth-child(3),.project-log-milestone-table td:nth-child(3){width:150px;}
-.project-log-milestone-table th:nth-last-child(2),.project-log-milestone-table td:nth-last-child(2){width:140px;}
-.project-log-milestone-table th:nth-last-child(1),.project-log-milestone-table td:nth-last-child(1){width:260px;text-align:left;}
-.project-log-milestone-table textarea.input{width:100%;min-height:56px;resize:vertical;}
-.project-log-milestone-empty{height:72px;}
 .project-log-percent-input{height:34px;display:grid;grid-template-columns:minmax(0,1fr) 34px;border:1px solid var(--border);border-radius:4px;background:#fff;overflow:hidden;}
 .project-log-percent-input .input{height:32px;border:0!important;border-radius:0!important;text-align:center;}
 .project-log-percent-input span{display:flex;align-items:center;justify-content:center;border-left:1px solid var(--border);background:#F7F8FA;color:#4E5969;font-size:13px;font-weight:800;}
