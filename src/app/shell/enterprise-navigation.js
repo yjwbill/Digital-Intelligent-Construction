@@ -43,7 +43,10 @@ function activateProductionDashboardMenu(){
 function activateEconomyDashboardMenu(){
   clearBusinessMenuActive("economy");
   const first=businessMenus.economy?.menus?.find(item=>item.name==="大屏看板");
-  if(first)first.active=true;
+  if(first){
+    first.open=true;
+    first.children?.forEach(child=>child.active=child.name==="经济诊断");
+  }
   collapseInactiveGroups("economy");
 }
 
@@ -166,9 +169,8 @@ if(line==="home"){
   showToast("已切换到生产条线");
 }else if(line==="economy"){
   activateEconomyDashboardMenu();
-  if(typeof economyDashboardState!=="undefined")economyDashboardState.tab="diagnosis";
   renderSideMenu(line);
-  renderEconomyDashboardPage();
+  renderEconomyDashboardPage("diagnosis");
   showToast("已切换到经济条线");
 }else if(line==="base"){
   activateBaseOrgMenu();
@@ -219,7 +221,8 @@ function selectBusinessChildMenu(line,gi,ci,name){
   if(line==="safety"&&(parent?.name==="安全评价"||parent?.name==="历史功能"))return renderSafetyEvaluationManagePage(name);
   if(line==="operation")return renderOperationProductionProjectReportPage();
   if(line==="economy"&&parent?.name==="经济开项"&&name==="开项审批")return renderEconomyProjectInitiationPage();
-  if(line==="economy"&&name==="大屏看板")return renderEconomyDashboardPage();
+  if(line==="economy"&&parent?.name==="大屏看板"&&name==="经济总览")return renderEconomyDashboardPage("overview");
+  if(line==="economy"&&parent?.name==="大屏看板"&&name==="经济诊断")return renderEconomyDashboardPage("diagnosis");
 
   if(line==="safety")return renderSafetyPlaceholder(name);
 
@@ -261,7 +264,7 @@ function selectBusinessSingleMenu(line,i,name){
   if(line==="home"&&name==="施工日志")return renderEnterpriseConstructionLogPage();
   if(line==="safety"&&i===0)return renderSafetyOnlineDashboardPage();
   if(line==="production"&&name==="大屏看板")return renderProductionDashboardByKey(window.__APP_PRODUCTION_DASHBOARD_ROUTE_KEY__ || "overview");
-  if(line==="economy"&&name==="大屏看板")return renderEconomyDashboardPage();
+  if(line==="economy"&&name==="大屏看板")return renderEconomyDashboardPage("diagnosis");
   if(line==="production"&&name==="施工项目一览")return renderConstructionProjectPage();
   if(line==="operation"&&name==="接口同步异常记录")return renderInterfaceSyncExceptionPage();
 

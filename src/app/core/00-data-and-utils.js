@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.414-PROJECT-ECONOMY-TREND-TOOLTIP";
-const APP_CODE_VERSION_NAME="项目经济趋势浮层优化版";
-const APP_CODE_VERSION_TIME="2026-07-28 17:10";
-const APP_CODE_VERSION_DESC="项目经济总览趋势图按月份捕捉悬停位置，显示竖向虚线及包含月份、指标名称和当月数值的浮层卡片。";
+const APP_CODE_VERSION="EM-20260701-V2.2.421-ECONOMY-DIAGNOSIS-EDITIONS";
+const APP_CODE_VERSION_NAME="经济诊断国内国际双版本版";
+const APP_CODE_VERSION_TIME="2026-07-28 19:00";
+const APP_CODE_VERSION_DESC="经济诊断标题后新增国内版、国际版切换，国际版暂时复用国内版内容，并加宽项目、类型、区域和诊断月份筛选控件。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
@@ -825,7 +825,15 @@ const businessMenus={
   economy:{
     title:"经济管理",
     menus:[
-      {icon:"📺",name:"大屏看板",active:false},
+      {
+        icon:"📺",
+        name:"大屏看板",
+        open:true,
+        children:[
+          {name:"经济总览",active:false},
+          {name:"经济诊断",active:true}
+        ]
+      },
       {icon:"📑",name:"合同管理",active:false},
       {
         icon:"📋",

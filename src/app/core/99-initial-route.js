@@ -19,7 +19,7 @@
     production:{2:"production-progress",3:"src/app/production/risk-management.html",4:"src/app/production/output-management.html",5:"production-quality",6:"src/app/production/supplier-performance.html",7:"production-low-carbon"},
     safety:{1:"safety-real-name",2:"safety-video",3:"safety-major-risk",4:"safety-minor-accident",5:"safety-daily-supervision",6:"safety-evaluation"},
     operation:{0:"operation-production-project"},
-    economy:{2:"src/app/economy/project-initiation.html"}
+    economy:{0:"src/app/economy/dashboard.html",2:"src/app/economy/project-initiation.html"}
   };
   const projectLineRoutes={
     home:"project-home-overview",
