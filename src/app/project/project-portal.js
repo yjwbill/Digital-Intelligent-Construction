@@ -427,6 +427,42 @@ let projectLogReportFileList=[];
 let projectLogCurrentAssignment=null;
 const projectLogAssignments=[];
 
+function getProjectLogSharedDetail(row){
+  return {
+    milestones:Array.isArray(row?.milestones)?row.milestones:[],
+    risks:Array.isArray(row?.risks)?row.risks:[]
+  };
+}
+
+function getProjectLogSyncedSharedDetail(targetMode,date,area,editRow=null){
+  const own=getProjectLogSharedDetail(editRow);
+  const projectName=editRow?.projectName||pcPortalState.currentProject;
+  const oppositeMode=targetMode==="online"?"file":"online";
+  const candidates=projectLogCustomRows.filter(row=>
+    row.projectName===projectName&&
+    row.date===date&&
+    row.mode===oppositeMode&&
+    (Array.isArray(row.milestones)||Array.isArray(row.risks))
+  );
+  const opposite=(candidates.find(row=>row.workArea===area)||candidates[0])||null;
+  const synced=getProjectLogSharedDetail(opposite);
+  return {
+    milestones:own.milestones.length?own.milestones:synced.milestones,
+    risks:own.risks.length?own.risks:synced.risks
+  };
+}
+
+function refreshProjectLogSharedSections(prefix){
+  const mode=prefix==="projectLogFileReport"?"file":"online";
+  const date=document.getElementById(`${prefix}Date`)?.value||getProjectLogTodayValue();
+  const area=document.getElementById(`${prefix}Area`)?.value||"";
+  const detail=getProjectLogSyncedSharedDetail(mode,date,area,projectLogEditingRow);
+  const milestoneBox=document.getElementById("projectLogMilestoneRows");
+  if(milestoneBox)milestoneBox.innerHTML=renderProjectLogMilestoneRows(detail.milestones,date);
+  const riskBox=document.getElementById("projectLogRiskRows");
+  if(riskBox)riskBox.innerHTML=renderProjectLogRiskRows(detail.risks);
+}
+
 function getProjectLogFilteredRows(){
   return getProjectLogRows().filter(row=>{
     if(!row.date.startsWith(projectLogState.month+"-"))return false;
@@ -513,13 +549,22 @@ function getProjectLogCalendarDays(){
   const prevDays=new Date(year,month-1,0).getDate();
   const offset=first.getDay();
   const days=[];
+  const project=getCurrentProjectLogProject();
+  const uploadedDates=new Set(getProjectLogRows().map(row=>row.date));
+  const todayValue=getProjectLogTodayValue();
   for(let i=offset-1;i>=0;i--)days.push({day:prevDays-i,muted:true});
   for(let day=1;day<=totalDays;day++){
     const date=`${year}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
-    const project=getCurrentProjectLogProject();
     const key=`${project?.projectName||""}|${date}`;
-    const customReported=projectLogCustomRows.some(row=>row.projectName===project?.projectName&&row.date===date&&!projectLogDeletedKeys.has(key));
-    const status=projectLogDeletedKeys.has(key)?"missing":customReported?"reported":getEnterpriseConstructionLogDayStateForMonth(project,day,projectLogState.month);
+    const status=projectLogDeletedKeys.has(key)
+      ?"missing"
+      :uploadedDates.has(date)
+        ?"uploaded"
+        :date>todayValue
+          ?"not-started"
+          :project?.projectStatus==="停工"
+            ?"stopped"
+            :"missing";
     days.push({day,date,status:status==="reported"?"uploaded":status,selected:projectLogState.selectedDate===date});
   }
   let next=1;
@@ -661,6 +706,7 @@ function getProjectLogReadonlyOnlineDetail(row){
     ["风险类型","深基坑开挖","风险名称","附属结构土方开挖","风险等级","II级","是否完成","否","是否受控","是","风险情况","风险可控","风险进展情况","现场监测数据正常，风险处于受控状态"],
     ["风险类型","承重支模架","风险名称","主体结构模板支撑","风险等级","II级","是否完成","否","是否受控","是","风险情况","风险可控","风险进展情况","按专项方案组织施工，验收记录齐全"]
   ];
+  const milestones=Array.isArray(row.milestones)?row.milestones:[];
   const today=Array.isArray(row.today)&&row.today.length?row.today:[{area:row.workArea,subitem:"主体结构施工",position:"主体结构区",content:row.summary,progress:"按计划推进",imageName:"",reporter:row.uploader,remark:"现场材料、机具及安全防护检查正常"}];
   const tomorrow=Array.isArray(row.tomorrow)&&row.tomorrow.length?row.tomorrow:[{area:row.workArea,subitem:"主体结构施工",position:"主体结构区",content:"继续开展主体结构施工及现场安全巡查",progress:"计划继续推进",imageName:"",reporter:row.uploader,remark:"提前落实材料进场计划"}];
   return {
@@ -674,6 +720,7 @@ function getProjectLogReadonlyOnlineDetail(row){
     ],
     today,
     tomorrow,
+    milestones,
     risks,
     photos:[{name:row.title,url:row.cover || "./src/assets/project-log-building.png"}],
     stop:variation===3?"因短时降雨暂停室外作业2小时，已完成复工安全检查。":"无停工情况。"
@@ -685,6 +732,15 @@ function renderProjectLogReadonlyWorkTable(rows,showProgress=true){
     <table class="project-log-report-table project-log-readonly-work-table">
       <thead><tr><th>序号</th><th>施工工区</th><th>施工分项</th><th>施工部位</th><th>工作内容</th>${showProgress?"<th>工作进度</th>":""}<th>图片</th><th>填报人</th><th>备注</th></tr></thead>
       <tbody>${rows.map((item,index)=>`<tr><td>${index+1}</td><td>${item.area}</td><td>${item.subitem||"-"}</td><td>${item.position||"-"}</td><td>${item.content}</td>${showProgress?`<td>${item.progress}</td>`:""}<td>${item.imageUrl?`<button type="button" class="project-log-work-thumb-btn" onclick="openProjectLogWorkImagePreview('${escapeAttr(item.imageUrl)}','${escapeAttr(item.imageName||"工作图片")}')"><img class="project-log-work-thumb" src="${item.imageUrl}" alt="${escapeAttr(item.imageName||"工作图片")}"/></button>`:item.imageName||"-"}</td><td>${item.reporter||"-"}</td><td>${item.remark||"-"}</td></tr>`).join("")}</tbody>
+    </table>
+  `;
+}
+
+function renderProjectLogReadonlyMilestoneTable(rows){
+  return `
+    <table class="project-log-report-table project-log-readonly-milestone-table">
+      <thead><tr><th>序号</th><th>里程碑节点名称</th><th>计划完成日期（最新）</th><th>节点状态</th><th>管控等级</th><th>是否重点进度节点</th><th>里程碑情况</th><th>里程碑进展情况</th></tr></thead>
+      <tbody>${rows.map((item,index)=>`<tr><td>${index+1}</td><td>${item.nodeName}</td><td>${item.planLatestDate}</td><td>${item.nodeStatus}</td><td>${item.controlLevel}</td><td>${item.keyNode}</td><td>${item.milestoneStatus||"-"}</td><td>${item.milestoneProgress||"-"}</td></tr>`).join("")}</tbody>
     </table>
   `;
 }
@@ -770,15 +826,21 @@ function openProjectLogDetail(id){
       ${renderProjectLogReadonlySection("人员信息",`<div class="project-detail-info-grid three">${detail.personnel.map(item=>renderProjectLogReadonlyField(item[0],`${item[1]}人`)).join("")}</div>`)}
       ${renderProjectLogReadonlySection("今日主要工作",renderProjectLogReadonlyWorkTable(detail.today))}
       ${renderProjectLogReadonlySection("明日主要工作",renderProjectLogReadonlyWorkTable(detail.tomorrow,false))}
+      ${detail.milestones.length?renderProjectLogReadonlySection("里程碑节点情况",renderProjectLogReadonlyMilestoneTable(detail.milestones)):""}
       ${renderProjectLogReadonlySection("风险情况",renderProjectLogReadonlyRiskCards(detail.risks))}
       ${renderProjectLogReadonlySection("发生停工情况",`<div class="project-log-readonly-text">${detail.stop}</div>`)}
       ${fileRow?renderProjectLogReadonlyFileUploadSection(fileRow):""}
     `;
-  })():`
-    ${renderProjectLogReadonlySection("基础信息",baseInfo)}
-    ${renderProjectLogReadonlySection("施工日志文件",renderProjectLogReadonlyFiles(getProjectLogReadonlyFiles(row)))}
-    ${renderProjectLogReadonlySection("备注说明",`<div class="project-log-readonly-text">${row.summary||"-"}</div>`)}
-  `;
+  })():(()=>{
+    const detail=getProjectLogReadonlyOnlineDetail(row);
+    return `
+      ${renderProjectLogReadonlySection("基础信息",baseInfo)}
+      ${detail.milestones.length?renderProjectLogReadonlySection("里程碑节点情况",renderProjectLogReadonlyMilestoneTable(detail.milestones)):""}
+      ${renderProjectLogReadonlySection("风险情况",renderProjectLogReadonlyRiskCards(detail.risks))}
+      ${renderProjectLogReadonlySection("施工日志文件",renderProjectLogReadonlyFiles(getProjectLogReadonlyFiles(row)))}
+      ${renderProjectLogReadonlySection("备注说明",`<div class="project-log-readonly-text">${row.summary||"-"}</div>`)}
+    `;
+  })();
   openModal("施工日志详情",`<div class="project-log-readonly-detail">${content}</div>`,`<button class="btn" onclick="closeModal()">关闭</button>`,"large");
   modalBox.classList.add("project-log-online-report-modal");
 }
@@ -966,6 +1028,88 @@ function collectProjectLogWorkRows(type){
   })).filter(row=>row.area||row.subitem||row.position||row.content||row.progress||row.imageName||row.remark);
 }
 
+function getProjectLogDueMilestoneRows(reportDate=getProjectLogTodayValue()){
+  const date=reportDate||getProjectLogTodayValue();
+  return projectMilestoneNodeRows
+    .filter(row=>row.planLatestDate&&row.planLatestDate<=date&&!row.actualDate)
+    .sort((a,b)=>a.planLatestDate.localeCompare(b.planLatestDate));
+}
+
+function renderProjectLogMilestoneRows(savedRows=[],reportDate=getProjectLogTodayValue()){
+  const savedMap=new Map((savedRows||[]).map(row=>[row.nodeName,row]));
+  const dueRows=getProjectLogDueMilestoneRows(reportDate);
+  const rows=dueRows.length?dueRows:(savedRows||[]);
+  if(!rows.length)return `<div class="project-log-empty project-log-milestone-empty">暂无到期未完成里程碑节点</div>`;
+  return `
+    <div class="project-log-milestone-table-wrap">
+      <table class="project-log-report-table project-log-milestone-table">
+        <thead>
+          <tr><th>序号</th><th>里程碑节点名称</th><th>计划完成日期（最新）</th><th>节点状态</th><th>管控等级</th><th>是否重点进度节点</th><th>里程碑情况 <em>*</em></th><th>里程碑进展情况 <em>*</em></th></tr>
+        </thead>
+        <tbody>
+          ${rows.map((row,index)=>{
+            const saved=savedMap.get(row.nodeName)||{};
+            const status=saved.milestoneStatus||"";
+            return `
+              <tr class="project-log-milestone-row"
+                data-node-name="${escapeAttr(row.nodeName)}"
+                data-plan-latest-date="${escapeAttr(row.planLatestDate)}"
+                data-node-status="${escapeAttr(row.nodeStatus)}"
+                data-control-level="${escapeAttr(row.controlLevel)}"
+                data-key-node="${escapeAttr(row.keyNode)}">
+                <td>${index+1}</td>
+                <td>${row.nodeName}</td>
+                <td>${row.planLatestDate}</td>
+                <td>${row.nodeStatus}</td>
+                <td>${row.controlLevel}</td>
+                <td>${row.keyNode}</td>
+                <td><select class="select project-log-milestone-status"><option value="">请选择</option><option ${status==="进度可控"?"selected":""}>进度可控</option><option ${status==="进度预警"?"selected":""}>进度预警</option></select></td>
+                <td><textarea class="input project-log-milestone-progress" placeholder="请输入">${escapeAttr(saved.milestoneProgress||"")}</textarea></td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function refreshProjectLogMilestoneRows(savedRows=[]){
+  const box=document.getElementById("projectLogMilestoneRows");
+  if(!box)return;
+  const date=document.getElementById("projectLogReportDate")?.value||document.getElementById("projectLogFileReportDate")?.value||getProjectLogTodayValue();
+  box.innerHTML=renderProjectLogMilestoneRows(savedRows,date);
+}
+
+function collectProjectLogMilestoneRows(){
+  const rows=[...document.querySelectorAll(".project-log-milestone-row")];
+  const reports=[];
+  for(const row of rows){
+    const milestoneStatus=row.querySelector(".project-log-milestone-status")?.value||"";
+    const milestoneProgress=row.querySelector(".project-log-milestone-progress")?.value.trim()||"";
+    if(!milestoneStatus){
+      showToast("请选择里程碑情况");
+      row.querySelector(".project-log-milestone-status")?.focus();
+      return null;
+    }
+    if(!milestoneProgress){
+      showToast("请输入里程碑进展情况");
+      row.querySelector(".project-log-milestone-progress")?.focus();
+      return null;
+    }
+    reports.push({
+      nodeName:row.dataset.nodeName||"",
+      planLatestDate:row.dataset.planLatestDate||"",
+      nodeStatus:row.dataset.nodeStatus||"",
+      controlLevel:row.dataset.controlLevel||"",
+      keyNode:row.dataset.keyNode||"",
+      milestoneStatus,
+      milestoneProgress
+    });
+  }
+  return reports;
+}
+
 function refreshProjectLogWorkIndexes(type){
   const tbody=document.getElementById(`projectLogWorkTbody-${type}`);
   if(!tbody)return;
@@ -1007,16 +1151,9 @@ function getProjectLogRiskBaseRows(){
   ];
 }
 
-function renderProjectLogRiskSituationRadio(index,value=""){
+function renderProjectLogRiskSituationSelect(value=""){
   const options=["风险可控","风险预警"];
-  return `<div class="project-log-radio-group" role="radiogroup" aria-label="风险情况">
-    ${options.map(option=>`
-      <label class="project-log-radio-option">
-        <input type="radio" class="project-log-risk-situation" name="projectLogRiskSituation${index}" value="${option}" ${option===value?"checked":""} required/>
-        <span>${option}</span>
-      </label>
-    `).join("")}
-  </div>`;
+  return `<select class="select project-log-risk-situation"><option value="">请选择</option>${options.map(option=>`<option ${option===value?"selected":""}>${option}</option>`).join("")}</select>`;
 }
 
 function renderProjectLogRiskRows(savedRisks=[]){
@@ -1037,7 +1174,7 @@ function renderProjectLogRiskRows(savedRisks=[]){
       <div class="project-log-risk-form">
         <div class="form-item"><label>是否完成 <em>*</em></label><select class="select"><option ${completeValue==="否"?"selected":""}>否</option><option ${completeValue==="是"?"selected":""}>是</option></select></div>
         <div class="form-item"><label>是否受控 <em>*</em></label><select class="select"><option ${controlledValue==="是"?"selected":""}>是</option><option ${controlledValue==="否"?"selected":""}>否</option></select></div>
-        <div class="form-item"><label>风险情况 <em>*</em></label>${renderProjectLogRiskSituationRadio(index,situationValue)}</div>
+        <div class="form-item"><label>风险情况 <em>*</em></label>${renderProjectLogRiskSituationSelect(situationValue)}</div>
         <div class="form-item"><label>风险进展情况 <em>*</em></label><textarea class="input project-log-risk-progress" placeholder="请输入" required>${escapeAttr(progressValue)}</textarea></div>
       </div>
     </div>
@@ -1051,7 +1188,7 @@ function collectProjectLogRiskRows(){
   const reports=[];
   for(const row of rows){
     const index=Number(row.dataset.projectLogRiskIndex)||0;
-    const situation=row.querySelector(".project-log-risk-situation:checked")?.value||"";
+    const situation=row.querySelector(".project-log-risk-situation")?.value||"";
     const progress=row.querySelector(".project-log-risk-progress")?.value.trim()||"";
     if(!situation){
       showToast("请选择风险情况");
@@ -1193,6 +1330,7 @@ function confirmProjectLogAssignment(btn){
   projectLogAssignments.unshift(projectLogCurrentAssignment);
   const areaSelect=document.getElementById("projectLogReportArea");
   if(areaSelect)areaSelect.value=area;
+  refreshProjectLogSharedSections("projectLogReport");
   const info=document.getElementById("projectLogAssignmentInfo");
   if(info)info.textContent=`已分配：${area} / ${subitem} / ${personNames}`;
   refreshProjectLogWorkReporters();
@@ -1316,7 +1454,19 @@ function removeProjectLogPhoto(index){
   refreshProjectLogPhotoPreview();
 }
 
-function renderProjectLogReportBaseInfo(prefix="projectLogReport",defaultArea="主体结构区",mode="online",defaultDate="2026-07-09",defaultRecorder="楼力栋"){
+function getProjectLogTodayValue(){
+  const now=new Date();
+  return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+}
+
+function syncProjectLogReportWeekday(prefix){
+  const date=document.getElementById(`${prefix}Date`)?.value||getProjectLogTodayValue();
+  const weekday=document.getElementById(`${prefix}Weekday`);
+  if(weekday)weekday.value=getProjectLogReadonlyWeekday(date);
+  if(prefix==="projectLogReport"||prefix==="projectLogFileReport")refreshProjectLogSharedSections(prefix);
+}
+
+function renderProjectLogReportBaseInfo(prefix="projectLogReport",defaultArea="主体结构区",mode="online",defaultDate=getProjectLogTodayValue(),defaultRecorder="楼力栋"){
   const today=defaultDate;
   const isFile=mode==="file";
   return `
@@ -1324,10 +1474,10 @@ function renderProjectLogReportBaseInfo(prefix="projectLogReport",defaultArea="�
       <h3>基础信息</h3>
       <div class="project-log-report-grid four">
         ${isFile?"":`<div class="form-item"><label>项目名称 <em>*</em></label><input class="input" value="${escapeAttr(pcPortalState.currentProject)}" disabled/></div>`}
-        <div class="form-item"><label>工区 <em>*</em></label><select class="select" id="${prefix}Area">${renderProjectLogWorkAreaOptions(defaultArea)}</select></div>
-        <div class="form-item"><label>日期 <em>*</em></label><input class="input" id="${prefix}Date" type="date" value="${today}"/></div>
+        <div class="form-item"><label>工区 <em>*</em></label><select class="select" id="${prefix}Area" onchange="refreshProjectLogSharedSections('${prefix}')">${renderProjectLogWorkAreaOptions(defaultArea)}</select></div>
+        <div class="form-item"><label>日期 <em>*</em></label><input class="input" id="${prefix}Date" type="date" value="${today}" onchange="syncProjectLogReportWeekday('${prefix}')"/></div>
         ${isFile?"":`
-          <div class="form-item"><label>星期 <em>*</em></label><input class="input" value="星期四" disabled/></div>
+          <div class="form-item"><label>星期 <em>*</em></label><input class="input" id="${prefix}Weekday" value="${getProjectLogReadonlyWeekday(today)}" disabled/></div>
           <div class="form-item"><label>温度 <em>*</em></label><div class="project-log-unit-input"><input class="input" placeholder="请输入"/><span>℃</span></div></div>
           <div class="form-item"><label>天气是否影响工作 <em>*</em></label><select class="select"><option value="">请选择天气是否影响工作</option><option>是</option><option>否</option></select></div>
           <div class="form-item"><label>记录人姓名 <em>*</em></label>${renderProjectLogRecorderReadonly(`${prefix}Recorder`,defaultRecorder)}</div>
@@ -1341,11 +1491,13 @@ function openProjectLogReportModal(editRow=null){
   if(!editRow)projectLogEditingRow=null;
   projectLogCurrentAssignment=editRow?.assignment||null;
   const detail=editRow?getProjectLogReadonlyOnlineDetail(editRow):null;
+  const reportDate=editRow?.date||getProjectLogTodayValue();
+  const sharedDetail=getProjectLogSyncedSharedDetail("online",reportDate,editRow?.workArea||projectLogCurrentAssignment?.area||"主体结构区",editRow);
   projectLogReportPhotoList=detail?.photos?.map(photo=>({...photo}))||[];
   openModal(editRow?"编辑施工日志":"施工日志在线上报",`
     <div class="project-log-online-report">
       ${renderProjectLogAssignmentToolbar()}
-      ${renderProjectLogReportBaseInfo("projectLogReport",editRow?.workArea||projectLogCurrentAssignment?.area||"主体结构区","online",editRow?.date||"2026-07-09",editRow?.uploader||getProjectLogAssignmentNames(projectLogCurrentAssignment).join("、")||"楼力栋")}
+      ${renderProjectLogReportBaseInfo("projectLogReport",editRow?.workArea||projectLogCurrentAssignment?.area||"主体结构区","online",reportDate,editRow?.uploader||getProjectLogAssignmentNames(projectLogCurrentAssignment).join("、")||"楼力栋")}
 
       <section class="project-log-report-section">
         <h3>人员信息</h3>
@@ -1367,8 +1519,17 @@ function openProjectLogReportModal(editRow=null){
       </section>
 
       <section class="project-log-report-section">
+        <h3>里程碑节点情况</h3>
+        <div id="projectLogMilestoneRows">
+          ${renderProjectLogMilestoneRows(sharedDetail.milestones,reportDate)}
+        </div>
+      </section>
+
+      <section class="project-log-report-section">
         <h3>风险情况</h3>
-        ${renderProjectLogRiskRows(detail?.risks)}
+        <div id="projectLogRiskRows">
+          ${renderProjectLogRiskRows(sharedDetail.risks)}
+        </div>
       </section>
 
       <section class="project-log-report-section">
@@ -1388,9 +1549,11 @@ function openProjectLogReportModal(editRow=null){
 function openProjectLogFileReportModal(editRow=null){
   if(!editRow)projectLogEditingRow=null;
   projectLogReportFileList=editRow?getProjectLogReadonlyFiles(editRow).map(file=>({...file,size:0})):[];
+  const reportDate=editRow?.date||getProjectLogTodayValue();
+  const sharedDetail=getProjectLogSyncedSharedDetail("file",reportDate,editRow?.workArea||"主体结构区",editRow);
   openModal(editRow?"编辑施工日志":"施工日志文件上报",`
     <div class="project-log-online-report">
-      ${renderProjectLogReportBaseInfo("projectLogFileReport",editRow?.workArea||"主体结构区","file",editRow?.date||"2026-07-09")}
+      ${renderProjectLogReportBaseInfo("projectLogFileReport",editRow?.workArea||"主体结构区","file",reportDate)}
       <section class="project-log-report-section">
         <h3>施工日志文件</h3>
         <div class="project-log-report-grid file">
@@ -1404,6 +1567,20 @@ function openProjectLogFileReportModal(editRow=null){
           </div>
         </div>
       </section>
+
+      <section class="project-log-report-section">
+        <h3>里程碑节点情况</h3>
+        <div id="projectLogMilestoneRows">
+          ${renderProjectLogMilestoneRows(sharedDetail.milestones,reportDate)}
+        </div>
+      </section>
+
+      <section class="project-log-report-section">
+        <h3>风险情况</h3>
+        <div id="projectLogRiskRows">
+          ${renderProjectLogRiskRows(sharedDetail.risks)}
+        </div>
+      </section>
     </div>
   `,`
     <button class="btn" onclick="closeModal()">取消</button>
@@ -1415,6 +1592,8 @@ function openProjectLogFileReportModal(editRow=null){
 function submitProjectLogReport(){
   const risks=collectProjectLogRiskRows();
   if(!risks)return;
+  const milestones=collectProjectLogMilestoneRows();
+  if(!milestones)return;
   refreshProjectLogWorkReporters();
   const today=collectProjectLogWorkRows("today");
   const tomorrow=collectProjectLogWorkRows("tomorrow");
@@ -1422,7 +1601,7 @@ function submitProjectLogReport(){
   const recorder=getProjectLogRecorderValue("楼力栋");
   const recorderInput=document.getElementById("projectLogReportRecorder");
   if(recorderInput)recorderInput.value=recorder;
-  const date=document.getElementById("projectLogReportDate")?.value || "2026-07-09";
+  const date=document.getElementById("projectLogReportDate")?.value || getProjectLogTodayValue();
   const area=document.getElementById("projectLogReportArea")?.value || "主体结构区";
   const now=new Date();
   const uploadTime=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")} ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
@@ -1443,6 +1622,7 @@ function submitProjectLogReport(){
     summary:firstContent || "完成施工日志在线上报。",
     today,
     tomorrow,
+    milestones,
     risks,
     assignment:projectLogCurrentAssignment?{...projectLogCurrentAssignment}:null,
     cover:editing?.cover || ""
@@ -1469,9 +1649,13 @@ function submitProjectLogFileReport(){
     showToast("请上传施工日志文件");
     return;
   }
+  const risks=collectProjectLogRiskRows();
+  if(!risks)return;
+  const milestones=collectProjectLogMilestoneRows();
+  if(!milestones)return;
   const editing=projectLogEditingRow;
   const recorder=document.getElementById("projectLogFileReportRecorder")?.value || editing?.uploader || "楼力栋";
-  const date=document.getElementById("projectLogFileReportDate")?.value || "2026-07-09";
+  const date=document.getElementById("projectLogFileReportDate")?.value || getProjectLogTodayValue();
   const area=document.getElementById("projectLogFileReportArea")?.value || "主体结构区";
   const remark=document.getElementById("projectLogFileReportRemark")?.value?.trim() || "";
   const now=new Date();
@@ -1492,7 +1676,9 @@ function submitProjectLogFileReport(){
     fileName:projectLogReportFileList.length>1?`${firstFile.name} 等${projectLogReportFileList.length}个文件`:firstFile.name,
     fileSize:totalSize?formatProjectLogFileSize(totalSize):(editing?.fileSize||firstFile.sizeText||"-"),
     summary:remark || "完成施工日志文件上报。",
-    files:projectLogReportFileList.map(file=>({...file}))
+    files:projectLogReportFileList.map(file=>({...file})),
+    milestones,
+    risks
   };
   projectLogDeletedKeys.delete(getProjectLogRecordKey(newRow));
   projectLogCustomRows.unshift(newRow);
@@ -1554,6 +1740,7 @@ const projectMilestoneNodeState={
 };
 
 const projectMilestoneNodeRows=[
+  {id:5,nodeName:"主体结构封顶",planFirstDate:"2026-07-20",planLatestDate:"2026-07-20",actualDate:"",actualDeviation:"延期未完成",nodeStatus:"延期",controlLevel:"子公司管控",keyNode:"是",warningStatus:"红色预警",rectifyCount:1,changeCount:0,lastAdjustDate:"2026-07-18",remark:"需在施工日志中持续跟踪节点进展"},
   {id:1,nodeName:"附属结构基本完成",planFirstDate:"2026-08-20",planLatestDate:"2026-08-20",actualDate:"",actualDeviation:"--",nodeStatus:"正常",controlLevel:"分公司管控",keyNode:"否",warningStatus:"",rectifyCount:0,changeCount:0,lastAdjustDate:"2025-12-05",remark:""},
   {id:2,nodeName:"工程完工",planFirstDate:"2026-12-23",planLatestDate:"2026-12-23",actualDate:"",actualDeviation:"--",nodeStatus:"正常",controlLevel:"分公司管控",keyNode:"否",warningStatus:"",rectifyCount:0,changeCount:0,lastAdjustDate:"2025-12-05",remark:""},
   {id:3,nodeName:"工程竣工",planFirstDate:"2026-12-26",planLatestDate:"2026-12-26",actualDate:"",actualDeviation:"--",nodeStatus:"正常",controlLevel:"分公司管控",keyNode:"否",warningStatus:"",rectifyCount:0,changeCount:0,lastAdjustDate:"2025-12-05",remark:""},

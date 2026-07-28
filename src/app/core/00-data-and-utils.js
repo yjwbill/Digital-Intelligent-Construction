@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.414-PROJECT-ECONOMY-TREND-TOOLTIP";
-const APP_CODE_VERSION_NAME="项目经济趋势浮层优化版";
-const APP_CODE_VERSION_TIME="2026-07-28 17:10";
-const APP_CODE_VERSION_DESC="项目经济总览趋势图按月份捕捉悬停位置，显示竖向虚线及包含月份、指标名称和当月数值的浮层卡片。";
+const APP_CODE_VERSION="EM-20260701-V2.2.397-PROJECT-ECONOMY-CONTRACT-TAGS";
+const APP_CODE_VERSION_NAME="项目经济合同状态标签版";
+const APP_CODE_VERSION_TIME="2026-07-27 23:05";
+const APP_CODE_VERSION_DESC="已签合同动态加宽是否主体列，并为是否主体和分包合同状态增加语义标签。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
