@@ -51,7 +51,7 @@ npx serve .
 
 ## 当前版本
 
-`EM-20260701-V2.2.437-PROJECT-ECONOMY-INTERNATIONAL-FIELDS`
+`EM-20260701-V2.2.439-ECONOMY-WARNING-VISUAL-POLISH`
 
 本版本新增“国际项目类型”数据字典，编码为 `INTERNATIONAL_PROJECT_TYPE`，依次初始化非港澳JV项目、港澳JV项目、非JV项目、JV项目、投资类（含类投资）、非投资类，并支持旧浏览器缓存自动补全。
 

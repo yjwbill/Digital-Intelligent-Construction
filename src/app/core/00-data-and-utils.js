@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.437-PROJECT-ECONOMY-INTERNATIONAL-FIELDS";
-const APP_CODE_VERSION_NAME="项目经济国际版字段精简版";
-const APP_CODE_VERSION_TIME="2026-07-28 21:50";
-const APP_CODE_VERSION_DESC="精简项目经济项目基本信息国际版过程动态，移除工期动态及工程关键节点偏差，并将国际版展示的数据来源标签统一命名为子公司。";
+const APP_CODE_VERSION="EM-20260701-V2.2.439-ECONOMY-WARNING-VISUAL-POLISH";
+const APP_CODE_VERSION_NAME="经济诊断一级预警视觉优化版";
+const APP_CODE_VERSION_TIME="2026-07-29 10:34";
+const APP_CODE_VERSION_DESC="企业经济诊断国内版、国际版一级预警标题统一使用指定 SVG 图标，四色指标块改为前半实色、后半由 25% 透明度渐变至透明，顶部四色预警项目数量同步使用对应业务色。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,

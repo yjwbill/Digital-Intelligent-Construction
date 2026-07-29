@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.437-project-economy-international-fields";
+  const version="2.2.439-economy-warning-visual-polish";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",
