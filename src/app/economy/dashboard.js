@@ -1,5 +1,5 @@
 /* 企业管理 / 经济 / 大屏看板 */
-const economyDashboardState={tab:"diagnosis",edition:"domestic",projectName:"",projectType:"",region:"",month:"2026-06",sortKey:"",sortDirection:""};
+const economyDashboardState={tab:"diagnosis",edition:"domestic",projectName:"",projectType:"",region:"",month:"2026-06",sortKey:"",sortDirection:"",page:1,pageSize:50};
 const economyDashboardOrgState={company:"",branch:""};
 const economyWarningTypes=[
   {key:"subcontract",name:"分包分供等合同预警",total:19,red:7,orange:0,yellow:25,blue:0,delta:[-1,0,1,0]},
@@ -40,12 +40,13 @@ function getEconomyEditionProjects(){
 function setEconomyDashboardTab(tab){renderEconomyDashboardPage(tab);}
 function setEconomyDashboardEdition(edition){
   economyDashboardState.edition=edition==="international"?"international":"domestic";
+  economyDashboardState.page=1;
   Object.assign(economyDashboardOrgState,{company:"",branch:""});
   renderEconomyDashboardPage("diagnosis");
 }
-function setEconomyDashboardOrg(selection){Object.assign(economyDashboardOrgState,selection);renderEconomyDashboardPage();}
-function setEconomyDashboardFilter(key,value){economyDashboardState[key]=typeof value==="string"?value.trim():value;renderEconomyDashboardPage();}
-function resetEconomyDashboardFilters(){Object.assign(economyDashboardState,{projectName:"",projectType:"",region:"",month:"2026-06"});renderEconomyDashboardPage();}
+function setEconomyDashboardOrg(selection){Object.assign(economyDashboardOrgState,selection);economyDashboardState.page=1;renderEconomyDashboardPage();}
+function setEconomyDashboardFilter(key,value){economyDashboardState[key]=typeof value==="string"?value.trim():value;economyDashboardState.page=1;renderEconomyDashboardPage();}
+function resetEconomyDashboardFilters(){Object.assign(economyDashboardState,{projectName:"",projectType:"",region:"",month:"2026-06",page:1});renderEconomyDashboardPage();}
 function getEconomyDiagnosisFiltered(){return getEconomyEditionProjects().filter(x=>(!economyDashboardOrgState.company||x.company===economyDashboardOrgState.company)&&(!economyDashboardOrgState.branch||x.branch===economyDashboardOrgState.branch)&&(!economyDashboardState.projectName||x.projectName.includes(economyDashboardState.projectName))&&(!economyDashboardState.projectType||x.projectType===economyDashboardState.projectType)&&(economyDashboardState.edition==="international"||!economyDashboardState.region||x.region===economyDashboardState.region));}
 function getEconomyWarningSortValue(row,key){
   const colorWeight={blue:1,yellow:3,orange:5,red:7};
@@ -63,6 +64,7 @@ function getEconomyDiagnosisSorted(list){
   });
 }
 function toggleEconomyDiagnosisSort(key){
+  economyDashboardState.page=1;
   if(economyDashboardState.sortKey!==key){
     economyDashboardState.sortKey=key;
     economyDashboardState.sortDirection="asc";
@@ -97,14 +99,14 @@ function openEconomyDiagnosisProjectOverview(projectId){
   toggleModalFullscreen();
 }
 const economyWarningColorMeta={red:{label:"红色",icon:"红"},orange:{label:"橙色",icon:"橙"},yellow:{label:"黄色",icon:"黄"},blue:{label:"蓝色",icon:"蓝"}};
-const economyWarningDrillState={color:"",projectName:"",projectType:"",company:"",branch:""};
+const economyWarningDrillState={color:"",warningTypeKey:"",projectName:"",projectType:"",company:"",branch:""};
 function getEconomyWarningProjectCounts(list){
   return Object.fromEntries(Object.keys(economyWarningColorMeta).map(color=>[color,getEconomyWarningProjects(list,color).length]));
 }
-function getEconomyWarningProjects(list,color){
+function getEconomyWarningProjects(list,color,warningTypeKey=""){
   const seen=new Set();
   const rows=list.filter((row,index)=>{
-    if(!new Set(Object.values(row.warnings).filter(Boolean)).has(color))return false;
+    if(warningTypeKey?row.warnings?.[warningTypeKey]!==color:!new Set(Object.values(row.warnings).filter(Boolean)).has(color))return false;
     const rowKey=String(row.sourceProjectId||row.projectCode||row.projectName||index);
     if(seen.has(rowKey))return false;
     seen.add(rowKey);
@@ -119,18 +121,20 @@ function getEconomyWarningTrend(color,current,total){
 }
 function renderEconomyWarningMetricValue(item,total){
   const trend=getEconomyWarningTrend(item.color,item.value,total);
-  return `<strong class="economy-warning-metric-value"><button type="button" onclick="openEconomyWarningProjectDrill('${item.color}')" title="查看${item.label}列表">${item.value}</button><span class="economy-warning-metric-trend ${trend.direction}" title="较上期${trend.label}${Math.abs(trend.delta)}个"><b>${Math.abs(trend.delta)}</b>${trend.symbol}</span></strong>`;
+  const trendIcon=trend.direction==="up"?`<img src="./src/assets/economy-warning/trend-up.svg" alt="上升">`:trend.direction==="down"?`<img src="./src/assets/economy-warning/trend-down.svg" alt="下降">`:`<i aria-label="持平">—</i>`;
+  return `<strong class="economy-warning-metric-value"><button type="button" onclick="openEconomyWarningProjectDrill('${item.color}')" title="查看${item.label}列表">${item.value}</button><span class="economy-warning-metric-trend ${trend.direction}" title="较上期${trend.label}${Math.abs(trend.delta)}个"><b>${Math.abs(trend.delta)}</b>${trendIcon}</span></strong>`;
 }
 function renderEconomyDiagnosisMetrics(list){
   const contract=list.reduce((sum,x)=>sum+x.contractAmount,0);
   const counts=getEconomyWarningProjectCounts(list);
   const warningItems=Object.entries(economyWarningColorMeta).map(([color,meta])=>({label:`${meta.label}预警项目`,value:counts[color],icon:meta.icon,color,warning:true}));
-  const items=[{label:"项目总数",value:list.length,unit:"个",icon:"▣",color:"blue"},{label:"合同总金额",value:(contract/10000).toFixed(4),unit:"亿元",icon:"￥",color:"orange"},...warningItems];
-  return `<section class="production-value-top-strip economy-diagnosis-metrics">${items.map(item=>`<div class="production-value-metric economy-diagnosis-metric ${item.color} ${item.warning?"warning-clickable":""}"><span class="production-value-icon">${item.icon}</span><div><p>${item.label}</p>${item.warning?renderEconomyWarningMetricValue(item,list.length):`<strong>${item.value}<em>${item.unit}</em></strong>`}</div></div>`).join('')}</section>`;
+  const summaryItems=[{label:"项目总数",value:list.length,unit:"个",icon:"▣",color:"blue"},{label:"合同总金额",value:(contract/10000).toFixed(4),unit:"亿元",icon:"￥",color:"orange"}];
+  const renderItem=item=>`<div class="production-value-metric economy-diagnosis-metric ${item.color} ${item.warning?"warning-clickable":""}">${item.warning?"":`<span class="production-value-icon">${item.icon}</span>`}<div><p>${item.label}</p>${item.warning?renderEconomyWarningMetricValue(item,list.length):`<strong>${item.value}<em>${item.unit}</em></strong>`}</div></div>`;
+  return `<section class="production-value-top-strip economy-diagnosis-metrics"><div class="economy-diagnosis-summary-group">${summaryItems.map(renderItem).join("")}</div><div class="economy-diagnosis-warning-group">${warningItems.map(renderItem).join("")}</div></section>`;
 }
 function getEconomyWarningDrillBaseRows(){
   const color=economyWarningDrillState.color;
-  return getEconomyWarningProjects(getEconomyDiagnosisFiltered(),color);
+  return getEconomyWarningProjects(getEconomyDiagnosisFiltered(),color,economyWarningDrillState.warningTypeKey);
 }
 function getEconomyWarningDrillRows(){
   return getEconomyWarningDrillBaseRows().filter(row=>(!economyWarningDrillState.projectName||row.projectName.includes(economyWarningDrillState.projectName))&&(!economyWarningDrillState.projectType||row.projectType===economyWarningDrillState.projectType)&&(!economyWarningDrillState.company||row.company===economyWarningDrillState.company)&&(!economyWarningDrillState.branch||row.branch===economyWarningDrillState.branch));
@@ -152,9 +156,11 @@ function renderEconomyWarningProjectDrill(){
     <section class="card table-card economy-diagnosis-table-card economy-warning-drill-table-card"><div class="card-hd"><div class="card-title">经济诊断项目清单</div><div class="actions"><button class="btn" onclick="renderEconomyWarningProjectDrill();showToast('经济诊断项目清单已刷新')">刷新</button><button class="btn primary" onclick="showToast('导出成功：经济诊断项目清单.xlsx')">导出</button><button class="column-setting-icon-btn" title="列设置" onclick="openColumnSetting('economyDiagnosis','renderEconomyWarningProjectDrill')">⚙</button></div></div><div class="table-wrap"><table style="min-width:${getTableMinWidth("economyDiagnosis")}px"><thead><tr>${columns.map(column=>renderEconomyDiagnosisSortHeader({...column,sortable:false},columns)).join("")}</tr></thead><tbody>${rows.map((row,index)=>`<tr>${columns.map(column=>`<td class="${getTableColumnClass("economyDiagnosis",column,columns)}" data-column-key="${escapeAttr(column.key)}" style="${getTableColumnStickyStyle("economyDiagnosis",column,columns)}width:${column.width}px;min-width:${column.width}px;max-width:${column.width}px;text-align:${column.align||"left"}">${column.render(row,index)}</td>`).join("")}</tr>`).join("")||`<tr><td colspan="${columns.length}" class="center">暂无项目数据</td></tr>`}</tbody></table></div><div class="pagination"><span>共 ${rows.length} 条记录</span><span>第 1 / 1 页&nbsp;&nbsp;每页 50 条</span></div></section>
   </div>`;
 }
-function openEconomyWarningProjectDrill(color){
-  Object.assign(economyWarningDrillState,{color,projectName:"",projectType:"",company:"",branch:""});
-  openModal(`${economyWarningColorMeta[color]?.label||""}预警项目`,"",`<button class="btn" onclick="closeModal()">关闭</button>`,"large");
+function openEconomyWarningProjectDrill(color,warningTypeKey=""){
+  Object.assign(economyWarningDrillState,{color,warningTypeKey,projectName:"",projectType:"",company:"",branch:""});
+  const warningType=economyWarningTypes.find(type=>type.key===warningTypeKey);
+  const titlePrefix=warningType?`${getEconomyWarningDisplayName(warningType)} - `:"";
+  openModal(`${titlePrefix}${economyWarningColorMeta[color]?.label||""}预警项目`,"",`<button class="btn" onclick="closeModal()">关闭</button>`,"large");
   modalBox.classList.add("send-drill-modal-box","economy-warning-drill-modal");
   renderEconomyWarningProjectDrill();
 }
@@ -167,15 +173,31 @@ function queryEconomyWarningProjectDrill(){
 }
 function resetEconomyWarningProjectDrill(){Object.assign(economyWarningDrillState,{projectName:"",projectType:"",company:"",branch:""});renderEconomyWarningProjectDrill();}
 function getEconomyWarningDisplayName(type,forCard=false){if(economyDashboardState.edition==="international"){if(type.key==="subcontract")return "目标成本预警";if(type.key==="loss")return "目标利润率预警";}return forCard&&type.key==="loss"?`潜亏预警<span class="economy-warning-subtitle">（目标利润率负向偏差）</span>`:type.name;}
-function renderEconomyWarningCards(list){return `<section class="economy-warning-card-grid">${economyWarningTypes.map(type=>{const counts={red:0,orange:0,yellow:0,blue:0};list.forEach(project=>{const color=project.warnings[type.key];if(color)counts[color]++;});const total=Object.values(counts).reduce((sum,value)=>sum+value,0);return `<article class="economy-warning-card"><h3><img src="./src/assets/economy-warning/level-one-warning-title.svg" alt="">${getEconomyWarningDisplayName(type,true)}<b>${total}</b></h3><div class="economy-warning-card-values">${[[counts.red,type.delta[0],"red"],[counts.orange,type.delta[1],"orange"],[counts.yellow,type.delta[2],"yellow"],[counts.blue,type.delta[3],"blue"]].map(([value,delta,color])=>`<div class="${color}"><strong>${value}</strong><span>${delta>0?'+':''}${delta}</span></div>`).join('')}</div></article>`;}).join('')}</section>`;}
+function getEconomyWarningCardTrend(typeIndex,colorIndex,current,desiredDelta){
+  const patterns=[[1,-1,2,-1],[-1,1,1,-2],[2,-1,-1,1],[0,1,-2,1],[-1,2,-1,0]];
+  const steps=[...patterns[(typeIndex*2+colorIndex)%patterns.length]];
+  const delta=desiredDelta>0?Math.min(current,desiredDelta):desiredDelta;
+  steps[3]=delta;
+  const values=[0,0,0,0,Math.max(0,current)];
+  for(let index=3;index>=0;index--)values[index]=Math.max(0,values[index+1]-steps[index]);
+  return {delta,values};
+}
+function renderEconomyWarningMiniTrend(values){
+  const width=48,height=24,padding=3;
+  const min=Math.min(...values),max=Math.max(...values),range=Math.max(1,max-min);
+  const points=values.map((value,index)=>`${padding+index*(width-padding*2)/(values.length-1)},${height-padding-(value-min)*(height-padding*2)/range}`);
+  const labels=values.map((value,index)=>`P-${4-index}：${value}`).join("，").replace("P-0","P0（本期）");
+  return `<svg class="economy-warning-mini-trend" viewBox="0 0 ${width} ${height}" role="img" aria-label="${labels}"><title>${labels}</title><polyline points="${points.join(" ")}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>${points.map(point=>{const [cx,cy]=point.split(",");return `<circle cx="${cx}" cy="${cy}" r="1.5" fill="currentColor"/>`;}).join("")}</svg>`;
+}
+function renderEconomyWarningCards(list){return `<section class="economy-warning-card-grid">${economyWarningTypes.map((type,typeIndex)=>{const counts={red:0,orange:0,yellow:0,blue:0};list.forEach(project=>{const color=project.warnings[type.key];if(color)counts[color]++;});const total=Object.values(counts).reduce((sum,value)=>sum+value,0);return `<article class="economy-warning-card"><h3><img src="./src/assets/economy-warning/level-one-warning-title.svg" alt="">${getEconomyWarningDisplayName(type,true)}<b>${total}</b></h3><div class="economy-warning-card-values">${[[counts.red,type.delta[0],"red"],[counts.orange,type.delta[1],"orange"],[counts.yellow,type.delta[2],"yellow"],[counts.blue,type.delta[3],"blue"]].map(([value,desiredDelta,color],colorIndex)=>{const trend=getEconomyWarningCardTrend(typeIndex,colorIndex,value,desiredDelta);return `<button type="button" class="economy-warning-card-value ${color}" onclick="openEconomyWarningProjectDrill('${color}','${type.key}')" title="查看${getEconomyWarningDisplayName(type)}的${economyWarningColorMeta[color].label}预警项目"><strong>${value}</strong><span><em>${trend.delta>0?'+':''}${trend.delta}</em>${renderEconomyWarningMiniTrend(trend.values)}</span></button>`;}).join('')}</div></article>`;}).join('')}</section>`;}
 tableColumnDefinitions.economyDiagnosis=[
   {key:"index",title:"序号",width:50,minWidth:40,align:"center",render:(x,index)=>index+1},
   {key:"projectType",title:"项目类型",width:80,align:"center",render:x=>renderEconomyProjectTypeTag(x.projectType)},
-  {key:"projectName",title:"项目名称",width:450,align:"left",render:x=>`<div class="economy-project-name-cell"><button type="button" class="link" title="${escapeAttr(x.projectName)}" onclick="openEconomyDiagnosisProjectOverview('${escapeAttr(x.sourceProjectId)}')">${x.projectName}</button></div>`},
-  {key:"organization",title:"子公司/分公司（项管部）",width:190,align:"center",render:x=>`${x.company}/${x.branch}`},
+  {key:"projectName",title:"项目名称",width:360,align:"left",render:x=>`<div class="economy-project-name-cell"><button type="button" class="link" title="${escapeAttr(x.projectName)}" onclick="openEconomyDiagnosisProjectOverview('${escapeAttr(x.sourceProjectId)}')">${x.projectName}</button></div>`},
+  {key:"organization",title:"子公司/分公司（项管部）",width:220,align:"center",render:x=>`${x.company}/${x.branch}`},
   {key:"contractAmount",title:"合同金额（万元）",width:140,align:"center",sortable:true,render:x=>x.contractAmount.toLocaleString("zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2})},
   {key:"outputProgress",title:"产值进度",width:90,align:"center",sortable:true,render:x=>`${x.outputProgress.toFixed(2)}%`},
-  ...economyWarningTypes.map(type=>({key:type.key,title:type.name,width:120,align:"center",sortable:true,render:x=>renderEconomyWarningMark(x.warnings[type.key],x.overdue[type.key])}))
+  ...economyWarningTypes.map(type=>({key:type.key,title:type.name,width:160,align:"center",sortable:true,render:x=>renderEconomyWarningMark(x.warnings[type.key],x.overdue[type.key])}))
 ];
 function syncEconomyDiagnosisColumnTitles(){
   economyWarningTypes.forEach(type=>{
@@ -191,6 +213,11 @@ function renderEconomyDiagnosisSortHeader(column,columns){
 function renderEconomyDiagnosisTable(list){
   syncEconomyDiagnosisColumnTitles();
   const sortedList=getEconomyDiagnosisSorted(list);
+  const total=sortedList.length;
+  const totalPages=Math.max(1,Math.ceil(total/economyDashboardState.pageSize));
+  economyDashboardState.page=Math.min(Math.max(1,economyDashboardState.page),totalPages);
+  const start=(economyDashboardState.page-1)*economyDashboardState.pageSize;
+  const pageRows=sortedList.slice(start,start+economyDashboardState.pageSize);
   const columns=getVisibleColumns("economyDiagnosis");
   const card=renderUnifiedTableCard({
     title:"经济诊断项目清单",
@@ -200,13 +227,16 @@ function renderEconomyDiagnosisTable(list){
     theadId:"economyDiagnosisThead",
     tbodyId:"economyDiagnosisTbody",
     totalId:"economyDiagnosisTotal",
-    total:sortedList.length,
+    total,
+    paginationHtml:`<span id="economyDiagnosisTotal">共 ${total} 条</span><div class="pager"><button class="btn mini" type="button" ${economyDashboardState.page<=1?"disabled":""} onclick="changeEconomyDiagnosisPage(-1)">上一页</button><b>第 ${economyDashboardState.page} / ${totalPages} 页</b><button class="btn mini" type="button" ${economyDashboardState.page>=totalPages?"disabled":""} onclick="changeEconomyDiagnosisPage(1)">下一页</button><select class="select mini-select" onchange="changeEconomyDiagnosisPageSize(this.value)"><option value="10" ${economyDashboardState.pageSize===10?"selected":""}>10条/页</option><option value="20" ${economyDashboardState.pageSize===20?"selected":""}>20条/页</option><option value="50" ${economyDashboardState.pageSize===50?"selected":""}>50条/页</option></select></div>`,
     renderFnName:"renderEconomyDashboardPage",
     refreshAction:"renderEconomyDashboardPage('diagnosis');showToast('经济诊断项目清单已刷新')",
     exportAction:"showToast('导出成功：经济诊断项目清单.xlsx')"
   });
-  return card.replace(`<tr id="economyDiagnosisThead">${renderTableHeaderByColumns("economyDiagnosis")}</tr>`,`<tr id="economyDiagnosisThead">${columns.map(column=>renderEconomyDiagnosisSortHeader(column,columns)).join("")}</tr>`).replace('<tbody id="economyDiagnosisTbody"></tbody>',`<tbody id="economyDiagnosisTbody">${sortedList.map((row,index)=>`<tr>${columns.map(column=>`<td class="${getTableColumnClass("economyDiagnosis",column,columns)}" data-column-key="${escapeAttr(column.key)}" style="${getTableColumnStickyStyle("economyDiagnosis",column,columns)}width:${column.width}px;min-width:${column.width}px;max-width:${column.width}px;text-align:${column.align||"left"}">${column.render(row,index)}</td>`).join("")}</tr>`).join("")}</tbody>`);
+  return card.replace(`<tr id="economyDiagnosisThead">${renderTableHeaderByColumns("economyDiagnosis")}</tr>`,`<tr id="economyDiagnosisThead">${columns.map(column=>renderEconomyDiagnosisSortHeader(column,columns)).join("")}</tr>`).replace('<tbody id="economyDiagnosisTbody"></tbody>',`<tbody id="economyDiagnosisTbody">${pageRows.map((row,index)=>`<tr>${columns.map(column=>`<td class="${getTableColumnClass("economyDiagnosis",column,columns)}" data-column-key="${escapeAttr(column.key)}" style="${getTableColumnStickyStyle("economyDiagnosis",column,columns)}width:${column.width}px;min-width:${column.width}px;max-width:${column.width}px;text-align:${column.align||"left"}">${column.key==="index"?start+index+1:column.render(row,index)}</td>`).join("")}</tr>`).join("")||`<tr><td colspan="${columns.length}" class="center">暂无项目数据</td></tr>`}</tbody>`);
 }
+function changeEconomyDiagnosisPage(delta){economyDashboardState.page+=Number(delta)||0;renderEconomyDashboardPage("diagnosis");}
+function changeEconomyDiagnosisPageSize(value){economyDashboardState.pageSize=Number(value)||50;economyDashboardState.page=1;renderEconomyDashboardPage("diagnosis");}
 function renderEconomyOverview(){return `<section class="card economy-overview-placeholder"><div class="card-hd"><div class="card-title">经济总览</div></div><div class="economy-overview-note">经济总览功能建设中</div></section>`;}
 function renderEconomyDashboardPage(view="diagnosis"){
   economyDashboardState.tab=view==="overview"?"overview":"diagnosis";
