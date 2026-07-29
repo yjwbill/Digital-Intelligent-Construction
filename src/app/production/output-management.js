@@ -802,7 +802,8 @@ function renderActualOutputApprovalPanel(row,meta){
   const statusClass=meta.approvalStatus==="审批通过"?"done":meta.approvalStatus==="审批中"?"processing":"draft";
   return `
     <aside class="actual-output-approval">
-      <div class="actual-output-section-title">审批记录</div>
+      <button class="actual-output-approval-toggle" type="button" title="收起审批记录" aria-label="收起审批记录" onclick="toggleActualOutputApprovalPanel(this)">&#8250;</button>
+      <div class="actual-output-section-title actual-output-approval-title"><span>审批记录</span></div>
       <div class="actual-output-approval-status">
         <span>整体审批状态</span>
         <b class="${statusClass}">${meta.approvalStatus}</b>
@@ -829,6 +830,17 @@ function renderActualOutputApprovalPanel(row,meta){
       </div>
     </aside>
   `;
+}
+
+function toggleActualOutputApprovalPanel(btn){
+  const panel=btn?.closest(".actual-output-approval");
+  const detail=btn?.closest(".actual-output-detail");
+  if(!panel)return;
+  const collapsed=panel.classList.toggle("collapsed");
+  if(detail)detail.classList.toggle("approval-collapsed",collapsed);
+  btn.title=collapsed?"展开审批记录":"收起审批记录";
+  btn.setAttribute("aria-label",btn.title);
+  btn.innerHTML=collapsed?"&#8249;":"&#8250;";
 }
 
 function previewActualOutputAttachment(id,index){
@@ -1011,7 +1023,7 @@ const otherBizOutputColumnIndustryMap=Object.fromEntries(
 );
 const otherBizOutputReportMetricFields=[
   {key:"annualPlan",label:"年度计划产值"},
-  {key:"monthlyActual",label:"本月度实际完成产值"},
+  {key:"monthlyActual",label:"本月实际完成产值"},
   {key:"remainingContract",label:"剩余合同产值"}
 ];
 
@@ -1639,7 +1651,7 @@ function renderComprehensiveActualOutputTableCard(total,totalPages){
   `;
 }
 
-const comprehensiveActualOutputDetailState={rowId:0,activeIndustry:"",values:{},formMode:false,touched:new Set(),industryModes:{},branchValues:{},branchTouched:new Set(),attachments:{}};
+const comprehensiveActualOutputDetailState={rowId:0,activeIndustry:"",values:{},projectAnnualPlans:{},projectRemainings:{},formMode:false,touched:new Set(),industryModes:{},branchValues:{},branchTouched:new Set(),attachments:{},projectAttachments:{}};
 const comprehensiveActualOutputIndustryLabels=["总承包","管线","产品销售","设计","数字","城市运营","房产【物业管理】","房产【商业运营】","房产【房产开发】","投资【股权项目】","投资【基建项目】","投资【租赁及保理】"];
 const comprehensiveActualOutputStrongIndustries=["总承包","管线","城市运营","设计","数字","投资【股权项目】","投资【基建项目】","投资【租赁及保理】"];
 const comprehensiveActualOutputWeakIndustries=["产品销售","房产【物业管理】","房产【商业运营】","房产【房产开发】"];
@@ -1671,6 +1683,10 @@ function getComprehensiveActualOutputIndustry(project,index){
   return comprehensiveActualOutputIndustryLabels[(seed+index)%comprehensiveActualOutputIndustryLabels.length];
 }
 
+function canEditComprehensiveActualOutputPlanFields(industry){
+  return !["总承包","管线"].includes(industry);
+}
+
 function getComprehensiveActualOutputDetailProjects(row){
   let projects=(typeof constructionProjectData!=="undefined"?constructionProjectData:[]).filter(project=>project.subCompany===row.company&&project.branchCompany===row.branch);
   if(!projects.length){
@@ -1680,12 +1696,18 @@ function getComprehensiveActualOutputDetailProjects(row){
     }));
   }
   return projects.map((project,index)=>{
-    const annualPlan=Number(project.yearPlanOutput||project.projectCost*.28||0);
-    const history=annualPlan*(0.16+(Number(project.id)||index)%4*.07);
+    const industry=getComprehensiveActualOutputIndustry(project,index);
+    const projectKey=String(project.id);
+    const editablePlanFields=canEditComprehensiveActualOutputPlanFields(industry);
+    const baseAnnualPlan=Number(project.yearPlanOutput||project.projectCost*.28||0);
+    const annualPlan=editablePlanFields?Number(comprehensiveActualOutputDetailState.projectAnnualPlans[projectKey]??baseAnnualPlan):baseAnnualPlan;
+    const history=Number(project.monthlyAccumulatedOutput??project.annualCompletedOutput??baseAnnualPlan*(0.16+(Number(project.id)||index)%4*.07));
     const initialCurrent=Number(project.currentMonthOutput||project.projectCost*.035||0);
     const current=comprehensiveActualOutputDetailState.values[project.id]??initialCurrent;
     const annualCumulative=history+current;
-    return {...project,industry:getComprehensiveActualOutputIndustry(project,index),annualPlan,history,current,annualCumulative,remaining:Math.max(0,annualPlan-annualCumulative)};
+    const defaultRemaining=Math.max(0,annualPlan-annualCumulative);
+    const remaining=editablePlanFields?Number(comprehensiveActualOutputDetailState.projectRemainings[projectKey]??defaultRemaining):defaultRemaining;
+    return {...project,industry,annualPlan,history,current,annualCumulative,remaining};
   });
 }
 
@@ -1695,12 +1717,15 @@ function getComprehensiveActualOutputIndustryMode(industry){
 
 function getComprehensiveActualOutputBranchMetrics(industry,projects){
   const industryProjects=projects.filter(project=>project.industry===industry);
-  const defaults=industryProjects.reduce((sum,project)=>({annualPlan:sum.annualPlan+project.annualPlan,history:sum.history+project.history,current:sum.current+project.current}),{annualPlan:0,history:0,current:0});
+  const defaults=industryProjects.reduce((sum,project)=>({annualPlan:sum.annualPlan+project.annualPlan,history:sum.history+project.history,current:sum.current+project.current,remaining:sum.remaining+project.remaining}),{annualPlan:0,history:0,current:0,remaining:0});
   const stored=comprehensiveActualOutputDetailState.branchValues[industry]||{};
+  const editablePlanFields=canEditComprehensiveActualOutputPlanFields(industry);
   const annualPlan=Number(stored.annualPlan??defaults.annualPlan);
   const history=Number(stored.history??defaults.history);
   const current=Number(stored.current??defaults.current);
-  return {annualPlan,history,current,annualCumulative:history+current,remaining:Math.max(0,annualPlan-history-current)};
+  const autoRemaining=Math.max(0,annualPlan-history-current);
+  const remaining=editablePlanFields?Number(stored.remaining??defaults.remaining??autoRemaining):autoRemaining;
+  return {annualPlan,history,current,annualCumulative:history+current,remaining};
 }
 
 function getComprehensiveActualOutputEffectiveTotals(projects){
@@ -1716,37 +1741,59 @@ function getComprehensiveActualOutputEffectiveTotals(projects){
   },{annualPlan:0,current:0,annualCumulative:0,remaining:0});
 }
 
+function getComprehensiveActualOutputProjectAttachmentKey(project){
+  return String(project?.id||project?.projectName||"");
+}
+
+function renderComprehensiveActualOutputProjectAttachment(project,formMode){
+  const key=getComprehensiveActualOutputProjectAttachmentKey(project);
+  const files=comprehensiveActualOutputDetailState.projectAttachments[key]||[];
+  const required=Number(project.current)>0;
+  return `
+    <div class="comprehensive-project-attachment-cell">
+      ${formMode?`<div class="comprehensive-project-attachment-action"><button type="button" class="btn mini" onclick="openComprehensiveActualOutputProjectAttachmentPicker('${escapeAttr(key)}')">上传</button><em data-comprehensive-attachment-required="${escapeAttr(key)}">${required?"*":""}</em></div>`:""}
+      <div class="comprehensive-project-attachment-files">
+        ${files.length?files.map(file=>`<span title="${escapeAttr(file)}">📄 ${escapeAttr(file)}</span>`).join(""):`<i data-comprehensive-attachment-empty="${escapeAttr(key)}">${formMode?(required?"未上传":"无需上传"):"暂无附件"}</i>`}
+      </div>
+    </div>
+  `;
+}
+
+function renderComprehensiveActualOutputProjectAmountCell(project,field,formMode){
+  const editable=formMode&&(field==="current"||canEditComprehensiveActualOutputPlanFields(project.industry));
+  const value=Number(project[field]||0);
+  if(!editable)return formatActualOutputAmount(value);
+  return `<div class="comprehensive-actual-output-input"><input class="input" type="number" min="0" step="0.01" value="${value.toFixed(2)}" data-comprehensive-project-id="${escapeAttr(project.id)}" data-comprehensive-output-field="${field}" oninput="updateComprehensiveActualOutputValue(this)"/></div>`;
+}
+
 function renderComprehensiveActualOutputDetailBody(row){
   const projects=getComprehensiveActualOutputDetailProjects(row);
   const industries=comprehensiveActualOutputIndustryLabels.filter(industry=>projects.some(project=>project.industry===industry));
   const formMode=comprehensiveActualOutputDetailState.formMode;
   const boundProjectCount=projects.filter(project=>getComprehensiveActualOutputIndustryMode(project.industry)==="project").length;
   const totals=getComprehensiveActualOutputEffectiveTotals(projects);
-  const completion=totals.annualPlan?Math.min(100,totals.annualCumulative/totals.annualPlan*100):0;
   const summaryValue=value=>Number(value||0).toLocaleString("zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2});
   const renderProjectTable=(industry,rows)=>{
     const isWeak=comprehensiveActualOutputWeakIndustries.includes(industry);
-    const isStrong=comprehensiveActualOutputStrongIndustries.includes(industry);
     const mode=getComprehensiveActualOutputIndustryMode(industry);
+    const editablePlanFields=formMode&&canEditComprehensiveActualOutputPlanFields(industry);
     const groupTotals=rows.reduce((sum,project)=>({annualPlan:sum.annualPlan+project.annualPlan,current:sum.current+project.current,annualCumulative:sum.annualCumulative+project.annualCumulative,remaining:sum.remaining+project.remaining}),{annualPlan:0,current:0,annualCumulative:0,remaining:0});
     const branchMetrics=getComprehensiveActualOutputBranchMetrics(industry,projects);
-    const attachments=comprehensiveActualOutputDetailState.attachments[industry]||[];
     return `<section class="comprehensive-actual-output-industry" data-comprehensive-industry="${escapeAttr(industry)}">
       <div class="comprehensive-actual-output-industry-title"><span></span><strong>${industry}</strong><em>${mode==="project"?`共 ${rows.length} 个项目`:"按分公司上报"}</em>${isWeak?`<label class="comprehensive-industry-mode-switch"><b>按项目上报</b><button type="button" class="${mode==="project"?"on":""}" ${formMode?`onclick="toggleComprehensiveActualOutputIndustryMode('${escapeAttr(industry)}')"`:"disabled"}><i></i></button></label>`:""}</div>
       ${mode==="branch"?`<div class="comprehensive-branch-output-fields">
-        <div><label>年度计划产值（万元）</label><p><span data-branch-output="annualPlan">${formatActualOutputAmount(branchMetrics.annualPlan)}</span><em>万元</em></p></div>
-        <div><label>本月度实际完成产值（万元）</label><p><input class="input" type="number" min="0" step="0.01" value="${branchMetrics.current.toFixed(2)}" ${formMode?`oninput="updateComprehensiveBranchOutputValue('${escapeAttr(industry)}',this)"`:"readonly"}/><em>万元</em></p></div>
-        <div><label>年度累计完成产值（万元）</label><p><span data-branch-output="annualCumulative">${formatActualOutputAmount(branchMetrics.annualCumulative)}</span><em>万元</em></p></div>
-        <div><label>剩余合同产值（万元）</label><p><span data-branch-output="remaining">${formatActualOutputAmount(branchMetrics.remaining)}</span><em>万元</em></p></div>
+        <div><label>年度计划产值（万元）</label><p>${editablePlanFields?`<input class="input" type="number" min="0" step="0.01" value="${branchMetrics.annualPlan.toFixed(2)}" oninput="updateComprehensiveBranchOutputValue('${escapeAttr(industry)}','annualPlan',this)"/>`:`<span data-branch-output="annualPlan">${formatActualOutputAmount(branchMetrics.annualPlan)}</span>`}</p></div>
+        <div><label>本月实际完成产值（万元）</label><p><input class="input" type="number" min="0" step="0.01" value="${branchMetrics.current.toFixed(2)}" ${formMode?`oninput="updateComprehensiveBranchOutputValue('${escapeAttr(industry)}','current',this)"`:"readonly"}/></p></div>
+        <div><label>年度累计完成产值（万元）</label><p><span data-branch-output="annualCumulative">${formatActualOutputAmount(branchMetrics.annualCumulative)}</span></p></div>
+        <div><label>剩余合同产值（万元）</label><p>${editablePlanFields?`<input class="input" type="number" min="0" step="0.01" value="${branchMetrics.remaining.toFixed(2)}" oninput="updateComprehensiveBranchOutputValue('${escapeAttr(industry)}','remaining',this)"/>`:`<span data-branch-output="remaining">${formatActualOutputAmount(branchMetrics.remaining)}</span>`}</p></div>
       </div>`:`<div class="comprehensive-actual-output-table-wrap">
         <table class="comprehensive-actual-output-project-table">
-          <colgroup><col class="col-index"><col class="col-project-name"><col class="col-project-status"><col class="col-company"><col class="col-branch"><col class="col-manager"><col class="col-output"><col class="col-output"><col class="col-output"><col class="col-output"></colgroup>
-          <thead><tr><th>序号</th><th>项目名称</th><th>项目状态</th><th>子公司</th><th>分公司</th><th>项目经理</th><th>年度计划产值（万元）</th><th>本月度实际完成产值（万元）</th><th>年度累计完成产值（万元）</th><th>剩余合同产值（万元）</th></tr></thead>
-          <tbody>${rows.map((project,index)=>`<tr><td>${index+1}</td><td class="project-name" title="${escapeAttr(project.projectName)}">${project.projectName}</td><td>${tag(project.projectStatus||"在建",project.projectStatus==="停工"?"red":project.projectStatus==="待建"?"orange":"green")}</td><td>${project.subCompany||row.company}</td><td>${project.branchCompany||row.branch}</td><td>${project.projectManager||"-"} | ${maskPhone(project.managerPhone||"18000005555")} <span class="link" onclick="showToast('查看手机号权限')">👁️</span></td><td>${formatActualOutputAmount(project.annualPlan)} 万元</td><td><div class="comprehensive-actual-output-input"><input class="input" type="number" min="0" step="0.01" value="${project.current.toFixed(2)}" data-comprehensive-project-id="${project.id}" ${formMode?'oninput="updateComprehensiveActualOutputValue(this)"':'readonly'}/><span>万元</span></div></td><td data-comprehensive-annual-cumulative="${project.id}">${formatActualOutputAmount(project.annualCumulative)} 万元</td><td data-comprehensive-remaining="${project.id}">${formatActualOutputAmount(project.remaining)} 万元</td></tr>`).join("")}</tbody>
-          <tfoot><tr><td colspan="6">共 ${rows.length} 条</td><td data-industry-total="annualPlan">${formatActualOutputAmount(groupTotals.annualPlan)} 万元</td><td data-industry-total="current">${formatActualOutputAmount(groupTotals.current)} 万元</td><td data-industry-total="annualCumulative">${formatActualOutputAmount(groupTotals.annualCumulative)} 万元</td><td data-industry-total="remaining">${formatActualOutputAmount(groupTotals.remaining)} 万元</td></tr></tfoot>
+          <colgroup><col class="col-index"><col class="col-project-name"><col class="col-project-status"><col class="col-manager"><col class="col-output"><col class="col-output"><col class="col-output"><col class="col-output"><col class="col-attachment"></colgroup>
+          <thead><tr><th>序号</th><th>项目名称</th><th>项目状态</th><th>项目经理</th><th>年度计划产值（万元）</th><th>本月实际完成产值（万元）</th><th>年度累计完成产值（万元）</th><th>剩余合同产值（万元）</th><th>相关附件</th></tr></thead>
+          <tbody>${rows.map((project,index)=>`<tr><td>${index+1}</td><td class="project-name" title="${escapeAttr(project.projectName)}">${project.projectName}</td><td>${tag(project.projectStatus||"在建",project.projectStatus==="停工"?"red":project.projectStatus==="待建"?"orange":"green")}</td><td>${project.projectManager||"-"} | ${maskPhone(project.managerPhone||"18000005555")} <span class="link" onclick="showToast('查看手机号权限')">👁️</span></td><td data-comprehensive-annual-plan="${escapeAttr(project.id)}">${renderComprehensiveActualOutputProjectAmountCell(project,"annualPlan",formMode)}</td><td>${renderComprehensiveActualOutputProjectAmountCell(project,"current",formMode)}</td><td data-comprehensive-annual-cumulative="${escapeAttr(project.id)}">${formatActualOutputAmount(project.annualCumulative)}</td><td data-comprehensive-remaining="${escapeAttr(project.id)}">${renderComprehensiveActualOutputProjectAmountCell(project,"remaining",formMode)}</td><td>${renderComprehensiveActualOutputProjectAttachment(project,formMode)}</td></tr>`).join("")}</tbody>
+          <tfoot><tr><td colspan="4">共 ${rows.length} 条</td><td data-industry-total="annualPlan">${formatActualOutputAmount(groupTotals.annualPlan)}</td><td data-industry-total="current">${formatActualOutputAmount(groupTotals.current)}</td><td data-industry-total="annualCumulative">${formatActualOutputAmount(groupTotals.annualCumulative)}</td><td data-industry-total="remaining">${formatActualOutputAmount(groupTotals.remaining)}</td><td></td></tr></tfoot>
         </table>
       </div>`}
-      <div class="comprehensive-industry-attachments"><div class="comprehensive-industry-attachment-content"><strong>相关附件${isStrong?` <em>*</em>`:""}</strong><span class="comprehensive-industry-attachment-hint">请上传本次产值上报的相关支撑文件（如客户/监理确认的进度确认单、验工月报、销售签收单等）</span>${formMode?`<button type="button" class="btn primary mini" onclick="addComprehensiveActualOutputAttachment('${escapeAttr(industry)}')">上传文件</button>`:""}<div class="comprehensive-industry-attachment-files">${attachments.map(file=>`<span>📄 ${file}</span>`).join("")||(!formMode?"<i>暂无附件</i>":"")}</div></div></div>
     </section>`;
   };
   return `
@@ -1768,8 +1815,7 @@ function renderComprehensiveActualOutputDetailBody(row){
               <div><span>项目数</span><strong data-comprehensive-summary="projectCount">${boundProjectCount}</strong></div>
               <div><span>涉及业态</span><strong data-comprehensive-summary="industryCount">${industries.length}</strong></div>
               <div><span>年度计划产值（万元）</span><strong data-comprehensive-summary="annualPlan">¥ ${summaryValue(totals.annualPlan)}</strong></div>
-              <div><span>本月度实际完成产值（万元）</span><strong data-comprehensive-summary="current">¥ ${summaryValue(totals.current)}</strong></div>
-              <div class="comprehensive-actual-output-progress"><i style="--progress:${completion.toFixed(2)}%"></i><strong data-comprehensive-summary="completion">${completion.toFixed(0)}%</strong></div>
+              <div><span>本月实际完成产值（万元）</span><strong data-comprehensive-summary="current">¥ ${summaryValue(totals.current)}</strong></div>
               <div><span>年度累计完成产值（万元）</span><strong data-comprehensive-summary="annualCumulative">¥ ${summaryValue(totals.annualCumulative)}</strong></div>
               <div><span>剩余合同产值（万元）</span><strong data-comprehensive-summary="remaining">¥ ${summaryValue(totals.remaining)}</strong></div>
             </div>
@@ -1786,10 +1832,7 @@ function switchComprehensiveActualOutputIndustry(rowId,industry){
   comprehensiveActualOutputDetailState.rowId=Number(rowId);
   comprehensiveActualOutputDetailState.activeIndustry=industry;
   const row=comprehensiveActualOutputRows.find(item=>item.id===Number(rowId));
-  if(row){
-    const body=document.querySelector(".comprehensive-actual-output-detail");
-    if(body)body.outerHTML=renderComprehensiveActualOutputDetailBody(row);
-  }
+  if(row)rerenderComprehensiveActualOutputDetail(row);
 }
 
 function toggleComprehensiveActualOutputIndustryMode(industry){
@@ -1800,25 +1843,34 @@ function toggleComprehensiveActualOutputIndustryMode(industry){
   const next=getComprehensiveActualOutputIndustryMode(industry)==="project"?"branch":"project";
   if(next==="branch"&&!comprehensiveActualOutputDetailState.branchValues[industry]){
     const metrics=getComprehensiveActualOutputBranchMetrics(industry,projects);
-    comprehensiveActualOutputDetailState.branchValues[industry]={annualPlan:metrics.annualPlan,history:metrics.history,current:metrics.current};
+    comprehensiveActualOutputDetailState.branchValues[industry]={annualPlan:metrics.annualPlan,history:metrics.history,current:metrics.current,remaining:metrics.remaining};
   }
   comprehensiveActualOutputDetailState.industryModes[industry]=next;
-  const body=document.querySelector(".comprehensive-actual-output-detail");
-  if(body)body.outerHTML=renderComprehensiveActualOutputDetailBody(row);
+  rerenderComprehensiveActualOutputDetail(row);
 }
 
-function updateComprehensiveBranchOutputValue(industry,input){
+function updateComprehensiveBranchOutputValue(industry,field,input){
   const row=comprehensiveActualOutputRows.find(item=>item.id===comprehensiveActualOutputDetailState.rowId);
   if(!row)return;
   const projects=getComprehensiveActualOutputDetailProjects(row);
   const metrics=getComprehensiveActualOutputBranchMetrics(industry,projects);
-  comprehensiveActualOutputDetailState.branchValues[industry]={annualPlan:metrics.annualPlan,history:metrics.history,current:Math.max(0,Number(input.value)||0)};
+  const stored=comprehensiveActualOutputDetailState.branchValues[industry]||{};
+  const next={
+    annualPlan:Number(stored.annualPlan??metrics.annualPlan),
+    history:Number(stored.history??metrics.history),
+    current:Number(stored.current??metrics.current),
+    remaining:Number(stored.remaining??metrics.remaining)
+  };
+  next[field||"current"]=Math.max(0,Number(input.value)||0);
+  comprehensiveActualOutputDetailState.branchValues[industry]=next;
   comprehensiveActualOutputDetailState.branchTouched.add(industry);
   const updated=getComprehensiveActualOutputBranchMetrics(industry,projects);
   const group=document.querySelector(`[data-comprehensive-industry="${CSS.escape(industry)}"]`);
   if(group){
+    const annualPlan=group.querySelector('[data-branch-output="annualPlan"]');
     const cumulative=group.querySelector('[data-branch-output="annualCumulative"]');
     const remaining=group.querySelector('[data-branch-output="remaining"]');
+    if(annualPlan)annualPlan.textContent=formatActualOutputAmount(updated.annualPlan);
     if(cumulative)cumulative.textContent=formatActualOutputAmount(updated.annualCumulative);
     if(remaining)remaining.textContent=formatActualOutputAmount(updated.remaining);
   }
@@ -1831,46 +1883,100 @@ function addComprehensiveActualOutputAttachment(industry){
   const files=comprehensiveActualOutputDetailState.attachments[industry]||[];
   files.push(`${industry.replace(/[【】]/g,"-")}-${files.length+1}-支撑材料.pdf`);
   comprehensiveActualOutputDetailState.attachments[industry]=files;
-  const body=document.querySelector(".comprehensive-actual-output-detail");
-  if(body)body.outerHTML=renderComprehensiveActualOutputDetailBody(row);
+  rerenderComprehensiveActualOutputDetail(row);
   showToast("相关附件上传成功");
+}
+
+function addComprehensiveActualOutputProjectAttachment(projectKey){
+  openComprehensiveActualOutputProjectAttachmentPicker(projectKey);
+}
+
+function openComprehensiveActualOutputProjectAttachmentPicker(projectKey){
+  const row=comprehensiveActualOutputRows.find(item=>item.id===comprehensiveActualOutputDetailState.rowId);
+  if(!row)return;
+  const input=document.createElement("input");
+  input.type="file";
+  input.multiple=true;
+  input.style.display="none";
+  input.onchange=()=>{
+    const selected=[...input.files].map(file=>file.name).filter(Boolean);
+    input.remove();
+    if(!selected.length)return;
+    const files=comprehensiveActualOutputDetailState.projectAttachments[projectKey]||[];
+    comprehensiveActualOutputDetailState.projectAttachments[projectKey]=[...files,...selected];
+    rerenderComprehensiveActualOutputDetail(row);
+    showToast("项目相关附件上传成功");
+  };
+  document.body.appendChild(input);
+  input.click();
+}
+
+function rerenderComprehensiveActualOutputDetail(row){
+  const oldBody=document.querySelector(".comprehensive-actual-output-detail");
+  const approvalCollapsed=oldBody?.classList.contains("approval-collapsed")||false;
+  if(!oldBody)return;
+  oldBody.outerHTML=renderComprehensiveActualOutputDetailBody(row);
+  if(approvalCollapsed){
+    const nextBody=document.querySelector(".comprehensive-actual-output-detail");
+    const panel=nextBody?.querySelector(".actual-output-approval");
+    const btn=nextBody?.querySelector(".actual-output-approval-toggle");
+    nextBody?.classList.add("approval-collapsed");
+    panel?.classList.add("collapsed");
+    if(btn){
+      btn.title="展开审批记录";
+      btn.setAttribute("aria-label","展开审批记录");
+      btn.innerHTML="&#8249;";
+    }
+  }
 }
 
 function updateComprehensiveActualOutputValue(input){
   const value=Math.max(0,Number(input.value)||0);
   const projectId=input.dataset.comprehensiveProjectId;
-  comprehensiveActualOutputDetailState.values[projectId]=value;
-  comprehensiveActualOutputDetailState.touched.add(String(projectId));
+  const field=input.dataset.comprehensiveOutputField||"current";
+  if(field==="annualPlan"){
+    comprehensiveActualOutputDetailState.projectAnnualPlans[projectId]=value;
+  }else if(field==="remaining"){
+    comprehensiveActualOutputDetailState.projectRemainings[projectId]=value;
+  }else{
+    comprehensiveActualOutputDetailState.values[projectId]=value;
+    comprehensiveActualOutputDetailState.touched.add(String(projectId));
+  }
   const row=comprehensiveActualOutputRows.find(item=>item.id===comprehensiveActualOutputDetailState.rowId);
   const project=row?getComprehensiveActualOutputDetailProjects(row).find(item=>String(item.id)===String(projectId)):null;
   if(!project)return;
   const cumulativeCell=document.querySelector(`[data-comprehensive-annual-cumulative="${CSS.escape(String(projectId))}"]`);
   const remainingCell=document.querySelector(`[data-comprehensive-remaining="${CSS.escape(String(projectId))}"]`);
-  if(cumulativeCell)cumulativeCell.textContent=`${formatActualOutputAmount(project.annualCumulative)} 万元`;
-  if(remainingCell)remainingCell.textContent=`${formatActualOutputAmount(project.remaining)} 万元`;
+  if(cumulativeCell)cumulativeCell.textContent=formatActualOutputAmount(project.annualCumulative);
+  if(remainingCell&&field!=="remaining"&&comprehensiveActualOutputDetailState.projectRemainings[projectId]==null){
+    const remainingInput=remainingCell.querySelector("input");
+    if(remainingInput)remainingInput.value=Number(project.remaining||0).toFixed(2);
+    else remainingCell.textContent=formatActualOutputAmount(project.remaining);
+  }
+  const attachmentKey=getComprehensiveActualOutputProjectAttachmentKey(project);
+  const attachmentRequired=document.querySelector(`[data-comprehensive-attachment-required="${CSS.escape(attachmentKey)}"]`);
+  if(attachmentRequired)attachmentRequired.textContent=project.current>0?"*":"";
+  const attachmentEmpty=document.querySelector(`[data-comprehensive-attachment-empty="${CSS.escape(attachmentKey)}"]`);
+  if(attachmentEmpty)attachmentEmpty.textContent=project.current>0?"未上传":"无需上传";
   refreshComprehensiveActualOutputAggregates(row);
 }
 
 function refreshComprehensiveActualOutputAggregates(row){
   const projects=getComprehensiveActualOutputDetailProjects(row);
   const totals=getComprehensiveActualOutputEffectiveTotals(projects);
-  const completion=totals.annualPlan?Math.min(100,totals.annualCumulative/totals.annualPlan*100):0;
   const summaryValue=value=>Number(value||0).toLocaleString("zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2});
   const setSummary=(key,value)=>{const node=document.querySelector(`[data-comprehensive-summary="${key}"]`);if(node)node.textContent=value;};
   setSummary("annualPlan",`¥ ${summaryValue(totals.annualPlan)}`);
   setSummary("current",`¥ ${summaryValue(totals.current)}`);
   setSummary("annualCumulative",`¥ ${summaryValue(totals.annualCumulative)}`);
   setSummary("remaining",`¥ ${summaryValue(totals.remaining)}`);
-  setSummary("completion",`${completion.toFixed(0)}%`);
-  const progress=document.querySelector(".comprehensive-actual-output-progress i");
-  if(progress)progress.style.setProperty("--progress",`${completion.toFixed(2)}%`);
   [...new Set(projects.map(project=>project.industry))].forEach(industry=>{
     const group=document.querySelector(`[data-comprehensive-industry="${CSS.escape(industry)}"]`);
     if(!group)return;
     if(getComprehensiveActualOutputIndustryMode(industry)==="branch")return;
     const groupProjects=projects.filter(project=>project.industry===industry);
     const groupTotals=groupProjects.reduce((sum,project)=>({annualPlan:sum.annualPlan+project.annualPlan,current:sum.current+project.current,annualCumulative:sum.annualCumulative+project.annualCumulative,remaining:sum.remaining+project.remaining}),{annualPlan:0,current:0,annualCumulative:0,remaining:0});
-    Object.entries(groupTotals).forEach(([key,value])=>{const node=group.querySelector(`[data-industry-total="${key}"]`);if(node)node.textContent=`${formatActualOutputAmount(value)} 万元`;});
+    Object.entries(groupTotals).forEach(([key,value])=>{const node=group.querySelector(`[data-industry-total="${key}"]`);if(node)node.textContent=formatActualOutputAmount(value);});
   });
 }
 
@@ -1881,13 +1987,20 @@ function openComprehensiveActualOutputDetail(id){
   comprehensiveActualOutputDetailState.activeIndustry="";
   comprehensiveActualOutputDetailState.formMode=false;
   comprehensiveActualOutputDetailState.values={...(row.projectValues||{})};
+  comprehensiveActualOutputDetailState.projectAnnualPlans={...(row.projectAnnualPlans||{})};
+  comprehensiveActualOutputDetailState.projectRemainings={...(row.projectRemainings||{})};
   comprehensiveActualOutputDetailState.industryModes={...(row.industryModes||{})};
   comprehensiveActualOutputDetailState.branchValues=JSON.parse(JSON.stringify(row.branchValues||{}));
   comprehensiveActualOutputDetailState.attachments=JSON.parse(JSON.stringify(row.attachments||{}));
+  comprehensiveActualOutputDetailState.projectAttachments=JSON.parse(JSON.stringify(row.projectAttachments||{}));
   if(row.reportStatus!=="未上报"){
     getComprehensiveActualOutputDetailProjects(row).forEach(project=>{
       if(comprehensiveActualOutputStrongIndustries.includes(project.industry)&&!(comprehensiveActualOutputDetailState.attachments[project.industry]||[]).length){
         comprehensiveActualOutputDetailState.attachments[project.industry]=[`${project.industry.replace(/[【】]/g,"-")}-验工月报.pdf`];
+      }
+      const projectKey=getComprehensiveActualOutputProjectAttachmentKey(project);
+      if(getComprehensiveActualOutputIndustryMode(project.industry)==="project"&&!(comprehensiveActualOutputDetailState.projectAttachments[projectKey]||[]).length){
+        comprehensiveActualOutputDetailState.projectAttachments[projectKey]=[`${String(project.projectName||"项目").slice(0,18)}-相关附件.pdf`];
       }
     });
   }
@@ -1903,13 +2016,18 @@ function loadComprehensiveActualOutputDraftState(row,resetNewDraft=false){
   comprehensiveActualOutputDetailState.activeIndustry="";
   comprehensiveActualOutputDetailState.formMode=true;
   comprehensiveActualOutputDetailState.values={...(row.projectValues||{})};
+  comprehensiveActualOutputDetailState.projectAnnualPlans={...(row.projectAnnualPlans||{})};
+  comprehensiveActualOutputDetailState.projectRemainings={...(row.projectRemainings||{})};
   comprehensiveActualOutputDetailState.touched=new Set(row.filledProjectIds||[]);
   comprehensiveActualOutputDetailState.industryModes={...(row.industryModes||{})};
   comprehensiveActualOutputDetailState.branchValues=JSON.parse(JSON.stringify(row.branchValues||{}));
   comprehensiveActualOutputDetailState.branchTouched=new Set(row.filledBranchIndustries||[]);
   comprehensiveActualOutputDetailState.attachments=JSON.parse(JSON.stringify(row.attachments||{}));
+  comprehensiveActualOutputDetailState.projectAttachments=JSON.parse(JSON.stringify(row.projectAttachments||{}));
   if(resetNewDraft&&!row.draftInitialized){
     comprehensiveActualOutputDetailState.values={};
+    comprehensiveActualOutputDetailState.projectAnnualPlans={};
+    comprehensiveActualOutputDetailState.projectRemainings={};
     getComprehensiveActualOutputDetailProjects(row).forEach(project=>comprehensiveActualOutputDetailState.values[project.id]=0);
   }
 }
@@ -1961,11 +2079,14 @@ function persistComprehensiveActualOutputDraft(row){
   });
   row.values.total=comprehensiveActualOutputBizColumns.filter(col=>col.key!=="total").reduce((sum,col)=>sum+(Number(row.values[col.key])||0),0);
   row.projectValues={...comprehensiveActualOutputDetailState.values};
+  row.projectAnnualPlans={...comprehensiveActualOutputDetailState.projectAnnualPlans};
+  row.projectRemainings={...comprehensiveActualOutputDetailState.projectRemainings};
   row.filledProjectIds=[...comprehensiveActualOutputDetailState.touched];
   row.industryModes={...comprehensiveActualOutputDetailState.industryModes};
   row.branchValues=JSON.parse(JSON.stringify(comprehensiveActualOutputDetailState.branchValues));
   row.filledBranchIndustries=[...comprehensiveActualOutputDetailState.branchTouched];
   row.attachments=JSON.parse(JSON.stringify(comprehensiveActualOutputDetailState.attachments));
+  row.projectAttachments=JSON.parse(JSON.stringify(comprehensiveActualOutputDetailState.projectAttachments));
   row.draftInitialized=true;
   return {projects,industries};
 }
@@ -1987,10 +2108,10 @@ function submitComprehensiveActualOutput(rowId){
   const industries=[...new Set(projects.map(project=>project.industry))];
   const missing=projects.filter(project=>getComprehensiveActualOutputIndustryMode(project.industry)==="project"&&!comprehensiveActualOutputDetailState.touched.has(String(project.id)));
   if(missing.length)return showToast(`请完成全部项目填报，当前还有 ${missing.length} 个项目未填写`);
+  const missingProjectAttachments=projects.filter(project=>getComprehensiveActualOutputIndustryMode(project.industry)==="project"&&Number(project.current)>0&&!(comprehensiveActualOutputDetailState.projectAttachments[getComprehensiveActualOutputProjectAttachmentKey(project)]||[]).length);
+  if(missingProjectAttachments.length)return showToast(`请上传全部项目相关附件，当前还有 ${missingProjectAttachments.length} 个项目未上传`);
   const missingBranches=industries.filter(industry=>getComprehensiveActualOutputIndustryMode(industry)==="branch"&&!comprehensiveActualOutputDetailState.branchTouched.has(industry));
   if(missingBranches.length)return showToast(`请完成${missingBranches.join("、")}的分公司产值填报`);
-  const missingAttachments=industries.filter(industry=>comprehensiveActualOutputStrongIndustries.includes(industry)&&!(comprehensiveActualOutputDetailState.attachments[industry]||[]).length);
-  if(missingAttachments.length)return showToast(`请上传${missingAttachments.join("、")}的支撑附件`);
   persistComprehensiveActualOutputDraft(row);
   row.reportStatus="上报审批中";
   row.reporter="王安全";
