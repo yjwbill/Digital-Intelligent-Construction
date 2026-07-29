@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.473-international-trend-cleanup";
+  const version="2.2.474-international-overview-edge-to-edge";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",

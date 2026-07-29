@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.473-INTERNATIONAL-TREND-CLEANUP";
-const APP_CODE_VERSION_NAME="国际版经济总览趋势精简版";
-const APP_CODE_VERSION_TIME="2026-07-30 10:40";
-const APP_CODE_VERSION_DESC="国际版趋势分析删除两项结算日期卡片，并移除全部趋势卡片标题后的指标说明i图标。";
+const APP_CODE_VERSION="EM-20260701-V2.2.474-INTERNATIONAL-OVERVIEW-EDGE-TO-EDGE";
+const APP_CODE_VERSION_NAME="国际版经济总览底色通铺试点版";
+const APP_CODE_VERSION_TIME="2026-07-30 11:20";
+const APP_CODE_VERSION_DESC="国际版经济总览取消看板底色与左侧菜单、右侧及底部内容边界之间的外层间距，保留看板内部规范留白。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
