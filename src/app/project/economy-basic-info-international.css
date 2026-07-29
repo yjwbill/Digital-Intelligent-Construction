@@ -3,3 +3,17 @@
 .project-economy-international-contract-table table{min-width:1040px}
 .project-economy-international-contract-table th:nth-child(2){width:150px}
 .project-economy-international-contract-table th:nth-child(3){width:280px}
+.project-economy-international-signed-contract-table table{min-width:1412px}
+.project-economy-international-signed-contract-table th:nth-child(1){width:72px}
+.project-economy-international-signed-contract-table th:nth-child(2){width:300px}
+.project-economy-international-signed-contract-table th:nth-child(3){width:100px}
+.project-economy-international-signed-contract-table th:nth-child(4){width:220px}
+.project-economy-international-signed-contract-table th:nth-child(5){width:130px}
+.project-economy-international-signed-contract-table th:nth-child(6),.project-economy-international-signed-contract-table th:nth-child(7){width:160px}
+.project-economy-international-signed-contract-table th:nth-child(8){width:120px}
+.project-economy-international-signed-contract-table th:nth-child(9){width:150px}
+.project-economy-international-signed-contract-table tr>*:nth-child(8),.project-economy-international-signed-contract-table tr>*:nth-child(9){position:static!important;right:auto!important;box-shadow:none!important}
+.project-economy-international-contract-stats{display:flex!important;grid-template-columns:none!important;overflow-x:auto;padding-bottom:6px}
+.project-economy-international-contract-stats .project-economy-contract-summary{flex:0 0 max-content;min-width:max-content}
+.project-economy-international-contract-stats .project-economy-contract-summary>div{display:flex!important;grid-template-columns:none!important;align-items:flex-start;gap:14px!important;width:max-content}
+.project-economy-international-contract-stats .project-economy-contract-summary span{flex:0 0 auto;width:max-content;min-width:max-content}

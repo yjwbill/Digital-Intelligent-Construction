@@ -62,3 +62,61 @@
 .project-economy-level-block.orange{background:#FF9933}
 .project-economy-level-block.yellow{background:#FFF44F}
 .project-economy-level-block.blue{background:#4596E2}
+
+/* Project economy overview visual alignment with enterprise dashboards. */
+.project-economy-overview-header h1{font-family:"Microsoft YaHei",Arial,sans-serif;font-size:24px;font-weight:900}
+.project-economy-project-card{--project-risk-rgb:35,120,255;background:linear-gradient(180deg,rgba(var(--project-risk-rgb),.25) 0%,rgba(var(--project-risk-rgb),0) 100%)}
+.project-economy-project-card.red{--project-risk-rgb:255,0,19}
+.project-economy-project-card.orange{--project-risk-rgb:255,153,51}
+.project-economy-project-card.yellow{--project-risk-rgb:255,244,79}
+.project-economy-project-card.blue{--project-risk-rgb:69,150,226}
+.project-economy-project-head b{display:none}
+.project-economy-live-metrics span{font-weight:400}
+.project-economy-reminders span{display:block;min-height:40px;font-weight:400;line-height:20px}
+.project-economy-download{display:inline-flex;align-items:center;justify-content:center;gap:5px}
+.project-economy-download img{display:block;width:16px;height:16px;flex:0 0 16px}
+
+/* Give trend charts more plotting room and keep hover points optically circular. */
+.project-economy-trend-card{position:relative;z-index:1;overflow:visible}
+.project-economy-trend-card:hover,.project-economy-trend-card:focus-within{z-index:20}
+.project-economy-trend-card h4{height:20px;font-size:14px;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.project-economy-trend-card>strong{display:block;height:18px;font-size:14px;line-height:18px}
+.project-economy-trend-chart{height:82px;margin-top:2px;overflow:visible;background:linear-gradient(180deg,rgba(35,120,255,.12),rgba(35,120,255,.02))}
+.project-economy-trend-chart .threshold{stroke:rgba(255,11,35,.6);stroke-width:1;stroke-dasharray:4 3}
+.project-economy-trend-chart .trend-line,.project-economy-trend-card.red .trend-line,.project-economy-trend-card.orange .trend-line{stroke:#2378ff;stroke-width:2}
+.project-economy-trend-chart .trend-area{fill:rgba(35,120,255,.1)}
+.project-economy-trend-chart>em,.project-economy-trend-card.red .project-economy-trend-chart>em{top:clamp(2px,calc(var(--threshold-top) - 9px),64px);background:rgba(255,11,35,.6)}
+.project-economy-trend-hit::after{content:"";position:absolute;z-index:2;left:50%;top:var(--point-top);width:7px;height:7px;border:2px solid #2378ff;border-radius:50%;background:#fff;box-sizing:border-box;transform:translate(-50%,-50%)}
+.project-economy-trend-hit:hover::after,.project-economy-trend-hit:focus::after{width:9px;height:9px;box-shadow:0 0 0 3px rgba(35,120,255,.16)}
+.project-economy-trend-tooltip{z-index:30;top:clamp(-58px,calc(var(--point-top) - 70px),38px);bottom:auto;width:206px;padding:12px 14px;box-shadow:0 8px 24px rgba(29,33,41,.22)}
+.project-economy-trend-tooltip>b{font-size:13px}
+.project-economy-trend-tooltip em{font-size:13px}
+.project-economy-trend-tooltip strong{font-size:14px}
+
+/* Trend card typography and spacing refinement. */
+.project-economy-trend-card{min-height:190px}
+.project-economy-trend-card h4{height:20px;margin-bottom:16px;font-size:12px;line-height:20px}
+.project-economy-trend-card>strong{height:20px;font-size:16px;line-height:20px;font-weight:700}
+.project-economy-trend-card>strong small{margin-left:2px;font-family:"Microsoft YaHei",Arial,sans-serif;font-size:12px;font-weight:400}
+.project-economy-trend-chart{height:100px}
+
+/* Trend legend assets and structured month tooltip. */
+.project-economy-trend-legend span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.project-economy-trend-legend img{display:block;width:16px;height:16px;object-fit:contain}
+.project-economy-trend-tooltip{width:270px;padding:14px 16px;border:1px solid #f0f1f3;border-radius:4px;background:#fff;box-shadow:0 6px 18px rgba(29,33,41,.16)}
+.project-economy-trend-tooltip>b{margin-bottom:12px;color:#1d2129;font-size:14px;line-height:20px;font-weight:600}
+.project-economy-trend-tooltip>b span{color:#4e5969;font-weight:500}
+.project-economy-trend-tooltip>.project-economy-trend-tooltip-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #f2f3f5}
+.project-economy-trend-tooltip-head em,.project-economy-trend-tooltip-head strong{color:#86909c;font-family:"Microsoft YaHei",Arial,sans-serif;font-size:12px;line-height:18px;font-style:normal;font-weight:400}
+.project-economy-trend-tooltip>.project-economy-trend-tooltip-value{display:grid;grid-template-columns:8px minmax(0,1fr) auto;align-items:center;gap:8px}
+.project-economy-trend-tooltip-value u{width:8px;height:8px;border-radius:50%;background:#2378ff;text-decoration:none}
+.project-economy-trend-tooltip-value em{overflow:hidden;color:#4e5969;font-size:13px;font-style:normal;text-overflow:ellipsis;white-space:nowrap}
+.project-economy-trend-tooltip-value strong{color:#1d2129;font-family:D-DIN,DIN,Arial,sans-serif;font-size:14px;font-weight:700;white-space:nowrap}
+
+/* Keep chart annotations and hover-card content in separate stacking scopes. */
+.project-economy-trend-hit{z-index:1}
+.project-economy-trend-hit:hover,.project-economy-trend-hit:focus-within{z-index:40}
+.project-economy-trend-tooltip{isolation:isolate}
+.project-economy-trend-tooltip em{position:static!important;left:auto!important;top:auto!important;padding:0!important;background:transparent!important}
+.project-economy-trend-tooltip-head em{color:#86909c!important}
+.project-economy-trend-tooltip-value em{color:#4e5969!important}

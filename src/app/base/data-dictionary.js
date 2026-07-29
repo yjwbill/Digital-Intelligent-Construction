@@ -303,7 +303,7 @@ function ensureEconomyWarningInternationalDictionaryV2431(){
 }
 
 const internationalProjectTypeDictionaryV2433={
-  type:{name:"国际项目类型",code:"INTERNATIONAL_PROJECT_TYPE",remark:"国际项目 JV 与投资属性分类字典"},
+  type:{name:"国际项目属性",code:"INTERNATIONAL_PROJECT_TYPE",remark:"国际项目 JV 与投资属性分类字典"},
   values:[
     {name:"非港澳JV项目",code:"01",palette:2},
     {name:"港澳JV项目",code:"02",palette:6},
@@ -317,14 +317,25 @@ const internationalProjectTypeDictionaryV2433={
 function ensureInternationalProjectTypeDictionaryV2433(){
   const definition=internationalProjectTypeDictionaryV2433;
   let changed=false;
-  if(!dataDictionaryListV2284.some(item=>item.code===definition.type.code)){
+  const existingType=dataDictionaryListV2284.find(item=>item.code===definition.type.code);
+  if(!existingType){
     dataDictionaryListV2284.push({...definition.type});
+    changed=true;
+  }else if(existingType.name!==definition.type.name || existingType.remark!==definition.type.remark){
+    Object.assign(existingType,definition.type);
     changed=true;
   }
   const rows=dataDictionaryValuesV2284[definition.type.code] || (dataDictionaryValuesV2284[definition.type.code]=[]);
   definition.values.forEach(seed=>{
-    if(rows.some(item=>item.code===seed.code))return;
-    rows.push({...seed,level:1,parentCode:"",status:"启用",remark:"国际项目类型标准字典值"});
+    const existingValue=rows.find(item=>item.code===seed.code);
+    if(existingValue){
+      if(existingValue.remark!=="国际项目属性标准字典值"){
+        existingValue.remark="国际项目属性标准字典值";
+        changed=true;
+      }
+      return;
+    }
+    rows.push({...seed,level:1,parentCode:"",status:"启用",remark:"国际项目属性标准字典值"});
     changed=true;
   });
   return changed;

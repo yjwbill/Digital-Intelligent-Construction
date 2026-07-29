@@ -94,10 +94,10 @@ function getProjectEconomyOverviewData(project){
     targetProfit:(1.2+(seed%7)*.15).toFixed(2),
     alerts:international?internationalAlerts:domesticAlerts,
     reminders:[
-      ["完工风险存货(万元)",(32.3+seed*1.1).toFixed(2),"danger"],
-      ["安措费核销比例",`${8+seed%9}.00%`,""],
-      ["安措费剩余核销金额(万元)",(72.5+seed*2.4).toFixed(2),""],
-      ["项目管理费使用度",`${88+seed%14}.60%`,seed%3===0?"danger":""]
+      ["完工风险存货<br>（万元）",(32.3+seed*1.1).toFixed(2),"danger"],
+      ["安措费<br>核销比例",`${8+seed%9}.00%`,""],
+      ["安措费剩余核销<br>金额（万元）",(72.5+seed*2.4).toFixed(2),""],
+      ["项目管理费<br>使用度",`${88+seed%14}.60%`,seed%3===0?"danger":""]
     ],
     warnings:international?internationalWarnings:domesticWarnings,
     trends:trendNames.map((name,index)=>{
@@ -106,7 +106,9 @@ function getProjectEconomyOverviewData(project){
       const value=unit==="%"?Math.min(126,45+base/2):unit==="个"?2+seed%12:unit==="天"?(index%2?70:-12+seed%30):(base*42.6+82.85);
       const threshold=unit==="%"?80:unit==="个"?12:unit==="天"?45:Math.max(90,value*.82);
       const currentValue=Number(value.toFixed?.(2)??value);
-      const series=getProjectEconomyTrendPeriods().map((period,i)=>({period,value:Number(Math.max(0,currentValue*(.72+i*.065)+(((seed+index*3+i*5)%9)-4)*(unit==="%"?.8:unit==="个"?.12:unit==="天"?.35:6.8)).toFixed(2))}));
+      const wavePattern=[.86,1.02,.91,1.07,1];
+      const waveScale=unit==="%"?.9:unit==="个"?.15:unit==="天"?.45:7.2;
+      const series=getProjectEconomyTrendPeriods().map((period,i)=>({period,value:Number(Math.max(0,currentValue*wavePattern[i]+(((seed+index*3+i*5)%7)-3)*waveScale).toFixed(2))}));
       series[series.length-1].value=currentValue;
       return {name,value:currentValue,threshold:Number(threshold.toFixed?.(2)??threshold),unit,color:index%4===0?"red":index%4===1?"orange":"blue",series};
     })
@@ -123,20 +125,29 @@ function setProjectEconomyPeriod(value){
   renderProjectEconomyOverviewPage();
 }
 function renderProjectEconomySectionTitle(title,extra=""){return `<div class="project-economy-section-title"><span></span><strong>${title}</strong>${extra}</div>`;}
-function renderProjectEconomyTrendSvg(item){
+function getProjectEconomyTrendGeometry(item){
   const values=item.series.map(point=>point.value).concat(item.threshold),min=Math.min(...values),max=Math.max(...values),range=Math.max(1,max-min);
-  const points=item.series.map((point,index)=>({x:6+index*22,y:61-(point.value-min)/range*45,...point}));
-  const thresholdY=61-(item.threshold-min)/range*45;
+  const points=item.series.map((point,index)=>({x:6+index*22,y:70-(point.value-min)/range*53,...point}));
+  return {points,thresholdY:70-(item.threshold-min)/range*53};
+}
+function renderProjectEconomyTrendSvg(item){
+  const {points,thresholdY}=getProjectEconomyTrendGeometry(item);
   const curve=points.reduce((path,point,index)=>{if(!index)return `M ${point.x} ${point.y}`;const previous=points[index-1],mid=(previous.x+point.x)/2;return `${path} C ${mid} ${previous.y}, ${mid} ${point.y}, ${point.x} ${point.y}`;},"");
-  const area=`${curve} L ${points.at(-1).x} 68 L ${points[0].x} 68 Z`;
-  return `<svg viewBox="0 0 100 72" preserveAspectRatio="none" role="img" aria-label="${item.name}近五期趋势"><line x1="2" y1="${thresholdY}" x2="98" y2="${thresholdY}" class="threshold"></line><path d="${area}" class="trend-area"></path><path d="${curve}" class="trend-line"></path>${points.map(point=>`<circle class="trend-point" cx="${point.x}" cy="${point.y}" r="2.6"></circle>`).join("")}</svg>`;
+  const area=`${curve} L ${points.at(-1).x} 82 L ${points[0].x} 82 Z`;
+  return `<svg viewBox="0 0 100 82" preserveAspectRatio="none" role="img" aria-label="${item.name}近五期趋势"><line x1="2" y1="${thresholdY}" x2="98" y2="${thresholdY}" class="threshold"></line><path d="${area}" class="trend-area"></path><path d="${curve}" class="trend-line"></path></svg>`;
 }
 function renderProjectEconomyTrendHover(item){
-  return `<div class="project-economy-trend-hover-layer">${item.series.map((point,index)=>`<button type="button" class="project-economy-trend-hit ${index<2?"align-left":index>2?"align-right":"align-center"}" style="left:${6+index*22}%" aria-label="${point.period} ${item.name} ${point.value}${item.unit}"><i></i><span class="project-economy-trend-tooltip"><b>${point.period}</b><span><u class="${item.color}"></u><em title="${item.name}">${item.name}</em><strong>${Number(point.value).toLocaleString("zh-CN",{maximumFractionDigits:2})}${item.unit}</strong></span></span></button>`).join("")}</div>`;
+  const {points}=getProjectEconomyTrendGeometry(item);
+  return `<div class="project-economy-trend-hover-layer">${points.map((point,index)=>{
+    const [year,month]=String(point.period).split("-");
+    const periodText=`${year}年${month}月`;
+    return `<button type="button" class="project-economy-trend-hit ${index<2?"align-left":index>2?"align-right":"align-center"}" style="left:${point.x}%;--point-top:${(point.y/82*100).toFixed(2)}%" aria-label="${point.period} ${item.name} ${point.value}${item.unit}"><i></i><span class="project-economy-trend-tooltip"><b>诊断期数<span>（${periodText}）</span></b><span class="project-economy-trend-tooltip-head"><em>统计指标</em><strong>统计值</strong></span><span class="project-economy-trend-tooltip-value"><u></u><em title="${item.name}">${item.name}</em><strong>${Number(point.value).toLocaleString("zh-CN",{maximumFractionDigits:2})}${item.unit}</strong></span></span></button>`;
+  }).join("")}</div>`;
 }
 function renderProjectEconomyTrendCard(item){
-  const valueText=`${item.value.toLocaleString('zh-CN',{maximumFractionDigits:2})}${item.unit}`;
-  return `<article class="project-economy-trend-card ${item.color}"><h4>${item.name}<span title="指标说明">i</span></h4><strong>${valueText}</strong><div class="project-economy-trend-chart">${renderProjectEconomyTrendSvg(item)}<em>${item.threshold}${item.unit}</em>${renderProjectEconomyTrendHover(item)}</div></article>`;
+  const {thresholdY}=getProjectEconomyTrendGeometry(item);
+  const valueText=item.value.toLocaleString('zh-CN',{maximumFractionDigits:2});
+  return `<article class="project-economy-trend-card ${item.color}"><h4>${item.name}<span title="指标说明">i</span></h4><strong>${valueText}<small>${item.unit}</small></strong><div class="project-economy-trend-chart" style="--threshold-top:${(thresholdY/82*100).toFixed(2)}%">${renderProjectEconomyTrendSvg(item)}<em>${item.threshold}${item.unit}</em>${renderProjectEconomyTrendHover(item)}</div></article>`;
 }
 function getProjectEconomyOverviewEdition(project){return project?.subCompany==="城建国际"?"international":"domestic";}
 function renderProjectEconomyOverviewEditionContent(project,edition){
@@ -145,14 +156,14 @@ function renderProjectEconomyOverviewEditionContent(project,edition){
   const [province,city]=(project.provinceCity||"上海市/上海市").split("/");
   const editionName=edition==="international"?"国际版":"国内版";
   return `<div class="project-economy-overview-page ${edition}">
-    <header class="project-economy-overview-header"><div><span>↗</span><h1>数智施工项目经济管理平台 -${editionName}</h1></div><div class="project-economy-header-actions"><label>诊断期数</label>${renderProjectEconomyPeriodPicker()}<button class="btn primary" onclick="showToast('月度检验报告下载成功')"><span aria-hidden="true">⇩</span>月度检验报告</button></div></header>
+    <header class="project-economy-overview-header"><div><span>↗</span><h1>数智施工项目经济管理平台 -${editionName}</h1></div><div class="project-economy-header-actions"><label>诊断期数</label>${renderProjectEconomyPeriodPicker()}<button class="btn primary project-economy-download" onclick="showToast('月度检验报告下载成功')"><img src="./src/assets/economy/download.svg" alt="" aria-hidden="true">月度检验报告</button></div></header>
     <div class="project-economy-dashboard-grid">
       <div class="project-economy-left">
         <section class="project-economy-project-card ${data.riskColor}"><div class="project-economy-project-head"><h2>${project.projectName}</h2><div>风险状态：<b>${data.riskLabel}</b><i></i></div></div><div class="project-economy-project-info">${[["所属公司",`${project.subCompany}/${project.branchCompany}`],["建设单位",project.builder],["项目经理",project.projectManager],["项目状态",project.projectStatus],["项目板块",project.projectType],["项目区域",project.region||`${province}${city}`],["计划开工",project.planStart||"2026-01-15"],["计划完工",project.planEnd||"2027-12-20"],["项目工期",`${project.planDuration||365}天`],["项目合同总额",`${(data.contract/10).toLocaleString('zh-CN',{maximumFractionDigits:2})}万元`],["目标利润率（含税）",`${data.targetProfit}%`]].map(([label,value])=>`<div><span>${label}：</span><strong>${value||"-"}</strong></div>`).join("")}</div></section>
         <div class="project-economy-risk-row"><section class="project-economy-panel">${renderProjectEconomySectionTitle("一级指标风险状态")}<div class="project-economy-risk-list">${data.alerts.map(item=>`<div class="${item.color}"><strong>${item.name}</strong><i></i></div>`).join("")}</div></section><section class="project-economy-panel">${renderProjectEconomySectionTitle("提醒指标")}<div class="project-economy-reminders">${data.reminders.map(([label,value,state])=>`<div class="${state}"><strong>${value}</strong><span>${label}</span></div>`).join("")}</div></section></div>
         <section class="project-economy-panel project-economy-warning-panel">${renderProjectEconomySectionTitle("预警明细")}<div class="table-wrap"><table><thead><tr><th>一级指标</th><th>二级指标</th><th>等级</th><th>预警提示</th><th>预警日期</th></tr></thead><tbody>${data.warnings.map((row,index)=>`<tr><td><i class="project-economy-level-block ${index===0?'red':index===1?'orange':index===2?'yellow':'blue'}"></i>${row[0]}</td><td>${row[1]}</td><td><span class="project-economy-level-bombs">${renderProjectEconomyThunderLevel(row[2])}</span></td><td>${row[3]}</td><td class="center">${row[4]}</td></tr>`).join("")}</tbody></table></div></section>
       </div>
-      <div class="project-economy-right"><section class="project-economy-panel project-economy-live-panel">${renderProjectEconomySectionTitle("实时项目数据")}<div class="project-economy-live-metrics">${[["开累产值(万元)",data.contract/10,"▰"],["开累营收(万元)",data.completed/10,"▰"],["开累产值完成率",data.progress,"%"]].map(([label,value,unit])=>`<div><i>${unit}</i><strong>${Number(value).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}<em>${unit==="%"?"%":""}</em></strong><span>${label}</span></div>`).join("")}</div></section><section class="project-economy-panel project-economy-trends-panel">${renderProjectEconomySectionTitle("实时趋势分析",'<em>（近5次）</em><div class="project-economy-trend-legend"><span>⌁ 实际值</span><span>┄ 阈值</span></div>')}<div class="project-economy-trend-grid">${data.trends.map(renderProjectEconomyTrendCard).join("")}</div></section></div>
+      <div class="project-economy-right"><section class="project-economy-panel project-economy-live-panel">${renderProjectEconomySectionTitle("实时项目数据")}<div class="project-economy-live-metrics">${[["开累产值(万元)",data.contract/10,"▰"],["开累营收(万元)",data.completed/10,"▰"],["开累产值完成率",data.progress,"%"]].map(([label,value,unit])=>`<div><i>${unit}</i><strong>${Number(value).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}<em>${unit==="%"?"%":""}</em></strong><span>${label}</span></div>`).join("")}</div></section><section class="project-economy-panel project-economy-trends-panel">${renderProjectEconomySectionTitle("实时趋势分析",'<em>（近5次）</em><div class="project-economy-trend-legend"><span><img src="./src/assets/economy/trend-actual.svg" alt="">实际值</span><span><img src="./src/assets/economy/trend-threshold.svg" alt="">阈值</span></div>')}<div class="project-economy-trend-grid">${data.trends.map(renderProjectEconomyTrendCard).join("")}</div></section></div>
     </div></div>`;
 }
 function renderProjectEconomyOverviewDomesticContent(project){return renderProjectEconomyOverviewEditionContent(project,"domestic");}

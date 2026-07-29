@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.447-ECONOMY-WARNING-TONE-FIX";
-const APP_CODE_VERSION_NAME="经济诊断预警业务色修复版";
-const APP_CODE_VERSION_TIME="2026-07-29 14:18";
-const APP_CODE_VERSION_DESC="修复一级预警卡片按钮选择器覆盖业务色的问题，增减数字和五期趋势线固定使用对应红橙黄蓝色；悬停、聚焦时左右两个半区分别显示同色内描边。";
+const APP_CODE_VERSION="EM-20260701-V2.2.461-INTERNATIONAL-INFO-GROUP-RESTRUCTURE";
+const APP_CODE_VERSION_NAME="国际版项目经济信息分组调整版";
+const APP_CODE_VERSION_TIME="2026-07-29 16:30";
+const APP_CODE_VERSION_DESC="调整国际版项目基本信息结构：JV项目动态移入项目基本信息，过程动态新增已填过程动态，结算动态归并为单一分组。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,

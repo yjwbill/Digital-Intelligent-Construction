@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.447-economy-warning-tone-fix";
+  const version="2.2.461-international-info-group-restructure";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",

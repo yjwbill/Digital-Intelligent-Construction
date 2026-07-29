@@ -1062,11 +1062,11 @@ function getProductionStatisticsRealEstateMetricValue(record,period,key){
 
 if(typeof tableColumnDefinitions!=="undefined"){
   const productionStatisticsCommonColumns=[
-    {key:"index",title:"序号",width:70,align:"center",render:(record,index)=>index+1},
-    {key:"legalEntity",title:"纳统企业",width:240,render:record=>productionStatisticsText(record.legalEntity)},
-    {key:"company",title:"所属公司",width:120,render:record=>productionStatisticsText(record.company)},
-    {key:"industryCategory",title:"行业",width:120,render:record=>productionStatisticsText(record.industryCategory)},
-    {key:"scale",title:"规上/规下",width:100,align:"center",render:record=>productionStatisticsText(record.scale)},
+    {key:"index",title:"序号",width:70,align:"center",render:(record,index)=>record.generatedGrandTotal?"合计":index+1},
+    {key:"legalEntity",title:"纳统企业",width:240,render:record=>productionStatisticsText(record.generatedGrandTotal?"":record.legalEntity)},
+    {key:"company",title:"所属公司",width:120,align:"center",render:record=>productionStatisticsText(record.company)},
+    {key:"industryCategory",title:"行业",width:80,align:"center",render:record=>productionStatisticsText(record.industryCategory)},
+    {key:"scale",title:"规上/规下",width:80,align:"center",render:record=>productionStatisticsText(record.scale)},
     {key:"registeredCapital",title:"注册资本",width:110,align:"right",defaultHidden:true,render:record=>productionStatisticsText(record.registeredCapital)},
     {key:"registeredCity",title:"注册市",width:110,defaultHidden:true,render:record=>productionStatisticsText(record.registeredCity)},
     {key:"registeredDistrict",title:"注册区",width:110,defaultHidden:true,render:record=>productionStatisticsText(record.registeredDistrict)},
@@ -1075,9 +1075,9 @@ if(typeof tableColumnDefinitions!=="undefined"){
     {key:"realEstateQualification",title:"房产资质",width:100,align:"center",defaultHidden:true,render:record=>productionStatisticsText(record.realEstateQualification)},
     {key:"financialSupervision",title:"金融监管",width:100,align:"center",defaultHidden:true,render:record=>productionStatisticsText(record.financialSupervision)},
     {key:"financialLicense",title:"金融牌照",width:100,align:"center",defaultHidden:true,render:record=>productionStatisticsText(record.financialLicense)},
-    {key:"included",title:"是否纳统",width:100,align:"center",render:record=>renderProductionStatisticsIncludedValue(record)},
+    {key:"included",title:"是否纳统",width:70,align:"center",render:record=>renderProductionStatisticsIncludedValue(record)},
     {key:"statisticsPlace",title:"纳统地",width:160,defaultHidden:true,render:record=>productionStatisticsText(record.statisticsPlace)},
-    {key:"lineType",title:"在地",width:90,align:"center",render:record=>productionStatisticsText(record.lineType)}
+    {key:"lineType",title:"在地",width:70,align:"center",render:record=>productionStatisticsText(record.lineType)}
   ];
   const productionStatisticsTailColumns=[
     {key:"department",title:"负责部门",width:140,defaultHidden:true,render:record=>productionStatisticsText(record.department)},
@@ -1372,12 +1372,53 @@ function renderProductionStatisticsRealEstateDetails(records,options={}){
   return renderProductionStatisticsConfiguredTable("productionStatisticsRealEstateDetail",records,{...options,className:"production-statistics-real-estate-table"});
 }
 
+function buildProductionStatisticsConstructionGrandTotal(records){
+  const subtotalRows=records.filter(record=>record.recordType==="subtotal");
+  const metricKeys=["annual2025","plan2026","month2025","month2026","ytd2025","ytd2026"];
+  const metrics=Object.fromEntries(metricKeys.map(key=>[key,subtotalRows.reduce((sum,record)=>sum+Number(record.metrics?.[key]||0),0)]));
+  const formatYoY=(current,previous)=>{
+    if(!previous)return current?"-":"0.00%";
+    return `${((current/previous-1)*100).toFixed(2)}%`;
+  };
+  metrics.planYoY=formatYoY(metrics.plan2026,metrics.annual2025);
+  metrics.monthYoY=formatYoY(metrics.month2026,metrics.month2025);
+  metrics.ytdYoY=formatYoY(metrics.ytd2026,metrics.ytd2025);
+  return {
+    generatedGrandTotal:true,
+    recordType:"total",
+    serial:"",
+    legalEntity:"",
+    company:"",
+    industryCategory:"建筑业",
+    scale:"",
+    registeredCapital:"",
+    registeredCity:"",
+    registeredDistrict:"",
+    businessPlace:"",
+    constructionQualification:"",
+    realEstateQualification:"",
+    financialSupervision:"",
+    financialLicense:"",
+    included:"",
+    statisticsPlace:"",
+    lineType:"",
+    metricName:"产值",
+    metrics,
+    department:"",
+    contact:"",
+    phone:""
+  };
+}
+
 function renderProductionStatisticsDetails(){
   const industry=getActiveProductionStatisticsIndustry();
   if(!industry)return `<div class="project-log-empty">暂无纳统数据</div>`;
   const records=getProductionStatisticsFilteredRecords(industry);
   if(!records.length)return `<div class="project-log-empty">暂无匹配数据</div>`;
   const totalRows=records.filter(record=>record.recordType==="total");
+  if(industry.name==="建筑业" && !totalRows.length){
+    totalRows.push(buildProductionStatisticsConstructionGrandTotal(records));
+  }
   const detailRows=records.filter(record=>record.recordType!=="total");
   const pageSize=productionStatisticsState.pageSize;
   const totalPages=Math.max(1,Math.ceil(detailRows.length/pageSize));
