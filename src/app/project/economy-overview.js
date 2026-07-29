@@ -61,7 +61,24 @@ function getProjectEconomyOverviewData(project){
   const levels=["red","orange","yellow","blue"];
   const riskColor=levels[seed%levels.length];
   const international=getProjectEconomyOverviewEdition(project)==="international";
-  const trendNames=["分包分供等合同实际总额(万元)","主体劳务分包含同签订数(个)","专业分包合同匹配率","存货(万元)","资金结余(万元)","单个分包商最大产值计量率","项目管理费使用度","实际税负成本(万元)","关键节点偏差(天)","总包结算价(万元)","结算上报时长(天)","劳务人员一周变化率"];
+  const domesticTrendDefinitions=["分包分供等合同实际总额(万元)","主体劳务分包含同签订数(个)","专业分包合同匹配率","存货(万元)","资金结余(万元)","单个分包商最大产值计量率","项目管理费使用度","实际税负成本(万元)","关键节点偏差(天)","总包结算价(万元)","结算上报时长(天)","劳务人员一周变化率"].map(name=>({name}));
+  const internationalTrendDefinitions=[
+    {name:"COST总额实际数（不含税）",unit:"万元"},
+    {name:"所有专业/劳务计量总和",unit:"万元"},
+    {name:"单个分包商最大产值计量",unit:"万元"},
+    {name:"当期资金结余",unit:"万元"},
+    {name:"完工后实际签证额",unit:"万元"},
+    {name:"项目预计实际总成本",unit:"万元"},
+    {name:"财务费用",unit:"万元"},
+    {name:"预计税金成本（含所得税）",unit:"万元"},
+    {name:"工程关键节点偏差",unit:"天"},
+    {name:"钢筋开累领用量",unit:"t"},
+    {name:"水泥开累领用量",unit:"t"},
+    {name:"商品混凝土开累领用量",unit:"m³"},
+    {name:"业主已计量产值（不含税）",unit:"万元"},
+    {name:"到期应收未收款",unit:"万元"},
+    {name:"到期应收未收款账龄",unit:"天"}
+  ];
   const domesticAlerts=[
     {name:"分包分供等合同预警",color:seed%2?"red":"orange"},
     {name:"潜亏预警（目标利润率负向偏差）",color:riskColor}
@@ -102,9 +119,10 @@ function getProjectEconomyOverviewData(project){
       ["项目管理费<br>使用度",`${88+seed%14}.60%`,seed%3===0?"danger":""]
     ],
     warnings:international?internationalWarnings:domesticWarnings,
-    trends:trendNames.map((name,index)=>{
+    trends:(international?internationalTrendDefinitions:domesticTrendDefinitions).map((definition,index)=>{
+      const {name}=definition;
       const base=Math.max(0,(seed*13+index*17)%160);
-      const unit=name.includes("率")?"%":name.includes("天")?"天":name.includes("个")?"个":"万元";
+      const unit=definition.unit|| (name.includes("率")?"%":name.includes("天")?"天":name.includes("个")?"个":"万元");
       const value=unit==="%"?Math.min(126,45+base/2):unit==="个"?2+seed%12:unit==="天"?(index%2?70:-12+seed%30):(base*42.6+82.85);
       const threshold=unit==="%"?80:unit==="个"?12:unit==="天"?45:Math.max(90,value*.82);
       const currentValue=Number(value.toFixed?.(2)??value);
@@ -112,7 +130,7 @@ function getProjectEconomyOverviewData(project){
       const waveScale=unit==="%"?.9:unit==="个"?.15:unit==="天"?.45:7.2;
       const series=getProjectEconomyTrendPeriods().map((period,i)=>({period,value:Number(Math.max(0,currentValue*wavePattern[i]+(((seed+index*3+i*5)%7)-3)*waveScale).toFixed(2))}));
       series[series.length-1].value=currentValue;
-      return {name,value:currentValue,threshold:Number(threshold.toFixed?.(2)??threshold),unit,color:index%4===0?"red":index%4===1?"orange":"blue",series};
+      return {name,value:currentValue,threshold:Number(threshold.toFixed?.(2)??threshold),unit,color:index%4===0?"red":index%4===1?"orange":"blue",showInfo:!international,series};
     })
   };
 }
@@ -143,21 +161,31 @@ function renderProjectEconomyTrendHover(item){
   return `<div class="project-economy-trend-hover-layer">${points.map((point,index)=>{
     const [year,month]=String(point.period).split("-");
     const periodText=`${year}年${month}月`;
-    return `<button type="button" class="project-economy-trend-hit ${index<2?"align-left":index>2?"align-right":"align-center"}" style="left:${point.x}%;--point-top:${(point.y/82*100).toFixed(2)}%" aria-label="${point.period} ${item.name} ${point.value}${item.unit}"><i></i><span class="project-economy-trend-tooltip"><b>诊断期数<span>（${periodText}）</span></b><span class="project-economy-trend-tooltip-head"><em>统计指标</em><strong>统计值</strong></span><span class="project-economy-trend-tooltip-value"><u></u><em title="${item.name}">${item.name}</em><strong>${Number(point.value).toLocaleString("zh-CN",{maximumFractionDigits:2})}${item.unit}</strong></span></span></button>`;
+    const displayValue=formatProjectEconomyTrendValue(item,point.value,true);
+    return `<button type="button" class="project-economy-trend-hit ${index<2?"align-left":index>2?"align-right":"align-center"}" style="left:${point.x}%;--point-top:${(point.y/82*100).toFixed(2)}%" aria-label="${point.period} ${item.name} ${displayValue}"><i></i><span class="project-economy-trend-tooltip"><b>诊断期数<span>（${periodText}）</span></b><span class="project-economy-trend-tooltip-head"><em>统计指标</em><strong>统计值</strong></span><span class="project-economy-trend-tooltip-value"><u></u><em title="${item.name}">${item.name}</em><strong>${displayValue}</strong></span></span></button>`;
   }).join("")}</div>`;
+}
+function formatProjectEconomyTrendValue(item,value,withUnit=false){
+  if(item.format==="date"){
+    const date=new Date(Number(value));
+    return `${date.getUTCFullYear()}-${String(date.getUTCMonth()+1).padStart(2,"0")}-${String(date.getUTCDate()).padStart(2,"0")}`;
+  }
+  const text=Number(value).toLocaleString("zh-CN",{maximumFractionDigits:2});
+  return withUnit?`${text}${item.unit}`:text;
 }
 function renderProjectEconomyTrendCard(item){
   const {thresholdY}=getProjectEconomyTrendGeometry(item);
-  const valueText=item.value.toLocaleString('zh-CN',{maximumFractionDigits:2});
-  return `<article class="project-economy-trend-card ${item.color}"><h4>${item.name}<span title="指标说明">i</span></h4><strong>${valueText}<small>${item.unit}</small></strong><div class="project-economy-trend-chart" style="--threshold-top:${(thresholdY/82*100).toFixed(2)}%">${renderProjectEconomyTrendSvg(item)}<em>${item.threshold}${item.unit}</em>${renderProjectEconomyTrendHover(item)}</div></article>`;
+  const valueText=formatProjectEconomyTrendValue(item,item.value);
+  const thresholdText=formatProjectEconomyTrendValue(item,item.threshold,true);
+  return `<article class="project-economy-trend-card ${item.color}"><h4>${item.name}${item.showInfo===false?"":'<span title="指标说明">i</span>'}</h4><strong>${valueText}<small>${item.unit}</small></strong><div class="project-economy-trend-chart" style="--threshold-top:${(thresholdY/82*100).toFixed(2)}%">${renderProjectEconomyTrendSvg(item)}<em>${thresholdText}</em>${renderProjectEconomyTrendHover(item)}</div></article>`;
 }
 function renderProjectEconomyInternationalReminderGrid(){
-  return `<section class="project-economy-panel project-economy-key-reminder-panel">${renderProjectEconomySectionTitle("关键提醒指标")}<div class="project-economy-key-reminder-grid">
-    <article class="project-economy-key-reminder-card general"><h3><i>♙</i>通用提醒指标</h3><div class="project-economy-key-reminder-values three"><div class="danger"><span>我方产值偏差值</span><strong>-32.17</strong><em>万美元</em></div><div><span>计划利润率</span><strong>4.82<small>%</small></strong></div><div><span>考核目标利润率</span><strong>5.20<small>%</small></strong></div></div></article>
-    <article class="project-economy-key-reminder-card contract"><h3><i>▣</i>通用合同类提醒指标</h3><div class="project-economy-key-reminder-values two"><div><span>主体（主要）<br>劳务合同实际进度个数</span><strong>32 <small>个</small></strong></div><div><span>主体（主要）<br>专业分包合同实际进度个数</span><strong>18 <small>个</small></strong></div></div></article>
-    <article class="project-economy-key-reminder-card exchange"><h3><i>◉</i>汇率相关提醒指标<em>本币：USD / 原币：CNY</em></h3><div class="project-economy-key-reminder-values three"><div><span>目标成本测算时的<br>目标汇率</span><strong>1 <small>USD</small> = 7.10 <small>CNY</small></strong></div><div><span>交割兑换时的<br>实际汇率</span><strong>1 <small>USD</small> = 7.24 <small>CNY</small></strong></div><div><span>当前汇率</span><strong>1 <small>USD</small> = 7.18 <small>CNY</small></strong></div></div></article>
-    <article class="project-economy-key-reminder-card jv"><h3><i>♟</i>JV项目专属提醒指标<em>JV项目适用</em></h3><div class="project-economy-jv-reminder-table"><div></div><b>分成比例</b><b>投入资金</b><b>管理人员数量</b><strong>我方</strong><span>55%</span><span>860.00 <small>万美元</small></span><span>12 <small>人</small></span><strong>合作方</strong><span>45%</span><span>700.00 <small>万美元</small></span><span>9 <small>人</small></span></div></article>
-  </div></section>`;
+  return `<div class="project-economy-key-reminder-grid">
+    <article class="project-economy-key-reminder-card general"><h3><i>♙</i>通用提醒指标</h3><div class="project-economy-key-reminder-values three"><div class="danger"><span>我方产值偏差值</span><div class="project-economy-reminder-inline-value"><strong>-32.17</strong><em>万元</em></div></div><div><span>计划利润率</span><strong>4.82<small>%</small></strong></div><div><span>考核目标利润率</span><strong>5.20<small>%</small></strong></div></div></article>
+    <article class="project-economy-key-reminder-card contract"><h3><i>▣</i>合同提醒指标</h3><div class="project-economy-key-reminder-values two"><div><span>主体（主要）<br>劳务合同实际进度个数</span><strong>32 <small>个</small></strong></div><div><span>主体（主要）<br>专业分包合同实际进度个数</span><strong>18 <small>个</small></strong></div></div></article>
+    <article class="project-economy-key-reminder-card exchange"><h3><i>◉</i>汇率提醒指标<em>本币：USD / 原币：CNY</em></h3><div class="project-economy-key-reminder-values three"><div><span>目标成本测算时的<br>目标汇率</span><strong>1 <small>USD</small> = 7.10 <small>CNY</small></strong></div><div><span>交割兑换时的<br>实际汇率</span><strong>1 <small>USD</small> = 7.24 <small>CNY</small></strong></div><div><span>当前汇率</span><strong>1 <small>USD</small> = 7.18 <small>CNY</small></strong></div></div></article>
+    <article class="project-economy-key-reminder-card jv"><h3><i>♟</i>JV项目专属提醒指标<em>JV项目适用</em></h3><div class="project-economy-jv-reminder-table"><div></div><b>分成比例</b><b>投入资金</b><b>管理人员数量</b><strong>我方</strong><span>55%</span><span>860.00 <small>万元</small></span><span>12 <small>人</small></span><strong>合作方</strong><span>45%</span><span>700.00 <small>万元</small></span><span>9 <small>人</small></span></div></article>
+  </div>`;
 }
 function renderProjectEconomyWarningPanel(data,international){
   const alertTags=international?`<div class="project-economy-warning-alerts">${data.alerts.map(item=>`<div class="${item.color}"><strong>${item.name}</strong><i></i></div>`).join("")}</div>`:"";
@@ -191,5 +219,6 @@ function renderProjectEconomyOverviewPage(){
   window.__economyProjectOverviewEmbedProject=null;
   detailPage.style.display="none";
   listPage.style.display="flex";
+  listPage.style.overflow="auto";
   listPage.innerHTML=renderProjectEconomyOverviewContent(project);
 }

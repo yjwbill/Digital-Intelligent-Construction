@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.468-international-overview-reminder-grid";
+  const version="2.2.473-international-trend-cleanup";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",
