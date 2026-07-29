@@ -17,3 +17,8 @@
 .project-economy-international-contract-stats .project-economy-contract-summary{flex:0 0 max-content;min-width:max-content}
 .project-economy-international-contract-stats .project-economy-contract-summary>div{display:flex!important;grid-template-columns:none!important;align-items:flex-start;gap:14px!important;width:max-content}
 .project-economy-international-contract-stats .project-economy-contract-summary span{flex:0 0 auto;width:max-content;min-width:max-content}
+.project-economy-info-international .project-economy-source.manual{background:#1677ff}
+.project-economy-info-international .project-economy-info-subtitle-actions{justify-content:space-between}
+.project-economy-info-international .project-economy-info-subtitle-actions h3{margin:0;font:inherit}
+.project-economy-info-international .project-economy-info-subtitle-actions h3 span{display:flex;align-items:center;gap:10px}
+.project-economy-info-international .project-economy-info-subtitle-actions>div{display:flex;gap:8px}

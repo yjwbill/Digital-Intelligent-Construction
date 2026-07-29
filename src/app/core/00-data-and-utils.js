@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.461-INTERNATIONAL-INFO-GROUP-RESTRUCTURE";
-const APP_CODE_VERSION_NAME="国际版项目经济信息分组调整版";
-const APP_CODE_VERSION_TIME="2026-07-29 16:30";
-const APP_CODE_VERSION_DESC="调整国际版项目基本信息结构：JV项目动态移入项目基本信息，过程动态新增已填过程动态，结算动态归并为单一分组。";
+const APP_CODE_VERSION="EM-20260701-V2.2.467-EDITOR-GROUP-DOTS-AND-MATERIAL-UNITS";
+const APP_CODE_VERSION_NAME="经济编辑分组圆点与主材料单位版";
+const APP_CODE_VERSION_TIME="2026-07-29 20:00";
+const APP_CODE_VERSION_DESC="编辑弹框小分组标题增加蓝色圆点；主材料过程动态表格输入框增加m³和t单位后缀。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,

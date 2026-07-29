@@ -328,6 +328,11 @@ button{cursor:pointer}
 .project-economy-info-section-title button[onclick="saveProjectEconomyInfo()"]{display:none}
 .project-economy-info-subtitle{justify-content:space-between}
 .project-economy-info-subtitle>span{display:flex;align-items:center;gap:10px}
+.project-economy-info-card>.project-economy-info-subtitle,.project-economy-info-card>.project-economy-info-subtitle h3{font-weight:600}
+.project-economy-info-card>.project-economy-form-grid{width:calc(100% - 18px);margin-left:18px}
+.project-economy-info-section-title{position:relative;border-left:0!important;padding-left:16px}
+.project-economy-info-section-title::before{content:"";position:absolute;left:0;top:50%;width:5px;height:20px;border-radius:1px;background:#1677ff;transform:translateY(-50%)}
+.project-economy-source.manual{background:#1677ff!important}
 .project-economy-info-subtitle>.btn{height:30px;padding:0 14px;color:var(--primary);border-color:var(--primary);background:#fff}
 #listPage .project-economy-form-grid.three{grid-template-columns:repeat(4,minmax(0,1fr))}
 .project-economy-view-field{min-height:56px}
@@ -339,6 +344,18 @@ button{cursor:pointer}
 .project-economy-edit-input{display:flex;align-items:center;gap:8px}
 .project-economy-edit-input .input{min-width:0;flex:1}
 .project-economy-edit-input em{font-style:normal;white-space:nowrap}
+.project-economy-edit-group-title{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:4px 0 -4px;padding-bottom:8px;border-bottom:1px solid #e5e6eb;color:#1d2129;font-size:15px;font-weight:600}
+.project-economy-edit-group-title i{width:8px;height:8px;flex:0 0 8px;border-radius:50%;background:#246eff}
+.project-economy-edit-grid .form-item.locked .input:disabled{border-color:#e5e6eb;background:#f2f3f5;color:#86909c;cursor:not-allowed;opacity:1}
+.project-economy-edit-material-table{grid-column:1/-1;overflow-x:auto}
+.project-economy-edit-material-table table{width:100%;min-width:920px;border-collapse:collapse;table-layout:fixed}
+.project-economy-edit-material-table th,.project-economy-edit-material-table td{height:48px;padding:7px 8px;border:1px solid #e5e6eb;text-align:center;font-size:13px;font-weight:400}
+.project-economy-edit-material-table thead th{background:#f2f7ff;color:#0e3768;font-weight:600}
+.project-economy-edit-material-table tbody th{width:130px;background:#f7f8fa;color:#4e5969}
+.project-economy-edit-material-table .input{height:32px;text-align:left}
+.project-economy-edit-material-input{display:flex;align-items:center;gap:6px}
+.project-economy-edit-material-input .input{min-width:0;flex:1}
+.project-economy-edit-material-input em{min-width:18px;color:#4e5969;font-size:13px;font-style:normal;text-align:left}
 .project-economy-contract-plan-table table{min-width:1380px;table-layout:fixed}
 .project-economy-contract-plan-table th:nth-child(1){width:72px}
 .project-economy-contract-plan-table th:nth-child(2){width:150px}
