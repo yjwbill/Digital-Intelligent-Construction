@@ -1165,7 +1165,7 @@ function renderProductionStatisticsIndustryCards(){
     const includedRate=formatProductionStatisticsProgress(summary.includedCount,summary.entityCount);
     return `
       <button type="button" class="production-statistics-industry-card tone-${index%6} ${active?.name===industry.name?"active":""}" onclick="setProductionStatisticsIndustry('${productionStatisticsJsArg(industry.name)}')">
-        <span>${productionStatisticsText(industry.name)}</span>
+        <span>${productionStatisticsText(industry.name==="零售批发"?"批发零售业":industry.name)}</span>
         <strong>${productionStatisticsText(getProductionStatisticsMetricName(industry))}</strong>
         <div class="production-statistics-industry-meta">
           <b>${formatProductionStatisticsNumber(summary.entityCount || 0,0)}<em>企业</em></b>
@@ -1192,7 +1192,7 @@ function renderProductionStatisticsCompanyHeader(){
   if(!industry)return "";
   return `
     <div class="production-overview-panel-hd production-statistics-panel-hd">
-      <h3>${productionStatisticsText(industry.name)}公司维度</h3>
+      <h3>${productionStatisticsText(industry.name==="零售批发"?"零售批发业":industry.name)}公司维度</h3>
       <div class="production-statistics-panel-actions">
         <span>${productionStatisticsText(getProductionStatisticsMetricName(industry))}</span>
         <b>${productionStatisticsText(company)}</b>
@@ -1215,7 +1215,7 @@ function renderProductionStatisticsCompanies(){
             <span class="name">${productionStatisticsText(row.company)}</span>
             <span><b>${formatProductionStatisticsNumber(row.entityCount || 0,0)}</b><em>企业</em></span>
             <span><b>${formatProductionStatisticsNumber(row.includedCount || 0,0)}</b><em>已纳统</em></span>
-            <span><b>${formatProductionStatisticsAmount(row.ytd2026)}</b><em>累计</em></span>
+            <span><b>${formatProductionStatisticsNumber(row.ytd2026 || 0,0)}<small class="production-statistics-company-unit">万元</small></b><em>累计</em></span>
             <span class="bar"><i style="width:${progressValue.toFixed(2)}%"></i><em>${progressText}</em></span>
           </button>
         `;

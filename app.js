@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.439-economy-warning-visual-polish";
+  const version="2.2.441-statistics-card-typography";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",

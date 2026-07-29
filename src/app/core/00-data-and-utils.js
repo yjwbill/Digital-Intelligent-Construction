@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.439-ECONOMY-WARNING-VISUAL-POLISH";
-const APP_CODE_VERSION_NAME="经济诊断一级预警视觉优化版";
-const APP_CODE_VERSION_TIME="2026-07-29 10:34";
-const APP_CODE_VERSION_DESC="企业经济诊断国内版、国际版一级预警标题统一使用指定 SVG 图标，四色指标块改为前半实色、后半由 25% 透明度渐变至透明，顶部四色预警项目数量同步使用对应业务色。";
+const APP_CODE_VERSION="EM-20260701-V2.2.441-STATISTICS-CARD-TYPOGRAPHY";
+const APP_CODE_VERSION_NAME="纳统看板统计字体优化版";
+const APP_CODE_VERSION_TIME="2026-07-29 10:49";
+const APP_CODE_VERSION_DESC="企业生产纳统看板公司维度累计值统一按万元展示，单位保持 12px；业态卡片的年度计划、本月、累计值及纳统率文字统一调整为 14px 加粗。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,

@@ -16721,6 +16721,28 @@ body.mobile-mode .mobile-manual-scroll{
   font-size:13px;
   font-weight:500;
 }
+.production-statistics-company-row b{
+  display:inline-flex;
+  align-items:baseline;
+  justify-content:center;
+  gap:2px;
+  font-size:16px;
+  font-weight:700;
+}
+.production-statistics-company-row b .production-statistics-company-unit{
+  color:inherit;
+  font-family:"Microsoft YaHei",sans-serif;
+  font-size:12px;
+  font-weight:400;
+  line-height:1;
+}
+.production-statistics-industry-values p,
+.production-statistics-industry-values em,
+.production-statistics-progress small,
+.production-statistics-progress em{
+  font-size:14px;
+  font-weight:700;
+}
 .production-statistics-company-row em{
   font-size:11px;
   font-weight:400;
