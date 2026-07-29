@@ -67,8 +67,10 @@ function getProjectEconomyOverviewData(project){
     {name:"潜亏预警（目标利润率负向偏差）",color:riskColor}
   ];
   const internationalAlerts=[
-    {name:getProjectEconomyInternationalWarningName("GJ-01"),color:seed%2?"red":"orange"},
-    {name:getProjectEconomyInternationalWarningName("GJ-02"),color:riskColor}
+    {name:getProjectEconomyInternationalWarningName("GJ-01"),color:"orange"},
+    {name:getProjectEconomyInternationalWarningName("GJ-02"),color:"blue"},
+    {name:getProjectEconomyInternationalWarningName("GJ-03"),color:"orange"},
+    {name:getProjectEconomyInternationalWarningName("GJ-04"),color:"red"}
   ];
   const domesticWarnings=[
     ["分包分供等合同预警","合同额度预警",2,"分包分供合同实际签署总额超过签署总额控制标准","2026-06-18"],
@@ -149,6 +151,18 @@ function renderProjectEconomyTrendCard(item){
   const valueText=item.value.toLocaleString('zh-CN',{maximumFractionDigits:2});
   return `<article class="project-economy-trend-card ${item.color}"><h4>${item.name}<span title="指标说明">i</span></h4><strong>${valueText}<small>${item.unit}</small></strong><div class="project-economy-trend-chart" style="--threshold-top:${(thresholdY/82*100).toFixed(2)}%">${renderProjectEconomyTrendSvg(item)}<em>${item.threshold}${item.unit}</em>${renderProjectEconomyTrendHover(item)}</div></article>`;
 }
+function renderProjectEconomyInternationalReminderGrid(){
+  return `<section class="project-economy-panel project-economy-key-reminder-panel">${renderProjectEconomySectionTitle("关键提醒指标")}<div class="project-economy-key-reminder-grid">
+    <article class="project-economy-key-reminder-card general"><h3><i>♙</i>通用提醒指标</h3><div class="project-economy-key-reminder-values three"><div class="danger"><span>我方产值偏差值</span><strong>-32.17</strong><em>万美元</em></div><div><span>计划利润率</span><strong>4.82<small>%</small></strong></div><div><span>考核目标利润率</span><strong>5.20<small>%</small></strong></div></div></article>
+    <article class="project-economy-key-reminder-card contract"><h3><i>▣</i>通用合同类提醒指标</h3><div class="project-economy-key-reminder-values two"><div><span>主体（主要）<br>劳务合同实际进度个数</span><strong>32 <small>个</small></strong></div><div><span>主体（主要）<br>专业分包合同实际进度个数</span><strong>18 <small>个</small></strong></div></div></article>
+    <article class="project-economy-key-reminder-card exchange"><h3><i>◉</i>汇率相关提醒指标<em>本币：USD / 原币：CNY</em></h3><div class="project-economy-key-reminder-values three"><div><span>目标成本测算时的<br>目标汇率</span><strong>1 <small>USD</small> = 7.10 <small>CNY</small></strong></div><div><span>交割兑换时的<br>实际汇率</span><strong>1 <small>USD</small> = 7.24 <small>CNY</small></strong></div><div><span>当前汇率</span><strong>1 <small>USD</small> = 7.18 <small>CNY</small></strong></div></div></article>
+    <article class="project-economy-key-reminder-card jv"><h3><i>♟</i>JV项目专属提醒指标<em>JV项目适用</em></h3><div class="project-economy-jv-reminder-table"><div></div><b>分成比例</b><b>投入资金</b><b>管理人员数量</b><strong>我方</strong><span>55%</span><span>860.00 <small>万美元</small></span><span>12 <small>人</small></span><strong>合作方</strong><span>45%</span><span>700.00 <small>万美元</small></span><span>9 <small>人</small></span></div></article>
+  </div></section>`;
+}
+function renderProjectEconomyWarningPanel(data,international){
+  const alertTags=international?`<div class="project-economy-warning-alerts">${data.alerts.map(item=>`<div class="${item.color}"><strong>${item.name}</strong><i></i></div>`).join("")}</div>`:"";
+  return `<section class="project-economy-panel project-economy-warning-panel">${renderProjectEconomySectionTitle("预警明细")}${alertTags}<div class="table-wrap"><table><thead><tr><th>一级指标</th><th>二级指标</th><th>等级</th><th>预警提示</th><th>预警日期</th></tr></thead><tbody>${data.warnings.map((row,index)=>`<tr><td><i class="project-economy-level-block ${index===0?'red':index===1?'orange':index===2?'yellow':'blue'}"></i>${row[0]}</td><td>${row[1]}</td><td><span class="project-economy-level-bombs">${renderProjectEconomyThunderLevel(row[2])}</span></td><td>${row[3]}</td><td class="center">${row[4]}</td></tr>`).join("")}</tbody></table></div></section>`;
+}
 function getProjectEconomyOverviewEdition(project){return project?.subCompany==="城建国际"?"international":"domestic";}
 function renderProjectEconomyOverviewEditionContent(project,edition){
   if(!project)return "";
@@ -160,8 +174,8 @@ function renderProjectEconomyOverviewEditionContent(project,edition){
     <div class="project-economy-dashboard-grid">
       <div class="project-economy-left">
         <section class="project-economy-project-card ${data.riskColor}"><div class="project-economy-project-head"><h2>${project.projectName}</h2><div>风险状态：<b>${data.riskLabel}</b><i></i></div></div><div class="project-economy-project-info">${[["所属公司",`${project.subCompany}/${project.branchCompany}`],["建设单位",project.builder],["项目经理",project.projectManager],["项目状态",project.projectStatus],["项目板块",project.projectType],["项目区域",project.region||`${province}${city}`],["计划开工",project.planStart||"2026-01-15"],["计划完工",project.planEnd||"2027-12-20"],["项目工期",`${project.planDuration||365}天`],["项目合同总额",`${(data.contract/10).toLocaleString('zh-CN',{maximumFractionDigits:2})}万元`],["目标利润率（含税）",`${data.targetProfit}%`]].map(([label,value])=>`<div><span>${label}：</span><strong>${value||"-"}</strong></div>`).join("")}</div></section>
-        <div class="project-economy-risk-row"><section class="project-economy-panel">${renderProjectEconomySectionTitle("一级指标风险状态")}<div class="project-economy-risk-list">${data.alerts.map(item=>`<div class="${item.color}"><strong>${item.name}</strong><i></i></div>`).join("")}</div></section><section class="project-economy-panel">${renderProjectEconomySectionTitle("提醒指标")}<div class="project-economy-reminders">${data.reminders.map(([label,value,state])=>`<div class="${state}"><strong>${value}</strong><span>${label}</span></div>`).join("")}</div></section></div>
-        <section class="project-economy-panel project-economy-warning-panel">${renderProjectEconomySectionTitle("预警明细")}<div class="table-wrap"><table><thead><tr><th>一级指标</th><th>二级指标</th><th>等级</th><th>预警提示</th><th>预警日期</th></tr></thead><tbody>${data.warnings.map((row,index)=>`<tr><td><i class="project-economy-level-block ${index===0?'red':index===1?'orange':index===2?'yellow':'blue'}"></i>${row[0]}</td><td>${row[1]}</td><td><span class="project-economy-level-bombs">${renderProjectEconomyThunderLevel(row[2])}</span></td><td>${row[3]}</td><td class="center">${row[4]}</td></tr>`).join("")}</tbody></table></div></section>
+        ${edition==="international"?renderProjectEconomyInternationalReminderGrid():`<div class="project-economy-risk-row"><section class="project-economy-panel">${renderProjectEconomySectionTitle("一级指标风险状态")}<div class="project-economy-risk-list">${data.alerts.map(item=>`<div class="${item.color}"><strong>${item.name}</strong><i></i></div>`).join("")}</div></section><section class="project-economy-panel">${renderProjectEconomySectionTitle("提醒指标")}<div class="project-economy-reminders">${data.reminders.map(([label,value,state])=>`<div class="${state}"><strong>${value}</strong><span>${label}</span></div>`).join("")}</div></section></div>`}
+        ${renderProjectEconomyWarningPanel(data,edition==="international")}
       </div>
       <div class="project-economy-right"><section class="project-economy-panel project-economy-live-panel">${renderProjectEconomySectionTitle("实时项目数据")}<div class="project-economy-live-metrics">${[["开累产值(万元)",data.contract/10,"▰"],["开累营收(万元)",data.completed/10,"▰"],["开累产值完成率",data.progress,"%"]].map(([label,value,unit])=>`<div><i>${unit}</i><strong>${Number(value).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}<em>${unit==="%"?"%":""}</em></strong><span>${label}</span></div>`).join("")}</div></section><section class="project-economy-panel project-economy-trends-panel">${renderProjectEconomySectionTitle("实时趋势分析",'<em>（近5次）</em><div class="project-economy-trend-legend"><span><img src="./src/assets/economy/trend-actual.svg" alt="">实际值</span><span><img src="./src/assets/economy/trend-threshold.svg" alt="">阈值</span></div>')}<div class="project-economy-trend-grid">${data.trends.map(renderProjectEconomyTrendCard).join("")}</div></section></div>
     </div></div>`;

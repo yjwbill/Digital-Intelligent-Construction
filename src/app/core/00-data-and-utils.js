@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.467-EDITOR-GROUP-DOTS-AND-MATERIAL-UNITS";
-const APP_CODE_VERSION_NAME="经济编辑分组圆点与主材料单位版";
-const APP_CODE_VERSION_TIME="2026-07-29 20:00";
-const APP_CODE_VERSION_DESC="编辑弹框小分组标题增加蓝色圆点；主材料过程动态表格输入框增加m³和t单位后缀。";
+const APP_CODE_VERSION="EM-20260701-V2.2.468-INTERNATIONAL-OVERVIEW-REMINDER-GRID";
+const APP_CODE_VERSION_NAME="国际版经济总览关键提醒布局版";
+const APP_CODE_VERSION_TIME="2026-07-29 20:30";
+const APP_CODE_VERSION_DESC="国际版一级预警指标移入预警明细，项目卡片下方改为关键提醒指标2×2宫格，展示通用、合同、汇率及JV项目提醒。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
