@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.441-STATISTICS-CARD-TYPOGRAPHY";
-const APP_CODE_VERSION_NAME="纳统看板统计字体优化版";
-const APP_CODE_VERSION_TIME="2026-07-29 10:49";
-const APP_CODE_VERSION_DESC="企业生产纳统看板公司维度累计值统一按万元展示，单位保持 12px；业态卡片的年度计划、本月、累计值及纳统率文字统一调整为 14px 加粗。";
+const APP_CODE_VERSION="EM-20260701-V2.2.447-ECONOMY-WARNING-TONE-FIX";
+const APP_CODE_VERSION_NAME="经济诊断预警业务色修复版";
+const APP_CODE_VERSION_TIME="2026-07-29 14:18";
+const APP_CODE_VERSION_DESC="修复一级预警卡片按钮选择器覆盖业务色的问题，增减数字和五期趋势线固定使用对应红橙黄蓝色；悬停、聚焦时左右两个半区分别显示同色内描边。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
@@ -2393,8 +2393,7 @@ function renderUnifiedTableCard(options){
       </div>
 
       <div class="pagination">
-        <span id="${options.totalId || tableKey + 'TotalText'}">共 ${options.total || 0} 条</span>
-        <span>${options.pageText || "第 1 / 1 页　每页 50 条"}</span>
+        ${options.paginationHtml || `<span id="${options.totalId || tableKey + 'TotalText'}">共 ${options.total || 0} 条</span><span>${options.pageText || "第 1 / 1 页　每页 50 条"}</span>`}
       </div>
     </section>
   `;
