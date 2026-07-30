@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.485-project-log-reporter-select";
+  const version="2.2.486-project-log-file-delete-style";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",

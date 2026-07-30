@@ -1510,7 +1510,7 @@ function renderProjectLogFileReportRow(row={},index=0){
         <label>文件上传 <em>*</em></label>
         ${renderProjectLogFileUpload(index)}
       </div>
-      <button class="btn mini project-log-file-row-remove" type="button" onclick="removeProjectLogFileReportRow(${index})" ${projectLogReportFileRows.length<=1?"disabled":""}>删除</button>
+      <button class="btn danger small project-log-file-row-remove" type="button" onclick="removeProjectLogFileReportRow(${index})" ${projectLogReportFileRows.length<=1?"disabled":""}>删除</button>
     </div>
   `;
 }
