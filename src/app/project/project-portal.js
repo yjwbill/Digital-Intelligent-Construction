@@ -738,12 +738,19 @@ function renderProjectLogReadonlyWorkTable(rows,showProgress=true){
 }
 
 function renderProjectLogReadonlyMilestoneTable(rows){
-  return `
-    <table class="project-log-report-table project-log-readonly-milestone-table">
-      <thead><tr><th>序号</th><th>里程碑节点名称</th><th>计划完成日期（最新）</th><th>节点状态</th><th>管控等级</th><th>是否重点进度节点</th><th>里程碑情况</th><th>里程碑进展情况</th></tr></thead>
-      <tbody>${rows.map((item,index)=>`<tr><td>${index+1}</td><td>${item.nodeName}</td><td>${item.planLatestDate}</td><td>${item.nodeStatus}</td><td>${item.controlLevel}</td><td>${item.keyNode}</td><td>${item.milestoneStatus||"-"}</td><td>${item.milestoneProgress||"-"}</td></tr>`).join("")}</tbody>
-    </table>
-  `;
+  return `<div class="project-log-readonly-risk-list">
+    ${rows.map(item=>`
+      <div class="project-log-readonly-risk-card project-detail-info-grid three">
+        ${renderProjectLogReadonlyField("里程碑节点名称",item.nodeName)}
+        ${renderProjectLogReadonlyField("计划完成日期（最新）",item.planLatestDate)}
+        ${renderProjectLogReadonlyField("节点状态",item.nodeStatus)}
+        ${renderProjectLogReadonlyField("管控等级",item.controlLevel)}
+        ${renderProjectLogReadonlyField("是否重点进度节点",item.keyNode)}
+        ${renderProjectLogReadonlyField("里程碑情况",item.milestoneStatus||"-")}
+        ${renderProjectLogReadonlyField("里程碑进展情况",item.milestoneProgress||"-")}
+      </div>
+    `).join("")}
+  </div>`;
 }
 
 function renderProjectLogReadonlyRiskCards(risks){
@@ -784,9 +791,8 @@ function renderProjectLogReadonlyFileUploadSection(row){
     return renderProjectLogReadonlySection("文件上传",`
       ${row.fileEntries.map((entry,index)=>`
         <div class="project-log-readonly-file-entry">
-          <div class="project-log-readonly-subtitle">施工日志文件 ${index+1}</div>
           <div class="project-detail-info-grid">
-            ${renderProjectLogReadonlyField("工区选择",entry.area||row.workArea)}
+            ${renderProjectLogReadonlyField("工区",entry.area||row.workArea)}
             ${renderProjectLogReadonlyField("日期",row.date)}
           </div>
           <div class="project-log-readonly-subtitle">当日施工情况描述</div>
@@ -799,7 +805,7 @@ function renderProjectLogReadonlyFileUploadSection(row){
   }
   return renderProjectLogReadonlySection("文件上传",`
     <div class="project-detail-info-grid">
-      ${renderProjectLogReadonlyField("工区选择",row.workArea)}
+      ${renderProjectLogReadonlyField("工区",row.workArea)}
       ${renderProjectLogReadonlyField("日期",row.date)}
     </div>
     <div class="project-log-readonly-subtitle">施工相关附件</div>
@@ -839,11 +845,13 @@ function openProjectLogDetail(id){
   const baseInfo=renderProjectLogReadonlyBaseInfo(onlineRow||fileRow||row,pcPortalState.currentProject);
   const content=onlineRow?(()=>{
     const detail=getProjectLogReadonlyOnlineDetail(onlineRow);
+    const todayTitle=renderProjectLogWorkSectionTitle("今日主要工作",onlineRow.date);
+    const tomorrowTitle=renderProjectLogWorkSectionTitle("明日主要工作",getProjectLogNextDateValue(onlineRow.date));
     return `
       ${renderProjectLogReadonlySection("基础信息",baseInfo)}
       ${renderProjectLogReadonlySection("人员信息",`<div class="project-detail-info-grid three">${detail.personnel.map(item=>renderProjectLogReadonlyField(item[0],`${item[1]}人`)).join("")}</div>`)}
-      ${renderProjectLogReadonlySection("今日主要工作",renderProjectLogReadonlyWorkTable(detail.today))}
-      ${renderProjectLogReadonlySection("明日主要工作",renderProjectLogReadonlyWorkTable(detail.tomorrow,false))}
+      ${renderProjectLogReadonlySection(todayTitle,renderProjectLogReadonlyWorkTable(detail.today))}
+      ${renderProjectLogReadonlySection(tomorrowTitle,renderProjectLogReadonlyWorkTable(detail.tomorrow,false))}
       ${detail.milestones.length?renderProjectLogReadonlySection("里程碑节点情况",renderProjectLogReadonlyMilestoneTable(detail.milestones)):""}
       ${renderProjectLogReadonlySection("风险情况",renderProjectLogReadonlyRiskCards(detail.risks))}
       ${renderProjectLogReadonlySection("发生停工情况",`<div class="project-log-readonly-text">${detail.stop}</div>`)}
@@ -1060,38 +1068,32 @@ function renderProjectLogMilestoneRows(savedRows=[],reportDate=getProjectLogToda
   const dueRows=getProjectLogDueMilestoneRows(reportDate);
   const rows=dueRows.length?dueRows:(savedRows||[]);
   if(!rows.length)return `<div class="project-log-empty project-log-milestone-empty">暂无到期未完成里程碑节点</div>`;
-  return `
-    <div class="project-log-milestone-table-wrap">
-      <table class="project-log-report-table project-log-milestone-table">
-        <thead>
-          <tr><th>序号</th><th>里程碑节点名称</th><th>计划完成日期（最新）</th><th>节点状态</th><th>管控等级</th><th>是否重点进度节点</th><th>里程碑情况 <em>*</em></th><th>里程碑进展情况 <em>*</em></th></tr>
-        </thead>
-        <tbody>
-          ${rows.map((row,index)=>{
-            const saved=savedMap.get(row.nodeName)||{};
-            const status=saved.milestoneStatus||"";
-            return `
-              <tr class="project-log-milestone-row"
-                data-node-name="${escapeAttr(row.nodeName)}"
-                data-plan-latest-date="${escapeAttr(row.planLatestDate)}"
-                data-node-status="${escapeAttr(row.nodeStatus)}"
-                data-control-level="${escapeAttr(row.controlLevel)}"
-                data-key-node="${escapeAttr(row.keyNode)}">
-                <td>${index+1}</td>
-                <td>${row.nodeName}</td>
-                <td>${row.planLatestDate}</td>
-                <td>${row.nodeStatus}</td>
-                <td>${row.controlLevel}</td>
-                <td>${row.keyNode}</td>
-                <td><select class="select project-log-milestone-status"><option value="">请选择</option><option ${status==="进度可控"?"selected":""}>进度可控</option><option ${status==="进度预警"?"selected":""}>进度预警</option></select></td>
-                <td><textarea class="input project-log-milestone-progress" placeholder="请输入">${escapeAttr(saved.milestoneProgress||"")}</textarea></td>
-              </tr>
-            `;
-          }).join("")}
-        </tbody>
-      </table>
-    </div>
-  `;
+  return `<div class="project-log-milestone-card-list">
+    ${rows.map(row=>{
+      const saved=savedMap.get(row.nodeName)||{};
+      const status=saved.milestoneStatus||"进度可控";
+      return `
+        <div class="project-log-milestone-row"
+          data-node-name="${escapeAttr(row.nodeName)}"
+          data-plan-latest-date="${escapeAttr(row.planLatestDate)}"
+          data-node-status="${escapeAttr(row.nodeStatus)}"
+          data-control-level="${escapeAttr(row.controlLevel)}"
+          data-key-node="${escapeAttr(row.keyNode)}">
+          <div class="project-log-risk-info project-log-milestone-info">
+            <div><span>里程碑节点名称</span><strong>${row.nodeName}</strong></div>
+            <div><span>计划完成日期（最新）</span><strong>${row.planLatestDate}</strong></div>
+            <div><span>节点状态</span><strong>${row.nodeStatus}</strong></div>
+            <div><span>管控等级</span><strong>${row.controlLevel}</strong></div>
+            <div><span>是否重点进度节点</span><strong>${row.keyNode}</strong></div>
+          </div>
+          <div class="project-log-risk-form project-log-milestone-form">
+            <div class="form-item"><label>里程碑情况 <em>*</em></label><select class="select project-log-milestone-status"><option value="">请选择</option><option ${status==="进度可控"?"selected":""}>进度可控</option><option ${status==="进度预警"?"selected":""}>进度预警</option></select></div>
+            <div class="form-item"><label>里程碑进展情况 <em>*</em></label><textarea class="input project-log-milestone-progress" placeholder="请输入">${escapeAttr(saved.milestoneProgress||"")}</textarea></div>
+          </div>
+        </div>
+      `;
+    }).join("")}
+  </div>`;
 }
 
 function refreshProjectLogMilestoneRows(savedRows=[]){
@@ -1182,7 +1184,7 @@ function renderProjectLogRiskRows(savedRisks=[]){
     const savedRisk=savedRisks[index];
     const completeValue=getProjectLogRiskFieldValue(savedRisk,"是否完成")||"否";
     const controlledValue=getProjectLogRiskFieldValue(savedRisk,"是否受控")||"是";
-    const situationValue=getProjectLogRiskFieldValue(savedRisk,"风险情况");
+    const situationValue=getProjectLogRiskFieldValue(savedRisk,"风险情况")||"风险可控";
     const progressValue=getProjectLogRiskFieldValue(savedRisk,"风险进展情况");
     return `
     <div class="project-log-risk-row" data-project-log-risk-index="${index}">
@@ -1536,10 +1538,29 @@ function getProjectLogTodayValue(){
   return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
 }
 
+function getProjectLogNextDateValue(date){
+  const base=new Date(String(date||getProjectLogTodayValue()).replace(/-/g,"/"));
+  if(Number.isNaN(base.getTime()))return getProjectLogTodayValue();
+  base.setDate(base.getDate()+1);
+  return `${base.getFullYear()}-${String(base.getMonth()+1).padStart(2,"0")}-${String(base.getDate()).padStart(2,"0")}`;
+}
+
+function renderProjectLogWorkSectionTitle(label,date){
+  return `${label}（${date||"-"}）`;
+}
+
+function refreshProjectLogWorkSectionTitles(date=getProjectLogTodayValue()){
+  const todayTitle=document.getElementById("projectLogTodayWorkTitle");
+  const tomorrowTitle=document.getElementById("projectLogTomorrowWorkTitle");
+  if(todayTitle)todayTitle.textContent=renderProjectLogWorkSectionTitle("今日主要工作",date);
+  if(tomorrowTitle)tomorrowTitle.textContent=renderProjectLogWorkSectionTitle("明日主要工作",getProjectLogNextDateValue(date));
+}
+
 function syncProjectLogReportWeekday(prefix){
   const date=document.getElementById(`${prefix}Date`)?.value||getProjectLogTodayValue();
   const weekday=document.getElementById(`${prefix}Weekday`);
   if(weekday)weekday.value=getProjectLogReadonlyWeekday(date);
+  if(prefix==="projectLogReport")refreshProjectLogWorkSectionTitles(date);
   if(prefix==="projectLogReport"||prefix==="projectLogFileReport")refreshProjectLogSharedSections(prefix);
 }
 
@@ -1586,12 +1607,12 @@ function openProjectLogReportModal(editRow=null){
       </section>
 
       <section class="project-log-report-section">
-        <h3>今日主要工作</h3>
+        <h3 id="projectLogTodayWorkTitle">${renderProjectLogWorkSectionTitle("今日主要工作",reportDate)}</h3>
         ${renderProjectLogWorkTable("today",detail?.today)}
       </section>
 
       <section class="project-log-report-section">
-        <h3>明日主要工作</h3>
+        <h3 id="projectLogTomorrowWorkTitle">${renderProjectLogWorkSectionTitle("明日主要工作",getProjectLogNextDateValue(reportDate))}</h3>
         ${renderProjectLogWorkTable("tomorrow",detail?.tomorrow)}
       </section>
 

@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.477-project-log-file-multi-row";
+  const version="2.2.483-project-log-default-controlled";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",
