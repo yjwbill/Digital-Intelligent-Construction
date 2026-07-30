@@ -1048,11 +1048,29 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
   display:flex;
   align-items:center;
   gap:28px;
-  color:#b8c0cc;
-  font-weight:700;
-}
-.operation-detail-radio .checked{
   color:var(--text);
+  font-weight:400;
+}
+.operation-detail-radio .operation-readonly-radio{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  margin:0;
+  color:var(--text);
+  font-size:14px;
+  line-height:20px;
+  font-weight:400;
+  cursor:default;
+}
+.operation-detail-radio .operation-readonly-radio input{
+  width:16px;
+  height:16px;
+  margin:0;
+  accent-color:#165DFF;
+  opacity:1;
+}
+.operation-detail-radio .operation-readonly-radio span{
+  color:inherit;
 }
 @media(max-width:1280px){
   .operation-mdm-line,
@@ -20287,4 +20305,74 @@ body.mobile-mode .mobile-tabbar .tab-create.active span:after{
   line-height:1;
   text-align:center;
   white-space:nowrap;
+}
+
+/* V2.2.508 project switch overlay layer and standard pagination */
+.project-portal-mode .org-switch{position:static}
+.project-portal-mode .org-switch.open::before{
+  content:"";
+  position:fixed;
+  inset:52px 0 0 0;
+  z-index:209;
+  background:rgba(0,0,0,.52);
+  cursor:default;
+}
+.project-portal-mode .org-dropdown{
+  position:fixed;
+  top:52px;
+  right:0;
+  bottom:0;
+  width:min(900px,calc(100vw - 32px));
+  height:auto;
+  max-height:none;
+  padding:0;
+  overflow:hidden;
+  border:0;
+  border-left:1px solid #E5E6EB;
+  border-radius:0;
+  box-shadow:-12px 0 32px rgba(0,0,0,.16);
+  z-index:210;
+}
+.project-portal-mode .bottom-fixed-workbench{z-index:360!important}
+.project-switch-panel{height:100%;display:flex;flex-direction:column;background:#fff;color:#1D2129;cursor:default}
+.project-switch-heading{min-height:68px;padding:14px 20px;border-bottom:1px solid #E5E6EB;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.project-switch-heading>div{min-width:0;display:flex;flex-direction:column;gap:4px}
+.project-switch-heading strong{font-size:18px;line-height:26px}
+.project-switch-heading>div span,.project-switch-current{font-size:12px;color:#86909C}
+.project-switch-current{max-width:48%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.project-switch-filters{padding:14px 20px 8px;background:#F7F8FA;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 12px}
+.project-switch-field{min-width:0;display:flex;flex-direction:column;gap:5px}
+.project-switch-field>span{font-size:12px;color:#4E5969;line-height:18px}
+.project-switch-field .input,.project-switch-field .select{width:100%;height:32px;font-size:13px;background:#fff}
+.project-switch-actions{padding:0 20px 12px;background:#F7F8FA;display:flex;justify-content:flex-end;gap:8px;border-bottom:1px solid #E5E6EB}
+.project-switch-actions .btn{height:30px;min-width:64px}
+.project-switch-list{min-height:0;flex:1;padding:6px 12px;overflow:auto}
+.project-switch-item{width:100%;min-height:70px;padding:9px 10px;border:0;border-bottom:1px solid #F2F3F5;background:#fff;display:flex;align-items:center;gap:12px;text-align:left;cursor:pointer;font-family:"Microsoft YaHei",Arial,sans-serif}
+.project-switch-item:hover{background:#F7F8FA}
+.project-switch-item.active{background:#F2F7FF;border-bottom-color:#D9E8FF}
+.project-switch-avatar{width:38px;height:38px;flex:0 0 38px;border-radius:5px;background:#4E83FD;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700}
+.project-switch-item.active .project-switch-avatar{background:#165DFF}
+.project-switch-info{min-width:0;flex:1;display:grid;grid-template-columns:minmax(210px,1.4fr) minmax(160px,1fr);gap:3px 16px;align-items:center}
+.project-switch-info>strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;line-height:22px;color:#1D2129}
+.project-switch-info>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#86909C}
+.project-switch-info>em{grid-column:1/-1;display:flex;align-items:center;gap:6px;overflow:hidden;font-style:normal}
+.project-switch-info>em i,.project-switch-info>em b{flex:0 0 auto;padding:1px 6px;border-radius:3px;background:#F2F3F5;color:#4E5969;font-size:11px;font-style:normal;font-weight:400;line-height:18px;white-space:nowrap}
+.project-switch-info>em i{background:#E8FFEA;color:#00A870}
+.project-switch-info>em .status-停工{background:#FFF3E8;color:#FF7D00}
+.project-switch-info>em .status-完工,.project-switch-info>em .status-竣工{background:#E8F3FF;color:#165DFF}
+.project-switch-info>em .status-待建{background:#FFF7E8;color:#D46B08}
+.project-switch-info>em .safety-否{background:#FFF1F0;color:#F53F3F}
+.project-switch-item>.org-check{width:24px;flex:0 0 24px;text-align:center}
+.project-switch-empty{height:100%;min-height:180px;display:grid;place-items:center;color:#86909C;font-size:13px}
+.project-switch-pagination{min-height:50px;padding:8px 20px;background:#fff;font-size:13px}
+.project-switch-pagination .pager{margin-left:auto}
+.project-switch-pagination .pager .btn{min-width:56px;height:28px;padding:0 10px}
+.project-switch-pagination .pager b{min-width:84px;font-size:13px}
+.project-switch-pagination .mini-select{width:88px;height:28px;padding:0 6px}
+@media(max-width:760px){
+  .project-portal-mode .org-dropdown{width:100vw}
+  .project-portal-mode .org-switch.open::before{display:none}
+  .project-switch-filters{grid-template-columns:repeat(2,minmax(0,1fr));max-height:230px;overflow:auto}
+  .project-switch-info{display:block}.project-switch-info>span{display:block}.project-switch-info>em{margin-top:4px;overflow-x:auto}
+  .project-switch-current{display:none}
 }

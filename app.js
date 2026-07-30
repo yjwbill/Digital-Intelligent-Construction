@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.505-organization-tree-action-typography";
+  const version="2.2.509-readonly-radio-selection";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",

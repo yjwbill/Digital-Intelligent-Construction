@@ -45,6 +45,99 @@ function renderPcTopNavigation(){
   }
 }
 
+const projectContextSwitchState={
+  projectName:"",subCompany:"",branchCompany:"",projectStatus:"",projectManager:"",region:"",provinceCity:"",isSafetyManaged:"",
+  page:1,pageSize:50
+};
+
+function getProjectContextUniqueOptions(key,rows=getProjectContextOptions()){
+  return [...new Set(rows.map(item=>String(item?.[key]||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"zh-CN"));
+}
+
+function renderProjectContextSelect(id,label,key,rows,sourceRows=rows){
+  const value=projectContextSwitchState[key]||"";
+  return `<label class="project-switch-field"><span>${label}</span><select id="${id}" class="select"><option value="">全部</option>${getProjectContextUniqueOptions(key,sourceRows).map(item=>`<option value="${escapeAttr(item)}" ${item===value?"selected":""}>${item}</option>`).join("")}</select></label>`;
+}
+
+function getFilteredProjectContextOptions(){
+  const state=projectContextSwitchState;
+  return getProjectContextOptions().filter(project=>{
+    const includes=(key,value)=>!value||String(project[key]||"").toLowerCase().includes(String(value).toLowerCase());
+    const equals=(key,value)=>!value||String(project[key]||"")===String(value);
+    return includes("projectName",state.projectName)&&equals("subCompany",state.subCompany)&&equals("branchCompany",state.branchCompany)
+      &&equals("projectStatus",state.projectStatus)&&includes("projectManager",state.projectManager)&&equals("region",state.region)
+      &&includes("provinceCity",state.provinceCity)&&equals("isSafetyManaged",state.isSafetyManaged);
+  });
+}
+
+function syncProjectContextFilters(){
+  projectContextSwitchState.projectName=document.getElementById("projectSwitchName")?.value.trim()||"";
+  projectContextSwitchState.subCompany=document.getElementById("projectSwitchSubCompany")?.value||"";
+  projectContextSwitchState.branchCompany=document.getElementById("projectSwitchBranchCompany")?.value||"";
+  projectContextSwitchState.projectStatus=document.getElementById("projectSwitchStatus")?.value||"";
+  projectContextSwitchState.projectManager=document.getElementById("projectSwitchManager")?.value.trim()||"";
+  projectContextSwitchState.region=document.getElementById("projectSwitchRegion")?.value||"";
+  projectContextSwitchState.provinceCity=document.getElementById("projectSwitchProvinceCity")?.value.trim()||"";
+  projectContextSwitchState.isSafetyManaged=document.getElementById("projectSwitchSafetyManaged")?.value||"";
+  projectContextSwitchState.page=1;
+  renderPcContextSwitcher();
+}
+
+function resetProjectContextFilters(){
+  Object.assign(projectContextSwitchState,{projectName:"",subCompany:"",branchCompany:"",projectStatus:"",projectManager:"",region:"",provinceCity:"",isSafetyManaged:"",page:1});
+  renderPcContextSwitcher();
+}
+
+function changeProjectContextPage(page){
+  const totalPages=Math.max(1,Math.ceil(getFilteredProjectContextOptions().length/projectContextSwitchState.pageSize));
+  projectContextSwitchState.page=Math.max(1,Math.min(totalPages,Number(page)||1));
+  renderPcContextSwitcher();
+}
+
+function changeProjectContextPageSize(size){
+  projectContextSwitchState.pageSize=[10,20,50,100].includes(Number(size))?Number(size):50;
+  projectContextSwitchState.page=1;
+  renderPcContextSwitcher();
+}
+
+function renderProjectContextPager(total,totalPages){
+  const current=projectContextSwitchState.page;
+  return `<div class="pagination project-switch-pagination"><span>共 ${total} 个项目</span><div class="pager"><button type="button" class="btn mini" ${current<=1?"disabled":""} onclick="changeProjectContextPage(${current-1})">上一页</button><b>第 ${current} / ${totalPages} 页</b><button type="button" class="btn mini" ${current>=totalPages?"disabled":""} onclick="changeProjectContextPage(${current+1})">下一页</button><select class="select mini-select" onchange="changeProjectContextPageSize(this.value)">${[10,20,50,100].map(size=>`<option value="${size}" ${size===projectContextSwitchState.pageSize?"selected":""}>${size}条/页</option>`).join("")}</select></div></div>`;
+}
+
+function renderProjectContextDropdown(currentProject){
+  const allProjects=getProjectContextOptions();
+  const filtered=getFilteredProjectContextOptions().sort((a,b)=>Number(String(b.id)===String(currentProject?.id))-Number(String(a.id)===String(currentProject?.id)));
+  const totalPages=Math.max(1,Math.ceil(filtered.length/projectContextSwitchState.pageSize));
+  if(projectContextSwitchState.page>totalPages)projectContextSwitchState.page=totalPages;
+  const start=(projectContextSwitchState.page-1)*projectContextSwitchState.pageSize;
+  const rows=filtered.slice(start,start+projectContextSwitchState.pageSize);
+  const branchSource=projectContextSwitchState.subCompany?allProjects.filter(item=>item.subCompany===projectContextSwitchState.subCompany):allProjects;
+  return `
+    <div class="project-switch-panel" onclick="event.stopPropagation()">
+      <div class="project-switch-heading"><div><strong>我的项目</strong><span>选择项目后进入对应项目管理空间</span></div><span class="project-switch-current">当前：${escapeAttr(currentProject?.projectName||"--")}</span></div>
+      <div class="project-switch-filters">
+        <label class="project-switch-field"><span>项目名称</span><input id="projectSwitchName" class="input" value="${escapeAttr(projectContextSwitchState.projectName)}" placeholder="请输入项目名称" onkeydown="if(event.key==='Enter')syncProjectContextFilters()"/></label>
+        ${renderProjectContextSelect("projectSwitchSubCompany","子公司","subCompany",allProjects)}
+        ${renderProjectContextSelect("projectSwitchBranchCompany","分公司","branchCompany",allProjects,branchSource)}
+        ${renderProjectContextSelect("projectSwitchStatus","项目状态","projectStatus",allProjects)}
+        <label class="project-switch-field"><span>项目经理</span><input id="projectSwitchManager" class="input" value="${escapeAttr(projectContextSwitchState.projectManager)}" placeholder="请输入项目经理" onkeydown="if(event.key==='Enter')syncProjectContextFilters()"/></label>
+        ${renderProjectContextSelect("projectSwitchRegion","所属区域","region",allProjects)}
+        <label class="project-switch-field"><span>所在省市</span><input id="projectSwitchProvinceCity" class="input" value="${escapeAttr(projectContextSwitchState.provinceCity)}" placeholder="请输入省/市" onkeydown="if(event.key==='Enter')syncProjectContextFilters()"/></label>
+        ${renderProjectContextSelect("projectSwitchSafetyManaged","安全纳管","isSafetyManaged",allProjects)}
+      </div>
+      <div class="project-switch-actions"><button type="button" class="btn" onclick="resetProjectContextFilters()">重置</button><button type="button" class="btn primary" onclick="syncProjectContextFilters()">查询</button></div>
+      <div class="project-switch-list">
+        ${rows.length?rows.map(project=>`<button type="button" class="project-switch-item ${String(project.id)===String(currentProject?.id)?"active":""}" onclick="selectProjectContext(event,'${escapeAttr(project.id)}')">
+          <span class="project-switch-avatar">${escapeAttr((project.projectName||"项").trim().slice(0,1))}</span>
+          <span class="project-switch-info"><strong>${escapeAttr(project.projectName)}</strong><span>${escapeAttr(project.subCompany||"--")} / ${escapeAttr(project.branchCompany||"--")}</span><em><i class="status-${project.projectStatus}">${escapeAttr(project.projectStatus||"--")}</i><b>${escapeAttr(project.region||"--")}</b><b>${escapeAttr(project.projectType||"--")}</b><b>${escapeAttr(project.projectManager||"--")}</b><b>${escapeAttr(project.provinceCity||"--")}</b><b class="safety-${project.isSafetyManaged}">安全纳管：${escapeAttr(project.isSafetyManaged||"--")}</b></em></span>
+          <span class="org-check">✓</span>
+        </button>`).join(""):'<div class="project-switch-empty">暂无符合条件的项目，请调整查询条件</div>'}
+      </div>
+      ${renderProjectContextPager(filtered.length,totalPages)}
+    </div>`;
+}
+
 function renderPcContextSwitcher(){
   const label=document.querySelector(".org-label");
   const name=document.getElementById("currentOrgName");
@@ -52,21 +145,9 @@ function renderPcContextSwitcher(){
   if(!label||!name||!dropdown)return;
   if(pcPortalState.mode==="project"){
     const currentProject=getCurrentProjectContext();
-    const projects=getProjectContextOptions();
     label.textContent="【项目】";
     name.textContent=currentProject?.projectName||pcPortalState.currentProject;
-    dropdown.innerHTML=`
-      <div class="org-dropdown-title">切换项目</div>
-      ${projects.map(project=>`
-        <div class="org-option ${String(project.id)===String(currentProject?.id)?"active":""}" onclick="selectProjectContext(event,'${escapeAttr(project.id)}')">
-          <div>
-            <div class="org-name">${project.projectName}</div>
-            <div class="org-desc">${project.subCompany} · ${project.branchCompany} · ${project.projectStatus}</div>
-          </div>
-          <span class="org-check">✓</span>
-        </div>
-      `).join("")}
-    `;
+    dropdown.innerHTML=renderProjectContextDropdown(currentProject);
   }else{
     label.textContent="组织";
     const root=getOrganizationRoot();

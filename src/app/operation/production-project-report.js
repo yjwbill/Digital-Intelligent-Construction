@@ -666,9 +666,9 @@ function operationRadioField(label,value){
   return `
     <div class="operation-detail-field">
       <label>${label} <span>*</span></label>
-      <div class="operation-detail-radio">
-        <span class="${value==="是"?"checked":""}">○ 是</span>
-        <span class="${value==="否"?"checked":""}">○ 否</span>
+      <div class="operation-detail-radio" role="radiogroup" aria-label="${escapeAttr(label)}">
+        <label class="operation-readonly-radio"><input type="radio" disabled ${value==="是"?"checked":""}/><span>是</span></label>
+        <label class="operation-readonly-radio"><input type="radio" disabled ${value==="否"?"checked":""}/><span>否</span></label>
       </div>
     </div>
   `;
