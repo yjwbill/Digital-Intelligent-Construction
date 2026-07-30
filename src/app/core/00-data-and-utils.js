@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.491-ECONOMY-PROJECT-CARD-POLISH";
-const APP_CODE_VERSION_NAME="经济总览项目卡片优化版";
-const APP_CODE_VERSION_TIME="2026-07-30 16:50";
-const APP_CODE_VERSION_DESC="国内版和国际版项目卡片渐变透明度统一调整为20%，国际版项目卡片高度增加约10%。";
+const APP_CODE_VERSION="EM-20260701-V2.2.500-ECONOMY-KPI-FIXED-LAYOUT";
+const APP_CODE_VERSION_NAME="经济诊断指标固定布局版";
+const APP_CODE_VERSION_TIME="2026-07-30 19:05";
+const APP_CODE_VERSION_DESC="经济诊断国内版和国际版六指标区域使用最终高优先级固定布局，整体高度104px、指标垂直居中、分区自适应压缩并彻底取消滚动条。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,

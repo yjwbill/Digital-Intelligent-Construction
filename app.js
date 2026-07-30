@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.491-economy-project-card-polish";
+  const version="2.2.500-economy-kpi-fixed-layout";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",

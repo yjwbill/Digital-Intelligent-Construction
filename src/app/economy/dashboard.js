@@ -128,8 +128,8 @@ function renderEconomyDiagnosisMetrics(list){
   const contract=list.reduce((sum,x)=>sum+x.contractAmount,0);
   const counts=getEconomyWarningProjectCounts(list);
   const warningItems=Object.entries(economyWarningColorMeta).map(([color,meta])=>({label:`${meta.label}预警项目`,value:counts[color],icon:meta.icon,color,warning:true}));
-  const summaryItems=[{label:"项目总数",value:list.length,unit:"个",icon:"▣",color:"blue"},{label:"合同总金额",value:(contract/10000).toFixed(4),unit:"亿元",icon:"￥",color:"orange"}];
-  const renderItem=item=>`<div class="production-value-metric economy-diagnosis-metric ${item.color} ${item.warning?"warning-clickable":""}">${item.warning?"":`<span class="production-value-icon">${item.icon}</span>`}<div><p>${item.label}</p>${item.warning?renderEconomyWarningMetricValue(item,list.length):`<strong>${item.value}<em>${item.unit}</em></strong>`}</div></div>`;
+  const summaryItems=[{label:"项目总数",value:list.length,unit:"个",iconSrc:"./src/assets/economy/project-total.svg",color:"blue"},{label:"合同总金额",value:(contract/10000).toFixed(4),unit:"亿元",iconSrc:"./src/assets/economy/contract-total.svg",color:"orange"}];
+  const renderItem=item=>`<div class="production-value-metric economy-diagnosis-metric ${item.color} ${item.warning?"warning-clickable":""}">${item.warning?"":`<img class="economy-diagnosis-summary-icon" src="${item.iconSrc}" alt=""/>`}<div><p>${item.label}</p>${item.warning?renderEconomyWarningMetricValue(item,list.length):`<strong>${item.value}<em>${item.unit}</em></strong>`}</div></div>`;
   return `<section class="production-value-top-strip economy-diagnosis-metrics"><div class="economy-diagnosis-summary-group">${summaryItems.map(renderItem).join("")}</div><div class="economy-diagnosis-warning-group">${warningItems.map(renderItem).join("")}</div></section>`;
 }
 function getEconomyWarningDrillBaseRows(){

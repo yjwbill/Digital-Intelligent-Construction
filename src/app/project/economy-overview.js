@@ -71,6 +71,26 @@ function getProjectEconomySubcontractMeasurementRows(){
 function getProjectEconomySubcontractDrillRows(){
   return getProjectEconomySubcontractMeasurementRows().filter(row=>(!projectEconomySubcontractDrillState.subcontractorName||row.subcontractorName.includes(projectEconomySubcontractDrillState.subcontractorName))&&(!projectEconomySubcontractDrillState.creditCode||row.creditCode.includes(projectEconomySubcontractDrillState.creditCode)));
 }
+function parseProjectEconomyNumber(value,fallback=0){
+  const parsed=Number(String(value??"").replace(/,/g,"").replace(/%/g,"").trim());
+  return Number.isFinite(parsed)?parsed:fallback;
+}
+function getProjectEconomyInternationalCostMetrics(project){
+  const store=typeof getProjectEconomyInfoStore==="function"?getProjectEconomyInfoStore():{};
+  const rawContract=parseProjectEconomyNumber(project?.projectCost,67920364.89);
+  const contractWithTax=rawContract<1000000?rawContract*10000:rawContract;
+  const contractWithoutTax=parseProjectEconomyNumber(store["总包合同价（不含税）"],contractWithTax/1.09);
+  const accruedProfitRate=parseProjectEconomyNumber(store["计提利润率"],4.5)/100;
+  const financialExpense=parseProjectEconomyNumber(store["财务费用"],1280000);
+  const projectType=typeof getProjectInternationalType==="function"?getProjectInternationalType(project):(store["国际项目属性"]||"非港澳JV项目");
+  const taxField=projectType==="港澳JV项目"?store["预计税金成本（含所得税）"]:store["预计税金成本"];
+  const estimatedTaxCost=parseProjectEconomyNumber(taxField??store["预计税金成本"],3560000);
+  const actualCost=parseProjectEconomyNumber(store["COST总额实际数（不含税）"],86450000);
+  return {
+    actual:actualCost/10000,
+    threshold:Math.max(0,contractWithoutTax-contractWithoutTax*accruedProfitRate-financialExpense-estimatedTaxCost)/10000
+  };
+}
 
 function getProjectEconomyOverviewData(project){
   const seed=Number(project?.id)||1;
@@ -80,7 +100,7 @@ function getProjectEconomyOverviewData(project){
   const international=getProjectEconomyOverviewEdition(project)==="international";
   const domesticTrendDefinitions=["分包分供等合同实际总额(万元)","主体劳务分包含同签订数(个)","专业分包合同匹配率","存货(万元)","资金结余(万元)","单个分包商最大产值计量率","项目管理费使用度","实际税负成本(万元)","关键节点偏差(天)","总包结算价(万元)","结算上报时长(天)","劳务人员一周变化率"].map(name=>({name}));
   const internationalTrendDefinitions=[
-    {name:"COST总额实际数（不含税）",unit:"万元"},
+    {name:"COST总额实际数（不含税）",unit:"万元",key:"costActual"},
     {name:"所有专业/劳务计量总和",unit:"万元"},
     {name:"单个分包商最大产值计量",unit:"%",key:"subcontractMeasurement",drilldown:true},
     {name:"当期资金结余",unit:"万元"},
@@ -107,6 +127,7 @@ function getProjectEconomyOverviewData(project){
     {name:getProjectEconomyInternationalWarningName("GJ-04"),color:"red"}
   ];
   const alerts=international?internationalAlerts:domesticAlerts;
+  const internationalCostMetrics=international?getProjectEconomyInternationalCostMetrics(project):null;
   const riskPriority={red:4,orange:3,yellow:2,blue:1};
   const riskColor=alerts.reduce((highest,item)=>riskPriority[item.color]>riskPriority[highest]?item.color:highest,"blue");
   const domesticWarnings=[
@@ -144,8 +165,8 @@ function getProjectEconomyOverviewData(project){
       const base=Math.max(0,(seed*13+index*17)%160);
       const unit=definition.unit|| (name.includes("率")?"%":name.includes("天")?"天":name.includes("个")?"个":"万元");
       const subcontractMaxRate=definition.key==="subcontractMeasurement"?(getProjectEconomySubcontractMeasurementRows()[0]?.measurementRate||0):0;
-      const value=definition.key==="subcontractMeasurement"?subcontractMaxRate:unit==="%"?Math.min(126,45+base/2):unit==="个"?2+seed%12:unit==="天"?(index%2?70:-12+seed%30):(base*42.6+82.85);
-      const threshold=definition.key==="subcontractMeasurement"?100:unit==="%"?80:unit==="个"?12:unit==="天"?45:Math.max(90,value*.82);
+      const value=definition.key==="costActual"?internationalCostMetrics.actual:definition.key==="subcontractMeasurement"?subcontractMaxRate:unit==="%"?Math.min(126,45+base/2):unit==="个"?2+seed%12:unit==="天"?(index%2?70:-12+seed%30):(base*42.6+82.85);
+      const threshold=definition.key==="costActual"?internationalCostMetrics.threshold:definition.key==="subcontractMeasurement"?100:unit==="%"?80:unit==="个"?12:unit==="天"?45:Math.max(90,value*.82);
       const currentValue=Number(value.toFixed?.(2)??value);
       const wavePattern=[.86,1.02,.91,1.07,1];
       const waveScale=unit==="%"?.9:unit==="个"?.15:unit==="天"?.45:7.2;
@@ -228,7 +249,7 @@ function renderProjectEconomyInternationalReminderGrid(){
     <article class="project-economy-key-reminder-card general"><h3><i>♙</i>通用提醒指标</h3><div class="project-economy-key-reminder-values three"><div class="danger"><span>营收产值偏差值</span><div class="project-economy-reminder-inline-value"><strong>-32.17</strong><em>万元</em></div></div><div><span>计提利润率</span><strong>4.82<small>%</small></strong></div><div><span>考核目标利润率</span><strong>5.20<small>%</small></strong></div></div></article>
     <article class="project-economy-key-reminder-card contract"><h3><i>▣</i>合同类提醒指标</h3><div class="project-economy-key-reminder-values two"><div><span>主体（主要）<br>劳务合同实际签署个数</span><strong>32 <small>个</small></strong></div><div><span>主体（主要）<br>专业分包合同实际签署个数</span><strong>18 <small>个</small></strong></div></div></article>
     <article class="project-economy-key-reminder-card exchange"><h3><i>◉</i>汇率相关提醒指标<em>本币：USD / 原币：CNY</em></h3><div class="project-economy-key-reminder-values three"><div><span>目标成本测算时的<br>目标汇率</span><strong>1 <small>USD</small> = 7.10 <small>CNY</small></strong></div><div><span>交割兑换时的<br>实际汇率</span><strong>1 <small>USD</small> = 7.24 <small>CNY</small></strong></div><div><span>当前汇率</span><strong>1 <small>USD</small> = 7.18 <small>CNY</small></strong></div></div></article>
-    <article class="project-economy-key-reminder-card jv"><h3><i>♟</i>JV项目专属提醒指标<em>JV项目适用</em></h3><div class="project-economy-jv-reminder-values"><div><span>JV项目分成比例</span><strong>55<small>%</small></strong></div><div><span>我方投入资金</span><strong>860.00<small>万元</small></strong></div><div><span>我方管理人员数量</span><strong>12<small>人</small></strong></div><div><span>合作方投入资金</span><strong>700.00<small>万元</small></strong></div><div><span>合作方管理人员数量</span><strong>9<small>人</small></strong></div></div></article>
+    <article class="project-economy-key-reminder-card jv"><h3><i>♟</i>JV项目专属提醒指标<em>JV项目适用</em></h3><div class="project-economy-jv-reminder-table"><b aria-hidden="true"></b><b>分成比例</b><b>投入资金</b><b>管理人员数量</b><strong>我方</strong><span>55<small>%</small></span><span>860.00<small>万元</small></span><span>12<small>人</small></span><strong>合作方</strong><span>45<small>%</small></span><span>700.00<small>万元</small></span><span>9<small>人</small></span></div></article>
   </div>`;
 }
 function renderProjectEconomyWarningPanel(data,international){
