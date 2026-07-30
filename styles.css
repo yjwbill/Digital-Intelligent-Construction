@@ -18824,9 +18824,9 @@ body.mobile-mode .mobile-manual-scroll{
 .project-log-photo-item{width:112px;height:112px;position:relative;border-radius:6px;overflow:hidden;border:1px solid #E5EAF2;background:#F7F8FA;}
 .project-log-photo-item img{width:100%;height:100%;object-fit:cover;display:block;}
 .project-log-photo-item button{position:absolute;right:5px;top:5px;width:22px;height:22px;border:0;border-radius:50%;background:rgba(0,0,0,.52);color:#fff;font-size:16px;line-height:22px;display:grid;place-items:center;}
-.project-log-file-area-item,.project-log-file-form-item,.project-log-file-remark-item{min-width:0;}
+.project-log-file-area-item,.project-log-file-reporter-item,.project-log-file-form-item,.project-log-file-remark-item{min-width:0;}
 .project-log-file-report-rows{display:grid;gap:14px;}
-.project-log-file-report-row{display:grid;grid-template-columns:220px minmax(320px,1.2fr) minmax(320px,1fr) 52px;gap:14px 18px;align-items:start;padding:12px;border:1px solid #EEF2F7;border-radius:6px;background:#FAFCFF;}
+.project-log-file-report-row{display:grid;grid-template-columns:180px 160px minmax(300px,1.15fr) minmax(300px,1fr) 52px;gap:14px 18px;align-items:start;padding:12px;border:1px solid #EEF2F7;border-radius:6px;background:#FAFCFF;}
 .project-log-file-row-remove{align-self:end;height:34px;}
 .project-log-file-upload{display:grid;align-items:start;gap:10px;}
 .project-log-file-upload-btn{width:112px;height:34px;}
