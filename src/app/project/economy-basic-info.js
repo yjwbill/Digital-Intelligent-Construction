@@ -195,13 +195,17 @@ function renderProjectEconomyInternationalPlanning(data){
     ["商品混凝土合同总用量","58200","方","人工填报"],["预拌混凝土合同总用量","0","方","人工填报"],["钢筋合同总用量","4860","吨","人工填报"],["钢板合同总用量","0","吨","人工填报"],["钢绞线合同总用量","0","吨","人工填报"],["水泥合同总用量","12800","吨","人工填报"]
   ].map(item=>projectEconomyInternationalField(...item)).join("")}</div></section>`;
 }
-function renderProjectEconomyInternationalProcess(project){
-  const signedContractRows=[
-    ["新马工业园节能环保产业园二次结构工程劳务分包合同","劳务","南通鑫联建筑劳务有限公司","2026-06-12",11221607.45,9860000.00,projectEconomyContractTag("在建","status"),10218420.00],
-    ["建设工程施工劳务分包合同","劳务","株洲创胜建设有限公司","2026-06-13",8892834.62,7920000.00,projectEconomyContractTag("在建","status"),8241680.00],
-    ["脚手架-材料-材料合同","材料","株洲新民租赁有限公司","2026-06-14",2474554.00,2285000.00,projectEconomyContractTag("结算","status"),2474554.00],
-    ["PHC管桩工矿产品采购合同","材料","长沙产投泽禹产业园发展有限公司","2026-06-15",3158800.00,2910000.00,projectEconomyContractTag("结算","status"),3158800.00]
+function getProjectEconomyInternationalSignedContractRows(){
+  return [
+    ["新马工业园节能环保产业园二次结构工程劳务分包合同","劳务","南通鑫联建筑劳务有限公司","2026-06-12",11221607.45,13860000.00,projectEconomyContractTag("在建","status"),10218420.00,"91320623050243852K"],
+    ["新马工业园临建工程劳务分包合同","劳务","南通鑫联建筑劳务有限公司","2026-06-18",3200000.00,4050000.00,projectEconomyContractTag("在建","status"),0,"91320623050243852K"],
+    ["建设工程施工劳务分包合同","劳务","株洲创胜建设有限公司","2026-06-13",8892834.62,7920000.00,projectEconomyContractTag("在建","status"),8241680.00,"91430221MA4T1H3X6D"],
+    ["脚手架-材料-材料合同","材料","株洲新民租赁有限公司","2026-06-14",2474554.00,2285000.00,projectEconomyContractTag("结算","status"),2474554.00,"91430200753357476W"],
+    ["PHC管桩工矿产品采购合同","材料","长沙产投泽禹产业园发展有限公司","2026-06-15",3158800.00,2910000.00,projectEconomyContractTag("结算","status"),3158800.00,"91430112MAC6M8W41Q"]
   ];
+}
+function renderProjectEconomyInternationalProcess(project){
+  const signedContractRows=getProjectEconomyInternationalSignedContractRows(project);
   const signedContractTotal=signedContractRows.reduce((sum,row)=>sum+row[4],0);
   const measuredOutputTotal=signedContractRows.reduce((sum,row)=>sum+row[5],0);
   const settledContractRows=signedContractRows.filter(row=>projectEconomyContractIsSettled(row[6]));

@@ -263,7 +263,7 @@ button{cursor:pointer}
 }
 .layout{display:flex;height:calc(100vh - 52px);overflow:hidden}
 .sider{
-  width:250px;
+  width:200px;
   height:100%;
   background:#fff;
   border-right:1px solid var(--border);

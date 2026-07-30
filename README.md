@@ -2,6 +2,8 @@
 
 这是一个用于产品演示的静态前端 Demo，已整理为适合 GitHub Pages 发布的目录结构。
 
+当前版本：`EM-20260701-V2.2.491-ECONOMY-PROJECT-CARD-POLISH`
+
 ## 在线发布
 
 将本目录中的所有文件上传到 GitHub 仓库根目录，然后开启 GitHub Pages：
@@ -51,7 +53,7 @@ npx serve .
 
 ## 当前版本
 
-`EM-20260701-V2.2.478-ECONOMY-OVERVIEW-EDGE-TO-EDGE`
+`EM-20260701-V2.2.488-GLOBAL-SIDER-WIDTH`
 
 本版本重构国际版项目基本信息，将“项目属性”分组改为“经济基本信息”，按指定顺序整合 13 个项目、合同、利润、成本与资金字段；相关字段从原筹划、过程、利润汇率和结算分组移入，避免重复展示。
 

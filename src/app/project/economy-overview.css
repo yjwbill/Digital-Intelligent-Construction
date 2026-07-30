@@ -66,7 +66,7 @@
 
 /* Project economy overview visual alignment with enterprise dashboards. */
 .project-economy-overview-header h1{font-family:"Microsoft YaHei",Arial,sans-serif;font-size:24px;font-weight:900}
-.project-economy-project-card{--project-risk-rgb:35,120,255;background:linear-gradient(180deg,rgba(var(--project-risk-rgb),.25) 0%,rgba(var(--project-risk-rgb),0) 100%)}
+.project-economy-project-card{--project-risk-rgb:35,120,255;background:linear-gradient(180deg,rgba(var(--project-risk-rgb),.2) 0%,rgba(var(--project-risk-rgb),0) 100%)}
 .project-economy-project-card.red{--project-risk-rgb:255,0,19}
 .project-economy-project-card.orange{--project-risk-rgb:255,153,51}
 .project-economy-project-card.yellow{--project-risk-rgb:255,244,79}
@@ -116,7 +116,7 @@
 
 /* International overview: key reminders and warning-detail hierarchy. */
 .project-economy-key-reminder-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.project-economy-overview-page.international .project-economy-project-card{min-height:182px;padding:14px 24px}
+.project-economy-overview-page.international .project-economy-project-card{min-height:200px;padding:14px 24px}
 .project-economy-overview-page.international .project-economy-project-info{gap:7px 26px;margin-top:12px}
 .project-economy-key-reminder-card{min-width:0;border:1px solid #d8e6fb;border-radius:6px;background:#fff;box-shadow:0 1px 5px rgba(30,55,90,.06);overflow:hidden}
 .project-economy-key-reminder-card.general{border-color:#ffd7b5}
@@ -180,3 +180,22 @@
 .project-economy-trend-tooltip em{position:static!important;left:auto!important;top:auto!important;padding:0!important;background:transparent!important}
 .project-economy-trend-tooltip-head em{color:#86909c!important}
 .project-economy-trend-tooltip-value em{color:#4e5969!important}
+
+/* International overview: subcontract measurement-rate drilldown. */
+.project-economy-trend-drill-value{display:inline-flex;align-items:baseline;max-width:100%;margin:0;padding:0;border:0;background:transparent;color:#2378ff;font:inherit;font-weight:700;line-height:inherit;cursor:pointer;text-decoration:none}
+.project-economy-trend-drill-value:hover,.project-economy-trend-drill-value:focus-visible{color:#165dff;text-decoration:underline;text-underline-offset:3px}
+.project-economy-trend-drill-value:focus-visible{outline:2px solid rgba(35,120,255,.24);outline-offset:3px;border-radius:2px}
+.project-economy-trend-drill-value small{margin-left:2px;color:inherit;font-family:"Microsoft YaHei",Arial,sans-serif;font-size:12px;font-weight:400}
+.project-economy-subcontract-modal .modal-bd{min-height:0}
+.project-economy-subcontract-drill .query-card{flex:0 0 auto;margin:0}
+.project-economy-subcontract-drill .search-grid{grid-template-columns:repeat(2,minmax(260px,1fr))}
+.project-economy-subcontract-table{width:100%}
+.project-economy-subcontract-table .table-wrap{width:100%}
+.project-economy-subcontract-table th:nth-child(1),.project-economy-subcontract-table td:nth-child(1){width:70px;text-align:center}
+.project-economy-subcontract-table th:nth-child(2){width:auto}
+.project-economy-subcontract-table td:nth-child(2){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.project-economy-subcontract-table th:nth-child(3),.project-economy-subcontract-table td:nth-child(3),.project-economy-subcontract-table th:nth-child(4),.project-economy-subcontract-table td:nth-child(4){width:190px;text-align:center}
+.project-economy-subcontract-table th:nth-child(5),.project-economy-subcontract-table td:nth-child(5){width:110px;text-align:center}
+.project-economy-subcontract-table tbody tr.measurement-rate-overrun td,.project-economy-subcontract-table tbody tr.measurement-rate-overrun:hover td{background:#fff1f0!important}
+.project-economy-subcontract-table tbody tr.measurement-rate-overrun td:last-child{color:#f53f3f;font-weight:600}
+@media(max-width:900px){.project-economy-subcontract-drill .search-grid{grid-template-columns:1fr}.project-economy-subcontract-table table{min-width:850px}}

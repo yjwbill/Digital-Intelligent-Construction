@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.478-ECONOMY-OVERVIEW-EDGE-TO-EDGE";
-const APP_CODE_VERSION_NAME="经济总览双版本底色通铺版";
-const APP_CODE_VERSION_TIME="2026-07-30 14:10";
-const APP_CODE_VERSION_DESC="将国际版已验证的底色通铺规则同步到国内版，国内、国际经济总览均取消与菜单、右侧和底部边界之间的外层间距。";
+const APP_CODE_VERSION="EM-20260701-V2.2.491-ECONOMY-PROJECT-CARD-POLISH";
+const APP_CODE_VERSION_NAME="经济总览项目卡片优化版";
+const APP_CODE_VERSION_TIME="2026-07-30 16:50";
+const APP_CODE_VERSION_DESC="国内版和国际版项目卡片渐变透明度统一调整为20%，国际版项目卡片高度增加约10%。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
