@@ -111,6 +111,7 @@ function getCurrentProjectContext(){
 function resetProjectContextViewState(){
   projectLogState.page=1;
   projectLogState.workArea="";
+  projectLogState.mode="";
   projectLogState.keyword="";
   projectLogState.startDate="";
   projectLogState.endDate="";
@@ -313,6 +314,7 @@ const projectLogState={
   month:"2026-07",
   selectedDate:"2026-07-13",
   workArea:"",
+  mode:"",
   keyword:"",
   startDate:"",
   endDate:""
@@ -380,6 +382,38 @@ function sortProjectLogRows(rows){
   return rows.sort((a,b)=>(Number(b.customUpdatedAt)||0)-(Number(a.customUpdatedAt)||0)||b.date.localeCompare(a.date));
 }
 
+function splitProjectLogAreaText(value){
+  return String(value||"")
+    .split(/[、,，;；/／\s]+/)
+    .map(area=>area.trim())
+    .filter(Boolean);
+}
+
+function getProjectLogRowAreas(row){
+  const areas=[
+    ...splitProjectLogAreaText(row?.workArea),
+    ...splitProjectLogAreaText(row?.onlineRecord?.workArea),
+    ...splitProjectLogAreaText(row?.fileRecord?.workArea),
+    ...(Array.isArray(row?.fileEntries)?row.fileEntries.flatMap(entry=>splitProjectLogAreaText(entry.area)):[]),
+    ...(Array.isArray(row?.fileRecord?.fileEntries)?row.fileRecord.fileEntries.flatMap(entry=>splitProjectLogAreaText(entry.area)):[]),
+    ...(Array.isArray(row?.today)?row.today.flatMap(item=>splitProjectLogAreaText(item.area)):[]),
+    ...(Array.isArray(row?.tomorrow)?row.tomorrow.flatMap(item=>splitProjectLogAreaText(item.area)):[])
+  ];
+  return [...new Set(areas)];
+}
+
+function getProjectLogMonthAreas(monthValue=projectLogState.month){
+  return [...new Set(getProjectLogRows()
+    .filter(row=>row.date.startsWith(monthValue+"-"))
+    .flatMap(row=>getProjectLogRowAreas(row)))];
+}
+
+function normalizeProjectLogAreaFilter(){
+  if(projectLogState.workArea&&!getProjectLogMonthAreas().includes(projectLogState.workArea)){
+    projectLogState.workArea="";
+  }
+}
+
 function mergeProjectLogRowsByDate(rows){
   const groups=new Map();
   rows.forEach(row=>{
@@ -395,7 +429,7 @@ function mergeProjectLogDateGroup(group){
   const file=group.find(row=>row.mode==="file")||null;
   const primary=online||file||group[0];
   const latest=group.slice().sort((a,b)=>String(b.uploadTime||"").localeCompare(String(a.uploadTime||"")))[0]||primary;
-  const areas=[...new Set(group.map(row=>row.workArea).filter(Boolean))];
+  const areas=[...new Set(group.flatMap(row=>getProjectLogRowAreas(row)))];
   const uploaders=[...new Set(group.map(row=>row.uploader).filter(Boolean))];
   const customUpdatedAt=Math.max(0,...group.map(row=>Number(row.customUpdatedAt)||0));
   const hasOnline=Boolean(online);
@@ -467,7 +501,8 @@ function refreshProjectLogSharedSections(prefix){
 function getProjectLogFilteredRows(){
   return getProjectLogRows().filter(row=>{
     if(!row.date.startsWith(projectLogState.month+"-"))return false;
-    if(projectLogState.workArea&&!String(row.workArea||"").split("、").includes(projectLogState.workArea))return false;
+    if(projectLogState.workArea&&!getProjectLogRowAreas(row).includes(projectLogState.workArea))return false;
+    if(projectLogState.mode&&row.mode!==projectLogState.mode)return false;
     if(projectLogState.keyword&&!(row.title.includes(projectLogState.keyword)||row.uploader.includes(projectLogState.keyword)||row.workArea.includes(projectLogState.keyword)||row.summary.includes(projectLogState.keyword)||row.fileName.includes(projectLogState.keyword)))return false;
     if(projectLogState.startDate&&row.date<projectLogState.startDate)return false;
     if(projectLogState.endDate&&row.date>projectLogState.endDate)return false;
@@ -649,6 +684,7 @@ function changeProjectLogMonth(delta){
   const nextValue=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}`;
   if(isEnterpriseConstructionLogFutureMonth(nextValue))return;
   projectLogState.month=nextValue;
+  normalizeProjectLogAreaFilter();
   projectLogState.selectedDate=getFirstUploadedProjectLogDate();
   renderProjectLogPage();
 }
@@ -656,6 +692,7 @@ function changeProjectLogMonth(delta){
 function changeProjectLogYear(delta){
   const [year,month]=projectLogState.month.split("-").map(Number);
   projectLogState.month=`${year+delta}-${String(month).padStart(2,"0")}`;
+  normalizeProjectLogAreaFilter();
   projectLogState.selectedDate=getFirstUploadedProjectLogDate();
   renderProjectLogPage();
 }
@@ -667,6 +704,7 @@ function selectProjectLogDate(date){
 
 function queryProjectLogs(){
   projectLogState.workArea=document.getElementById("projectLogArea")?.value || "";
+  projectLogState.mode=document.getElementById("projectLogMode")?.value || "";
   projectLogState.startDate=document.getElementById("projectLogStart")?.value || "";
   projectLogState.endDate=document.getElementById("projectLogEnd")?.value || "";
   projectLogState.keyword=document.getElementById("projectLogKeyword")?.value.trim() || "";
@@ -676,6 +714,7 @@ function queryProjectLogs(){
 
 function resetProjectLogs(){
   projectLogState.workArea="";
+  projectLogState.mode="";
   projectLogState.startDate="";
   projectLogState.endDate="";
   projectLogState.keyword="";
@@ -912,7 +951,7 @@ function confirmDeleteProjectLog(id){
 }
 
 function renderProjectLogWorkAreaOptions(value=""){
-  const areas=[...new Set(getProjectLogRows().map(row=>row.workArea))];
+  const areas=[...new Set(getProjectLogRows().flatMap(row=>getProjectLogRowAreas(row)))];
   if(value&&!areas.includes(value))areas.unshift(value);
   ["主体结构区","附属结构区","基坑施工区","材料加工区"].forEach(area=>{
     if(!areas.includes(area))areas.push(area);
@@ -1765,6 +1804,7 @@ function submitProjectLogReport(){
   projectLogState.month=date.slice(0,7);
   projectLogState.page=1;
   projectLogState.workArea="";
+  projectLogState.mode="";
   projectLogState.keyword="";
   projectLogState.startDate="";
   projectLogState.endDate="";
@@ -1846,6 +1886,7 @@ function submitProjectLogFileReport(){
   projectLogState.month=date.slice(0,7);
   projectLogState.page=1;
   projectLogState.workArea="";
+  projectLogState.mode="";
   projectLogState.keyword="";
   projectLogState.startDate="";
   projectLogState.endDate="";
@@ -3805,8 +3846,9 @@ function renderProjectDetailPage(){
 }
 
 function renderProjectLogPage(){
+  normalizeProjectLogAreaFilter();
   const rows=getProjectLogPagedRows();
-  const areas=[...new Set(getProjectLogRows().flatMap(row=>String(row.workArea||"").split("、")).filter(Boolean))];
+  const areas=getProjectLogMonthAreas();
   renderProjectPageShell("施工日志","",`
     <div class="project-log-template-page">
       <section class="card project-log-list-panel">
@@ -3821,9 +3863,9 @@ function renderProjectLogPage(){
         <div class="project-log-filter-row">
           <label class="project-log-filter-item">
             <span>施工工区</span>
-            <select id="projectLogArea" class="select">
-              <option value="">请选择施工工区</option>
-              ${areas.map(area=>`<option value="${area}" ${projectLogState.workArea===area?"selected":""}>${area}</option>`).join("")}
+            <select id="projectLogArea" class="select" onchange="queryProjectLogs()">
+              <option value="">全部</option>
+              ${areas.map(area=>`<option value="${escapeAttr(area)}" ${projectLogState.workArea===area?"selected":""}>${escapeAttr(area)}</option>`).join("")}
             </select>
           </label>
           <label class="project-log-filter-item project-log-date-filter">
@@ -3840,6 +3882,17 @@ function renderProjectLogPage(){
           </label>
           <button class="btn primary" data-project-log-action="query" onclick="queryProjectLogs()">查询</button>
           <button class="btn" data-project-log-action="reset" onclick="resetProjectLogs()">重置</button>
+        </div>
+        <div class="project-log-filter-row project-log-mode-filter-row">
+          <label class="project-log-filter-item">
+            <span>上报方式</span>
+            <select id="projectLogMode" class="select" onchange="queryProjectLogs()">
+              <option value="">全部</option>
+              <option value="online" ${projectLogState.mode==="online"?"selected":""}>在线上报</option>
+              <option value="file" ${projectLogState.mode==="file"?"selected":""}>文件上报</option>
+              <option value="merged" ${projectLogState.mode==="merged"?"selected":""}>在线+文件</option>
+            </select>
+          </label>
         </div>
         <div class="project-log-card-grid">
           ${rows.map(renderProjectLogCard).join("")}
