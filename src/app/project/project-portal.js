@@ -424,6 +424,7 @@ function mergeProjectLogDateGroup(group){
 }
 let projectLogReportPhotoList=[];
 let projectLogReportFileList=[];
+let projectLogReportFileRows=[];
 let projectLogCurrentAssignment=null;
 const projectLogAssignments=[];
 
@@ -455,7 +456,7 @@ function getProjectLogSyncedSharedDetail(targetMode,date,area,editRow=null){
 function refreshProjectLogSharedSections(prefix){
   const mode=prefix==="projectLogFileReport"?"file":"online";
   const date=document.getElementById(`${prefix}Date`)?.value||getProjectLogTodayValue();
-  const area=document.getElementById(`${prefix}Area`)?.value||"";
+  const area=document.getElementById(`${prefix}Area`)?.value||document.querySelector(".project-log-file-row-area")?.value||"";
   const detail=getProjectLogSyncedSharedDetail(mode,date,area,projectLogEditingRow);
   const milestoneBox=document.getElementById("projectLogMilestoneRows");
   if(milestoneBox)milestoneBox.innerHTML=renderProjectLogMilestoneRows(detail.milestones,date);
@@ -779,6 +780,23 @@ function renderProjectLogReadonlyFiles(files){
 
 function renderProjectLogReadonlyFileUploadSection(row){
   if(!row)return "";
+  if(Array.isArray(row.fileEntries)&&row.fileEntries.length){
+    return renderProjectLogReadonlySection("文件上传",`
+      ${row.fileEntries.map((entry,index)=>`
+        <div class="project-log-readonly-file-entry">
+          <div class="project-log-readonly-subtitle">施工日志文件 ${index+1}</div>
+          <div class="project-detail-info-grid">
+            ${renderProjectLogReadonlyField("工区选择",entry.area||row.workArea)}
+            ${renderProjectLogReadonlyField("日期",row.date)}
+          </div>
+          <div class="project-log-readonly-subtitle">当日施工情况描述</div>
+          <div class="project-log-readonly-text">${entry.remark||entry.summary||"-"}</div>
+          <div class="project-log-readonly-subtitle">施工相关附件</div>
+          ${renderProjectLogReadonlyFiles(getProjectLogReadonlyFiles(entry))}
+        </div>
+      `).join("")}
+    `);
+  }
   return renderProjectLogReadonlySection("文件上传",`
     <div class="project-detail-info-grid">
       ${renderProjectLogReadonlyField("工区选择",row.workArea)}
@@ -837,8 +855,10 @@ function openProjectLogDetail(id){
       ${renderProjectLogReadonlySection("基础信息",baseInfo)}
       ${detail.milestones.length?renderProjectLogReadonlySection("里程碑节点情况",renderProjectLogReadonlyMilestoneTable(detail.milestones)):""}
       ${renderProjectLogReadonlySection("风险情况",renderProjectLogReadonlyRiskCards(detail.risks))}
-      ${renderProjectLogReadonlySection("施工日志文件",renderProjectLogReadonlyFiles(getProjectLogReadonlyFiles(row)))}
-      ${renderProjectLogReadonlySection("备注说明",`<div class="project-log-readonly-text">${row.summary||"-"}</div>`)}
+      ${Array.isArray(row.fileEntries)&&row.fileEntries.length?renderProjectLogReadonlyFileUploadSection(row):`
+        ${renderProjectLogReadonlySection("施工日志文件",renderProjectLogReadonlyFiles(getProjectLogReadonlyFiles(row)))}
+        ${renderProjectLogReadonlySection("备注说明",`<div class="project-log-readonly-text">${row.summary||"-"}</div>`)}
+      `}
     `;
   })();
   openModal("施工日志详情",`<div class="project-log-readonly-detail">${content}</div>`,`<button class="btn" onclick="closeModal()">关闭</button>`,"large");
@@ -1373,20 +1393,22 @@ function formatProjectLogFileSize(size){
   return `${size}B`;
 }
 
-function renderProjectLogFileUpload(){
+function renderProjectLogFileUpload(rowIndex=0){
+  const row=projectLogReportFileRows[rowIndex]||{files:projectLogReportFileList};
+  const files=row.files||[];
   return `
     <div class="project-log-file-upload">
-      <input id="projectLogFileInput" type="file" multiple onchange="handleProjectLogFileFiles(this.files)" hidden/>
+      <input id="projectLogFileInput-${rowIndex}" type="file" multiple onchange="handleProjectLogFileFiles(this.files,${rowIndex})" hidden/>
       <p>最多上传9个施工日志文件</p>
-      <button class="btn primary project-log-file-upload-btn" type="button" onclick="document.getElementById('projectLogFileInput')?.click()">文件上传</button>
-      <div class="project-log-file-preview" id="projectLogFilePreview">
-        ${projectLogReportFileList.map((file,index)=>renderProjectLogFileItem(file,index)).join("")}
+      <button class="btn primary project-log-file-upload-btn" type="button" onclick="document.getElementById('projectLogFileInput-${rowIndex}')?.click()">文件上传</button>
+      <div class="project-log-file-preview" id="projectLogFilePreview-${rowIndex}">
+        ${files.map((file,index)=>renderProjectLogFileItem(file,index,rowIndex)).join("")}
       </div>
     </div>
   `;
 }
 
-function renderProjectLogFileItem(file,index){
+function renderProjectLogFileItem(file,index,rowIndex=0){
   return `
     <div class="project-log-file-upload-item">
       <div class="project-log-file-icon">▤</div>
@@ -1394,37 +1416,92 @@ function renderProjectLogFileItem(file,index){
         <strong>${escapeAttr(file.name || "施工日志文件")}</strong>
         <span>${file.sizeText || "-"}</span>
       </button>
-      <button type="button" onclick="removeProjectLogFile(${index})">×</button>
+      <button type="button" onclick="removeProjectLogFile(${index},${rowIndex})">×</button>
     </div>
   `;
 }
 
-function refreshProjectLogFilePreview(){
-  const box=document.getElementById("projectLogFilePreview");
-  if(box)box.innerHTML=projectLogReportFileList.map((file,index)=>renderProjectLogFileItem(file,index)).join("");
+function refreshProjectLogFilePreview(rowIndex=0){
+  const row=projectLogReportFileRows[rowIndex];
+  if(!row)return;
+  const box=document.getElementById(`projectLogFilePreview-${rowIndex}`);
+  if(box)box.innerHTML=(row.files||[]).map((file,index)=>renderProjectLogFileItem(file,index,rowIndex)).join("");
 }
 
-function handleProjectLogFileFiles(files){
+function handleProjectLogFileFiles(files,rowIndex=0){
+  const row=projectLogReportFileRows[rowIndex];
+  if(!row)return;
   const incoming=[...(files || [])];
   if(!incoming.length)return;
-  const available=Math.max(0,9-projectLogReportFileList.length);
+  row.files=row.files||[];
+  const available=Math.max(0,9-row.files.length);
   incoming.slice(0,available).forEach(file=>{
-    projectLogReportFileList.push({
+    row.files.push({
       name:file.name,
       size:file.size,
       sizeText:formatProjectLogFileSize(file.size),
       type:file.type || ""
     });
   });
-  refreshProjectLogFilePreview();
+  projectLogReportFileList=projectLogReportFileRows.flatMap(item=>item.files||[]);
+  refreshProjectLogFilePreview(rowIndex);
   if(incoming.length>available)showToast("施工日志文件最多上传9个");
-  const input=document.getElementById("projectLogFileInput");
+  const input=document.getElementById(`projectLogFileInput-${rowIndex}`);
   if(input)input.value="";
 }
 
-function removeProjectLogFile(index){
-  projectLogReportFileList.splice(index,1);
-  refreshProjectLogFilePreview();
+function removeProjectLogFile(index,rowIndex=0){
+  const row=projectLogReportFileRows[rowIndex];
+  if(!row)return;
+  row.files.splice(index,1);
+  projectLogReportFileList=projectLogReportFileRows.flatMap(item=>item.files||[]);
+  refreshProjectLogFilePreview(rowIndex);
+}
+
+function renderProjectLogFileReportRow(row={},index=0){
+  return `
+    <div class="project-log-file-report-row" data-project-log-file-row="${index}">
+      <div class="form-item project-log-file-area-item">
+        <label>工区 <em>*</em></label>
+        <select class="select project-log-file-row-area" onchange="syncProjectLogFileReportRow(${index});refreshProjectLogSharedSections('projectLogFileReport')">${renderProjectLogWorkAreaOptions(row.area||"主体结构区")}</select>
+      </div>
+      <div class="form-item project-log-file-remark-item">
+        <label>当日施工情况描述 <em>*</em></label>
+        <textarea class="input project-log-stop-textarea project-log-file-row-remark" placeholder="请输入备注说明" oninput="syncProjectLogFileReportRow(${index})">${escapeAttr(row.remark||"")}</textarea>
+      </div>
+      <div class="form-item project-log-file-form-item">
+        <label>文件上传 <em>*</em></label>
+        ${renderProjectLogFileUpload(index)}
+      </div>
+      <button class="btn mini project-log-file-row-remove" type="button" onclick="removeProjectLogFileReportRow(${index})" ${projectLogReportFileRows.length<=1?"disabled":""}>删除</button>
+    </div>
+  `;
+}
+
+function refreshProjectLogFileReportRows(){
+  const box=document.getElementById("projectLogFileReportRows");
+  if(!box)return;
+  box.innerHTML=projectLogReportFileRows.map((row,index)=>renderProjectLogFileReportRow(row,index)).join("");
+}
+
+function syncProjectLogFileReportRow(index){
+  const row=projectLogReportFileRows[index];
+  const node=document.querySelector(`[data-project-log-file-row="${index}"]`);
+  if(!row||!node)return;
+  row.area=node.querySelector(".project-log-file-row-area")?.value||"";
+  row.remark=node.querySelector(".project-log-file-row-remark")?.value.trim()||"";
+}
+
+function addProjectLogFileReportRow(){
+  projectLogReportFileRows.push({area:"主体结构区",remark:"",files:[]});
+  refreshProjectLogFileReportRows();
+}
+
+function removeProjectLogFileReportRow(index){
+  if(projectLogReportFileRows.length<=1)return;
+  projectLogReportFileRows.splice(index,1);
+  projectLogReportFileList=projectLogReportFileRows.flatMap(item=>item.files||[]);
+  refreshProjectLogFileReportRows();
 }
 
 function refreshProjectLogPhotoPreview(){
@@ -1474,7 +1551,7 @@ function renderProjectLogReportBaseInfo(prefix="projectLogReport",defaultArea="�
       <h3>基础信息</h3>
       <div class="project-log-report-grid four">
         ${isFile?"":`<div class="form-item"><label>项目名称 <em>*</em></label><input class="input" value="${escapeAttr(pcPortalState.currentProject)}" disabled/></div>`}
-        <div class="form-item"><label>工区 <em>*</em></label><select class="select" id="${prefix}Area" onchange="refreshProjectLogSharedSections('${prefix}')">${renderProjectLogWorkAreaOptions(defaultArea)}</select></div>
+        ${isFile?"":`<div class="form-item"><label>工区 <em>*</em></label><select class="select" id="${prefix}Area" onchange="refreshProjectLogSharedSections('${prefix}')">${renderProjectLogWorkAreaOptions(defaultArea)}</select></div>`}
         <div class="form-item"><label>日期 <em>*</em></label><input class="input" id="${prefix}Date" type="date" value="${today}" onchange="syncProjectLogReportWeekday('${prefix}')"/></div>
         ${isFile?"":`
           <div class="form-item"><label>星期 <em>*</em></label><input class="input" id="${prefix}Weekday" value="${getProjectLogReadonlyWeekday(today)}" disabled/></div>
@@ -1548,23 +1625,23 @@ function openProjectLogReportModal(editRow=null){
 
 function openProjectLogFileReportModal(editRow=null){
   if(!editRow)projectLogEditingRow=null;
-  projectLogReportFileList=editRow?getProjectLogReadonlyFiles(editRow).map(file=>({...file,size:0})):[];
+  const fileEntries=Array.isArray(editRow?.fileEntries)&&editRow.fileEntries.length
+    ?editRow.fileEntries.map(entry=>({area:entry.area||editRow.workArea||"主体结构区",remark:entry.remark||entry.summary||"",files:getProjectLogReadonlyFiles(entry).map(file=>({...file,size:0}))}))
+    :[{area:editRow?.workArea||"主体结构区",remark:editRow?.summary||"",files:editRow?getProjectLogReadonlyFiles(editRow).map(file=>({...file,size:0})):[]}];
+  projectLogReportFileRows=fileEntries;
+  projectLogReportFileList=projectLogReportFileRows.flatMap(row=>row.files||[]);
   const reportDate=editRow?.date||getProjectLogTodayValue();
   const sharedDetail=getProjectLogSyncedSharedDetail("file",reportDate,editRow?.workArea||"主体结构区",editRow);
   openModal(editRow?"编辑施工日志":"施工日志文件上报",`
     <div class="project-log-online-report">
       ${renderProjectLogReportBaseInfo("projectLogFileReport",editRow?.workArea||"主体结构区","file",reportDate)}
       <section class="project-log-report-section">
-        <h3>施工日志文件</h3>
-        <div class="project-log-report-grid file">
-          <div class="form-item project-log-file-form-item">
-            <label>文件上传 <em>*</em></label>
-            ${renderProjectLogFileUpload()}
-          </div>
-          <div class="form-item project-log-file-remark-item">
-            <label>当日施工情况描述</label>
-            <textarea class="input project-log-stop-textarea" id="projectLogFileReportRemark" placeholder="请输入备注说明">${escapeAttr(editRow?.summary||"")}</textarea>
-          </div>
+        <div class="project-log-report-section-title-row">
+          <h3>施工日志文件</h3>
+          <button class="btn primary mini" type="button" onclick="addProjectLogFileReportRow()">添加</button>
+        </div>
+        <div id="projectLogFileReportRows" class="project-log-file-report-rows">
+          ${projectLogReportFileRows.map((row,index)=>renderProjectLogFileReportRow(row,index)).join("")}
         </div>
       </section>
 
@@ -1645,10 +1722,26 @@ function submitProjectLogReport(){
 }
 
 function submitProjectLogFileReport(){
-  if(!projectLogReportFileList.length){
-    showToast("请上传施工日志文件");
-    return;
+  projectLogReportFileRows.forEach((_,index)=>syncProjectLogFileReportRow(index));
+  for(let index=0;index<projectLogReportFileRows.length;index++){
+    const row=projectLogReportFileRows[index];
+    const node=document.querySelector(`[data-project-log-file-row="${index}"]`);
+    if(!row.area){
+      showToast(`请选择第${index+1}行工区`);
+      node?.querySelector(".project-log-file-row-area")?.focus();
+      return;
+    }
+    if(!row.remark){
+      showToast(`请输入第${index+1}行当日施工情况描述`);
+      node?.querySelector(".project-log-file-row-remark")?.focus();
+      return;
+    }
+    if(!(row.files||[]).length){
+      showToast(`请上传第${index+1}行施工日志文件`);
+      return;
+    }
   }
+  projectLogReportFileList=projectLogReportFileRows.flatMap(row=>row.files||[]);
   const risks=collectProjectLogRiskRows();
   if(!risks)return;
   const milestones=collectProjectLogMilestoneRows();
@@ -1656,8 +1749,9 @@ function submitProjectLogFileReport(){
   const editing=projectLogEditingRow;
   const recorder=document.getElementById("projectLogFileReportRecorder")?.value || editing?.uploader || "楼力栋";
   const date=document.getElementById("projectLogFileReportDate")?.value || getProjectLogTodayValue();
-  const area=document.getElementById("projectLogFileReportArea")?.value || "主体结构区";
-  const remark=document.getElementById("projectLogFileReportRemark")?.value?.trim() || "";
+  const areas=[...new Set(projectLogReportFileRows.map(row=>row.area).filter(Boolean))];
+  const area=areas.join("、") || "主体结构区";
+  const remark=projectLogReportFileRows.map(row=>row.remark).filter(Boolean).join("；");
   const now=new Date();
   const uploadTime=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")} ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
   const totalSize=projectLogReportFileList.reduce((sum,file)=>sum+(Number(file.size)||0),0);
@@ -1677,6 +1771,12 @@ function submitProjectLogFileReport(){
     fileSize:totalSize?formatProjectLogFileSize(totalSize):(editing?.fileSize||firstFile.sizeText||"-"),
     summary:remark || "完成施工日志文件上报。",
     files:projectLogReportFileList.map(file=>({...file})),
+    fileEntries:projectLogReportFileRows.map(row=>({
+      area:row.area,
+      remark:row.remark,
+      summary:row.remark,
+      files:(row.files||[]).map(file=>({...file}))
+    })),
     milestones,
     risks
   };
@@ -3771,7 +3871,10 @@ Object.assign(window,{
   handleProjectLogPhotoFiles,
   removeProjectLogPhoto,
   handleProjectLogFileFiles,
-  removeProjectLogFile
+  removeProjectLogFile,
+  addProjectLogFileReportRow,
+  removeProjectLogFileReportRow,
+  syncProjectLogFileReportRow
 });
 
 function renderProjectPlaceholderPage(title){
