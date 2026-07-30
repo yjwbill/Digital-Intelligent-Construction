@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.474-INTERNATIONAL-OVERVIEW-EDGE-TO-EDGE";
-const APP_CODE_VERSION_NAME="国际版经济总览底色通铺试点版";
-const APP_CODE_VERSION_TIME="2026-07-30 11:20";
-const APP_CODE_VERSION_DESC="国际版经济总览取消看板底色与左侧菜单、右侧及底部内容边界之间的外层间距，保留看板内部规范留白。";
+const APP_CODE_VERSION="EM-20260701-V2.2.478-ECONOMY-OVERVIEW-EDGE-TO-EDGE";
+const APP_CODE_VERSION_NAME="经济总览双版本底色通铺版";
+const APP_CODE_VERSION_TIME="2026-07-30 14:10";
+const APP_CODE_VERSION_DESC="将国际版已验证的底色通铺规则同步到国内版，国内、国际经济总览均取消与菜单、右侧和底部边界之间的外层间距。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
