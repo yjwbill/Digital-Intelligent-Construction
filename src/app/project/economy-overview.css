@@ -151,6 +151,14 @@
 .project-economy-jv-reminder-table strong{color:#30343b;font-weight:600}
 .project-economy-jv-reminder-table span{color:#1d2129;font-family:D-DIN,DIN,Arial,sans-serif;font-size:14px;font-weight:600;white-space:nowrap}
 .project-economy-jv-reminder-table small{margin-left:2px;color:#4e5969;font-family:"Microsoft YaHei",Arial,sans-serif;font-size:12px;font-weight:400}
+.project-economy-jv-reminder-values{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));min-height:104px;padding:6px 8px;box-sizing:border-box}
+.project-economy-jv-reminder-values>div{grid-column:span 2;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;padding:5px 4px;border-right:1px solid #e5e8ef;border-bottom:1px solid #e5e8ef;text-align:center}
+.project-economy-jv-reminder-values>div:nth-child(3){border-right:0}
+.project-economy-jv-reminder-values>div:nth-child(n+4){grid-column:span 3;border-bottom:0}
+.project-economy-jv-reminder-values>div:last-child{border-right:0}
+.project-economy-jv-reminder-values span{min-height:18px;color:#4e5969;font-size:11px;line-height:16px}
+.project-economy-jv-reminder-values strong{margin-top:3px;color:#1d2129;font-family:D-DIN,DIN,Arial,sans-serif;font-size:14px;line-height:18px;font-weight:700;white-space:nowrap}
+.project-economy-jv-reminder-values small{margin-left:2px;color:#4e5969;font-family:"Microsoft YaHei",Arial,sans-serif;font-size:12px;font-weight:400}
 .project-economy-overview-page.international .project-economy-warning-panel{min-height:380px}
 .project-economy-warning-alerts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 14px}
 .project-economy-warning-alerts>div{display:flex;align-items:center;justify-content:space-between;min-width:0;height:50px;padding:0 18px;border:1px solid #ff9933;border-radius:7px;background:#fff;box-sizing:border-box}
