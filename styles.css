@@ -263,7 +263,7 @@ button{cursor:pointer}
 }
 .layout{display:flex;height:calc(100vh - 52px);overflow:hidden}
 .sider{
-  width:250px;
+  width:200px;
   height:100%;
   background:#fff;
   border-right:1px solid var(--border);
@@ -8375,9 +8375,10 @@ body.entry-mode .digital-entry-footer{position:fixed;left:50%;bottom:80px;transf
 .economy-diagnosis-metric.warning-clickable .economy-warning-metric-value>button{font-family:"Microsoft YaHei",Arial,sans-serif;font-size:inherit;font-weight:900;font-style:normal;letter-spacing:0;-webkit-text-stroke:0;transform:none}
 .economy-warning-mini-trend{flex-basis:29px;width:29px;min-width:21px;height:14px}
 .economy-warning-metric-trend img{display:block;width:12px;height:12px;object-fit:contain}.economy-warning-metric-trend i{font-style:normal;line-height:1}
-.economy-diagnosis-metrics{grid-template-columns:minmax(380px,3fr) minmax(720px,7fr)!important;gap:12px;padding:0;background:transparent;box-shadow:none}
-.economy-diagnosis-summary-group,.economy-diagnosis-warning-group{min-height:96px;display:grid;align-items:center;border:0;border-radius:8px;overflow:hidden}
+.economy-diagnosis-metrics{height:96px;min-height:96px;max-height:96px;grid-template-columns:minmax(430px,3.4fr) minmax(720px,6.6fr)!important;gap:12px;padding:0;background:transparent;box-shadow:none;box-sizing:border-box;overflow-x:auto;overflow-y:hidden}
+.economy-diagnosis-summary-group,.economy-diagnosis-warning-group{height:96px;min-height:0;display:grid;align-items:center;border:0;border-radius:8px;box-sizing:border-box;overflow:hidden}
 .economy-diagnosis-summary-group{grid-template-columns:repeat(2,minmax(0,1fr));padding:10px 12px;background:#edf4ff}
+.economy-diagnosis-summary-icon{display:block;width:52px;height:54px;flex:0 0 52px;object-fit:contain}
 .economy-diagnosis-warning-group{grid-template-columns:repeat(4,minmax(150px,1fr));padding:10px 12px;background:#fff}
 .economy-diagnosis-summary-group .economy-diagnosis-metric:first-child{border-right:1px solid #dfe7f2}
 .economy-diagnosis-warning-group .economy-diagnosis-metric{justify-content:center;text-align:left}
@@ -20204,3 +20205,10 @@ body.mobile-mode .mobile-tabbar .tab-create.active span:after{
 .modal.construction-project-detail-modal .modal-bd{padding:16px!important;overflow:hidden!important;background:#F7F8FA;}
 .construction-project-detail-modal-content{height:100%;min-height:0;}
 .construction-project-detail-modal-content .project-detail-page-v218{height:100%;min-height:0;overflow:auto;}
+
+/* Economy diagnosis KPI strip: final override after shared production dashboard rules. */
+.economy-dashboard-page .production-value-top-strip.economy-diagnosis-metrics{height:104px!important;min-height:104px!important;max-height:104px!important;grid-template-columns:minmax(360px,3.4fr) minmax(0,6.6fr)!important;align-items:stretch!important;padding:0!important;overflow:hidden!important}
+.economy-dashboard-page .economy-diagnosis-summary-group,.economy-dashboard-page .economy-diagnosis-warning-group{height:104px!important;min-height:0!important;padding:8px 10px!important;box-sizing:border-box!important;overflow:hidden!important}
+.economy-dashboard-page .economy-diagnosis-summary-group{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.economy-dashboard-page .economy-diagnosis-warning-group{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+.economy-dashboard-page .economy-diagnosis-metric{height:72px;min-height:0;align-self:center}
