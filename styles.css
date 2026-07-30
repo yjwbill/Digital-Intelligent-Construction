@@ -17314,6 +17314,23 @@ body.mobile-mode .mobile-manual-scroll{
 .production-value-dashboard.single-company .production-value-main-matrix.multi-column .production-value-main-row:nth-child(n+3){
   border-left:1px solid #dfe8f4;
 }
+.production-value-dashboard.single-company .production-value-main-matrix.three-business .production-value-main-row{
+  grid-template-columns:1fr;
+  grid-template-rows:42px minmax(0,1fr);
+  border-top:0;
+}
+.production-value-dashboard.single-company .production-value-main-matrix.three-business .production-value-main-row:nth-child(n+2){
+  border-left:1px solid #dfe8f4;
+}
+.production-value-dashboard.single-company .production-value-main-matrix.three-business .production-value-main-row-label{
+  min-height:42px;
+  border-right:0;
+  border-bottom:1px solid #dfe8f4;
+  font-size:18px;
+}
+.production-value-dashboard.single-company .production-value-main-matrix.three-business .production-value-main-categories{
+  min-height:0;
+}
 .production-value-main-row-label{
   display:grid;
   place-items:center;
