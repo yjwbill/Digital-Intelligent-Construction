@@ -646,7 +646,7 @@ function renderEnterpriseConstructionLogProjectFilters(records){
   const s=enterpriseConstructionLogProjectViewState;
   const areas=[...new Set(records.map(record=>record.workArea))];
   return `<div class="project-log-filter-row enterprise-log-project-filter-row">
-    <label class="project-log-filter-item"><span>施工工区</span><select id="enterpriseProjectLogArea" class="select"><option value="">请选择施工工区</option>${areas.map(area=>`<option ${area===s.workArea?"selected":""}>${area}</option>`).join("")}</select></label>
+    <label class="project-log-filter-item"><span>施工工区</span><select id="enterpriseProjectLogArea" class="select"><option value="">全部</option>${areas.map(area=>`<option ${area===s.workArea?"selected":""}>${area}</option>`).join("")}</select></label>
     <label class="project-log-filter-item project-log-date-filter"><span>上报日期</span><div><input id="enterpriseProjectLogStart" class="input" type="date" value="${s.startDate}"/><em>-</em><input id="enterpriseProjectLogEnd" class="input" type="date" value="${s.endDate}"/></div></label>
     <label class="project-log-filter-item"><span>关键内容</span><input id="enterpriseProjectLogKeyword" class="input" value="${escapeAttr(s.keyword)}" placeholder="请输入施工日志内容关键字" onkeydown="if(event.key==='Enter')queryEnterpriseConstructionLogProject()"/></label>
     <button class="btn primary" onclick="queryEnterpriseConstructionLogProject()">查询</button><button class="btn" onclick="resetEnterpriseConstructionLogProject()">重置</button>
