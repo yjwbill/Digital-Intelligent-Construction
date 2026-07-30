@@ -225,10 +225,9 @@ function renderOrgManagementPage(){
         <div class="org-tree-hd">
           <div class="card-title">组织树</div>
           <div class="actions">
-            <button class="btn" onclick="exportMasterData()">导出数据</button>
-            <label class="btn" style="margin:0;cursor:pointer">导入数据<input type="file" accept="application/json" onchange="importMasterDataFile(this)" style="display:none"/></label>
-            <button class="btn" onclick="resetMasterData()">恢复默认</button>
-            <button class="btn primary" onclick="openOrgAddModal('${currentOrgId}')">新增组织</button>
+            <button class="btn" onclick="exportMasterData()">导出</button>
+            <label class="btn" style="margin:0;cursor:pointer">导入<input type="file" accept="application/json" onchange="importMasterDataFile(this)" style="display:none"/></label>
+            <button class="btn primary" onclick="openOrgAddModal('${currentOrgId}')">新增</button>
           </div>
         </div>
 

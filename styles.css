@@ -20208,6 +20208,82 @@ body.mobile-mode .mobile-tabbar .tab-create.active span:after{
 /* Economy diagnosis KPI strip: final override after shared production dashboard rules. */
 .economy-dashboard-page .production-value-top-strip.economy-diagnosis-metrics{height:104px!important;min-height:104px!important;max-height:104px!important;grid-template-columns:minmax(360px,3.4fr) minmax(0,6.6fr)!important;align-items:stretch!important;padding:0!important;overflow:hidden!important}
 .economy-dashboard-page .economy-diagnosis-summary-group,.economy-dashboard-page .economy-diagnosis-warning-group{height:104px!important;min-height:0!important;padding:8px 10px!important;box-sizing:border-box!important;overflow:hidden!important}
+.economy-dashboard-page .economy-diagnosis-summary-group{padding:8px 24px!important}
 .economy-dashboard-page .economy-diagnosis-summary-group{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 .economy-dashboard-page .economy-diagnosis-warning-group{grid-template-columns:repeat(4,minmax(0,1fr))!important}
 .economy-dashboard-page .economy-diagnosis-metric{height:72px;min-height:0;align-self:center}
+.economy-dashboard-page .economy-diagnosis-summary-group .economy-diagnosis-metric:first-child{justify-content:flex-start;padding:0!important}
+.economy-dashboard-page .economy-diagnosis-summary-group .economy-diagnosis-metric:last-child{justify-content:flex-end;padding:0!important}
+
+/* V2.2.503 unified KPI typography across safety, production and economy dashboards */
+.screen-stat-item p,
+.safety-eval-score-card h3,
+.safety-eval-summary-item span,
+.production-value-metric p,
+.production-value-mini-kpis p,
+.production-statistics-kpi span,
+.production-overview-metric-list span,
+.production-major-kpi-metric span,
+.production-major-status>span,
+.production-major-status>div span,
+.economy-diagnosis-metric p{
+  color:#2F3A4C!important;
+  font-family:"Microsoft YaHei",Arial,sans-serif!important;
+  font-size:14px!important;
+  font-weight:800!important;
+}
+.screen-stat-item strong,
+.score-row strong,
+.safety-eval-summary-item strong,
+.production-value-metric strong,
+.production-value-mini-kpis strong,
+.production-statistics-kpi strong,
+.production-major-kpi strong,
+.production-major-status>strong,
+.production-major-status b,
+.economy-diagnosis-metric strong{
+  color:#101828;
+  font-family:"Microsoft YaHei",Arial,sans-serif!important;
+  font-size:24px!important;
+  font-weight:900!important;
+}
+.production-overview-metric-list strong{
+  color:#101828!important;
+  font-family:"Microsoft YaHei",Arial,sans-serif!important;
+  font-size:20px!important;
+  font-weight:900!important;
+}
+.screen-stat-item em,
+.score-row span,
+.safety-eval-summary-item strong em,
+.production-value-metric em,
+.production-value-mini-kpis em,
+.production-statistics-kpi strong em,
+.production-overview-metric-list strong em,
+.production-major-kpi strong em,
+.production-major-status b em,
+.economy-diagnosis-metric em{
+  color:#101828!important;
+  font-family:"Microsoft YaHei",Arial,sans-serif!important;
+  font-size:13px!important;
+  font-weight:800!important;
+}
+.economy-diagnosis-metric .economy-warning-metric-value>button{
+  color:#101828!important;
+}
+
+/* V2.2.505 organization tree action typography alignment */
+.org-tree-hd>.actions>.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  min-width:52px;
+  margin:0;
+  font-family:"Microsoft YaHei",Arial,sans-serif;
+  font-size:13px;
+  font-weight:700;
+  line-height:1;
+  text-align:center;
+  white-space:nowrap;
+}

@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.500-economy-kpi-fixed-layout";
+  const version="2.2.505-organization-tree-action-typography";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",
