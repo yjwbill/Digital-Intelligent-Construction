@@ -233,6 +233,7 @@ function selectBusinessChildMenu(line,gi,ci,name){
   if(line==="production"&&parent?.name==="产值管理"&&name==="完工未结算管理")return renderFinishedUnsettledOutputPage();
   if(line==="production"&&parent?.name==="产值管理"&&name==="其他业态产值申报")return renderOtherBizOutputReportPage();
   if(line==="production"&&parent?.name==="纳统管理"&&name==="纳统填报")return renderStatisticsFillingPage();
+  if(line==="production"&&parent?.name==="纳统管理"&&name==="单位维护")return renderStatisticsUnitMaintenancePage();
 
   if(line==="production"&&parent?.name==="供应商管理"&&name==="基础画像"){
     return renderSupplierLedgerPage();

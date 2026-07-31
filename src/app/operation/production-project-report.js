@@ -1143,7 +1143,7 @@ function renderOperationProductionProjectReportPage(){
     <div class="compact-title-row">
       <div class="module-title">生产项目报表</div>
     </div>
-    <div class="base-auth-layout">
+    <div class="base-auth-layout operation-production-report-layout">
       <section class="org-tree-panel">
         <div class="org-tree-hd">
           <div class="card-title">业态选择</div>

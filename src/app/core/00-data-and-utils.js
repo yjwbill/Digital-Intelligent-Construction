@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.511-STATISTICS-FILLING-UNIFIED-STYLE";
-const APP_CODE_VERSION_NAME="六业态纳统填报版";
-const APP_CODE_VERSION_TIME="2026-07-31 00:20";
-const APP_CODE_VERSION_DESC="企业管理生产条线新增纳统管理与纳统填报，按服务业、建筑业、工业、房地产业、批发零售业、金融业展示独立填报表。";
+const APP_CODE_VERSION="EM-20260701-V2.2.515-SERVICE-STATISTICS-HEADER";
+const APP_CODE_VERSION_NAME="服务业纳统表头优化版";
+const APP_CODE_VERSION_TIME="2026-07-31 11:40";
+const APP_CODE_VERSION_DESC="服务业纳统填报精简重复营收表头，将当月预计数更正为当月累计数，并统一增长率列宽。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
@@ -722,7 +722,8 @@ const businessMenus={
         name:"纳统管理",
         open:false,
         children:[
-          {name:"纳统填报"}
+          {name:"纳统填报"},
+          {name:"单位维护"}
         ]
       },
       {

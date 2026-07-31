@@ -1980,6 +1980,10 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
   text-overflow:ellipsis;
 }
 
+.operation-production-report-layout{
+  grid-template-columns:240px minmax(0,1fr);
+}
+
 .org-node-tools{
   display:none;
   gap:2px;
@@ -19306,7 +19310,7 @@ body.mobile-mode .mobile-tabbar .tab-create.active span:after{
 .statistics-filling-date-range span{text-align:center;color:var(--muted)}
 .statistics-filling-table-card{min-height:0;flex:1;margin:0;display:flex;flex-direction:column;overflow:hidden}
 .statistics-filling-table-wrap{min-height:0;flex:1;overflow:auto;overscroll-behavior:contain}
-.statistics-filling-table-wrap table{width:max-content;min-width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:12px}
+.statistics-filling-table-wrap table{width:max-content;min-width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:14px}
 .statistics-filling-table-wrap th,.statistics-filling-table-wrap td{height:36px;padding:6px 8px;border-right:1px solid #EEF0F3;border-bottom:1px solid #EEF0F3;background:#fff;text-align:center;white-space:nowrap}
 .statistics-filling-table-wrap thead th{height:34px;position:sticky;z-index:5;background:#F7F8FA;color:#4E5969;font-weight:700}
 .statistics-filling-table-wrap thead tr:nth-child(1) th{top:0}.statistics-filling-table-wrap thead tr:nth-child(2) th{top:34px}.statistics-filling-table-wrap thead tr:nth-child(3) th{top:68px}
@@ -19321,6 +19325,7 @@ body.mobile-mode .mobile-tabbar .tab-create.active span:after{
 .statistics-fill-status{font-weight:700}.statistics-fill-status.已上报{color:#165DFF}.statistics-fill-status.待审核{color:#FF7D00}.statistics-fill-status.未上报{color:#86909C}
 .statistics-filling-empty{height:220px!important;color:#86909C}
 .statistics-filling-pagination{flex:0 0 48px;min-height:48px;padding:8px 14px;background:#fff}
+.statistics-filling-pagination{font-size:14px}
 .statistics-filling-pagination .pager{margin-left:auto}.statistics-filling-pagination .btn{height:28px;min-width:56px;padding:0 10px}.statistics-filling-pagination .mini-select{width:88px;height:28px}
 @media(max-width:1280px){.statistics-filling-date-item{grid-column:1/-1}}
 body.mobile-mode .mobile-tabbar .tab-create strong{

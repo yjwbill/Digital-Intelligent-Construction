@@ -2,7 +2,7 @@
 
 这是一个用于产品演示的静态前端 Demo，已整理为适合 GitHub Pages 发布的目录结构。
 
-当前版本：`EM-20260701-V2.2.511-STATISTICS-FILLING-UNIFIED-STYLE`
+当前版本：`EM-20260701-V2.2.515-SERVICE-STATISTICS-HEADER`
 
 ## 在线发布
 

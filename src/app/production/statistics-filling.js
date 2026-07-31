@@ -1,5 +1,5 @@
 const statisticsFillingIndustryConfigs=[
-  {key:"服务业",label:"服务业",badge:30,metric:"营收",groups:["当月发生数","当月预计数","次月预计数（预测）","1-2月累计数（预测）","1-5月累计数（预测）","1-8月累计数（预测）","1-11月累计数（预测）"]},
+  {key:"服务业",label:"服务业",badge:30,metric:"营收",groups:["当月发生数","当月累计数","次月预计数（预测）","1-2月累计数（预测）","1-5月累计数（预测）","1-8月累计数（预测）","1-11月累计数（预测）"]},
   {key:"建筑业",label:"建筑业",badge:22,metric:"产值",dual:true,groups:["当月发生数","当月累计数","次月累计数（预测）","季度累计数（预测）","全年累计数（预测）"]},
   {key:"工业",sourceKey:"制造业（工业）",label:"工业",badge:7,metric:"产值",groups:["当月发生数","当月累计数","次月累计数（预测）","季度累计数（预测）","全年累计数（预测）"]},
   {key:"房地产业",label:"房地产业",badge:9,realEstate:true,groups:["当月发生数","当月累计数","次月累计数（预测）","季度累计数（预测）","全年累计数（预测）"]},
@@ -99,14 +99,17 @@ function renderStatisticsFillingFilters(){
 }
 
 function renderStatisticsFillingHeader(config){
-  const common=`<th rowspan="3">序号</th><th rowspan="3">填报状态</th><th rowspan="3" class="enterprise">企业名称</th><th rowspan="3">所属单位</th><th rowspan="3">所属行业类别</th><th rowspan="3">填报时间</th><th rowspan="3">填报人</th>`;
+  const common=rowspan=>`<th rowspan="${rowspan}">序号</th><th rowspan="${rowspan}">填报状态</th><th rowspan="${rowspan}" class="enterprise">企业名称</th><th rowspan="${rowspan}">所属单位</th><th rowspan="${rowspan}">所属行业类别</th><th rowspan="${rowspan}">填报时间</th><th rowspan="${rowspan}">填报人</th>`;
   if(config.realEstate){
-    return `<thead><tr>${common}${config.groups.map(group=>`<th colspan="12">${group}</th>`).join("")}<th rowspan="3">操作</th></tr><tr>${config.groups.map(()=>["产值","营收","投资额","销售面积"].map(metric=>`<th colspan="3">${metric}</th>`).join("")).join("")}</tr><tr>${config.groups.map(()=>["产值（亿元）","上年同期（亿元）","增长率","营收（亿元）","上年同期（亿元）","增长率","投资额（亿元）","上年同期（亿元）","增长率","销售面积","上年同期","增长率"].map(item=>`<th>${item}</th>`).join("")).join("")}</tr></thead>`;
+    return `<thead><tr>${common(3)}${config.groups.map(group=>`<th colspan="12">${group}</th>`).join("")}<th rowspan="3">操作</th></tr><tr>${config.groups.map(()=>["产值","营收","投资额","销售面积"].map(metric=>`<th colspan="3">${metric}</th>`).join("")).join("")}</tr><tr>${config.groups.map(()=>["产值（亿元）","上年同期（亿元）","增长率","营收（亿元）","上年同期（亿元）","增长率","投资额（亿元）","上年同期（亿元）","增长率","销售面积","上年同期","增长率"].map(item=>`<th>${item}</th>`).join("")).join("")}</tr></thead>`;
   }
   if(config.dual){
-    return `<thead><tr>${common}${config.groups.map(group=>`<th colspan="6">${group}</th>`).join("")}<th rowspan="3">操作</th></tr><tr>${config.groups.map(()=>`<th colspan="3">建筑业总产值</th><th colspan="3">其中在地建筑业产值</th>`).join("")}</tr><tr>${config.groups.map(()=>["产值（亿元）","上年同期（亿元）","增长率","产值（亿元）","上年同期（亿元）","增长率"].map(item=>`<th>${item}</th>`).join("")).join("")}</tr></thead>`;
+    return `<thead><tr>${common(3)}${config.groups.map(group=>`<th colspan="6">${group}</th>`).join("")}<th rowspan="3">操作</th></tr><tr>${config.groups.map(()=>`<th colspan="3">建筑业总产值</th><th colspan="3">其中在地建筑业产值</th>`).join("")}</tr><tr>${config.groups.map(()=>["产值（亿元）","上年同期（亿元）","增长率","产值（亿元）","上年同期（亿元）","增长率"].map(item=>`<th>${item}</th>`).join("")).join("")}</tr></thead>`;
   }
-  return `<thead><tr>${common}${config.groups.map(group=>`<th colspan="3">${group}</th>`).join("")}<th rowspan="3">操作</th></tr><tr>${config.groups.map(()=>`<th colspan="3">${config.metric}</th>`).join("")}</tr><tr>${config.groups.map(()=>[`${config.metric}（亿元）`,`上年同期（亿元）`,`增长率`].map(item=>`<th>${item}</th>`).join("")).join("")}</tr></thead>`;
+  if(config.key==="服务业"){
+    return `<thead><tr>${common(2)}${config.groups.map(group=>`<th colspan="3">${group}</th>`).join("")}<th rowspan="2">操作</th></tr><tr>${config.groups.map(()=>[`${config.metric}（亿元）`,`上年同期（亿元）`,`增长率`].map(item=>`<th${item==="增长率"?` style="width:110px;min-width:110px;max-width:110px"`:""}>${item}</th>`).join("")).join("")}</tr></thead>`;
+  }
+  return `<thead><tr>${common(3)}${config.groups.map(group=>`<th colspan="3">${group}</th>`).join("")}<th rowspan="3">操作</th></tr><tr>${config.groups.map(()=>`<th colspan="3">${config.metric}</th>`).join("")}</tr><tr>${config.groups.map(()=>[`${config.metric}（亿元）`,`上年同期（亿元）`,`增长率`].map(item=>`<th>${item}</th>`).join("")).join("")}</tr></thead>`;
 }
 
 function renderStatisticsFillingMetricCells(record,config){
