@@ -2,7 +2,7 @@
 
 这是一个用于产品演示的静态前端 Demo，已整理为适合 GitHub Pages 发布的目录结构。
 
-当前版本：`EM-20260701-V2.2.509-READONLY-RADIO-SELECTION`
+当前版本：`EM-20260701-V2.2.510-STATISTICS-FILLING-SIX-INDUSTRIES`
 
 ## 在线发布
 

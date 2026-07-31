@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.509-READONLY-RADIO-SELECTION";
-const APP_CODE_VERSION_NAME="查看态单选选中效果版";
-const APP_CODE_VERSION_TIME="2026-07-30 22:20";
-const APP_CODE_VERSION_DESC="项目详情查看界面的是/否字段改用标准只读单选组件，正确展示实际选中圆点。";
+const APP_CODE_VERSION="EM-20260701-V2.2.510-STATISTICS-FILLING-SIX-INDUSTRIES";
+const APP_CODE_VERSION_NAME="六业态纳统填报版";
+const APP_CODE_VERSION_TIME="2026-07-31 00:20";
+const APP_CODE_VERSION_DESC="企业管理生产条线新增纳统管理与纳统填报，按服务业、建筑业、工业、房地产业、批发零售业、金融业展示独立填报表。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
@@ -715,6 +715,14 @@ const businessMenus={
           {name:"实际产值上报"},
           {name:"完工未结算管理"},
           {name:"其他业态产值申报"}
+        ]
+      },
+      {
+        icon:"📊",
+        name:"纳统管理",
+        open:false,
+        children:[
+          {name:"纳统填报"}
         ]
       },
       {

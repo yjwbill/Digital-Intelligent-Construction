@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.509-readonly-radio-selection";
+  const version="2.2.510-statistics-filling-six-industries";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",
@@ -13,6 +13,7 @@
     "src/app/safety/evaluation-dashboard.js",
     "src/app/production/dashboard-statistics-data.js",
     "src/app/production/dashboard.js",
+    "src/app/production/statistics-filling.js",
     "src/app/production/dashboard-projects.js",
     "src/app/home/construction-log.js",
     "src/app/production/output-management.js",
