@@ -72,11 +72,14 @@ function getStatisticsFillingRealEstateValues(record,groupIndex){
 }
 
 function renderStatisticsFillingIndustryRail(){
-  return `<aside class="statistics-filling-industries"><div class="statistics-filling-industry-title"><strong>业态类型</strong><button type="button" title="刷新" onclick="renderStatisticsFillingPage()">↻</button></div>${statisticsFillingIndustryConfigs.map((item,index)=>{
+  return statisticsFillingIndustryConfigs.map(item=>{
     const count=getStatisticsFillingRowsUnfiltered(item).length;
     const reported=item.badge??getStatisticsFillingRowsUnfiltered(item).filter(row=>statisticsFillingHasValue(row.metrics)).length;
-    return `<button type="button" class="${item.key===statisticsFillingState.industry?"active":""}" onclick="switchStatisticsFillingIndustry('${item.key}')"><span><i class="tone-${index}">▰</i>${item.label}</span><em>${count}</em><b>${reported}</b></button>`;
-  }).join("")}</aside>`;
+    return `<div class="org-tree-node ${item.key===statisticsFillingState.industry?"active":""}" onclick="switchStatisticsFillingIndustry('${item.key}')">
+      <div class="org-node-left"><span class="org-node-icon">📁</span><span class="org-node-name">${item.label}（${count}条）</span></div>
+      <span class="statistics-filling-reported" title="已填报 ${reported} 条">${reported}</span>
+    </div>`;
+  }).join("");
 }
 
 function getStatisticsFillingRowsUnfiltered(config){
@@ -85,15 +88,14 @@ function getStatisticsFillingRowsUnfiltered(config){
 
 function renderStatisticsFillingFilters(){
   const companies=[...new Set(getStatisticsFillingRowsUnfiltered(getStatisticsFillingConfig()).map(row=>row.company).filter(Boolean))];
-  return `<section class="statistics-filling-query">
-    <label><span>纳统年月：</span><input id="statisticsFillingMonth" class="input" type="month" value="${statisticsFillingState.month}"/></label>
-    <label><span>是否重点关注：</span><select id="statisticsFillingFocus" class="select"><option value="">全部</option><option value="是" ${statisticsFillingState.focus==="是"?"selected":""}>是</option><option value="否" ${statisticsFillingState.focus==="否"?"selected":""}>否</option></select></label>
-    <label><span>企业名称：</span><input id="statisticsFillingEnterprise" class="input" value="${escapeAttr(statisticsFillingState.enterprise)}" placeholder="请输入企业名称"/></label>
-    <label><span>填报状态：</span><select id="statisticsFillingStatus" class="select"><option value="">全部</option>${["未上报","待审核","已上报"].map(value=>`<option value="${value}" ${statisticsFillingState.status===value?"selected":""}>${value}</option>`).join("")}</select></label>
-    <label><span>所属单位：</span><select id="statisticsFillingCompany" class="select"><option value="">全部</option>${companies.map(value=>`<option value="${escapeAttr(value)}" ${statisticsFillingState.company===value?"selected":""}>${value}</option>`).join("")}</select></label>
-    <label class="date-range"><span>填报时间：</span><input id="statisticsFillingStartDate" class="input" type="date" value="${statisticsFillingState.startDate}"/><i>至</i><input id="statisticsFillingEndDate" class="input" type="date" value="${statisticsFillingState.endDate}"/></label>
-    <div class="statistics-filling-query-actions"><button class="btn primary" onclick="queryStatisticsFilling()">查询</button><button class="btn" onclick="resetStatisticsFilling()">重置</button></div>
-  </section>`;
+  const fieldsHtml=`
+    <div class="form-item"><label>纳统年月</label><input id="statisticsFillingMonth" class="input" type="month" value="${statisticsFillingState.month}"/></div>
+    ${renderOperationSelect("statisticsFillingFocus","是否重点关注",["是","否"],statisticsFillingState.focus)}
+    ${renderOperationInput("statisticsFillingEnterprise","企业名称",statisticsFillingState.enterprise,"请输入企业名称")}
+    ${renderOperationSelect("statisticsFillingStatus","填报状态",["未上报","待审核","已上报"],statisticsFillingState.status)}
+    ${renderOperationSelect("statisticsFillingCompany","所属单位",companies,statisticsFillingState.company)}
+    <div class="form-item statistics-filling-date-item"><label>填报时间</label><div class="statistics-filling-date-range"><input id="statisticsFillingStartDate" class="input" type="date" value="${statisticsFillingState.startDate}"/><span>至</span><input id="statisticsFillingEndDate" class="input" type="date" value="${statisticsFillingState.endDate}"/></div></div>`;
+  return renderUnifiedQueryCard(fieldsHtml,{id:"statisticsFillingQueryCard",resetFn:"resetStatisticsFilling()",queryFn:"queryStatisticsFilling()",canCollapse:false});
 }
 
 function renderStatisticsFillingHeader(config){
@@ -120,13 +122,13 @@ function renderStatisticsFillingTable(){
   const start=(statisticsFillingState.page-1)*statisticsFillingState.pageSize;
   const pageRows=rows.slice(start,start+statisticsFillingState.pageSize);
   const metricColCount=config.realEstate?config.groups.length*12:config.dual?config.groups.length*6:config.groups.length*3;
-  return `<section class="statistics-filling-table-card"><div class="statistics-filling-table-wrap"><table>${renderStatisticsFillingHeader(config)}<tbody>${pageRows.map((record,index)=>`<tr><td>${start+index+1}</td><td><span class="statistics-fill-status ${record.__status}">${record.__status}</span></td><td class="enterprise" title="${escapeAttr(record.legalEntity)}">${record.legalEntity}</td><td>${record.company||"-"}</td><td>${config.label}</td><td>${record.__time||"-"}</td><td>${record.__filler||"-"}</td>${renderStatisticsFillingMetricCells(record,config)}<td class="actions"><a onclick="showToast('查看：${escapeAttr(record.legalEntity)}')">查看</a>${record.__status!=="已上报"?`<a onclick="showToast('编辑：${escapeAttr(record.legalEntity)}')">编辑</a>`:""}</td></tr>`).join("")||`<tr><td colspan="${metricColCount+8}" class="statistics-filling-empty">暂无符合条件的数据</td></tr>`}</tbody></table></div><div class="pagination statistics-filling-pagination"><span>共 ${rows.length} 条记录</span><div class="pager"><button class="btn mini" ${statisticsFillingState.page<=1?"disabled":""} onclick="changeStatisticsFillingPage(-1)">上一页</button><b>第 ${statisticsFillingState.page} / ${totalPages} 页</b><button class="btn mini" ${statisticsFillingState.page>=totalPages?"disabled":""} onclick="changeStatisticsFillingPage(1)">下一页</button><select class="select mini-select" onchange="changeStatisticsFillingPageSize(this.value)">${[20,50,100].map(size=>`<option value="${size}" ${statisticsFillingState.pageSize===size?"selected":""}>${size}条/页</option>`).join("")}</select></div></div></section>`;
+  return `<section class="card table-card statistics-filling-table-card"><div class="card-hd"><div class="card-title">纳统填报列表</div><div class="actions"><button class="btn" onclick="renderStatisticsFillingPage()">刷新</button><button class="btn primary" onclick="showToast('导出任务已创建')">导出</button></div></div><div class="table-wrap statistics-filling-table-wrap"><table>${renderStatisticsFillingHeader(config)}<tbody>${pageRows.map((record,index)=>`<tr><td>${start+index+1}</td><td><span class="statistics-fill-status ${record.__status}">${record.__status}</span></td><td class="enterprise" title="${escapeAttr(record.legalEntity)}">${record.legalEntity}</td><td>${record.company||"-"}</td><td>${config.label}</td><td>${record.__time||"-"}</td><td>${record.__filler||"-"}</td>${renderStatisticsFillingMetricCells(record,config)}<td class="actions"><a onclick="showToast('查看：${escapeAttr(record.legalEntity)}')">查看</a>${record.__status!=="已上报"?`<a onclick="showToast('编辑：${escapeAttr(record.legalEntity)}')">编辑</a>`:""}</td></tr>`).join("")||`<tr><td colspan="${metricColCount+8}" class="statistics-filling-empty">暂无符合条件的数据</td></tr>`}</tbody></table></div><div class="pagination statistics-filling-pagination"><span>共 ${rows.length} 条记录</span><div class="pager"><button class="btn mini" ${statisticsFillingState.page<=1?"disabled":""} onclick="changeStatisticsFillingPage(-1)">上一页</button><b>第 ${statisticsFillingState.page} / ${totalPages} 页</b><button class="btn mini" ${statisticsFillingState.page>=totalPages?"disabled":""} onclick="changeStatisticsFillingPage(1)">下一页</button><select class="select mini-select" onchange="changeStatisticsFillingPageSize(this.value)">${[20,50,100].map(size=>`<option value="${size}" ${statisticsFillingState.pageSize===size?"selected":""}>${size}条/页</option>`).join("")}</select></div></div></section>`;
 }
 
 function renderStatisticsFillingPage(){
   detailPage.style.display="none";
-  listPage.style.display="block";
-  listPage.innerHTML=`<div class="statistics-filling-page"><div class="compact-title-row"><div class="module-title">纳统管理 / 纳统填报</div></div><div class="statistics-filling-layout">${renderStatisticsFillingIndustryRail()}<main class="statistics-filling-main">${renderStatisticsFillingFilters()}${renderStatisticsFillingTable()}</main></div></div>`;
+  listPage.style.display="flex";
+  listPage.innerHTML=`<div class="statistics-filling-page"><div class="compact-title-row"><div class="module-title">纳统管理 / 纳统填报</div></div><div class="base-auth-layout statistics-filling-layout"><section class="org-tree-panel"><div class="org-tree-hd"><div class="card-title">业态选择</div></div><div class="org-tree-body">${renderStatisticsFillingIndustryRail()}</div></section><section class="org-user-panel"><div class="org-user-body statistics-filling-main">${renderStatisticsFillingFilters()}${renderStatisticsFillingTable()}</div></section></div></div>`;
 }
 
 function switchStatisticsFillingIndustry(industry){statisticsFillingState.industry=industry;statisticsFillingState.company="";statisticsFillingState.page=1;renderStatisticsFillingPage();}

@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.510-statistics-filling-six-industries";
+  const version="2.2.511-statistics-filling-unified-style";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",
