@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.515-service-statistics-header";
+  const version="2.2.520-statistics-sticky-header-fix";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",

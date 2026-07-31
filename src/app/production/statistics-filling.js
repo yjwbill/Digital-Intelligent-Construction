@@ -4,7 +4,7 @@ const statisticsFillingIndustryConfigs=[
   {key:"工业",sourceKey:"制造业（工业）",label:"工业",badge:7,metric:"产值",groups:["当月发生数","当月累计数","次月累计数（预测）","季度累计数（预测）","全年累计数（预测）"]},
   {key:"房地产业",label:"房地产业",badge:9,realEstate:true,groups:["当月发生数","当月累计数","次月累计数（预测）","季度累计数（预测）","全年累计数（预测）"]},
   {key:"零售批发",label:"批发零售业",badge:1,metric:"销售额",groups:["当月发生数","当月累计数","次月累计数（预测）","季度累计数（预测）","全年累计数（预测）"]},
-  {key:"金融业",label:"金融业",badge:1,metric:"营收",groups:["当月发生数","当月预计数","次月预计数（预测）","1-2月累计数（预测）","1-5月累计数（预测）","1-8月累计数（预测）","1-11月累计数（预测）"]}
+  {key:"金融业",label:"金融业",badge:1,metric:"营收",groups:["当月发生数","当月累计数","次月预计数（预测）","1-2月累计数（预测）","1-5月累计数（预测）","1-8月累计数（预测）","1-11月累计数（预测）"]}
 ];
 
 const statisticsFillingState={industry:"服务业",month:"2026-06",focus:"",enterprise:"",company:"",status:"",startDate:"",endDate:"",page:1,pageSize:50};
@@ -104,9 +104,9 @@ function renderStatisticsFillingHeader(config){
     return `<thead><tr>${common(3)}${config.groups.map(group=>`<th colspan="12">${group}</th>`).join("")}<th rowspan="3">操作</th></tr><tr>${config.groups.map(()=>["产值","营收","投资额","销售面积"].map(metric=>`<th colspan="3">${metric}</th>`).join("")).join("")}</tr><tr>${config.groups.map(()=>["产值（亿元）","上年同期（亿元）","增长率","营收（亿元）","上年同期（亿元）","增长率","投资额（亿元）","上年同期（亿元）","增长率","销售面积","上年同期","增长率"].map(item=>`<th>${item}</th>`).join("")).join("")}</tr></thead>`;
   }
   if(config.dual){
-    return `<thead><tr>${common(3)}${config.groups.map(group=>`<th colspan="6">${group}</th>`).join("")}<th rowspan="3">操作</th></tr><tr>${config.groups.map(()=>`<th colspan="3">建筑业总产值</th><th colspan="3">其中在地建筑业产值</th>`).join("")}</tr><tr>${config.groups.map(()=>["产值（亿元）","上年同期（亿元）","增长率","产值（亿元）","上年同期（亿元）","增长率"].map(item=>`<th>${item}</th>`).join("")).join("")}</tr></thead>`;
+    return `<thead><tr>${common(3)}${config.groups.map(group=>`<th colspan="6">${group}</th>`).join("")}<th rowspan="3">操作</th></tr><tr>${config.groups.map(()=>`<th colspan="3">建筑业总产值</th><th colspan="3">其中在地建筑业产值</th>`).join("")}</tr><tr>${config.groups.map(()=>["产值（亿元）","上年同期（亿元）","增长率","产值（亿元）","上年同期（亿元）","增长率"].map(item=>`<th${item==="增长率"?` style="width:110px;min-width:110px;max-width:110px"`:""}>${item}</th>`).join("")).join("")}</tr></thead>`;
   }
-  if(config.key==="服务业"){
+  if(config.key==="服务业"||config.key==="工业"||config.key==="零售批发"||config.key==="金融业"){
     return `<thead><tr>${common(2)}${config.groups.map(group=>`<th colspan="3">${group}</th>`).join("")}<th rowspan="2">操作</th></tr><tr>${config.groups.map(()=>[`${config.metric}（亿元）`,`上年同期（亿元）`,`增长率`].map(item=>`<th${item==="增长率"?` style="width:110px;min-width:110px;max-width:110px"`:""}>${item}</th>`).join("")).join("")}</tr></thead>`;
   }
   return `<thead><tr>${common(3)}${config.groups.map(group=>`<th colspan="3">${group}</th>`).join("")}<th rowspan="3">操作</th></tr><tr>${config.groups.map(()=>`<th colspan="3">${config.metric}</th>`).join("")}</tr><tr>${config.groups.map(()=>[`${config.metric}（亿元）`,`上年同期（亿元）`,`增长率`].map(item=>`<th>${item}</th>`).join("")).join("")}</tr></thead>`;

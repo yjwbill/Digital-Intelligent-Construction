@@ -19314,11 +19314,11 @@ body.mobile-mode .mobile-tabbar .tab-create.active span:after{
 .statistics-filling-table-wrap th,.statistics-filling-table-wrap td{height:36px;padding:6px 8px;border-right:1px solid #EEF0F3;border-bottom:1px solid #EEF0F3;background:#fff;text-align:center;white-space:nowrap}
 .statistics-filling-table-wrap thead th{height:34px;position:sticky;z-index:5;background:#F7F8FA;color:#4E5969;font-weight:700}
 .statistics-filling-table-wrap thead tr:nth-child(1) th{top:0}.statistics-filling-table-wrap thead tr:nth-child(2) th{top:34px}.statistics-filling-table-wrap thead tr:nth-child(3) th{top:68px}
-.statistics-filling-table-wrap th:nth-child(1),.statistics-filling-table-wrap td:nth-child(1){position:sticky;left:0;width:56px;min-width:56px;z-index:4}
-.statistics-filling-table-wrap th:nth-child(2),.statistics-filling-table-wrap td:nth-child(2){position:sticky;left:56px;width:76px;min-width:76px;z-index:4}
-.statistics-filling-table-wrap th:nth-child(3),.statistics-filling-table-wrap td:nth-child(3){position:sticky;left:132px;width:230px;min-width:230px;max-width:230px;z-index:4;text-align:left}
-.statistics-filling-table-wrap th:nth-child(4),.statistics-filling-table-wrap td:nth-child(4){position:sticky;left:362px;width:112px;min-width:112px;z-index:4}
-.statistics-filling-table-wrap thead th:nth-child(-n+4){z-index:8;background:#F7F8FA}
+.statistics-filling-table-wrap thead tr:first-child>th:nth-child(1),.statistics-filling-table-wrap tbody td:nth-child(1){position:sticky;left:0;width:56px;min-width:56px;z-index:4}
+.statistics-filling-table-wrap thead tr:first-child>th:nth-child(2),.statistics-filling-table-wrap tbody td:nth-child(2){position:sticky;left:56px;width:76px;min-width:76px;z-index:4}
+.statistics-filling-table-wrap thead tr:first-child>th:nth-child(3),.statistics-filling-table-wrap tbody td:nth-child(3){position:sticky;left:132px;width:230px;min-width:230px;max-width:230px;z-index:4;text-align:left}
+.statistics-filling-table-wrap thead tr:first-child>th:nth-child(4),.statistics-filling-table-wrap tbody td:nth-child(4){position:sticky;left:362px;width:112px;min-width:112px;z-index:4}
+.statistics-filling-table-wrap thead tr:first-child>th:nth-child(-n+4){z-index:8;background:#F7F8FA}
 .statistics-filling-table-wrap td.enterprise{overflow:hidden;text-overflow:ellipsis}
 .statistics-filling-table-wrap td.number{text-align:right;color:#344054}
 .statistics-filling-table-wrap td.actions{min-width:96px}.statistics-filling-table-wrap td.actions a{margin:0 5px;color:#165DFF;cursor:pointer}

@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.515-SERVICE-STATISTICS-HEADER";
-const APP_CODE_VERSION_NAME="服务业纳统表头优化版";
-const APP_CODE_VERSION_TIME="2026-07-31 11:40";
-const APP_CODE_VERSION_DESC="服务业纳统填报精简重复营收表头，将当月预计数更正为当月累计数，并统一增长率列宽。";
+const APP_CODE_VERSION="EM-20260701-V2.2.520-STATISTICS-STICKY-HEADER-FIX";
+const APP_CODE_VERSION_NAME="纳统冻结表头修复版";
+const APP_CODE_VERSION_TIME="2026-07-31 13:20";
+const APP_CODE_VERSION_DESC="修复纳统填报横向滚动时第二层指标表头误被冻结并覆盖左侧冻结列的问题。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
