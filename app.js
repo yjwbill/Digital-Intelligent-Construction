@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.521-project-construction-log-enhancement";
+  const version="2.2.526-file-detail-milestone-tabs";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",

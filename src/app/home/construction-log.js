@@ -125,7 +125,7 @@ function getEnterpriseConstructionLogRows(){
     return {
       ...project,
       reportStatus,
-      reportMethod:reportStatus==="已上报"?(getEnterpriseConstructionLogReportRecord(project,latestDay,enterpriseConstructionLogState.reportMonth).mode==="file"?"文件上报":"在线上报"):"",
+      reportMethod:reportStatus==="已上报"?getEnterpriseConstructionLogReportMethod(getEnterpriseConstructionLogReportRecord(project,latestDay,enterpriseConstructionLogState.reportMonth)):"",
       onTimeUpload:reportStatus==="已上报"?(project.id%5===0?"否":"是"):"否",
       latestUploadDate:uploadedDay
         ? `${enterpriseConstructionLogState.reportMonth}-${String(uploadedDay).padStart(2,"0")}`
@@ -160,8 +160,9 @@ function getEnterpriseConstructionLogTodayStatRows(){
   return filterEnterpriseConstructionLogSearchRows(constructionProjectData.map(project=>{
     const dailyState=getEnterpriseConstructionLogDayStateForMonth(project,day,"2026-07");
     const reportStatus=dailyState==="stopped"?"停工未上报":dailyState==="missing"?"未上报":"已上报";
-    const reportMethod=dailyState==="reported"?(getEnterpriseConstructionLogReportRecord(project,day,"2026-07").mode==="file"?"文件上报":"在线上报"):"";
-    return {...project,reportStatus,reportMethod};
+    const reportMethod=dailyState==="reported"?getEnterpriseConstructionLogReportMethod(getEnterpriseConstructionLogReportRecord(project,day,"2026-07")):"";
+    const onTimeUpload=reportStatus==="已上报"?(project.id%5===0?"否":"是"):"否";
+    return {...project,reportStatus,reportMethod,onTimeUpload};
   }));
 }
 
@@ -172,6 +173,9 @@ function getEnterpriseConstructionLogFilteredRows(){
   if(enterpriseConstructionLogState.statKey==="stopped")return rows.filter(row=>row.reportStatus==="停工未上报");
   if(enterpriseConstructionLogState.statKey==="online")return rows.filter(row=>row.reportMethod==="在线上报");
   if(enterpriseConstructionLogState.statKey==="file")return rows.filter(row=>row.reportMethod==="文件上报");
+  if(enterpriseConstructionLogState.statKey==="merged")return rows.filter(row=>row.reportMethod==="在线+文件上报");
+  if(enterpriseConstructionLogState.statKey==="onTime")return rows.filter(row=>row.onTimeUpload==="是");
+  if(enterpriseConstructionLogState.statKey==="notOnTime")return rows.filter(row=>row.onTimeUpload==="否");
   return rows;
 }
 
@@ -185,7 +189,7 @@ function getEnterpriseConstructionLogPagedRows(){
 
 function renderEnterpriseConstructionLogDayCell(row,day){
   const state=getEnterpriseConstructionLogDayState(row,day);
-  if(state==="reported")return `<button type="button" class="enterprise-log-day-drill" title="查看当日施工日志" data-enterprise-log-report-id="${row.id}" data-enterprise-log-day="${day}">${renderProjectLogStatusIcon("uploaded")}</button>`;
+  if(state==="reported")return `<button type="button" class="enterprise-log-day-drill" title="查看当日施工日志" onclick="openEnterpriseConstructionLogReportDetail(${row.id},${day})">${renderProjectLogStatusIcon("uploaded")}</button>`;
   if(state==="missing")return `<span class="enterprise-log-day-status" title="未上报">${renderProjectLogStatusIcon("missing")}</span>`;
   if(state==="stopped")return `<span class="enterprise-log-day-status" title="停工未上报">${renderProjectLogStatusIcon("stopped")}</span>`;
   return `<span class="enterprise-log-day-status" title="未开始">${renderProjectLogStatusIcon("not-started")}</span>`;
@@ -199,7 +203,7 @@ function refreshEnterpriseConstructionLogColumns(){
     {key:"projectStatus",title:"项目状态",width:80,align:"center",render:row=>projectStatusTag(row.projectStatus)},
     {key:"subCompany",title:"子公司",width:130,align:"center",render:row=>row.subCompany},
     {key:"branchCompany",title:"分公司",width:140,align:"center",render:row=>row.branchCompany},
-    {key:"onTimeUpload",title:"是否按时上报",width:110,align:"center",render:row=>tag(row.onTimeUpload,row.onTimeUpload==="是"?"green":"red")},
+    {key:"onTimeUpload",title:`是否按时上报${renderInfoTip("子公司重大项目和股份重大项目，必须每天填报施工日志；子公司一般项目三天不少于1次填报，一周不少于2次填报")}`,width:140,align:"center",render:row=>tag(row.onTimeUpload,row.onTimeUpload==="是"?"green":"red")},
     {key:"latestUploadDate",title:"最新上报日期",width:110,align:"center",render:row=>row.latestUploadDate},
     ...Array.from({length:meta.days},(_,index)=>({
       key:`day${index+1}`,
@@ -215,7 +219,7 @@ function refreshEnterpriseConstructionLogColumns(){
     {key:"keyCustomer",title:"重点客户",width:130,align:"center",render:row=>row.keyCustomer||"无"},
     {key:"region",title:"所属区域",width:120,align:"center",render:row=>row.region},
     {key:"projectCode",title:"项目编号",width:150,align:"center",render:row=>row.projectCode},
-    {key:"operation",title:"操作",width:100,align:"center",render:row=>`<button type="button" class="link" data-log-detail-id="${row.id}">查看</button>`}
+    {key:"operation",title:"操作",width:100,align:"center",render:row=>`<button type="button" class="link" onclick="openEnterpriseConstructionLogDetail(${row.id})">查看</button>`}
   ];
 }
 
@@ -243,6 +247,14 @@ function renderEnterpriseConstructionLogStats(){
         <div class="construction-project-stat-items">
           ${item("online","在线上报",rows.filter(row=>row.reportMethod==="在线上报").length)}
           ${item("file","文件上报",rows.filter(row=>row.reportMethod==="文件上报").length)}
+          ${item("merged","在线+文件上报",rows.filter(row=>row.reportMethod==="在线+文件上报").length)}
+        </div>
+      </div>
+      <div class="construction-project-stat-group">
+        <div class="construction-project-stat-name">按时上报</div>
+        <div class="construction-project-stat-items">
+          ${item("onTime","按时上报",rows.filter(row=>row.onTimeUpload==="是").length)}
+          ${item("notOnTime","未按时上报",rows.filter(row=>row.onTimeUpload==="否").length)}
         </div>
       </div>
     </div>
@@ -463,11 +475,31 @@ function getEnterpriseConstructionLogDayStateForMonth(project,day,monthValue){
 }
 
 function getEnterpriseConstructionLogReportRecord(project,day,monthValue=enterpriseConstructionLogProjectViewState.month){
-  const mode=(Number(project.id)+Number(day))%5===0?"file":"online";
+  const mode=(Number(project.id)+Number(day))%7===0?"merged":(Number(project.id)+Number(day))%5===0?"file":"online";
   const date=`${monthValue}-${String(day).padStart(2,"0")}`;
   const workAreas=["主体结构区","盾构区间右线","附属结构A区","材料加工区","地下连续墙工区","检验工地"];
   const uploaderNames=[project.projectManager,"张三","王晨","赵菁","陈启航"];
   const uploader=uploaderNames[(Number(project.id)+Number(day))%uploaderNames.length];
+  const hasOnline=mode!=="file";
+  const hasFile=mode!=="online";
+  const risks=getProjectLogRiskBaseRows().map((risk,index)=>[
+    ...risk,
+    "是否完成","否",
+    "是否受控","是",
+    "风险情况","风险可控",
+    "风险进展情况",index===0?"现场监测数据正常，风险处于受控状态":"按专项方案组织施工，验收记录齐全"
+  ]);
+  const milestones=[{
+    nodeName:"主体结构封顶",
+    planLatestDate:"2026-07-20",
+    nodeStatus:"延期",
+    controlLevel:"子公司管控",
+    keyNode:"是",
+    milestoneStatus:"进度可控",
+    milestoneProgress:"现场资源配置已完成，按调整计划持续推进。"
+  }];
+  const fileName=hasFile?`施工日志_${project.projectCode}_${String(day).padStart(2,"0")}.pdf`:"";
+  const fileSize=hasFile?`${(1.1+(Number(day)%5)*0.18).toFixed(2)}MB`:"";
   return {
     id:`enterprise-log-${project.id}-${day}`,
     seed:Number(project.id)*100+Number(day),
@@ -475,15 +507,24 @@ function getEnterpriseConstructionLogReportRecord(project,day,monthValue=enterpr
     day:Number(day),
     mode,
     date,
-    title:mode==="online"?"在线上报施工日志":"文件上报施工日志",
+    title:mode==="merged"?"在线+文件上报施工日志":mode==="online"?"在线上报施工日志":"文件上报施工日志",
     workArea:workAreas[(Number(project.id)+Number(day))%workAreas.length],
     uploader,
     uploadTime:`${date} ${String(8+(Number(day)%10)).padStart(2,"0")}:${String(8+(Number(project.id)*7+Number(day)*3)%50).padStart(2,"0")}`,
-    fileName:mode==="file"?`施工日志_${project.projectCode}_${String(day).padStart(2,"0")}.pdf`:"",
-    fileSize:mode==="file"?`${(1.1+(Number(day)%5)*0.18).toFixed(2)}MB`:"",
-    summary:mode==="online"?"完成当日施工记录、机械台班和隐患排查记录上报。":"施工日志文件及当日施工说明已上传。",
-    cover:"./src/assets/project-log-building.png"
+    fileName,
+    fileSize,
+    files:hasFile?[{name:fileName,sizeText:fileSize}]:[],
+    fileEntries:hasFile?[{area:workAreas[(Number(project.id)+Number(day))%workAreas.length],reporter:uploader,remark:"施工日志文件及当日施工说明已上传。",files:[{name:fileName,sizeText:fileSize}]}]:[],
+    summary:hasOnline?"完成当日施工记录、机械台班和隐患排查记录上报。":"施工日志文件及当日施工说明已上传。",
+    cover:"./src/assets/project-log-building.png",
+    milestones,
+    risks
   };
+}
+
+function getEnterpriseConstructionLogReportMethod(record){
+  if(record?.mode==="merged")return "在线+文件上报";
+  return record?.mode==="file"?"文件上报":"在线上报";
 }
 
 function getEnterpriseConstructionLogProjectRecords(project){
@@ -500,10 +541,11 @@ function getEnterpriseConstructionLogProjectById(id){
 }
 
 function renderEnterpriseConstructionLogProjectCard(record){
+  const method=getEnterpriseConstructionLogReportMethod(record);
   return `
     <article class="project-log-report-card ${record.mode}" onclick="openEnterpriseConstructionLogReportDetail(${record.projectId},${record.day})">
-      <span class="project-log-mode ${record.mode}">${record.mode==="online"?"在线上报":"文件上报"}</span>
-      ${record.mode==="online"?`
+      <span class="project-log-mode ${record.mode}">${method}</span>
+      ${record.mode!=="file"?`
         <img src="${record.cover}" alt="${record.title}"/>
       `:`
         <div class="project-log-file-box">
@@ -604,12 +646,12 @@ function renderEnterpriseConstructionLogProjectSelectedDay(project){
       <h3>${record.date}（星期${weekday}）</h3>
       <button type="button" class="project-log-day-item" onclick="openEnterpriseConstructionLogReportDetail(${record.projectId},${record.day})">
         <div>
-          <strong class="${record.mode}">${record.mode==="online"?"在线上报":"文件上报"}</strong>
+          <strong class="${record.mode}">${getEnterpriseConstructionLogReportMethod(record)}</strong>
           <p>施工区域：${record.workArea}</p>
           <p>上传人：${record.uploader}</p>
           <p>上传时间：${record.uploadTime}</p>
         </div>
-        ${record.mode==="online"?`<img src="${record.cover}" alt="${record.title}"/>`:`<span class="project-log-day-file">PDF</span>`}
+        ${record.mode!=="file"?`<img src="${record.cover}" alt="${record.title}"/>`:`<span class="project-log-day-file">PDF</span>`}
       </button>
     </section>
   `;
@@ -694,18 +736,20 @@ function openEnterpriseConstructionLogReportDetail(projectId,day){
   if(!record)return;
   const detail=getProjectLogReadonlyOnlineDetail(record);
   const baseInfo=renderProjectLogReadonlyBaseInfo(record,project.projectName);
-  const content=record.mode==="online"?`
+  const hasOnline=record.mode!=="file";
+  const hasFile=record.mode!=="online";
+  const todayTitle=renderProjectLogWorkSectionTitle("今日主要工作",record.date);
+  const tomorrowTitle=renderProjectLogWorkSectionTitle("明日主要工作",getProjectLogNextDateValue(record.date));
+  const content=`
     ${renderProjectLogReadonlySection("基础信息",baseInfo)}
-    ${renderProjectLogReadonlySection("人员信息",`<div class="project-detail-info-grid three">${detail.personnel.map(item=>renderProjectLogReadonlyField(item[0],`${item[1]}人`)).join("")}</div>`)}
-    ${renderProjectLogReadonlySection("今日主要工作",renderProjectLogReadonlyWorkTable(detail.today))}
-    ${renderProjectLogReadonlySection("明日主要工作",renderProjectLogReadonlyWorkTable(detail.tomorrow,false))}
+    ${hasFile&&!hasOnline?renderProjectLogReadonlyFileUploadSection(record):""}
+    ${hasOnline?renderProjectLogReadonlySection("人员信息",`<div class="project-detail-info-grid">${detail.personnel.map(item=>renderProjectLogReadonlyField(item[0],`${item[1]}人`)).join("")}</div>`):""}
+    ${hasOnline?renderProjectLogReadonlySection(todayTitle,renderProjectLogReadonlyWorkTable(detail.today)):""}
+    ${hasOnline?renderProjectLogReadonlySection(tomorrowTitle,renderProjectLogReadonlyWorkTable(detail.tomorrow,false)):""}
+    ${renderProjectLogReadonlyMilestoneSection(detail.milestones)}
     ${renderProjectLogReadonlySection("风险情况",renderProjectLogReadonlyRiskCards(detail.risks))}
-    ${renderProjectLogReadonlySection("施工照片",renderProjectLogReadonlyPhotos(detail.photos))}
-    ${renderProjectLogReadonlySection("发生停工情况",`<div class="project-log-readonly-text">${detail.stop}</div>`)}
-  `:`
-    ${renderProjectLogReadonlySection("基础信息",baseInfo)}
-    ${renderProjectLogReadonlySection("施工日志文件",renderProjectLogReadonlyFiles(getProjectLogReadonlyFiles(record)))}
-    ${renderProjectLogReadonlySection("备注说明",`<div class="project-log-readonly-text">${record.summary}</div>`)}
+    ${hasOnline?renderProjectLogReadonlySection("发生停工情况",`<div class="project-log-readonly-text">${detail.stop}</div>`):""}
+    ${hasFile&&hasOnline?renderProjectLogReadonlyFileUploadSection(record):""}
   `;
   openNestedModal("施工日志详情",`<div class="project-log-readonly-detail">${content}</div>`,`<button class="btn" onclick="closeNestedModal(this)">关闭</button>`);
   document.querySelector(".nested-modal-mask:last-of-type .nested-modal")?.classList.add("enterprise-log-report-detail-modal","project-log-online-report-modal");

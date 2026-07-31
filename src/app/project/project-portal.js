@@ -506,8 +506,9 @@ function mergeProjectLogRowsByDate(rows){
 }
 
 function mergeProjectLogDateGroup(group){
-  const online=group.find(row=>row.mode==="online")||null;
-  const file=group.find(row=>row.mode==="file")||null;
+  const merged=group.find(row=>row.mode==="merged")||null;
+  const online=group.find(row=>row.mode==="online")||merged;
+  const file=group.find(row=>row.mode==="file")||merged;
   const primary=online||file||group[0];
   const latest=group.slice().sort((a,b)=>String(b.uploadTime||"").localeCompare(String(a.uploadTime||"")))[0]||primary;
   const areas=[...new Set(group.flatMap(row=>getProjectLogRowAreas(row)))];
@@ -854,15 +855,21 @@ function getProjectLogReadonlyOnlineDetail(row){
 function renderProjectLogReadonlyWorkTable(rows,showProgress=true){
   return `
     <table class="project-log-report-table project-log-readonly-work-table">
-      <thead><tr><th>序号</th><th>施工工区</th><th>施工分项</th><th>施工部位</th><th>工作内容</th>${showProgress?"<th>工作进度</th>":""}<th>图片</th><th>填报人</th><th>备注</th></tr></thead>
-      <tbody>${rows.map((item,index)=>`<tr><td>${index+1}</td><td>${item.area}</td><td>${item.subitem||"-"}</td><td>${item.position||"-"}</td><td>${item.content}</td>${showProgress?`<td>${item.progress}</td>`:""}<td>${item.imageUrl?`<button type="button" class="project-log-work-thumb-btn" onclick="openProjectLogWorkImagePreview('${escapeAttr(item.imageUrl)}','${escapeAttr(item.imageName||"工作图片")}')"><img class="project-log-work-thumb" src="${item.imageUrl}" alt="${escapeAttr(item.imageName||"工作图片")}"/></button>`:item.imageName||"-"}</td><td>${item.reporter||"-"}</td><td>${item.remark||"-"}</td></tr>`).join("")}</tbody>
+      <thead><tr><th>序号</th><th>施工工区</th><th>施工分项</th><th>施工部位</th><th>工作内容</th>${showProgress?"<th>工作进度</th>":""}<th>施工图片</th><th>填报人</th><th>备注</th></tr></thead>
+      <tbody>${rows.map((item,index)=>`<tr><td>${index+1}</td><td>${item.area}</td><td>${item.subitem||"-"}</td><td>${item.position||"-"}</td><td>${item.content}</td>${showProgress?`<td>${item.progress}</td>`:""}<td>${item.imageUrl?`<button type="button" class="project-log-work-thumb-btn" onclick="openProjectLogWorkImagePreview('${escapeAttr(item.imageUrl)}','${escapeAttr(item.imageName||"施工图片")}')"><img class="project-log-work-thumb" src="${item.imageUrl}" alt="${escapeAttr(item.imageName||"施工图片")}"/></button>`:item.imageName||"-"}</td><td>${item.reporter||"-"}</td><td>${item.remark||"-"}</td></tr>`).join("")}</tbody>
     </table>
   `;
 }
 
 function renderProjectLogReadonlyMilestoneTable(rows){
-  return `<div class="project-log-readonly-risk-list">
-    ${rows.map(item=>`
+  const ongoingRows=(rows||[]).filter(item=>!item.actualDate);
+  const completedMap=new Map([
+    ...getProjectLogCompletedMilestoneRows(),
+    ...(rows||[]).filter(item=>item.actualDate)
+  ].map(item=>[item.nodeName,item]));
+  const completedRows=[...completedMap.values()];
+  const cards=items=>items.length?`<div class="project-log-readonly-risk-list">
+    ${items.map(item=>`
       <div class="project-log-readonly-risk-card project-detail-info-grid">
         ${renderProjectLogReadonlyField("里程碑节点名称",item.nodeName)}
         ${renderProjectLogReadonlyField("计划完成日期（最新）",item.planLatestDate)}
@@ -874,7 +881,35 @@ function renderProjectLogReadonlyMilestoneTable(rows){
         ${item.actualDate?"":renderProjectLogReadonlyField("里程碑进展情况",item.milestoneProgress||"-")}
       </div>
     `).join("")}
+  </div>`:`<div class="project-log-empty project-log-milestone-empty">暂无数据</div>`;
+  return `<div class="project-log-readonly-milestone">
+    <div class="project-log-readonly-milestone-panel" data-readonly-milestone-panel="ongoing">${cards(ongoingRows)}</div>
+    <div class="project-log-readonly-milestone-panel" data-readonly-milestone-panel="completed" hidden>${cards(completedRows)}</div>
   </div>`;
+}
+
+function renderProjectLogReadonlyMilestoneSection(rows){
+  return `
+    <section class="project-detail-section project-log-readonly-section project-log-readonly-milestone-section">
+      <div class="project-detail-section-title project-log-report-section-title-row project-log-milestone-title-row">
+        <h3>里程碑节点情况</h3>
+        <div class="project-log-milestone-tabs">
+          <button type="button" class="active" onclick="switchProjectLogReadonlyMilestoneTab(this,'ongoing')">进行中</button>
+          <button type="button" onclick="switchProjectLogReadonlyMilestoneTab(this,'completed')">已完成</button>
+        </div>
+      </div>
+      ${renderProjectLogReadonlyMilestoneTable(rows)}
+    </section>
+  `;
+}
+
+function switchProjectLogReadonlyMilestoneTab(button,tab){
+  const section=button?.closest(".project-log-readonly-milestone-section");
+  if(!section)return;
+  section.querySelectorAll(".project-log-milestone-tabs button").forEach(item=>item.classList.toggle("active",item===button));
+  section.querySelectorAll("[data-readonly-milestone-panel]").forEach(panel=>{
+    panel.hidden=panel.dataset.readonlyMilestonePanel!==tab;
+  });
 }
 
 function renderProjectLogReadonlyRiskCards(risks){
@@ -944,7 +979,6 @@ function renderProjectLogReadonlyFileUploadSection(row){
 function renderProjectLogReadonlyBaseInfo(row,projectName){
   if(row.mode==="file")return `
     <div class="project-detail-info-grid">
-      ${renderProjectLogReadonlyField("工区",row.workArea)}
       ${renderProjectLogReadonlyField("日期",row.date)}
     </div>
   `;
@@ -975,10 +1009,10 @@ function openProjectLogDetail(id){
     const tomorrowTitle=renderProjectLogWorkSectionTitle("明日主要工作",getProjectLogNextDateValue(onlineRow.date));
     return `
       ${renderProjectLogReadonlySection("基础信息",baseInfo)}
-      ${renderProjectLogReadonlySection("人员信息",`<div class="project-detail-info-grid three">${detail.personnel.map(item=>renderProjectLogReadonlyField(item[0],`${item[1]}人`)).join("")}</div>`)}
+      ${renderProjectLogReadonlySection("人员信息",`<div class="project-detail-info-grid">${detail.personnel.map(item=>renderProjectLogReadonlyField(item[0],`${item[1]}人`)).join("")}</div>`)}
       ${renderProjectLogReadonlySection(todayTitle,renderProjectLogReadonlyWorkTable(detail.today))}
       ${renderProjectLogReadonlySection(tomorrowTitle,renderProjectLogReadonlyWorkTable(detail.tomorrow,false))}
-      ${detail.milestones.length?renderProjectLogReadonlySection("里程碑节点情况",renderProjectLogReadonlyMilestoneTable(detail.milestones)):""}
+      ${renderProjectLogReadonlyMilestoneSection(detail.milestones)}
       ${renderProjectLogReadonlySection("风险情况",renderProjectLogReadonlyRiskCards(detail.risks))}
       ${renderProjectLogReadonlySection("发生停工情况",`<div class="project-log-readonly-text">${detail.stop}</div>`)}
       ${fileRow?renderProjectLogReadonlyFileUploadSection(fileRow):""}
@@ -987,12 +1021,12 @@ function openProjectLogDetail(id){
     const detail=getProjectLogReadonlyOnlineDetail(row);
     return `
       ${renderProjectLogReadonlySection("基础信息",baseInfo)}
-      ${detail.milestones.length?renderProjectLogReadonlySection("里程碑节点情况",renderProjectLogReadonlyMilestoneTable(detail.milestones)):""}
-      ${renderProjectLogReadonlySection("风险情况",renderProjectLogReadonlyRiskCards(detail.risks))}
       ${Array.isArray(row.fileEntries)&&row.fileEntries.length?renderProjectLogReadonlyFileUploadSection(row):`
         ${renderProjectLogReadonlySection("施工日志文件",renderProjectLogReadonlyFiles(getProjectLogReadonlyFiles(row)))}
         ${renderProjectLogReadonlySection("备注说明",`<div class="project-log-readonly-text">${row.summary||"-"}</div>`)}
       `}
+      ${renderProjectLogReadonlyMilestoneSection(detail.milestones)}
+      ${renderProjectLogReadonlySection("风险情况",renderProjectLogReadonlyRiskCards(detail.risks))}
     `;
   })();
   openModal("施工日志详情",`<div class="project-log-readonly-detail">${content}</div>`,`<button class="btn" onclick="closeModal()">关闭</button>`,"large");
@@ -1068,7 +1102,7 @@ function renderProjectLogWorkTable(type="today",defaultRows=null){
     <div class="project-log-work-table-wrap">
       <table class="project-log-report-table project-log-work-table">
         <thead>
-          <tr><th>序号</th><th>施工工区</th><th>施工分项</th><th>施工部位</th><th>工作内容</th>${isToday?"<th>工作进度</th>":""}<th>图片</th><th>填报人</th><th>备注</th><th>操作</th></tr>
+          <tr><th>序号</th><th>施工工区</th><th>施工分项</th><th>施工部位</th><th>工作内容</th>${isToday?"<th>工作进度</th>":""}<th>施工图片</th><th>填报人</th><th>备注</th><th>操作</th></tr>
         </thead>
         <tbody id="projectLogWorkTbody-${type}">
           ${rows.length?rows.map((row,index)=>renderProjectLogWorkRow(type,row,index)).join(""):emptyRow}
@@ -1099,7 +1133,7 @@ function renderProjectLogWorkImageUpload(row={}){
       <input type="file" accept="image/*" hidden onchange="handleProjectLogWorkImageFile(this)"/>
       <button type="button" class="btn small" onclick="this.previousElementSibling?.click()">上传</button>
       <div class="project-log-work-image-preview ${url?"has-image":""}" ${url?"":"hidden"}>
-        ${url?`<button type="button" onclick="openProjectLogWorkImagePreview('${escapeAttr(url)}','${escapeAttr(name||"工作图片")}')"><img src="${url}" alt="${escapeAttr(name||"工作图片")}"/></button>`:""}
+        ${url?`<button type="button" onclick="openProjectLogWorkImagePreview('${escapeAttr(url)}','${escapeAttr(name||"施工图片")}')"><img src="${url}" alt="${escapeAttr(name||"施工图片")}"/></button>`:""}
       </div>
     </div>
   `;
@@ -1159,9 +1193,9 @@ function handleProjectLogWorkImageFile(input){
   input.value="";
 }
 
-function openProjectLogWorkImagePreview(url,name="工作图片"){
+function openProjectLogWorkImagePreview(url,name="施工图片"){
   if(!url)return;
-  openNestedModal("图片预览",`<div class="project-log-work-image-viewer"><img src="${url}" alt="${escapeAttr(name)}"/></div>`,`<button class="btn" type="button" onclick="closeNestedModal(this)">关闭</button>`);
+  openNestedModal("施工图片预览",`<div class="project-log-work-image-viewer"><img src="${url}" alt="${escapeAttr(name)}"/></div>`,`<button class="btn" type="button" onclick="closeNestedModal(this)">关闭</button>`);
   document.querySelector(".nested-modal-mask:last-of-type .nested-modal")?.classList.add("project-log-work-image-modal");
 }
 
@@ -1727,7 +1761,7 @@ function handleProjectLogPhotoFiles(files){
     };
     reader.readAsDataURL(file);
   });
-  if(incoming.length>available)showToast("施工照片最多上传9张");
+  if(incoming.length>available)showToast("施工图片最多上传9张");
   const input=document.getElementById("projectLogPhotoInput");
   if(input)input.value="";
 }
@@ -1804,7 +1838,7 @@ function openProjectLogReportModal(editRow=null){
 
       <section class="project-log-report-section">
         <h3>人员信息</h3>
-        <div class="project-log-report-grid three">
+        <div class="project-log-report-grid four">
           <div class="form-item"><label>总包管理人员 <em>*</em></label>${renderProjectLogPersonInput("projectLogReportMainStaff",21)}</div>
           <div class="form-item"><label>分包管理人员 <em>*</em></label>${renderProjectLogPersonInput("projectLogReportSubStaff",12)}</div>
           <div class="form-item"><label>劳务人员 <em>*</em></label>${renderProjectLogPersonInput("projectLogReportWorker",3)}</div>

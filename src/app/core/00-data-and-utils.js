@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.521-PROJECT-CONSTRUCTION-LOG-ENHANCEMENT";
-const APP_CODE_VERSION_NAME="项目施工日志增强版";
-const APP_CODE_VERSION_TIME="2026-07-31 14:00";
-const APP_CODE_VERSION_DESC="项目施工日志增强工区自由输入、工作图片空态、填报人下拉、里程碑完成节点、天气默认值及详情四列布局。";
+const APP_CODE_VERSION="EM-20260701-V2.2.526-FILE-DETAIL-MILESTONE-TABS";
+const APP_CODE_VERSION_NAME="施工日志文件详情与里程碑标签优化版";
+const APP_CODE_VERSION_TIME="2026-07-31 19:00";
+const APP_CODE_VERSION_DESC="优化文件上报详情基础信息和分组顺序，并为所有施工日志详情补充进行中、已完成里程碑标签切换。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
