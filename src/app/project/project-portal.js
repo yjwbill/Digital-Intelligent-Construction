@@ -542,6 +542,8 @@ let projectLogReportFileList=[];
 let projectLogReportFileRows=[];
 let projectLogCurrentAssignment=null;
 const projectLogAssignments=[];
+let projectLogMilestoneTab="ongoing";
+let projectLogMilestoneDraftRows=[];
 
 function getProjectLogSharedDetail(row){
   return {
@@ -573,8 +575,9 @@ function refreshProjectLogSharedSections(prefix){
   const date=document.getElementById(`${prefix}Date`)?.value||getProjectLogTodayValue();
   const area=document.getElementById(`${prefix}Area`)?.value||document.querySelector(".project-log-file-row-area")?.value||"";
   const detail=getProjectLogSyncedSharedDetail(mode,date,area,projectLogEditingRow);
+  projectLogMilestoneDraftRows=Array.isArray(detail.milestones)?detail.milestones.map(item=>({...item})):[];
   const milestoneBox=document.getElementById("projectLogMilestoneRows");
-  if(milestoneBox)milestoneBox.innerHTML=renderProjectLogMilestoneRows(detail.milestones,date);
+  if(milestoneBox)milestoneBox.innerHTML=renderProjectLogMilestoneRows(projectLogMilestoneDraftRows,date);
   const riskBox=document.getElementById("projectLogRiskRows");
   if(riskBox)riskBox.innerHTML=renderProjectLogRiskRows(detail.risks);
 }
@@ -860,14 +863,15 @@ function renderProjectLogReadonlyWorkTable(rows,showProgress=true){
 function renderProjectLogReadonlyMilestoneTable(rows){
   return `<div class="project-log-readonly-risk-list">
     ${rows.map(item=>`
-      <div class="project-log-readonly-risk-card project-detail-info-grid three">
+      <div class="project-log-readonly-risk-card project-detail-info-grid">
         ${renderProjectLogReadonlyField("里程碑节点名称",item.nodeName)}
         ${renderProjectLogReadonlyField("计划完成日期（最新）",item.planLatestDate)}
         ${renderProjectLogReadonlyField("节点状态",item.nodeStatus)}
         ${renderProjectLogReadonlyField("管控等级",item.controlLevel)}
         ${renderProjectLogReadonlyField("是否重点进度节点",item.keyNode)}
-        ${renderProjectLogReadonlyField("里程碑情况",item.milestoneStatus||"-")}
-        ${renderProjectLogReadonlyField("里程碑进展情况",item.milestoneProgress||"-")}
+        ${item.actualDate?renderProjectLogReadonlyField("实际完成日期",item.actualDate):""}
+        ${item.actualDate?"":renderProjectLogReadonlyField("里程碑情况",item.milestoneStatus||"-")}
+        ${item.actualDate?"":renderProjectLogReadonlyField("里程碑进展情况",item.milestoneProgress||"-")}
       </div>
     `).join("")}
   </div>`;
@@ -876,7 +880,7 @@ function renderProjectLogReadonlyMilestoneTable(rows){
 function renderProjectLogReadonlyRiskCards(risks){
   return `<div class="project-log-readonly-risk-list">
     ${risks.map(risk=>`
-      <div class="project-log-readonly-risk-card project-detail-info-grid three">
+      <div class="project-log-readonly-risk-card project-detail-info-grid">
         ${Array.from({length:risk.length/2},(_,index)=>renderProjectLogReadonlyField(risk[index*2],risk[index*2+1])).join("")}
       </div>
     `).join("")}
@@ -1094,8 +1098,8 @@ function renderProjectLogWorkImageUpload(row={}){
     <div class="project-log-work-image-upload" data-project-log-work-image-name="${escapeAttr(name)}" data-project-log-work-image-url="${escapeAttr(url)}">
       <input type="file" accept="image/*" hidden onchange="handleProjectLogWorkImageFile(this)"/>
       <button type="button" class="btn small" onclick="this.previousElementSibling?.click()">上传</button>
-      <div class="project-log-work-image-preview ${url?"has-image":""}">
-        ${url?`<button type="button" onclick="openProjectLogWorkImagePreview('${escapeAttr(url)}','${escapeAttr(name||"工作图片")}')"><img src="${url}" alt="${escapeAttr(name||"工作图片")}"/></button>`:`<em>无图</em>`}
+      <div class="project-log-work-image-preview ${url?"has-image":""}" ${url?"":"hidden"}>
+        ${url?`<button type="button" onclick="openProjectLogWorkImagePreview('${escapeAttr(url)}','${escapeAttr(name||"工作图片")}')"><img src="${url}" alt="${escapeAttr(name||"工作图片")}"/></button>`:""}
       </div>
     </div>
   `;
@@ -1107,7 +1111,7 @@ function renderProjectLogWorkRow(type,row={},index=0){
   return `
     <tr class="project-log-report-work-row" data-project-log-work-type="${type}">
       <td class="project-log-work-index">${index+1}</td>
-      <td><select class="select project-log-work-area" onchange="syncProjectLogWorkReporter(this)">${renderProjectLogWorkAreaOptions(row.area || "")}</select></td>
+      <td><input class="input project-log-work-area" list="projectLogWorkAreaList-${type}-${index}" value="${escapeAttr(row.area||"")}" placeholder="请选择或输入工区" onchange="syncProjectLogWorkReporter(this)"/><datalist id="projectLogWorkAreaList-${type}-${index}">${renderProjectLogWorkAreaOptions(row.area||"").replace('<option value="">请选择工区</option>',"")}</datalist></td>
       <td><input class="input project-log-work-subitem" value="${escapeAttr(row.subitem || "")}" placeholder="请输入施工分项"/></td>
       <td><input class="input project-log-work-position" value="${escapeAttr(row.position || "")}" placeholder="请输入施工部位"/></td>
       <td><input class="input project-log-work-content" value="${escapeAttr(row.content || "")}" placeholder="请输入工作内容"/></td>
@@ -1145,6 +1149,7 @@ function handleProjectLogWorkImageFile(input){
       upload.dataset.projectLogWorkImageUrl=url;
       const preview=upload.querySelector(".project-log-work-image-preview");
       if(preview){
+        preview.hidden=false;
         preview.classList.add("has-image");
         preview.innerHTML=`<button type="button" onclick="openProjectLogWorkImagePreview('${escapeAttr(url)}','${escapeAttr(file.name)}')"><img src="${url}" alt="${escapeAttr(file.name)}"/></button>`;
       }
@@ -1182,7 +1187,32 @@ function getProjectLogDueMilestoneRows(reportDate=getProjectLogTodayValue()){
     .sort((a,b)=>a.planLatestDate.localeCompare(b.planLatestDate));
 }
 
+function getProjectLogCompletedMilestoneRows(){
+  return projectMilestoneNodeRows
+    .filter(row=>row.actualDate)
+    .sort((a,b)=>String(b.actualDate).localeCompare(String(a.actualDate)));
+}
+
+function renderProjectLogMilestoneSectionHeader(){
+  return `<div class="project-log-report-section-title-row project-log-milestone-title-row"><h3>里程碑节点情况</h3><div class="project-log-milestone-tabs"><button type="button" class="${projectLogMilestoneTab==="ongoing"?"active":""}" onclick="switchProjectLogMilestoneTab('ongoing')">进行中</button><button type="button" class="${projectLogMilestoneTab==="completed"?"active":""}" onclick="switchProjectLogMilestoneTab('completed')">已完成</button></div></div>`;
+}
+
 function renderProjectLogMilestoneRows(savedRows=[],reportDate=getProjectLogTodayValue()){
+  if(projectLogMilestoneTab==="completed"){
+    const completedRows=getProjectLogCompletedMilestoneRows();
+    if(!completedRows.length)return `<div class="project-log-empty project-log-milestone-empty">暂无已完成里程碑节点</div>`;
+    return `<div class="project-log-milestone-card-list">${completedRows.map(row=>`
+      <div class="project-log-milestone-row completed" data-milestone-mode="completed">
+        <div class="project-log-risk-info project-log-milestone-info">
+          <div><span>里程碑节点名称</span><strong>${row.nodeName}</strong></div>
+          <div><span>计划完成日期（最新）</span><strong>${row.planLatestDate}</strong></div>
+          <div><span>节点状态</span><strong>${row.nodeStatus}</strong></div>
+          <div><span>管控等级</span><strong>${row.controlLevel}</strong></div>
+          <div><span>是否重点进度节点</span><strong>${row.keyNode}</strong></div>
+          <div><span>实际完成日期</span><strong>${row.actualDate}</strong></div>
+        </div>
+      </div>`).join("")}</div>`;
+  }
   const savedMap=new Map((savedRows||[]).map(row=>[row.nodeName,row]));
   const dueRows=getProjectLogDueMilestoneRows(reportDate);
   const rows=dueRows.length?dueRows:(savedRows||[]);
@@ -1192,7 +1222,7 @@ function renderProjectLogMilestoneRows(savedRows=[],reportDate=getProjectLogToda
       const saved=savedMap.get(row.nodeName)||{};
       const status=saved.milestoneStatus||"进度可控";
       return `
-        <div class="project-log-milestone-row"
+        <div class="project-log-milestone-row" data-milestone-mode="ongoing"
           data-node-name="${escapeAttr(row.nodeName)}"
           data-plan-latest-date="${escapeAttr(row.planLatestDate)}"
           data-node-status="${escapeAttr(row.nodeStatus)}"
@@ -1222,18 +1252,36 @@ function refreshProjectLogMilestoneRows(savedRows=[]){
   box.innerHTML=renderProjectLogMilestoneRows(savedRows,date);
 }
 
-function collectProjectLogMilestoneRows(){
-  const rows=[...document.querySelectorAll(".project-log-milestone-row")];
+function switchProjectLogMilestoneTab(tab){
+  if(tab!=="ongoing"&&tab!=="completed")return;
+  if(projectLogMilestoneTab==="ongoing"){
+    const draft=collectProjectLogMilestoneRows(false);
+    if(Array.isArray(draft))projectLogMilestoneDraftRows=draft;
+  }
+  projectLogMilestoneTab=tab;
+  const date=document.getElementById("projectLogReportDate")?.value||document.getElementById("projectLogFileReportDate")?.value||getProjectLogTodayValue();
+  const box=document.getElementById("projectLogMilestoneRows");
+  if(box)box.innerHTML=renderProjectLogMilestoneRows(projectLogMilestoneDraftRows,date);
+  const titleRow=box?.closest(".project-log-report-section")?.querySelector(".project-log-milestone-title-row");
+  if(titleRow)titleRow.outerHTML=renderProjectLogMilestoneSectionHeader();
+}
+
+function collectProjectLogMilestoneRows(validate=true){
+  const rows=[...document.querySelectorAll('.project-log-milestone-row[data-milestone-mode="ongoing"]')];
+  if(!rows.length&&projectLogMilestoneTab==="completed"){
+    if(validate){switchProjectLogMilestoneTab("ongoing");showToast("请先完善进行中的里程碑节点情况");return null;}
+    return projectLogMilestoneDraftRows;
+  }
   const reports=[];
   for(const row of rows){
     const milestoneStatus=row.querySelector(".project-log-milestone-status")?.value||"";
     const milestoneProgress=row.querySelector(".project-log-milestone-progress")?.value.trim()||"";
-    if(!milestoneStatus){
+    if(validate&&!milestoneStatus){
       showToast("请选择里程碑情况");
       row.querySelector(".project-log-milestone-status")?.focus();
       return null;
     }
-    if(!milestoneProgress){
+    if(validate&&!milestoneProgress){
       showToast("请输入里程碑进展情况");
       row.querySelector(".project-log-milestone-progress")?.focus();
       return null;
@@ -1733,7 +1781,7 @@ function renderProjectLogReportBaseInfo(prefix="projectLogReport",defaultArea="�
         ${isFile?"":`
           <div class="form-item"><label>星期 <em>*</em></label><input class="input" id="${prefix}Weekday" value="${getProjectLogReadonlyWeekday(today)}" disabled/></div>
           <div class="form-item"><label>温度 <em>*</em></label><div class="project-log-unit-input"><input class="input" placeholder="请输入"/><span>℃</span></div></div>
-          <div class="form-item"><label>天气是否影响工作 <em>*</em></label><select class="select"><option value="">请选择天气是否影响工作</option><option>是</option><option>否</option></select></div>
+          <div class="form-item"><label>天气是否影响工作 <em>*</em></label><select class="select"><option>是</option><option selected>否</option></select></div>
           <div class="form-item"><label>记录人姓名 <em>*</em></label>${renderProjectLogRecorderReadonly(`${prefix}Recorder`,defaultRecorder)}</div>
         `}
       </div>
@@ -1747,6 +1795,8 @@ function openProjectLogReportModal(editRow=null){
   const detail=editRow?getProjectLogReadonlyOnlineDetail(editRow):null;
   const reportDate=editRow?.date||getProjectLogTodayValue();
   const sharedDetail=getProjectLogSyncedSharedDetail("online",reportDate,editRow?.workArea||"主体结构区",editRow);
+  projectLogMilestoneTab="ongoing";
+  projectLogMilestoneDraftRows=sharedDetail.milestones.map(item=>({...item}));
   projectLogReportPhotoList=detail?.photos?.map(photo=>({...photo}))||[];
   openModal(editRow?"编辑施工日志":"施工日志在线上报",`
     <div class="project-log-online-report">
@@ -1772,7 +1822,7 @@ function openProjectLogReportModal(editRow=null){
       </section>
 
       <section class="project-log-report-section">
-        <h3>里程碑节点情况</h3>
+        ${renderProjectLogMilestoneSectionHeader()}
         <div id="projectLogMilestoneRows">
           ${renderProjectLogMilestoneRows(sharedDetail.milestones,reportDate)}
         </div>
@@ -1808,6 +1858,8 @@ function openProjectLogFileReportModal(editRow=null){
   projectLogReportFileList=projectLogReportFileRows.flatMap(row=>row.files||[]);
   const reportDate=editRow?.date||getProjectLogTodayValue();
   const sharedDetail=getProjectLogSyncedSharedDetail("file",reportDate,editRow?.workArea||"主体结构区",editRow);
+  projectLogMilestoneTab="ongoing";
+  projectLogMilestoneDraftRows=sharedDetail.milestones.map(item=>({...item}));
   openModal(editRow?"编辑施工日志":"施工日志文件上报",`
     <div class="project-log-online-report">
       ${renderProjectLogReportBaseInfo("projectLogFileReport",editRow?.workArea||"主体结构区","file",reportDate)}
@@ -1822,7 +1874,7 @@ function openProjectLogFileReportModal(editRow=null){
       </section>
 
       <section class="project-log-report-section">
-        <h3>里程碑节点情况</h3>
+        ${renderProjectLogMilestoneSectionHeader()}
         <div id="projectLogMilestoneRows">
           ${renderProjectLogMilestoneRows(sharedDetail.milestones,reportDate)}
         </div>

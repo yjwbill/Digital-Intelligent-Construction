@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.520-STATISTICS-STICKY-HEADER-FIX";
-const APP_CODE_VERSION_NAME="纳统冻结表头修复版";
-const APP_CODE_VERSION_TIME="2026-07-31 13:20";
-const APP_CODE_VERSION_DESC="修复纳统填报横向滚动时第二层指标表头误被冻结并覆盖左侧冻结列的问题。";
+const APP_CODE_VERSION="EM-20260701-V2.2.521-PROJECT-CONSTRUCTION-LOG-ENHANCEMENT";
+const APP_CODE_VERSION_NAME="项目施工日志增强版";
+const APP_CODE_VERSION_TIME="2026-07-31 14:00";
+const APP_CODE_VERSION_DESC="项目施工日志增强工区自由输入、工作图片空态、填报人下拉、里程碑完成节点、天气默认值及详情四列布局。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,

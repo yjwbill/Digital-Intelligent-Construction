@@ -18809,6 +18809,7 @@ body.mobile-mode .mobile-manual-scroll{
 .project-log-work-table th:nth-last-child(3),.project-log-work-table td:nth-last-child(3){width:130px;}
 .project-log-work-table th:nth-last-child(2),.project-log-work-table td:nth-last-child(2){width:180px;}
 .project-log-work-table .input,.project-log-work-table .select{width:100%;min-width:0;}
+.project-log-work-reporter{padding-right:32px!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .project-log-work-image-upload{min-height:72px;display:grid;grid-template-columns:52px 72px;align-items:center;gap:8px;}
 .project-log-work-image-preview{width:68px;height:68px;border:1px dashed #C8D6EA;border-radius:4px;background:#FAFCFF;display:grid;place-items:center;overflow:hidden;color:#A8B2C1;font-size:12px;font-style:normal;font-weight:700;}
 .project-log-work-image-preview button,.project-log-work-thumb-btn{width:68px;height:68px;border:0;background:transparent;padding:0;display:block;cursor:pointer;}
@@ -18828,6 +18829,11 @@ body.mobile-mode .mobile-manual-scroll{
 .project-log-milestone-empty{height:72px;}
 .project-log-milestone-card-list{display:grid;gap:14px;}
 .project-log-milestone-row{display:grid;grid-template-columns:minmax(0,1fr) 368px;gap:18px;padding:14px;background:#F7F8FA;border:1px solid #EEF2F7;border-radius:6px;}
+.project-log-milestone-row.completed{grid-template-columns:1fr;}
+.project-log-milestone-title-row{justify-content:flex-start;}
+.project-log-milestone-tabs{display:flex;align-items:center;gap:18px;margin-left:8px;height:34px;}
+.project-log-milestone-tabs button{height:34px;padding:0 2px;border:0;border-bottom:2px solid transparent;background:transparent;color:#4E5969;font-size:14px;font-weight:800;cursor:pointer;}
+.project-log-milestone-tabs button.active{border-bottom-color:var(--primary);color:var(--primary);}
 .project-log-milestone-info div{grid-template-columns:128px minmax(0,1fr);}
 .project-log-milestone-form textarea.input{min-height:72px;resize:vertical;}
 .project-log-milestone-row .form-item label em{color:#F53F3F;}
