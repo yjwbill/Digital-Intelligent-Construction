@@ -4119,12 +4119,49 @@ const approvalFlowDetailData=[
   {id:12,scope:"项目",name:"安义县新城区产业园标准厂房建设项目一期",type:"I级风险条件验收",content:"拆除作业前置条件验收",initiator:"应强",startTime:"2026-07-24 08:35",node:"审批结束",approver:"王安全",arrivalTime:"2026-07-24 10:08",stayDuration:"-",overdue:"否",reminders:0,status:"已通过"}
 ];
 
-const approvalFlowDetailState={filters:{},page:1,pageSize:50};
+const approvalFlowTimingMetrics={
+  1:{stayHours:4,stayMinutes:18,dueSoon:true},
+  2:{stayHours:4,stayMinutes:45,dueSoon:true},
+  3:{stayHours:4,stayMinutes:30,dueSoon:false},
+  6:{stayHours:26,overdueHours:2},
+  8:{stayHours:198,overdueHours:80},
+  10:{stayHours:241,overdueHours:180}
+};
+approvalFlowDetailData.forEach(row=>Object.assign(row,{stayHours:0,stayMinutes:0,overdueHours:0,dueSoon:false},approvalFlowTimingMetrics[row.id]||{}));
+
+const approvalFlowOrgAssignments={
+  1:["group","tunnel","tunnel-track"],2:["group","tunnel","tunnel-track"],3:["group","tunnel"],
+  4:["group","road","road-north"],5:["group","municipal","municipal-jiangxi"],6:["group","digital"],
+  7:["group","municipal","municipal-jiangxi"],8:["group","municipal","municipal-building"],9:["group","municipal"],
+  10:["group","municipal","municipal-branch"],11:["group","tunnel","tunnel-municipal"],12:["group","municipal","municipal-jiangxi"]
+};
+approvalFlowDetailData.forEach(row=>{row.orgPath=approvalFlowOrgAssignments[row.id]||["group"];});
+
+const approvalFlowOrgTree={id:"group",name:"隧道股份",children:[
+  {id:"tunnel",name:"上海隧道",children:[
+    {id:"tunnel-track",name:"轨交分公司",children:[]},
+    {id:"tunnel-municipal",name:"市政分公司",children:[]}
+  ]},
+  {id:"municipal",name:"市政集团",children:[
+    {id:"municipal-jiangxi",name:"江西分公司",children:[]},
+    {id:"municipal-building",name:"第二建筑",children:[]},
+    {id:"municipal-branch",name:"市政分公司",children:[]}
+  ]},
+  {id:"road",name:"上海路桥",children:[{id:"road-north",name:"北方公司",children:[]}]},
+  {id:"digital",name:"数字集团",children:[]}
+]};
+
+const approvalFlowDetailState={filters:{},page:1,pageSize:50,orgAggregate:false,orgId:"group",stat:""};
 let approvalFlowDetailCurrent=[...approvalFlowDetailData];
 
 function approvalFlowDetailStatusTag(value){
   const color={"审批中":"orange","已通过":"green","已驳回":"red","已作废":"gray"}[value]||"blue";
   return tag(value,color);
+}
+
+function formatApprovalFlowDuration(hours=0,minutes=0){
+  if(!hours&&!minutes)return "-";
+  return `${hours?`${hours}h`:""}${minutes?`${minutes}m`:""}`;
 }
 
 tableColumnDefinitions.approvalFlowDetail=[
@@ -4138,9 +4175,10 @@ tableColumnDefinitions.approvalFlowDetail=[
   {key:"node",title:"当前流程节点",width:180,align:"center",render:row=>row.node},
   {key:"approver",title:"当前审批人",width:120,align:"center",render:row=>row.approver},
   {key:"arrivalTime",title:"流程到达时间",width:165,align:"center",render:row=>row.arrivalTime},
-  {key:"stayDuration",title:"已停留时长",width:120,align:"center",render:row=>row.stayDuration},
+  {key:"stayDuration",title:"已停留时长",width:100,align:"center",render:row=>formatApprovalFlowDuration(row.stayHours,row.stayMinutes)},
   {key:"overdue",title:"是否超期",width:100,align:"center",render:row=>tag(row.overdue,row.overdue==="是"?"red":"green")},
-  {key:"reminders",title:"超期提醒次数",width:120,align:"center",render:row=>row.reminders},
+  {key:"overdueDuration",title:"超期时长",width:100,align:"center",render:row=>formatApprovalFlowDuration(row.overdueHours)},
+  {key:"reminders",title:"超期提醒次数",width:120,align:"center",render:row=>`<button type="button" class="link approval-flow-reminder-link" onclick="document.getElementById('modalTitle').textContent='超期提醒消息记录';document.getElementById('modalBody').textContent='超期提醒消息记录内容待补充。';document.getElementById('modalBox').className='modal large';document.getElementById('modalMask').style.display='flex'">${row.reminders}</button>`},
   {key:"status",title:"审批状态",width:110,align:"center",render:row=>approvalFlowDetailStatusTag(row.status)},
   {key:"operation",title:"操作",width:90,align:"center",render:row=>`<a class="link" onclick="openApprovalFlowDetail(${row.id})">查看</a>`}
 ];
@@ -4151,6 +4189,98 @@ function approvalFlowDetailOptions(key){
 
 function renderApprovalFlowDetailSelect(id,options,value=""){
   return `<select id="${id}" class="select"><option value="">全部</option>${options.map(option=>`<option ${option===value?"selected":""}>${option}</option>`).join("")}</select>`;
+}
+
+function getApprovalFlowBaseFilteredRows(){
+  const f=approvalFlowDetailState.filters;
+  return approvalFlowDetailData.filter(row=>{
+    const day=row.startTime.slice(0,10);
+    return (!f.content||row.content.includes(f.content))&&(!f.name||row.name.includes(f.name))&&(!f.initiator||row.initiator.includes(f.initiator))&&(!f.approver||row.approver.includes(f.approver))&&(!f.type||row.type===f.type)&&(!f.status||row.status===f.status)&&(!f.scope||row.scope===f.scope)&&(!f.startDate||day>=f.startDate)&&(!f.endDate||day<=f.endDate);
+  });
+}
+
+function getApprovalFlowScopedRows(){
+  const rows=getApprovalFlowBaseFilteredRows();
+  return approvalFlowDetailState.orgAggregate&&approvalFlowDetailState.orgId
+    ?rows.filter(row=>row.orgPath.includes(approvalFlowDetailState.orgId))
+    :rows;
+}
+
+function matchesApprovalFlowStat(row,stat=approvalFlowDetailState.stat){
+  if(!stat)return true;
+  if(stat==="dueSoon")return row.dueSoon&&!row.overdueHours;
+  if(stat==="overdue")return row.overdueHours>0;
+  if(stat==="overdue3")return row.overdueHours>=72;
+  if(stat==="overdue7")return row.overdueHours>=168;
+  if(stat==="stay3")return row.stayHours>=72;
+  if(stat==="stay7")return row.stayHours>=168;
+  return true;
+}
+
+function applyApprovalFlowDetailFilters(){
+  approvalFlowDetailCurrent=getApprovalFlowScopedRows().filter(row=>matchesApprovalFlowStat(row));
+}
+
+function getApprovalFlowOrgCount(orgId){
+  return getApprovalFlowBaseFilteredRows().filter(row=>row.orgPath.includes(orgId)&&matchesApprovalFlowStat(row)).length;
+}
+
+function renderApprovalFlowStatOption(key,label,rows){
+  const count=rows.filter(row=>matchesApprovalFlowStat(row,key)).length;
+  return `<div class="construction-project-stat-item ${approvalFlowDetailState.stat===key?"active":""}" onclick="setApprovalFlowStat('${key}')"><strong>${count}</strong><span>${label}</span></div>`;
+}
+
+function renderApprovalFlowStats(){
+  const rows=getApprovalFlowScopedRows();
+  return `<section class="card construction-project-stat-card approval-flow-stat-card">
+    <div class="card-bd">
+      <div class="construction-project-stats">
+        <div class="construction-project-stat-group">
+          <div class="construction-project-stat-name">超期状态</div>
+          <div class="construction-project-stat-items">${renderApprovalFlowStatOption("dueSoon","即将超期",rows)}${renderApprovalFlowStatOption("overdue","已超期",rows)}${renderApprovalFlowStatOption("overdue3","超期3天以上",rows)}${renderApprovalFlowStatOption("overdue7","超期7天以上",rows)}</div>
+        </div>
+        <div class="construction-project-stat-group">
+          <div class="construction-project-stat-name">停留状态</div>
+          <div class="construction-project-stat-items">${renderApprovalFlowStatOption("stay3","停留3天以上",rows)}${renderApprovalFlowStatOption("stay7","停留7天以上",rows)}</div>
+        </div>
+      </div>
+    </div>
+  </section>`;
+}
+
+function setApprovalFlowStat(key){
+  approvalFlowDetailState.filters=readApprovalFlowDetailFilters();
+  approvalFlowDetailState.stat=approvalFlowDetailState.stat===key?"":key;
+  approvalFlowDetailState.page=1;
+  applyApprovalFlowDetailFilters();
+  renderApprovalFlowDetailPage();
+}
+
+function renderApprovalFlowOrgNodes(node=approvalFlowOrgTree,level=1){
+  const hasChildren=node.children?.length;
+  const active=approvalFlowDetailState.orgId===node.id;
+  return `
+    <div class="org-tree-node org-level-indent-${Math.min(level,5)} ${active?"active":""}" onclick="selectApprovalFlowOrg('${node.id}')">
+      <div class="org-node-left"><span>${hasChildren?"📂":"📄"}</span><span class="org-node-name" title="${node.name}">${node.name}</span></div>
+      <span class="approval-flow-org-count">${getApprovalFlowOrgCount(node.id)}</span>
+    </div>
+    ${(node.children||[]).map(child=>renderApprovalFlowOrgNodes(child,level+1)).join("")}`;
+}
+
+function renderApprovalFlowOrgPanel(){
+  if(!approvalFlowDetailState.orgAggregate)return "";
+  return `<section class="org-tree-panel approval-flow-org-panel">
+    <div class="org-tree-hd"><div class="card-title">组织树</div></div>
+    <div class="org-tree-body">${renderApprovalFlowOrgNodes()}</div>
+  </section>`;
+}
+
+function renderApprovalFlowAggregateSwitch(){
+  return `<label class="message-switch approval-flow-aggregate-switch">
+    <span>按组织聚合</span>
+    <input type="checkbox" ${approvalFlowDetailState.orgAggregate?"checked":""} onchange="toggleApprovalFlowOrgAggregate(this.checked)"/>
+    <i></i>
+  </label>`;
 }
 
 function renderApprovalFlowDetailPage(){
@@ -4167,10 +4297,15 @@ function renderApprovalFlowDetailPage(){
     <div class="form-item"><label>审批对象类型</label>${renderApprovalFlowDetailSelect("approvalFlowScope",approvalFlowDetailOptions("scope"),f.scope)}</div>
     <div class="form-item"><label>审批发起时间</label><div class="date-range ep-date-range"><input id="approvalFlowStartDate" class="input" type="date" value="${f.startDate||""}"/><span>至</span><input id="approvalFlowEndDate" class="input" type="date" value="${f.endDate||""}"/></div></div>`;
   const pages=Math.max(1,Math.ceil(approvalFlowDetailCurrent.length/approvalFlowDetailState.pageSize));
+  const tableCard=renderUnifiedTableCard({title:"审批流程明细",tableKey:"approvalFlowDetail",tableId:"approvalFlowDetailTable",theadId:"approvalFlowDetailThead",tbodyId:"approvalFlowDetailTbody",totalId:"approvalFlowDetailTotalText",total:approvalFlowDetailCurrent.length,renderFnName:"renderApprovalFlowDetailTable",beforeActions:renderApprovalFlowAggregateSwitch(),refreshAction:"refreshApprovalFlowDetails()",exportAction:"exportApprovalFlowDetails()",pageText:`第 ${approvalFlowDetailState.page} / ${pages} 页　每页 ${approvalFlowDetailState.pageSize} 条`});
   listPage.innerHTML=`
     <div class="compact-title-row"><div class="module-title">审批流程管理 / 审批流程明细</div></div>
     ${renderUnifiedQueryCard(fields,{id:"approvalFlowDetailQueryCard",queryFn:"queryApprovalFlowDetails()",resetFn:"resetApprovalFlowDetails()",canCollapse:false})}
-    ${renderUnifiedTableCard({title:"审批流程明细",tableKey:"approvalFlowDetail",tableId:"approvalFlowDetailTable",theadId:"approvalFlowDetailThead",tbodyId:"approvalFlowDetailTbody",totalId:"approvalFlowDetailTotalText",total:approvalFlowDetailCurrent.length,renderFnName:"renderApprovalFlowDetailTable",refreshAction:"refreshApprovalFlowDetails()",exportAction:"exportApprovalFlowDetails()",pageText:`第 ${approvalFlowDetailState.page} / ${pages} 页　每页 ${approvalFlowDetailState.pageSize} 条`})}`;
+    ${renderApprovalFlowStats()}
+    <div class="approval-flow-detail-layout ${approvalFlowDetailState.orgAggregate?"has-org":""}">
+      ${renderApprovalFlowOrgPanel()}
+      ${tableCard}
+    </div>`;
   renderApprovalFlowDetailTable();
 }
 
@@ -4192,17 +4327,31 @@ function queryApprovalFlowDetails(){
   const f=readApprovalFlowDetailFilters();
   approvalFlowDetailState.filters=f;
   approvalFlowDetailState.page=1;
-  approvalFlowDetailCurrent=approvalFlowDetailData.filter(row=>{
-    const day=row.startTime.slice(0,10);
-    return (!f.content||row.content.includes(f.content))&&(!f.name||row.name.includes(f.name))&&(!f.initiator||row.initiator.includes(f.initiator))&&(!f.approver||row.approver.includes(f.approver))&&(!f.type||row.type===f.type)&&(!f.status||row.status===f.status)&&(!f.scope||row.scope===f.scope)&&(!f.startDate||day>=f.startDate)&&(!f.endDate||day<=f.endDate);
-  });
+  applyApprovalFlowDetailFilters();
   renderApprovalFlowDetailPage();
 }
 
 function resetApprovalFlowDetails(){
   approvalFlowDetailState.filters={};
+  approvalFlowDetailState.stat="";
   approvalFlowDetailState.page=1;
-  approvalFlowDetailCurrent=[...approvalFlowDetailData];
+  applyApprovalFlowDetailFilters();
+  renderApprovalFlowDetailPage();
+}
+
+function toggleApprovalFlowOrgAggregate(checked){
+  approvalFlowDetailState.filters=readApprovalFlowDetailFilters();
+  approvalFlowDetailState.orgAggregate=Boolean(checked);
+  approvalFlowDetailState.orgId="group";
+  approvalFlowDetailState.page=1;
+  applyApprovalFlowDetailFilters();
+  renderApprovalFlowDetailPage();
+}
+
+function selectApprovalFlowOrg(orgId){
+  approvalFlowDetailState.orgId=orgId;
+  approvalFlowDetailState.page=1;
+  applyApprovalFlowDetailFilters();
   renderApprovalFlowDetailPage();
 }
 
@@ -4229,7 +4378,8 @@ function openApprovalFlowDetail(id){
   openModal("审批流程详情",`<div class="message-admin-detail">
     ${info("审批对象",row.scope)}${info("对象名称",row.name)}${info("审批类型",row.type)}${info("审批状态",approvalFlowDetailStatusTag(row.status))}
     ${info("审批发起人",row.initiator)}${info("审批发起时间",row.startTime)}${info("当前流程节点",row.node)}${info("当前审批人",row.approver)}
-    ${info("流程到达时间",row.arrivalTime)}${info("已停留时长",row.stayDuration)}${info("是否超期",row.overdue)}${info("超期提醒次数",String(row.reminders))}
+    ${info("流程到达时间",row.arrivalTime)}${info("已停留时长",formatApprovalFlowDuration(row.stayHours,row.stayMinutes))}${info("是否超期",row.overdue)}${info("超期时长",formatApprovalFlowDuration(row.overdueHours))}
+    ${info("超期提醒次数",String(row.reminders))}
     <div class="message-admin-content"><strong>审批内容</strong>${row.content}</div>
   </div>`,`<button class="btn primary" onclick="closeModal()">关闭</button>`,"large");
 }

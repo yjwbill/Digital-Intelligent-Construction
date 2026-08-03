@@ -2020,6 +2020,64 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
 .org-level-indent-4{padding-left:56px}
 .org-level-indent-5{padding-left:72px}
 
+.approval-flow-detail-layout{
+  flex:1;
+  min-height:0;
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:12px;
+  overflow:hidden;
+}
+.approval-flow-detail-layout.has-org{
+  grid-template-columns:280px minmax(0,1fr);
+}
+.approval-flow-detail-layout>.table-card{
+  min-width:0;
+  height:100%;
+  margin:0;
+}
+.approval-flow-detail-layout>.table-card>.table-wrap{
+  flex:1;
+  min-height:0;
+  overflow:auto;
+}
+.approval-flow-org-panel{
+  height:100%;
+  min-height:0;
+  max-height:none;
+  margin:0;
+}
+.approval-flow-org-count{
+  min-width:28px;
+  height:20px;
+  padding:0 7px;
+  border-radius:999px;
+  background:#3491FA;
+  color:#fff;
+  font-size:12px;
+  font-weight:400;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+.org-tree-node.active .approval-flow-org-count{
+  background:#165DFF;
+}
+.approval-flow-aggregate-switch{
+  margin-right:2px;
+}
+.approval-flow-reminder-link{
+  min-width:24px;
+  padding:0;
+  border:0;
+  background:transparent;
+  font:inherit;
+}
+@media(max-width:1100px){
+  .approval-flow-detail-layout.has-org{grid-template-columns:240px minmax(0,1fr)}
+}
+
 .org-user-body{
   flex:1;
   min-height:0;

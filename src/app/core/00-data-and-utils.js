@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.547-APPROVAL-FLOW-DETAIL-LIST";
-const APP_CODE_VERSION_NAME="审批流程明细列表版";
-const APP_CODE_VERSION_TIME="2026-08-03 15:00";
-const APP_CODE_VERSION_DESC="新增审批流程明细标准列表，支持多条件及发起日期范围查询、通用列设置、刷新、导出和流程详情查看。";
+const APP_CODE_VERSION="EM-20260701-V2.2.551-APPROVAL-STATS-STANDARD-STYLE";
+const APP_CODE_VERSION_NAME="审批统计标准样式版";
+const APP_CODE_VERSION_TIME="2026-08-03 17:30";
+const APP_CODE_VERSION_DESC="审批流程明细筛选统计全面对齐施工项目一览，统一分组、统计项、间距、分隔线及选中样式。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
