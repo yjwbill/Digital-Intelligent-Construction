@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.526-FILE-DETAIL-MILESTONE-TABS";
-const APP_CODE_VERSION_NAME="施工日志文件详情与里程碑标签优化版";
-const APP_CODE_VERSION_TIME="2026-07-31 19:00";
-const APP_CODE_VERSION_DESC="优化文件上报详情基础信息和分组顺序，并为所有施工日志详情补充进行中、已完成里程碑标签切换。";
+const APP_CODE_VERSION="EM-20260701-V2.2.535-FILE-DETAIL-FIELD-ALIGNMENT";
+const APP_CODE_VERSION_NAME="文件详情字段对齐版";
+const APP_CODE_VERSION_TIME="2026-08-03 12:00";
+const APP_CODE_VERSION_DESC="文件上报施工日志详情移除文件分组日期并对齐上报字段，上报表单文件上传统一更名为施工相关附件。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,

@@ -465,7 +465,7 @@ function sortProjectLogRows(rows){
 
 function splitProjectLogAreaText(value){
   return String(value||"")
-    .split(/[、,，;；/／\s]+/)
+    .split(/[、,，;；/／+＋\s]+/)
     .map(area=>area.trim())
     .filter(Boolean);
 }
@@ -527,7 +527,7 @@ function mergeProjectLogDateGroup(group){
     onlineRecord:online,
     fileRecord:file,
     title:hasOnline&&hasFile?"施工日志":primary.title,
-    workArea:areas.join("、")||primary.workArea,
+    workArea:getProjectLogAreaSummary(areas)||primary.workArea,
     uploader:uploaders.join("、")||primary.uploader,
     uploadTime:latest.uploadTime||primary.uploadTime,
     customUpdatedAt,
@@ -747,7 +747,7 @@ function renderProjectLogSelectedDay(){
         <button class="project-log-day-item" data-project-log-detail="${row.id}" onclick="openProjectLogDetail('${escapeAttr(row.id)}')">
           <div>
             <strong class="${row.mode}">${row.mode==="merged"?"在线+文件":row.mode==="online"?"在线上报":"文件上报"}</strong>
-            <p>施工区域：${row.workArea}</p>
+            <p>施工工区：${row.workArea}</p>
             <p>上传人：${row.uploader}</p>
             <p>上传时间：${row.uploadTime}</p>
           </div>
@@ -855,7 +855,7 @@ function getProjectLogReadonlyOnlineDetail(row){
 function renderProjectLogReadonlyWorkTable(rows,showProgress=true){
   return `
     <table class="project-log-report-table project-log-readonly-work-table">
-      <thead><tr><th>序号</th><th>施工工区</th><th>施工分项</th><th>施工部位</th><th>工作内容</th>${showProgress?"<th>工作进度</th>":""}<th>施工图片</th><th>填报人</th><th>备注</th></tr></thead>
+      <thead><tr><th>序号</th><th>施工工区</th><th>施工分项</th><th>施工部位</th><th>工作内容</th>${showProgress?"<th>工作进度</th>":""}<th>施工图片</th><th>记录人</th><th>备注</th></tr></thead>
       <tbody>${rows.map((item,index)=>`<tr><td>${index+1}</td><td>${item.area}</td><td>${item.subitem||"-"}</td><td>${item.position||"-"}</td><td>${item.content}</td>${showProgress?`<td>${item.progress}</td>`:""}<td>${item.imageUrl?`<button type="button" class="project-log-work-thumb-btn" onclick="openProjectLogWorkImagePreview('${escapeAttr(item.imageUrl)}','${escapeAttr(item.imageName||"施工图片")}')"><img class="project-log-work-thumb" src="${item.imageUrl}" alt="${escapeAttr(item.imageName||"施工图片")}"/></button>`:item.imageName||"-"}</td><td>${item.reporter||"-"}</td><td>${item.remark||"-"}</td></tr>`).join("")}</tbody>
     </table>
   `;
@@ -951,9 +951,8 @@ function renderProjectLogReadonlyFileUploadSection(row){
       ${row.fileEntries.map((entry,index)=>`
         <div class="project-log-readonly-file-entry">
           <div class="project-detail-info-grid">
-            ${renderProjectLogReadonlyField("工区",entry.area||row.workArea)}
-            ${renderProjectLogReadonlyField("日期",row.date)}
-            ${renderProjectLogReadonlyField("填报人",entry.reporter||row.uploader||"-")}
+            ${renderProjectLogReadonlyField("施工工区",entry.area||row.workArea)}
+            ${renderProjectLogReadonlyField("记录人",entry.reporter||row.uploader||"-")}
           </div>
           <div class="project-log-readonly-subtitle">当日施工情况描述</div>
           <div class="project-log-readonly-text">${entry.remark||entry.summary||"-"}</div>
@@ -965,33 +964,42 @@ function renderProjectLogReadonlyFileUploadSection(row){
   }
   return renderProjectLogReadonlySection("文件上传",`
     <div class="project-detail-info-grid">
-      ${renderProjectLogReadonlyField("工区",row.workArea)}
-      ${renderProjectLogReadonlyField("日期",row.date)}
-      ${renderProjectLogReadonlyField("填报人",row.uploader||"-")}
+      ${renderProjectLogReadonlyField("施工工区",row.workArea)}
+      ${renderProjectLogReadonlyField("记录人",row.uploader||"-")}
     </div>
-    <div class="project-log-readonly-subtitle">施工相关附件</div>
-    ${renderProjectLogReadonlyFiles(getProjectLogReadonlyFiles(row))}
     <div class="project-log-readonly-subtitle">当日施工情况描述</div>
     <div class="project-log-readonly-text">${row.summary||"-"}</div>
+    <div class="project-log-readonly-subtitle">施工相关附件</div>
+    ${renderProjectLogReadonlyFiles(getProjectLogReadonlyFiles(row))}
   `);
+}
+
+function getProjectLogReadonlyFileRecorder(row){
+  const names=(Array.isArray(row?.fileEntries)?row.fileEntries:[])
+    .flatMap(entry=>String(entry?.reporter||"").split(/[、,，]/))
+    .map(name=>name.trim())
+    .filter(Boolean);
+  return [...new Set(names)].join("、")||row?.uploader||"-";
 }
 
 function renderProjectLogReadonlyBaseInfo(row,projectName){
   if(row.mode==="file")return `
     <div class="project-detail-info-grid">
+      ${renderProjectLogReadonlyField("施工工区",row.workArea)}
       ${renderProjectLogReadonlyField("日期",row.date)}
+      ${renderProjectLogReadonlyField("记录人",getProjectLogReadonlyFileRecorder(row))}
     </div>
   `;
   const detail=getProjectLogReadonlyOnlineDetail(row);
   return `
     <div class="project-detail-info-grid">
       ${renderProjectLogReadonlyField("项目名称",projectName)}
-      ${renderProjectLogReadonlyField("工区",row.workArea)}
+      ${renderProjectLogReadonlyField("施工工区",row.workArea)}
       ${renderProjectLogReadonlyField("日期",row.date)}
       ${renderProjectLogReadonlyField("星期",getProjectLogReadonlyWeekday(row.date))}
       ${renderProjectLogReadonlyField("温度",detail.temperature)}
       ${renderProjectLogReadonlyField("天气是否影响工作",detail.weatherImpact)}
-      ${renderProjectLogReadonlyField("记录人姓名",row.uploader)}
+      ${renderProjectLogReadonlyField("记录人",row.uploader)}
       ${renderProjectLogReadonlyField("上报时间",row.uploadTime)}
     </div>
   `;
@@ -1075,7 +1083,7 @@ function renderProjectLogWorkAreaOptions(value=""){
   ["主体结构区","附属结构区","基坑施工区","材料加工区"].forEach(area=>{
     if(!areas.includes(area))areas.push(area);
   });
-  return `<option value="">请选择工区</option>${areas.map(area=>`<option value="${escapeAttr(area)}" ${area===value?"selected":""}>${area}</option>`).join("")}`;
+  return `<option value="">请选择施工工区</option>${areas.map(area=>`<option value="${escapeAttr(area)}" ${area===value?"selected":""}>${area}</option>`).join("")}`;
 }
 
 function renderProjectLogWorkTable(type="today",defaultRows=null){
@@ -1102,7 +1110,7 @@ function renderProjectLogWorkTable(type="today",defaultRows=null){
     <div class="project-log-work-table-wrap">
       <table class="project-log-report-table project-log-work-table">
         <thead>
-          <tr><th>序号</th><th>施工工区</th><th>施工分项</th><th>施工部位</th><th>工作内容</th>${isToday?"<th>工作进度</th>":""}<th>施工图片</th><th>填报人</th><th>备注</th><th>操作</th></tr>
+          <tr><th>序号</th><th>施工工区</th><th>施工分项</th><th>施工部位</th><th>工作内容</th>${isToday?"<th>工作进度</th>":""}<th>施工图片</th><th>记录人</th><th>备注</th><th>操作</th></tr>
         </thead>
         <tbody id="projectLogWorkTbody-${type}">
           ${rows.length?rows.map((row,index)=>renderProjectLogWorkRow(type,row,index)).join(""):emptyRow}
@@ -1122,7 +1130,7 @@ function getProjectLogWorkReporterByArea(area,fallback=""){
 function renderProjectLogReporterOptions(value=""){
   const managers=getProjectLogReporterPersonnel();
   const selectedValue=managers.some(item=>item.name===value)?value:managers[0]?.name||"";
-  return `<option value="">请选择填报人</option>${managers.map(item=>`<option value="${escapeAttr(item.name)}" ${item.name===selectedValue?"selected":""}>${escapeAttr(item.name)}（${escapeAttr(item.job||"管理人员")}）</option>`).join("")}`;
+  return `<option value="">请选择记录人</option>${managers.map(item=>`<option value="${escapeAttr(item.name)}" ${item.name===selectedValue?"selected":""}>${escapeAttr(item.name)}（${escapeAttr(item.job||"管理人员")}）</option>`).join("")}`;
 }
 
 function renderProjectLogWorkImageUpload(row={}){
@@ -1145,7 +1153,7 @@ function renderProjectLogWorkRow(type,row={},index=0){
   return `
     <tr class="project-log-report-work-row" data-project-log-work-type="${type}">
       <td class="project-log-work-index">${index+1}</td>
-      <td><input class="input project-log-work-area" list="projectLogWorkAreaList-${type}-${index}" value="${escapeAttr(row.area||"")}" placeholder="请选择或输入工区" onchange="syncProjectLogWorkReporter(this)"/><datalist id="projectLogWorkAreaList-${type}-${index}">${renderProjectLogWorkAreaOptions(row.area||"").replace('<option value="">请选择工区</option>',"")}</datalist></td>
+      <td><input class="input project-log-work-area" list="projectLogWorkAreaList-${type}-${index}" value="${escapeAttr(row.area||"")}" placeholder="请选择或输入施工工区" oninput="syncProjectLogOnlineWorkAreas()" onchange="syncProjectLogWorkReporter(this)"/><datalist id="projectLogWorkAreaList-${type}-${index}">${renderProjectLogWorkAreaOptions(row.area||"").replace('<option value="">请选择施工工区</option>',"")}</datalist></td>
       <td><input class="input project-log-work-subitem" value="${escapeAttr(row.subitem || "")}" placeholder="请输入施工分项"/></td>
       <td><input class="input project-log-work-position" value="${escapeAttr(row.position || "")}" placeholder="请输入施工部位"/></td>
       <td><input class="input project-log-work-content" value="${escapeAttr(row.content || "")}" placeholder="请输入工作内容"/></td>
@@ -1160,7 +1168,21 @@ function renderProjectLogWorkRow(type,row={},index=0){
 
 function syncProjectLogWorkReporter(select){
   const row=select?.closest(".project-log-report-work-row");
+  syncProjectLogOnlineWorkAreas();
   syncProjectLogRecorderFromWorkRows();
+}
+
+function getProjectLogAreaSummary(values){
+  return [...new Set((values||[]).map(value=>String(value||"").trim()).filter(Boolean))].join("、");
+}
+
+function syncProjectLogOnlineWorkAreas(){
+  const areaInput=document.getElementById("projectLogReportArea");
+  if(!areaInput)return "";
+  const areas=[...document.querySelectorAll('#projectLogWorkTbody-today .project-log-work-area')].map(input=>input.value);
+  const summary=getProjectLogAreaSummary(areas);
+  areaInput.value=summary;
+  return summary;
 }
 
 function refreshProjectLogWorkReporters(){
@@ -1168,6 +1190,7 @@ function refreshProjectLogWorkReporters(){
     const reporter=row.querySelector(".project-log-work-reporter");
     if(reporter&&!reporter.value)reporter.value=getProjectLogWorkReporterByArea("");
   });
+  syncProjectLogOnlineWorkAreas();
   syncProjectLogRecorderFromWorkRows();
 }
 
@@ -1352,6 +1375,7 @@ function addProjectLogWorkRow(type){
   tbody.querySelector(".project-log-report-empty-row")?.remove();
   const index=tbody.querySelectorAll(".project-log-report-work-row").length;
   tbody.insertAdjacentHTML("beforeend",renderProjectLogWorkRow(type,{area:"",subitem:"",position:"",content:"",progress:"",imageName:"",reporter:"",remark:""},index));
+  if(type==="today")syncProjectLogOnlineWorkAreas();
 }
 
 function removeProjectLogWorkRow(btn){
@@ -1359,6 +1383,7 @@ function removeProjectLogWorkRow(btn){
   const type=row?.dataset.projectLogWorkType;
   row?.remove();
   refreshProjectLogWorkIndexes(type);
+  if(type==="today")syncProjectLogOnlineWorkAreas();
 }
 
 function getProjectLogRiskFieldValue(risk,label){
@@ -1467,6 +1492,11 @@ function getProjectLogFileRecorderValue(defaultName="楼力栋"){
   return names.length?names.join("、"):defaultName;
 }
 
+function syncProjectLogFileRecorderFromRows(){
+  const recorder=document.getElementById("projectLogFileReportRecorder");
+  if(recorder)recorder.value=getProjectLogFileRecorderValue(recorder.value||"楼力栋");
+}
+
 function renderProjectLogRecorderReadonly(id,selectedName="楼力栋"){
   return `<input class="input project-log-recorder-readonly" id="${id}" value="${escapeAttr(selectedName)}" readonly/>`;
 }
@@ -1541,7 +1571,7 @@ function openProjectLogAssignmentModal(){
   const body=`
     <div class="project-log-assignment-form">
       <div class="form-item">
-        <label>工区 <em>*</em></label>
+        <label>施工工区 <em>*</em></label>
         <select class="select" id="projectLogAssignArea">${renderProjectLogWorkAreaOptions(currentArea)}</select>
       </div>
       <div class="form-item">
@@ -1572,7 +1602,7 @@ function confirmProjectLogAssignment(btn){
   const area=document.getElementById("projectLogAssignArea")?.value||"";
   const subitem=document.getElementById("projectLogAssignSubitem")?.value||"";
   const personIds=[...document.querySelectorAll("#projectLogAssignPeople input:checked")].map(input=>input.value);
-  if(!area)return showToast("请选择工区");
+  if(!area)return showToast("请选择施工工区");
   if(!subitem)return showToast("请选择分部分项");
   if(!personIds.length)return showToast("请选择分配人员");
   const people=getProjectLogManagementPersonnel()
@@ -1697,19 +1727,19 @@ function renderProjectLogFileReportRow(row={},index=0){
   return `
     <div class="project-log-file-report-row" data-project-log-file-row="${index}">
       <div class="form-item project-log-file-area-item">
-        <label>工区 <em>*</em></label>
-        <select class="select project-log-file-row-area" onchange="syncProjectLogFileReportRow(${index});refreshProjectLogSharedSections('projectLogFileReport')">${renderProjectLogWorkAreaOptions(row.area||"主体结构区")}</select>
+        <label>施工工区 <em>*</em></label>
+        <select class="select project-log-file-row-area" onchange="syncProjectLogFileReportRow(${index});syncProjectLogFileWorkAreas();refreshProjectLogSharedSections('projectLogFileReport')">${renderProjectLogWorkAreaOptions(row.area||"主体结构区")}</select>
       </div>
       <div class="form-item project-log-file-reporter-item">
-        <label>填报人 <em>*</em></label>
-        <select class="select project-log-file-row-reporter" onchange="syncProjectLogFileReportRow(${index})">${renderProjectLogReporterOptions(reporter)}</select>
+        <label>记录人 <em>*</em></label>
+        <select class="select project-log-file-row-reporter" onchange="syncProjectLogFileReportRow(${index});syncProjectLogFileRecorderFromRows()">${renderProjectLogReporterOptions(reporter)}</select>
       </div>
       <div class="form-item project-log-file-remark-item">
         <label>当日施工情况描述 <em>*</em></label>
         <textarea class="input project-log-stop-textarea project-log-file-row-remark" placeholder="请输入备注说明" oninput="syncProjectLogFileReportRow(${index})">${escapeAttr(row.remark||"")}</textarea>
       </div>
       <div class="form-item project-log-file-form-item">
-        <label>文件上传 <em>*</em></label>
+        <label>施工相关附件 <em>*</em></label>
         ${renderProjectLogFileUpload(index)}
       </div>
       <button class="btn danger small project-log-file-row-remove" type="button" onclick="removeProjectLogFileReportRow(${index})" ${projectLogReportFileRows.length<=1?"disabled":""}>删除</button>
@@ -1721,6 +1751,16 @@ function refreshProjectLogFileReportRows(){
   const box=document.getElementById("projectLogFileReportRows");
   if(!box)return;
   box.innerHTML=projectLogReportFileRows.map((row,index)=>renderProjectLogFileReportRow(row,index)).join("");
+  syncProjectLogFileWorkAreas();
+  syncProjectLogFileRecorderFromRows();
+}
+
+function syncProjectLogFileWorkAreas(){
+  const areaInput=document.getElementById("projectLogFileReportArea");
+  if(!areaInput)return "";
+  const summary=getProjectLogAreaSummary(projectLogReportFileRows.map(row=>row.area));
+  areaInput.value=summary;
+  return summary;
 }
 
 function syncProjectLogFileReportRow(index){
@@ -1730,6 +1770,7 @@ function syncProjectLogFileReportRow(index){
   row.area=node.querySelector(".project-log-file-row-area")?.value||"";
   row.reporter=node.querySelector(".project-log-file-row-reporter")?.value||"";
   row.remark=node.querySelector(".project-log-file-row-remark")?.value.trim()||"";
+  syncProjectLogFileRecorderFromRows();
 }
 
 function addProjectLogFileReportRow(){
@@ -1809,15 +1850,15 @@ function renderProjectLogReportBaseInfo(prefix="projectLogReport",defaultArea="�
     <section class="project-log-report-section">
       <h3>基础信息</h3>
       <div class="project-log-report-grid four">
-        ${isFile?"":`<div class="form-item"><label>项目名称 <em>*</em></label><input class="input" value="${escapeAttr(pcPortalState.currentProject)}" disabled/></div>`}
-        ${isFile?"":`<div class="form-item"><label>工区 <em>*</em></label><select class="select" id="${prefix}Area" onchange="refreshProjectLogSharedSections('${prefix}')">${renderProjectLogWorkAreaOptions(defaultArea)}</select></div>`}
+        ${isFile?"":`<div class="form-item"><label>项目名称 <em>*</em></label><input class="input project-log-recorder-readonly" value="${escapeAttr(pcPortalState.currentProject)}" readonly/></div>`}
+        <div class="form-item"><label>施工工区 <em>*</em></label><input class="input project-log-recorder-readonly" id="${prefix}Area" value="${escapeAttr(defaultArea)}" readonly/></div>
         <div class="form-item"><label>日期 <em>*</em></label><input class="input" id="${prefix}Date" type="date" value="${today}" onchange="syncProjectLogReportWeekday('${prefix}')"/></div>
         ${isFile?"":`
-          <div class="form-item"><label>星期 <em>*</em></label><input class="input" id="${prefix}Weekday" value="${getProjectLogReadonlyWeekday(today)}" disabled/></div>
+          <div class="form-item"><label>星期 <em>*</em></label><input class="input project-log-recorder-readonly" id="${prefix}Weekday" value="${getProjectLogReadonlyWeekday(today)}" readonly/></div>
           <div class="form-item"><label>温度 <em>*</em></label><div class="project-log-unit-input"><input class="input" placeholder="请输入"/><span>℃</span></div></div>
           <div class="form-item"><label>天气是否影响工作 <em>*</em></label><select class="select"><option>是</option><option selected>否</option></select></div>
-          <div class="form-item"><label>记录人姓名 <em>*</em></label>${renderProjectLogRecorderReadonly(`${prefix}Recorder`,defaultRecorder)}</div>
         `}
+        <div class="form-item"><label>记录人 <em>*</em></label>${renderProjectLogRecorderReadonly(`${prefix}Recorder`,defaultRecorder)}</div>
       </div>
     </section>
   `;
@@ -1881,6 +1922,7 @@ function openProjectLogReportModal(editRow=null){
   `,"large");
   modalBox.classList.add("project-log-online-report-modal");
   refreshProjectLogWorkReporters();
+  syncProjectLogOnlineWorkAreas();
 }
 
 function openProjectLogFileReportModal(editRow=null){
@@ -1896,7 +1938,7 @@ function openProjectLogFileReportModal(editRow=null){
   projectLogMilestoneDraftRows=sharedDetail.milestones.map(item=>({...item}));
   openModal(editRow?"编辑施工日志":"施工日志文件上报",`
     <div class="project-log-online-report">
-      ${renderProjectLogReportBaseInfo("projectLogFileReport",editRow?.workArea||"主体结构区","file",reportDate)}
+      ${renderProjectLogReportBaseInfo("projectLogFileReport",editRow?.workArea||"主体结构区","file",reportDate,editRow?.uploader||"楼力栋")}
       <section class="project-log-report-section">
         <div class="project-log-report-section-title-row">
           <h3>施工日志文件</h3>
@@ -1926,6 +1968,8 @@ function openProjectLogFileReportModal(editRow=null){
     <button class="btn primary" onclick="submitProjectLogFileReport()">${editRow?"保存修改":"提交上报"}</button>
   `,"large");
   modalBox.classList.add("project-log-online-report-modal");
+  syncProjectLogFileWorkAreas();
+  syncProjectLogFileRecorderFromRows();
 }
 
 function submitProjectLogReport(){
@@ -1988,12 +2032,12 @@ function submitProjectLogFileReport(){
     const row=projectLogReportFileRows[index];
     const node=document.querySelector(`[data-project-log-file-row="${index}"]`);
     if(!row.area){
-      showToast(`请选择第${index+1}行工区`);
+      showToast(`请选择第${index+1}行施工工区`);
       node?.querySelector(".project-log-file-row-area")?.focus();
       return;
     }
     if(!row.reporter){
-      showToast(`请选择第${index+1}行填报人`);
+      showToast(`请选择第${index+1}行记录人`);
       node?.querySelector(".project-log-file-row-reporter")?.focus();
       return;
     }
@@ -2016,7 +2060,7 @@ function submitProjectLogFileReport(){
   const recorder=getProjectLogFileRecorderValue(editing?.uploader || "楼力栋");
   const date=document.getElementById("projectLogFileReportDate")?.value || getProjectLogTodayValue();
   const areas=[...new Set(projectLogReportFileRows.map(row=>row.area).filter(Boolean))];
-  const area=areas.join("、") || "主体结构区";
+  const area=getProjectLogAreaSummary(areas) || "主体结构区";
   const remark=projectLogReportFileRows.map(row=>row.remark).filter(Boolean).join("；");
   const now=new Date();
   const uploadTime=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")} ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;

@@ -203,7 +203,7 @@ function refreshEnterpriseConstructionLogColumns(){
     {key:"projectStatus",title:"项目状态",width:80,align:"center",render:row=>projectStatusTag(row.projectStatus)},
     {key:"subCompany",title:"子公司",width:130,align:"center",render:row=>row.subCompany},
     {key:"branchCompany",title:"分公司",width:140,align:"center",render:row=>row.branchCompany},
-    {key:"onTimeUpload",title:`是否按时上报${renderInfoTip("子公司重大项目和股份重大项目，必须每天填报施工日志；子公司一般项目三天不少于1次填报，一周不少于2次填报")}`,width:140,align:"center",render:row=>tag(row.onTimeUpload,row.onTimeUpload==="是"?"green":"red")},
+    {key:"onTimeUpload",title:`是否按要求上报${renderInfoTip("子公司重大项目和股份重大项目，必须每天填报施工日志；子公司一般项目三天不少于1次填报，一周不少于2次填报")}`,width:140,align:"center",render:row=>tag(row.onTimeUpload,row.onTimeUpload==="是"?"green":"red")},
     {key:"latestUploadDate",title:"最新上报日期",width:110,align:"center",render:row=>row.latestUploadDate},
     ...Array.from({length:meta.days},(_,index)=>({
       key:`day${index+1}`,
@@ -251,10 +251,10 @@ function renderEnterpriseConstructionLogStats(){
         </div>
       </div>
       <div class="construction-project-stat-group">
-        <div class="construction-project-stat-name">按时上报</div>
+        <div class="construction-project-stat-name required-report-stat-name"><span>按要求</span><span>上报</span></div>
         <div class="construction-project-stat-items">
-          ${item("onTime","按时上报",rows.filter(row=>row.onTimeUpload==="是").length)}
-          ${item("notOnTime","未按时上报",rows.filter(row=>row.onTimeUpload==="否").length)}
+          ${item("onTime","按要求上报",rows.filter(row=>row.onTimeUpload==="是").length)}
+          ${item("notOnTime","未按要求上报",rows.filter(row=>row.onTimeUpload==="否").length)}
         </div>
       </div>
     </div>
@@ -647,7 +647,7 @@ function renderEnterpriseConstructionLogProjectSelectedDay(project){
       <button type="button" class="project-log-day-item" onclick="openEnterpriseConstructionLogReportDetail(${record.projectId},${record.day})">
         <div>
           <strong class="${record.mode}">${getEnterpriseConstructionLogReportMethod(record)}</strong>
-          <p>施工区域：${record.workArea}</p>
+          <p>施工工区：${record.workArea}</p>
           <p>上传人：${record.uploader}</p>
           <p>上传时间：${record.uploadTime}</p>
         </div>
