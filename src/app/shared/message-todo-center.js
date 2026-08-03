@@ -90,6 +90,40 @@ const todoCenterState={
   pageSize:50
 };
 
+const approvalCenterState={
+  tab:"待我审批",
+  category:"",
+  categorySearch:"",
+  search:"",
+  page:1,
+  pageSize:50,
+  openGroups:new Set(["项目状态","产值管理","进度管理","风险管理"])
+};
+
+const approvalCategoryGroups=[
+  {name:"项目状态",children:["工程总体筹划","停工申请","项目终止"]},
+  {name:"产值管理",children:["实际产值上报","期初产值上报","产值滚动更新"]},
+  {name:"进度管理",children:["进度变更","进度变更分公司"]},
+  {name:"风险管理",children:["II级风险变更","II级风险条件验收","I级风险条件验收"]}
+];
+
+let approvalCenterData=[
+  {id:1,scope:"企业",name:"内部测试专用（数字集团）",category:"I级风险条件验收",content:"风险条件验收",initiator:"楼力栋",startTime:"2026-06-16 14:14",status:"已通过",tabs:["我发起的","已办审批"]},
+  {id:2,scope:"项目",name:"G1503公路同三段部分路段综合整治及长周期养护工程",category:"进度变更",content:"无数据变更",initiator:"楼力栋",startTime:"2026-04-07 18:18",status:"审批中",tabs:["我发起的"]},
+  {id:3,scope:"项目",name:"景德镇陶阳里历史文化街区配套项目酒店工程",category:"进度变更分公司",content:"更新工程开工预计开始日期，调整关键节点计划。",initiator:"楼力栋",startTime:"2026-01-30 14:38",status:"已作废",tabs:["我发起的"]},
+  {id:4,scope:"项目",name:"景德镇陶阳里历史文化街区配套项目酒店工程",category:"进度变更分公司",content:"工程开工删除，更新普通节点1个。",initiator:"楼力栋",startTime:"2026-01-30 14:32",status:"已作废",tabs:["我发起的"]},
+  {id:5,scope:"项目",name:"内部测试专用（数字集团）",category:"项目终止",content:"终止日期：2026-01-13，终止原因：项目实施条件变化。",initiator:"楼力栋",startTime:"2026-01-13 15:00",status:"已通过",tabs:["我发起的","已办审批"]},
+  {id:6,scope:"项目",name:"内部测试专用（数字集团）",category:"工程总体筹划",content:"工程总体筹划提交审批",initiator:"楼力栋",startTime:"2026-01-12 13:32",status:"已通过",tabs:["我发起的","已办审批"]},
+  {id:7,scope:"项目",name:"上海示范区线工程 SFQSG-15 标",category:"I级风险条件验收",content:"深基坑开挖前置条件验收，请审批。",initiator:"张建国",startTime:"2026-08-03 09:10",status:"待审批",tabs:["待我审批"]},
+  {id:8,scope:"项目",name:"机场联络线工程 JCXSG-4 标",category:"II级风险变更",content:"风险等级及管控措施变更审批。",initiator:"王晨",startTime:"2026-08-03 08:42",status:"待审批",tabs:["待我审批"]},
+  {id:9,scope:"企业",name:"上海隧道工程有限公司",category:"实际产值上报",content:"2026年7月实际产值上报审批。",initiator:"赵经营",startTime:"2026-08-02 17:30",status:"待审批",tabs:["待我审批"]},
+  {id:10,scope:"项目",name:"北方数据中心项目",category:"停工申请",content:"计划停工日期：2026-08-05，申请临时停工。",initiator:"陈启航",startTime:"2026-08-02 16:05",status:"已驳回",tabs:["已办审批"]},
+  {id:11,scope:"项目",name:"西湖区朝阳污水处理厂收集范围排水单元改造工程",category:"期初产值上报",content:"期初产值：12780.53万元，期初营收：11725.26万元。",initiator:"楼力栋",startTime:"2025-11-20 15:43",status:"已通过",tabs:["我发起的","已办审批"]},
+  {id:12,scope:"项目",name:"内部测试专用（数字集团）",category:"产值滚动更新",content:"计划工期及总计划产值滚动更新。",initiator:"楼力栋",startTime:"2025-11-20 19:03",status:"已通过",tabs:["我发起的","已办审批"]},
+  {id:13,scope:"项目",name:"内部测试专用（数字集团）",category:"停工申请",content:"计划停工日期：2025-11-19，计划复工日期：2025-11-20。",initiator:"楼力栋",startTime:"2025-11-19 02:33",status:"已通过",tabs:["我发起的","已办审批"]},
+  {id:14,scope:"项目",name:"内部测试专用（数字集团）",category:"工程总体筹划",content:"工程总体筹划提交审批。",initiator:"楼力栋",startTime:"2025-11-19 02:29",status:"已通过",tabs:["我发起的","已办审批"]}
+];
+
 let todoData=[
   {id:1,module1:"安全",module2:"隐患排查",title:"隐患整改闭环处理",content:"机场联络线工程 3 条重大隐患整改超期，请完成复核并提交闭环资料。",org:"市政集团",status:"未办理",sendTime:"2026-06-26 08:30:24",level:"orange",jumpLink:"/pages/safety/rectify?id=todo001",deadline:"2026-06-27 18:00:00",sourceNo:"TODO202606260001"},
   {id:2,module1:"安全",module2:"每日监督",title:"每日安全监督填报",content:"大外环西段今日安全每日监督尚未填报，请在 17:00 前完成。",org:"上海隧道",status:"未办理",sendTime:"2026-06-26 09:00:00",level:"orange",jumpLink:"/pages/safety/daily-supervision",deadline:"2026-06-26 17:00:00",sourceNo:"TODO202606260002"},
@@ -164,7 +198,7 @@ function ensureBottomFixedMenu(){
       <span class="bottom-menu-left"><i class="bottom-menu-icon">✅</i><span>待办</span></span>
       <span class="bottom-menu-badge" id="bottomTodoPending">${getTodoCount()}</span>
     </div>
-    <div class="bottom-menu-item approval" onclick="showToast('审批模块将在后续版本开放')">
+    <div class="bottom-menu-item approval" onclick="openApprovalCenter()">
       <span class="bottom-menu-left"><i class="bottom-menu-icon">🧾</i><span>审批</span></span>
       <span class="bottom-menu-badge">${getApprovalCount()}</span>
     </div>
@@ -192,7 +226,7 @@ function refreshBottomFixedMenu(){
 }
 
 function getTodoCount(){return getActiveTodoData().filter(x=>x.status==="未办理").length;}
-function getApprovalCount(){return isProjectPortalMode()?4:34;}
+function getApprovalCount(){return approvalCenterData.filter(row=>row.tabs.includes("待我审批")&&row.status==="待审批").length;}
 function getUnreadMessageCount(){
   return getActiveMessageData().filter(x=>x.status==="未读").length;
 }
@@ -317,15 +351,15 @@ function getMessageTypeCount(type){
 
 function renderMessageTypeTabs(){
   return `
-    <div class="message-type-tabs">
+    <div class="message-type-tabs center-top-status-switch">
       ${messageTypeConfig.map(t=>{
         const active=messageCenterState.type===t.name;
         const count=getMessageTypeCount(t.name);
         return `
-          <div class="message-type-tab ${active?"active":""}" onclick="setMessageType('${t.name}')">
-            ${t.name}
-            <span class="${t.name==="消息通知"?"orange":t.name==="通知公告"?"blue":"red"}">${count}</span>
-          </div>
+          <button type="button" class="center-status-option ${active?"active":""}" onclick="setMessageType('${t.name}')">
+            <span>${t.name}</span>
+            <em class="center-status-badge ${t.name==="消息通知"?"orange":t.name==="通知公告"?"blue":"red"}">${count}</em>
+          </button>
         `;
       }).join("")}
     </div>
@@ -337,15 +371,15 @@ function renderMessageTopActions(){
   return `
     <div class="message-actions">
       ${messageCenterState.type==="消息通知"?`<button class="btn primary ${unread?"":"disabled"}" ${unread?'onclick="markAllMessageRead()"':""}>一键已读</button>`:""}
-      <div class="message-search-box">
-        <input id="messageSearchInput" value="${messageCenterState.search}" onkeydown="if(event.key==='Enter')searchMessageByInput()" onchange="searchMessageByInput()" placeholder="输入消息内容搜索"/>
-        <span onclick="searchMessageByInput()">⌕</span>
-      </div>
       <label class="message-switch">
         <span>按组织聚合</span>
         <input id="messageOrgAggregate" type="checkbox" ${messageCenterState.orgAggregate?"checked":""} onchange="toggleOrgAggregate()"/>
         <i></i>
       </label>
+      <div class="message-search-box">
+        <input id="messageSearchInput" value="${messageCenterState.search}" onkeydown="if(event.key==='Enter')searchMessageByInput()" onchange="searchMessageByInput()" placeholder="输入消息内容搜索"/>
+        <span onclick="searchMessageByInput()">⌕</span>
+      </div>
     </div>
   `;
 }
@@ -617,21 +651,21 @@ function renderTodoToolbar(){
   const c=getTodoStatusCounts();
   return `
     <div class="todo-toolbar">
-      <div class="message-status-tabs todo-status-tabs">
-        <span class="${todoCenterState.status==="全部"?"active":""}" onclick="setTodoStatus('全部')">全部（${c.all}）</span>
-        <span class="${todoCenterState.status==="未办理"?"active":""}" onclick="setTodoStatus('未办理')">未办理（${c.pending}）</span>
-        <span class="${todoCenterState.status==="已办理"?"active":""}" onclick="setTodoStatus('已办理')">已办理（${c.done}）</span>
+      <div class="message-status-tabs todo-status-tabs center-top-status-switch">
+        <button type="button" class="center-status-option ${todoCenterState.status==="全部"?"active":""}" onclick="setTodoStatus('全部')"><span>全部</span><em class="center-status-badge blue">${c.all}</em></button>
+        <button type="button" class="center-status-option ${todoCenterState.status==="未办理"?"active":""}" onclick="setTodoStatus('未办理')"><span>未办理</span><em class="center-status-badge red">${c.pending}</em></button>
+        <button type="button" class="center-status-option ${todoCenterState.status==="已办理"?"active":""}" onclick="setTodoStatus('已办理')"><span>已办理</span><em class="center-status-badge blue">${c.done}</em></button>
       </div>
       <div class="message-actions">
-        <div class="message-search-box">
-          <input id="todoSearchInput" value="${todoCenterState.search}" onkeydown="if(event.key==='Enter')searchTodoByInput()" onchange="searchTodoByInput()" placeholder="输入待办内容搜索"/>
-          <span onclick="searchTodoByInput()">⌕</span>
-        </div>
         <label class="message-switch">
           <span>按组织聚合</span>
           <input id="todoOrgAggregate" type="checkbox" ${todoCenterState.orgAggregate?"checked":""} onchange="toggleTodoOrgAggregate()"/>
           <i></i>
         </label>
+        <div class="message-search-box">
+          <input id="todoSearchInput" value="${todoCenterState.search}" onkeydown="if(event.key==='Enter')searchTodoByInput()" onchange="searchTodoByInput()" placeholder="输入待办内容搜索"/>
+          <span onclick="searchTodoByInput()">⌕</span>
+        </div>
       </div>
     </div>
   `;
@@ -777,6 +811,181 @@ function finishTodo(id){
   closeModal();
   showToast("待办已办理");
   renderTodoCenter();
+}
+
+function setApprovalCenterTab(tab){
+  approvalCenterState.tab=tab;
+  approvalCenterState.category="";
+  approvalCenterState.page=1;
+  renderApprovalCenter();
+}
+
+function searchApprovalCenter(){
+  approvalCenterState.search=document.getElementById("approvalCenterSearch")?.value.trim()||"";
+  approvalCenterState.page=1;
+  renderApprovalCenter();
+}
+
+function searchApprovalCategory(){
+  approvalCenterState.categorySearch=document.getElementById("approvalCategorySearch")?.value.trim()||"";
+  approvalCenterState.page=1;
+  renderApprovalCenter();
+}
+
+function selectApprovalCategory(category=""){
+  approvalCenterState.category=approvalCenterState.category===category?"":category;
+  approvalCenterState.page=1;
+  renderApprovalCenter();
+}
+
+function toggleApprovalCategoryGroup(group){
+  if(approvalCenterState.openGroups.has(group))approvalCenterState.openGroups.delete(group);
+  else approvalCenterState.openGroups.add(group);
+  renderApprovalCenter();
+}
+
+function selectApprovalCategoryGroup(group){
+  approvalCenterState.category=approvalCenterState.category===group?"":group;
+  approvalCenterState.openGroups.add(group);
+  approvalCenterState.page=1;
+  renderApprovalCenter();
+}
+
+function getApprovalCenterRows(){
+  const state=approvalCenterState;
+  const selectedGroup=approvalCategoryGroups.find(group=>group.name===state.category);
+  return approvalCenterData.filter(row=>{
+    if(!row.tabs.includes(state.tab))return false;
+    if(selectedGroup&&!selectedGroup.children.includes(row.category))return false;
+    if(state.category&&!selectedGroup&&row.category!==state.category)return false;
+    if(state.search&&!`${row.name}${row.category}${row.content}${row.initiator}${row.status}`.toLowerCase().includes(state.search.toLowerCase()))return false;
+    return true;
+  });
+}
+
+function getApprovalCenterPageData(){
+  const rows=getApprovalCenterRows();
+  const pageCount=Math.max(1,Math.ceil(rows.length/approvalCenterState.pageSize));
+  approvalCenterState.page=Math.min(approvalCenterState.page,pageCount);
+  const start=(approvalCenterState.page-1)*approvalCenterState.pageSize;
+  return {total:rows.length,pageCount,list:rows.slice(start,start+approvalCenterState.pageSize)};
+}
+
+function renderApprovalCenterTabs(){
+  return `<div class="approval-center-tabs center-top-status-switch">${["待我审批","我发起的","已办审批"].map(tab=>{
+    const count=approvalCenterData.filter(row=>row.tabs.includes(tab)).length;
+    return `<button type="button" class="center-status-option ${approvalCenterState.tab===tab?"active":""}" onclick="setApprovalCenterTab('${tab}')"><span>${tab}</span><em class="center-status-badge ${tab==="待我审批"?"red":"blue"}">${count}</em></button>`;
+  }).join("")}</div>`;
+}
+
+function renderApprovalCategoryTree(){
+  const keyword=approvalCenterState.categorySearch.toLowerCase();
+  const tabRows=approvalCenterData.filter(row=>row.tabs.includes(approvalCenterState.tab));
+  const groups=approvalCategoryGroups.map(group=>({
+    ...group,
+    children:group.children.filter(child=>!keyword||group.name.toLowerCase().includes(keyword)||child.toLowerCase().includes(keyword))
+  })).filter(group=>group.children.length);
+  return `<aside class="approval-category-panel">
+    <div class="approval-category-title"><strong>审批分类</strong><button type="button" title="刷新" onclick="approvalCenterState.category='';approvalCenterState.categorySearch='';renderApprovalCenter()">↻</button></div>
+    <div class="approval-category-search"><input id="approvalCategorySearch" value="${escapeAttr(approvalCenterState.categorySearch)}" placeholder="搜索" onkeydown="if(event.key==='Enter')searchApprovalCategory()"/><button type="button" onclick="searchApprovalCategory()">⌕</button></div>
+    <button type="button" class="approval-tree-all ${approvalCenterState.category?"":"active"}" onclick="selectApprovalCategory('')"><span>全部审批</span><em>${tabRows.length}</em></button>
+    <div class="approval-category-tree">${groups.map(group=>{
+      const open=approvalCenterState.openGroups.has(group.name)||Boolean(keyword);
+      const count=tabRows.filter(row=>group.children.includes(row.category)).length;
+      return `<div class="approval-tree-group">
+        <button type="button" class="approval-tree-group-name ${approvalCenterState.category===group.name?"active":""}" onclick="selectApprovalCategoryGroup('${group.name}')"><span><i title="${open?"收起":"展开"}" onclick="event.stopPropagation();toggleApprovalCategoryGroup('${group.name}')">${open?"▾":"▸"}</i>${group.name}</span><em>${count}</em></button>
+        ${open?`<div class="approval-tree-children">${group.children.map(child=>{
+          const childCount=tabRows.filter(row=>row.category===child).length;
+          return `<button type="button" class="${approvalCenterState.category===child?"active":""}" onclick="selectApprovalCategory('${child}')"><span>${child}</span><em>${childCount||""}</em></button>`;
+        }).join("")}</div>`:""}
+      </div>`;
+    }).join("")}</div>
+  </aside>`;
+}
+
+function renderApprovalStatus(status){
+  const type=status==="已通过"?"green":status==="已作废"||status==="已驳回"?"red":status==="待审批"?"orange":"blue";
+  return tag(status,type);
+}
+
+function renderApprovalCenterActions(row){
+  if(approvalCenterState.tab==="待我审批")return `<button class="link" onclick="openApprovalCenterDetail(${row.id},'approve')">审批</button>`;
+  if(approvalCenterState.tab==="我发起的"&&row.status==="审批中")return `<button class="link" onclick="openApprovalCenterDetail(${row.id},'edit')">编辑</button><button class="link danger-link" onclick="voidApprovalCenterItem(${row.id})">作废</button>`;
+  return `<button class="link" onclick="openApprovalCenterDetail(${row.id},'view')">查看</button>`;
+}
+
+function renderApprovalCenterTable(){
+  const page=getApprovalCenterPageData();
+  return `<div class="table-card approval-center-table-card">
+    <div class="table-wrap"><table><colgroup><col style="width:58px"/><col style="width:90px"/><col style="width:280px"/><col style="width:180px"/><col/><col style="width:100px"/><col style="width:150px"/><col style="width:96px"/><col style="width:105px"/></colgroup>
+      <thead><tr><th>序号</th><th>审批对象</th><th>对象名称</th><th>审批类型</th><th>审批内容</th><th>审批发起人</th><th>审批发起时间</th><th>审批状态</th><th>操作</th></tr></thead>
+      <tbody>${page.list.length?page.list.map((row,index)=>`<tr>
+        <td class="center">${(approvalCenterState.page-1)*approvalCenterState.pageSize+index+1}</td>
+        <td class="center">${tag(row.scope,row.scope==="企业"?"red":"blue")}</td>
+        <td><span class="approval-cell-ellipsis" title="${escapeAttr(row.name)}">${row.name}</span></td>
+        <td class="center">${tag(row.category,"blue")}</td>
+        <td><span class="approval-cell-ellipsis" title="${escapeAttr(row.content)}">${row.content}</span></td>
+        <td class="center">${row.initiator}</td><td class="center">${row.startTime}</td><td class="center">${renderApprovalStatus(row.status)}</td>
+        <td class="center approval-row-actions">${renderApprovalCenterActions(row)}</td>
+      </tr>`).join(""):`<tr><td colspan="9"><div class="message-empty">暂无审批记录</div></td></tr>`}</tbody>
+    </table></div>
+    ${renderApprovalCenterPagination(page)}
+  </div>`;
+}
+
+function renderApprovalCenterPagination(page=getApprovalCenterPageData()){
+  const pages=Array.from({length:Math.min(5,page.pageCount)},(_,index)=>index+1);
+  return `<div class="message-pagination approval-pagination"><span>共 ${page.total} 条记录</span><div class="message-page-btns">
+    <button onclick="setApprovalCenterPage(1)">«</button><button onclick="setApprovalCenterPage(${Math.max(1,approvalCenterState.page-1)})">‹</button>
+    ${pages.map(item=>`<button class="${item===approvalCenterState.page?"active":""}" onclick="setApprovalCenterPage(${item})">${item}</button>`).join("")}
+    <button onclick="setApprovalCenterPage(${Math.min(page.pageCount,approvalCenterState.page+1)})">›</button><button onclick="setApprovalCenterPage(${page.pageCount})">»</button>
+    <select onchange="setApprovalCenterPageSize(this.value)">${[20,50,100].map(size=>`<option value="${size}" ${size===approvalCenterState.pageSize?"selected":""}>${size}条/页</option>`).join("")}</select>
+  </div></div>`;
+}
+
+function setApprovalCenterPage(page){approvalCenterState.page=Number(page)||1;renderApprovalCenter();}
+function setApprovalCenterPageSize(size){approvalCenterState.pageSize=Number(size)||50;approvalCenterState.page=1;renderApprovalCenter();}
+
+function openApprovalCenterDetail(id,mode="view"){
+  const row=approvalCenterData.find(item=>item.id===Number(id));
+  if(!row)return;
+  const body=`<div class="approval-detail-grid">
+    ${renderProjectLogReadonlyField("审批对象",row.scope)}${renderProjectLogReadonlyField("对象名称",row.name)}
+    ${renderProjectLogReadonlyField("审批类型",row.category)}${renderProjectLogReadonlyField("审批发起人",row.initiator)}
+    ${renderProjectLogReadonlyField("审批发起时间",row.startTime)}${renderProjectLogReadonlyField("审批状态",row.status)}
+    <div class="approval-detail-content"><label>审批内容</label><div>${row.content}</div></div>
+  </div>`;
+  const footer=mode==="approve"?`<button class="btn" onclick="closeModal()">取消</button><button class="btn danger" onclick="finishApprovalCenterItem(${row.id},'已驳回')">驳回</button><button class="btn primary" onclick="finishApprovalCenterItem(${row.id},'已通过')">通过</button>`:`<button class="btn" onclick="closeModal()">关闭</button>`;
+  openModal(mode==="approve"?"审批办理":mode==="edit"?"编辑审批":"审批详情",body,footer,"large");
+}
+
+function finishApprovalCenterItem(id,status){
+  const row=approvalCenterData.find(item=>item.id===Number(id));
+  if(!row)return;
+  row.status=status;
+  row.tabs=[...new Set([...row.tabs.filter(tab=>tab!=="待我审批"),"已办审批"])];
+  closeModal();refreshBottomFixedMenu();renderApprovalCenter();showToast(`审批已${status==="已通过"?"通过":"驳回"}`);
+}
+
+function voidApprovalCenterItem(id){
+  const row=approvalCenterData.find(item=>item.id===Number(id));
+  if(!row)return;
+  row.status="已作废";renderApprovalCenter();showToast("审批已作废");
+}
+
+function openApprovalCenter(){
+  document.querySelectorAll(".bottom-menu-item").forEach(item=>item.classList.remove("active"));
+  document.querySelector(".bottom-menu-item.approval")?.classList.add("active");
+  listPage.style.display="none";detailPage.style.display="block";detailPage.scrollTop=0;
+  renderApprovalCenter();
+}
+
+function renderApprovalCenter(){
+  detailPage.innerHTML=`<div class="message-page approval-center-page">
+    <div class="message-hero"><div><div class="message-hero-title">审批中心</div><div class="message-hero-sub">统一处理待审批事项，集中查看我发起及已办理的审批记录</div></div></div>
+    <div class="message-page-hd approval-center-hd">${renderApprovalCenterTabs()}<div class="message-search-box approval-center-search"><input id="approvalCenterSearch" value="${escapeAttr(approvalCenterState.search)}" placeholder="输入审批内容搜索" onkeydown="if(event.key==='Enter')searchApprovalCenter()"/><span onclick="searchApprovalCenter()">⌕</span></div></div>
+    <div class="approval-center-body">${renderApprovalCategoryTree()}<main class="approval-center-main">${renderApprovalCenterTable()}</main></div>
+  </div>`;
 }
 
 function openMessageCenter(){

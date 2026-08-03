@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.535-file-detail-field-alignment";
+  const version="2.2.543-approval-group-filter";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",

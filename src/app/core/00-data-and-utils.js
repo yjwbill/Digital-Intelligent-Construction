@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.535-FILE-DETAIL-FIELD-ALIGNMENT";
-const APP_CODE_VERSION_NAME="文件详情字段对齐版";
+const APP_CODE_VERSION="EM-20260701-V2.2.543-APPROVAL-GROUP-FILTER";
+const APP_CODE_VERSION_NAME="审批一级分类筛选版";
 const APP_CODE_VERSION_TIME="2026-08-03 12:00";
-const APP_CODE_VERSION_DESC="文件上报施工日志详情移除文件分组日期并对齐上报字段，上报表单文件上传统一更名为施工相关附件。";
+const APP_CODE_VERSION_DESC="审批分类树一级节点支持选择筛选，点击一级分类展示其全部二级审批内容，展开箭头独立控制子分类显隐。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
