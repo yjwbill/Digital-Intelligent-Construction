@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.543-approval-group-filter";
+  const version="2.2.547-approval-flow-detail-list";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",

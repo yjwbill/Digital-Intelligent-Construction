@@ -4100,3 +4100,136 @@ function retryMessageTodoReach(id){
   renderMessageRecordPage();
   showToast("待办已重新推送成功");
 }
+
+/* =========================
+   审批流程明细
+========================= */
+const approvalFlowDetailData=[
+  {id:1,scope:"项目",name:"上海示范区线工程 SFQSG-15 标",type:"I级风险条件验收",content:"深基坑开挖前置条件验收",initiator:"张建国",startTime:"2026-08-03 09:10",node:"项目负责人审批",approver:"王安全",arrivalTime:"2026-08-03 09:12",stayDuration:"4小时18分钟",overdue:"否",reminders:0,status:"审批中"},
+  {id:2,scope:"项目",name:"机场联络线工程 JCXSG-4 标",type:"II级风险变更",content:"风险等级及管控措施变更",initiator:"王晨",startTime:"2026-08-03 08:42",node:"分公司安全负责人审批",approver:"陈审批",arrivalTime:"2026-08-03 08:45",stayDuration:"4小时45分钟",overdue:"否",reminders:0,status:"审批中"},
+  {id:3,scope:"企业",name:"上海隧道工程有限公司",type:"实际产值上报",content:"2026年7月实际产值上报",initiator:"赵经营",startTime:"2026-08-02 17:30",node:"股份产运部复核",approver:"赵主管",arrivalTime:"2026-08-03 09:00",stayDuration:"4小时30分钟",overdue:"否",reminders:0,status:"审批中"},
+  {id:4,scope:"项目",name:"北方数据中心项目",type:"停工申请",content:"申请2026年8月5日起临时停工",initiator:"陈启航",startTime:"2026-08-02 16:05",node:"审批结束",approver:"李经理",arrivalTime:"2026-08-02 18:26",stayDuration:"-",overdue:"否",reminders:0,status:"已驳回"},
+  {id:5,scope:"项目",name:"西湖区朝阳污水处理厂收集范围排水单元改造工程",type:"期初产值上报",content:"期初产值及期初营收上报",initiator:"楼力栋",startTime:"2026-08-01 15:43",node:"审批结束",approver:"周经营",arrivalTime:"2026-08-01 17:18",stayDuration:"-",overdue:"否",reminders:0,status:"已通过"},
+  {id:6,scope:"项目",name:"内部测试专用（数字集团）",type:"产值滚动更新",content:"三季度计划产值滚动更新",initiator:"楼力栋",startTime:"2026-08-01 11:03",node:"子公司产运部审批",approver:"孙产运",arrivalTime:"2026-08-01 11:15",stayDuration:"1天2小时",overdue:"是",reminders:2,status:"审批中"},
+  {id:7,scope:"项目",name:"景德镇陶阳里历史文化街区配套项目酒店工程",type:"进度变更",content:"更新工程开工预计日期及关键节点",initiator:"楼力栋",startTime:"2026-07-30 14:38",node:"审批结束",approver:"钱进度",arrivalTime:"2026-07-30 16:20",stayDuration:"-",overdue:"否",reminders:0,status:"已作废"},
+  {id:8,scope:"项目",name:"奉贤新城18单元项目",type:"II级风险条件验收",content:"B1深基坑开挖条件验收",initiator:"俞华杰",startTime:"2026-07-29 10:20",node:"股份安全部审批",approver:"王安全",arrivalTime:"2026-07-29 11:02",stayDuration:"2天6小时",overdue:"是",reminders:3,status:"审批中"},
+  {id:9,scope:"企业",name:"市政集团",type:"产值滚动更新",content:"2026年度产值计划调整",initiator:"赵经营",startTime:"2026-07-28 09:12",node:"审批结束",approver:"孙产运",arrivalTime:"2026-07-28 15:36",stayDuration:"-",overdue:"否",reminders:0,status:"已通过"},
+  {id:10,scope:"项目",name:"龙华西路站改扩建工程",type:"工程总体筹划",content:"项目工程总体筹划提交审批",initiator:"叶飞",startTime:"2026-07-27 13:32",node:"分公司负责人审批",approver:"陈审批",arrivalTime:"2026-07-27 13:40",stayDuration:"3天1小时",overdue:"是",reminders:4,status:"审批中"},
+  {id:11,scope:"项目",name:"漕河泾创新水岸建设工程",type:"项目终止",content:"因实施条件变化申请项目终止",initiator:"孙伟",startTime:"2026-07-25 15:00",node:"审批结束",approver:"李经理",arrivalTime:"2026-07-26 09:16",stayDuration:"-",overdue:"否",reminders:0,status:"已通过"},
+  {id:12,scope:"项目",name:"安义县新城区产业园标准厂房建设项目一期",type:"I级风险条件验收",content:"拆除作业前置条件验收",initiator:"应强",startTime:"2026-07-24 08:35",node:"审批结束",approver:"王安全",arrivalTime:"2026-07-24 10:08",stayDuration:"-",overdue:"否",reminders:0,status:"已通过"}
+];
+
+const approvalFlowDetailState={filters:{},page:1,pageSize:50};
+let approvalFlowDetailCurrent=[...approvalFlowDetailData];
+
+function approvalFlowDetailStatusTag(value){
+  const color={"审批中":"orange","已通过":"green","已驳回":"red","已作废":"gray"}[value]||"blue";
+  return tag(value,color);
+}
+
+tableColumnDefinitions.approvalFlowDetail=[
+  {key:"index",title:"序号",width:70,align:"center",render:(row,index)=>(approvalFlowDetailState.page-1)*approvalFlowDetailState.pageSize+index+1},
+  {key:"scope",title:"审批对象",width:100,align:"center",render:row=>tag(row.scope,row.scope==="企业"?"red":"blue")},
+  {key:"name",title:"对象名称",width:280,render:row=>`<span class="text-ellipsis" title="${escapeAttr(row.name)}">${row.name}</span>`},
+  {key:"type",title:"审批类型",width:180,align:"center",render:row=>tag(row.type,"blue")},
+  {key:"content",title:"审批内容",width:300,render:row=>`<span class="text-ellipsis" title="${escapeAttr(row.content)}">${row.content}</span>`},
+  {key:"initiator",title:"审批发起人",width:120,align:"center",render:row=>row.initiator},
+  {key:"startTime",title:"审批发起时间",width:165,align:"center",render:row=>row.startTime},
+  {key:"node",title:"当前流程节点",width:180,align:"center",render:row=>row.node},
+  {key:"approver",title:"当前审批人",width:120,align:"center",render:row=>row.approver},
+  {key:"arrivalTime",title:"流程到达时间",width:165,align:"center",render:row=>row.arrivalTime},
+  {key:"stayDuration",title:"已停留时长",width:120,align:"center",render:row=>row.stayDuration},
+  {key:"overdue",title:"是否超期",width:100,align:"center",render:row=>tag(row.overdue,row.overdue==="是"?"red":"green")},
+  {key:"reminders",title:"超期提醒次数",width:120,align:"center",render:row=>row.reminders},
+  {key:"status",title:"审批状态",width:110,align:"center",render:row=>approvalFlowDetailStatusTag(row.status)},
+  {key:"operation",title:"操作",width:90,align:"center",render:row=>`<a class="link" onclick="openApprovalFlowDetail(${row.id})">查看</a>`}
+];
+
+function approvalFlowDetailOptions(key){
+  return [...new Set(approvalFlowDetailData.map(row=>row[key]).filter(Boolean))];
+}
+
+function renderApprovalFlowDetailSelect(id,options,value=""){
+  return `<select id="${id}" class="select"><option value="">全部</option>${options.map(option=>`<option ${option===value?"selected":""}>${option}</option>`).join("")}</select>`;
+}
+
+function renderApprovalFlowDetailPage(){
+  detailPage.style.display="none";
+  listPage.style.display="flex";
+  const f=approvalFlowDetailState.filters;
+  const fields=`
+    <div class="form-item"><label>审批内容</label><input id="approvalFlowContent" class="input" placeholder="请输入审批内容" value="${escapeAttr(f.content||"")}"/></div>
+    <div class="form-item"><label>审批对象名称</label><input id="approvalFlowName" class="input" placeholder="请输入审批对象名称" value="${escapeAttr(f.name||"")}"/></div>
+    <div class="form-item"><label>审批发起人姓名</label><input id="approvalFlowInitiator" class="input" placeholder="请输入审批发起人姓名" value="${escapeAttr(f.initiator||"")}"/></div>
+    <div class="form-item"><label>审批人姓名</label><input id="approvalFlowApprover" class="input" placeholder="请输入审批人姓名" value="${escapeAttr(f.approver||"")}"/></div>
+    <div class="form-item"><label>审批类型</label>${renderApprovalFlowDetailSelect("approvalFlowType",approvalFlowDetailOptions("type"),f.type)}</div>
+    <div class="form-item"><label>审批状态</label>${renderApprovalFlowDetailSelect("approvalFlowStatus",approvalFlowDetailOptions("status"),f.status)}</div>
+    <div class="form-item"><label>审批对象类型</label>${renderApprovalFlowDetailSelect("approvalFlowScope",approvalFlowDetailOptions("scope"),f.scope)}</div>
+    <div class="form-item"><label>审批发起时间</label><div class="date-range ep-date-range"><input id="approvalFlowStartDate" class="input" type="date" value="${f.startDate||""}"/><span>至</span><input id="approvalFlowEndDate" class="input" type="date" value="${f.endDate||""}"/></div></div>`;
+  const pages=Math.max(1,Math.ceil(approvalFlowDetailCurrent.length/approvalFlowDetailState.pageSize));
+  listPage.innerHTML=`
+    <div class="compact-title-row"><div class="module-title">审批流程管理 / 审批流程明细</div></div>
+    ${renderUnifiedQueryCard(fields,{id:"approvalFlowDetailQueryCard",queryFn:"queryApprovalFlowDetails()",resetFn:"resetApprovalFlowDetails()",canCollapse:false})}
+    ${renderUnifiedTableCard({title:"审批流程明细",tableKey:"approvalFlowDetail",tableId:"approvalFlowDetailTable",theadId:"approvalFlowDetailThead",tbodyId:"approvalFlowDetailTbody",totalId:"approvalFlowDetailTotalText",total:approvalFlowDetailCurrent.length,renderFnName:"renderApprovalFlowDetailTable",refreshAction:"refreshApprovalFlowDetails()",exportAction:"exportApprovalFlowDetails()",pageText:`第 ${approvalFlowDetailState.page} / ${pages} 页　每页 ${approvalFlowDetailState.pageSize} 条`})}`;
+  renderApprovalFlowDetailTable();
+}
+
+function readApprovalFlowDetailFilters(){
+  return {
+    content:document.getElementById("approvalFlowContent")?.value.trim()||"",
+    name:document.getElementById("approvalFlowName")?.value.trim()||"",
+    initiator:document.getElementById("approvalFlowInitiator")?.value.trim()||"",
+    approver:document.getElementById("approvalFlowApprover")?.value.trim()||"",
+    type:document.getElementById("approvalFlowType")?.value||"",
+    status:document.getElementById("approvalFlowStatus")?.value||"",
+    scope:document.getElementById("approvalFlowScope")?.value||"",
+    startDate:document.getElementById("approvalFlowStartDate")?.value||"",
+    endDate:document.getElementById("approvalFlowEndDate")?.value||""
+  };
+}
+
+function queryApprovalFlowDetails(){
+  const f=readApprovalFlowDetailFilters();
+  approvalFlowDetailState.filters=f;
+  approvalFlowDetailState.page=1;
+  approvalFlowDetailCurrent=approvalFlowDetailData.filter(row=>{
+    const day=row.startTime.slice(0,10);
+    return (!f.content||row.content.includes(f.content))&&(!f.name||row.name.includes(f.name))&&(!f.initiator||row.initiator.includes(f.initiator))&&(!f.approver||row.approver.includes(f.approver))&&(!f.type||row.type===f.type)&&(!f.status||row.status===f.status)&&(!f.scope||row.scope===f.scope)&&(!f.startDate||day>=f.startDate)&&(!f.endDate||day<=f.endDate);
+  });
+  renderApprovalFlowDetailPage();
+}
+
+function resetApprovalFlowDetails(){
+  approvalFlowDetailState.filters={};
+  approvalFlowDetailState.page=1;
+  approvalFlowDetailCurrent=[...approvalFlowDetailData];
+  renderApprovalFlowDetailPage();
+}
+
+function refreshApprovalFlowDetails(){
+  queryApprovalFlowDetails();
+  showToast("审批流程明细已刷新");
+}
+
+function renderApprovalFlowDetailTable(){
+  const start=(approvalFlowDetailState.page-1)*approvalFlowDetailState.pageSize;
+  const rows=approvalFlowDetailCurrent.slice(start,start+approvalFlowDetailState.pageSize);
+  const thead=document.getElementById("approvalFlowDetailThead");
+  if(thead)replaceProductionDashboardFragment(thead,renderTableHeaderByColumns("approvalFlowDetail"));
+  renderTableByColumns("approvalFlowDetail",rows,"approvalFlowDetailTbody");
+}
+
+function exportApprovalFlowDetails(){
+  showToast(`导出成功：审批流程明细（${approvalFlowDetailCurrent.length}条）.xlsx`);
+}
+
+function openApprovalFlowDetail(id){
+  const row=approvalFlowDetailData.find(item=>item.id===id);
+  if(!row)return;
+  openModal("审批流程详情",`<div class="message-admin-detail">
+    ${info("审批对象",row.scope)}${info("对象名称",row.name)}${info("审批类型",row.type)}${info("审批状态",approvalFlowDetailStatusTag(row.status))}
+    ${info("审批发起人",row.initiator)}${info("审批发起时间",row.startTime)}${info("当前流程节点",row.node)}${info("当前审批人",row.approver)}
+    ${info("流程到达时间",row.arrivalTime)}${info("已停留时长",row.stayDuration)}${info("是否超期",row.overdue)}${info("超期提醒次数",String(row.reminders))}
+    <div class="message-admin-content"><strong>审批内容</strong>${row.content}</div>
+  </div>`,`<button class="btn primary" onclick="closeModal()">关闭</button>`,"large");
+}

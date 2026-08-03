@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.543-APPROVAL-GROUP-FILTER";
-const APP_CODE_VERSION_NAME="审批一级分类筛选版";
-const APP_CODE_VERSION_TIME="2026-08-03 12:00";
-const APP_CODE_VERSION_DESC="审批分类树一级节点支持选择筛选，点击一级分类展示其全部二级审批内容，展开箭头独立控制子分类显隐。";
+const APP_CODE_VERSION="EM-20260701-V2.2.547-APPROVAL-FLOW-DETAIL-LIST";
+const APP_CODE_VERSION_NAME="审批流程明细列表版";
+const APP_CODE_VERSION_TIME="2026-08-03 15:00";
+const APP_CODE_VERSION_DESC="新增审批流程明细标准列表，支持多条件及发起日期范围查询、通用列设置、刷新、导出和流程详情查看。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
@@ -674,6 +674,15 @@ const businessMenus={
           {name:"模板管理"},
           {name:"发送批次明细"},
           {name:"用户触达明细"}
+        ]
+      },
+      {
+        icon:"✅",
+        name:"审批流程管理",
+        open:false,
+        children:[
+          {name:"审批流配置"},
+          {name:"审批流程明细"}
         ]
       }
     ]

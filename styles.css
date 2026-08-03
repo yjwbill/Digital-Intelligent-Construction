@@ -20321,11 +20321,14 @@ body.mobile-mode .mobile-tabbar .tab-create.active span:after{
 .approval-tree-children button{padding-left:42px;font-size:13px;}
 .approval-center-main{min-width:0;min-height:0;display:flex;padding:10px;border:1px solid #E5E6EB;background:#fff;overflow:hidden;}
 .approval-center-table-card{width:100%;min-height:0;margin:0;border:1px solid #E5E6EB;border-radius:4px;display:flex;flex-direction:column;background:#fff;box-shadow:none;overflow:hidden;}
+.approval-center-table-hd{height:44px;min-height:44px;padding:0 12px;border-bottom:1px solid #E5E6EB;background:#fff;}
+.approval-center-table-hd .actions{gap:8px;}
 .approval-center-table-card .table-wrap{flex:1;min-height:0;overflow:auto;}
 .approval-center-table-card table{min-width:1420px;width:100%;table-layout:fixed;}
 .approval-center-table-card th{height:42px;background:#F7F8FA;text-align:center;white-space:nowrap;}
 .approval-center-table-card td{height:40px;padding:8px 10px;}
 .approval-center-table-card td.center{text-align:center;}
+.approval-center-table-card .table-sticky-operation{right:0;}
 .approval-cell-ellipsis{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .approval-row-actions{white-space:nowrap;}
 .approval-row-actions .link+.link{margin-left:10px;}

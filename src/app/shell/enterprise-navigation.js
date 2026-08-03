@@ -214,6 +214,7 @@ function selectBusinessChildMenu(line,gi,ci,name){
   if(line==="base"&&name==="模板管理")return renderMessageTemplatePage();
   if(line==="base"&&name==="发送批次明细")return renderMessageSendRecordPage();
   if(line==="base"&&name==="用户触达明细")return renderMessageRecordPage();
+  if(line==="base"&&name==="审批流程明细")return renderApprovalFlowDetailPage();
 
   if(line==="safety"&&name==="劳务工花名册")return renderRosterPage();
   if(line==="safety"&&name==="视频监控")return renderSafetyVideoMonitorPage();

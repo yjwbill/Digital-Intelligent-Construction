@@ -97,6 +97,8 @@ const approvalCenterState={
   search:"",
   page:1,
   pageSize:50,
+  sortKey:"startTime",
+  sortDir:"desc",
   openGroups:new Set(["项目状态","产值管理","进度管理","风险管理"])
 };
 
@@ -121,7 +123,27 @@ let approvalCenterData=[
   {id:11,scope:"项目",name:"西湖区朝阳污水处理厂收集范围排水单元改造工程",category:"期初产值上报",content:"期初产值：12780.53万元，期初营收：11725.26万元。",initiator:"楼力栋",startTime:"2025-11-20 15:43",status:"已通过",tabs:["我发起的","已办审批"]},
   {id:12,scope:"项目",name:"内部测试专用（数字集团）",category:"产值滚动更新",content:"计划工期及总计划产值滚动更新。",initiator:"楼力栋",startTime:"2025-11-20 19:03",status:"已通过",tabs:["我发起的","已办审批"]},
   {id:13,scope:"项目",name:"内部测试专用（数字集团）",category:"停工申请",content:"计划停工日期：2025-11-19，计划复工日期：2025-11-20。",initiator:"楼力栋",startTime:"2025-11-19 02:33",status:"已通过",tabs:["我发起的","已办审批"]},
-  {id:14,scope:"项目",name:"内部测试专用（数字集团）",category:"工程总体筹划",content:"工程总体筹划提交审批。",initiator:"楼力栋",startTime:"2025-11-19 02:29",status:"已通过",tabs:["我发起的","已办审批"]}
+  {id:14,scope:"项目",name:"内部测试专用（数字集团）",category:"工程总体筹划",content:"工程总体筹划提交审批。",initiator:"楼力栋",startTime:"2025-11-19 02:29",status:"已通过",tabs:["我发起的","已办审批"]},
+  {id:15,scope:"项目",name:"上海示范区线工程 SFQSG-15 标",category:"进度变更",content:"施工进度计划调整草稿，尚未提交审批。",initiator:"楼力栋",startTime:"2026-08-03 10:26",status:"草稿",tabs:["我发起的"]},
+  {id:16,scope:"项目",name:"机场联络线工程 JCXSG-4 标",category:"II级风险条件验收",content:"盾构始发条件验收审批已抄送，请查阅。",initiator:"张建国",startTime:"2026-08-02 15:20",status:"已通过",tabs:["抄送我的"]},
+  {id:17,scope:"企业",name:"上海隧道工程有限公司",category:"产值滚动更新",content:"2026年三季度产值滚动更新审批结果抄送。",initiator:"赵经营",startTime:"2026-08-01 11:08",status:"已通过",tabs:["抄送我的"]}
+];
+
+approvalCenterData=approvalCenterData.map((row,index)=>({
+  ...row,
+  approver:row.status==="草稿"?"-":row.status==="待审批"?"当前登录人":["陈审批","王经理","赵主管"][index%3]
+}));
+
+tableColumnDefinitions.approvalCenter=[
+  {key:"index",title:"序号",width:70,align:"center",sortable:false,render:(row,index)=>(approvalCenterState.page-1)*approvalCenterState.pageSize+index+1},
+  {key:"scope",title:"审批对象",width:100,align:"center",render:row=>tag(row.scope,row.scope==="企业"?"red":"blue")},
+  {key:"name",title:"对象名称",width:280,align:"left",render:row=>`<span class="approval-cell-ellipsis" title="${escapeAttr(row.name)}">${row.name}</span>`},
+  {key:"category",title:"审批类型",width:180,align:"center",render:row=>tag(row.category,"blue")},
+  {key:"content",title:"审批内容",width:440,align:"left",render:row=>`<span class="approval-cell-ellipsis" title="${escapeAttr(row.content)}">${row.content}</span>`},
+  {key:"initiator",title:"审批发起人",width:110,align:"center",render:row=>row.initiator},
+  {key:"startTime",title:"审批发起时间",width:160,align:"center",render:row=>row.startTime},
+  {key:"status",title:"审批状态",width:110,align:"center",render:row=>renderApprovalStatus(row.status)},
+  {key:"operation",title:"操作",width:120,align:"center",sortable:false,render:row=>renderApprovalCenterActions(row)}
 ];
 
 let todoData=[
@@ -854,13 +876,15 @@ function selectApprovalCategoryGroup(group){
 function getApprovalCenterRows(){
   const state=approvalCenterState;
   const selectedGroup=approvalCategoryGroups.find(group=>group.name===state.category);
-  return approvalCenterData.filter(row=>{
+  const rows=approvalCenterData.filter(row=>{
     if(!row.tabs.includes(state.tab))return false;
     if(selectedGroup&&!selectedGroup.children.includes(row.category))return false;
     if(state.category&&!selectedGroup&&row.category!==state.category)return false;
-    if(state.search&&!`${row.name}${row.category}${row.content}${row.initiator}${row.status}`.toLowerCase().includes(state.search.toLowerCase()))return false;
+    if(state.search&&!`${row.content}${row.initiator}${row.approver}${row.scope}${row.name}${row.category}${row.status}`.toLowerCase().includes(state.search.toLowerCase()))return false;
     return true;
   });
+  const direction=state.sortDir==="asc"?1:-1;
+  return rows.sort((a,b)=>String(a[state.sortKey]??"").localeCompare(String(b[state.sortKey]??""),"zh-CN",{numeric:true})*direction);
 }
 
 function getApprovalCenterPageData(){
@@ -872,7 +896,7 @@ function getApprovalCenterPageData(){
 }
 
 function renderApprovalCenterTabs(){
-  return `<div class="approval-center-tabs center-top-status-switch">${["待我审批","我发起的","已办审批"].map(tab=>{
+  return `<div class="approval-center-tabs center-top-status-switch">${["待我审批","我发起的","已办审批","抄送我的"].map(tab=>{
     const count=approvalCenterData.filter(row=>row.tabs.includes(tab)).length;
     return `<button type="button" class="center-status-option ${approvalCenterState.tab===tab?"active":""}" onclick="setApprovalCenterTab('${tab}')"><span>${tab}</span><em class="center-status-badge ${tab==="待我审批"?"red":"blue"}">${count}</em></button>`;
   }).join("")}</div>`;
@@ -883,7 +907,7 @@ function renderApprovalCategoryTree(){
   const tabRows=approvalCenterData.filter(row=>row.tabs.includes(approvalCenterState.tab));
   const groups=approvalCategoryGroups.map(group=>({
     ...group,
-    children:group.children.filter(child=>!keyword||group.name.toLowerCase().includes(keyword)||child.toLowerCase().includes(keyword))
+    children:group.children.filter(child=>tabRows.some(row=>row.category===child)&&(!keyword||group.name.toLowerCase().includes(keyword)||child.toLowerCase().includes(keyword)))
   })).filter(group=>group.children.length);
   return `<aside class="approval-category-panel">
     <div class="approval-category-title"><strong>审批分类</strong><button type="button" title="刷新" onclick="approvalCenterState.category='';approvalCenterState.categorySearch='';renderApprovalCenter()">↻</button></div>
@@ -904,30 +928,53 @@ function renderApprovalCategoryTree(){
 }
 
 function renderApprovalStatus(status){
-  const type=status==="已通过"?"green":status==="已作废"||status==="已驳回"?"red":status==="待审批"?"orange":"blue";
+  const type=status==="已通过"?"green":status==="已作废"||status==="已驳回"?"red":status==="待审批"?"orange":status==="草稿"?"gray":"blue";
   return tag(status,type);
 }
 
 function renderApprovalCenterActions(row){
   if(approvalCenterState.tab==="待我审批")return `<button class="link" onclick="openApprovalCenterDetail(${row.id},'approve')">审批</button>`;
-  if(approvalCenterState.tab==="我发起的"&&row.status==="审批中")return `<button class="link" onclick="openApprovalCenterDetail(${row.id},'edit')">编辑</button><button class="link danger-link" onclick="voidApprovalCenterItem(${row.id})">作废</button>`;
+  if(approvalCenterState.tab==="我发起的"&&row.status==="草稿")return `<button class="link" onclick="openApprovalCenterDetail(${row.id},'edit')">编辑</button>`;
+  if(approvalCenterState.tab==="我发起的"&&row.status==="审批中")return `<button class="link" onclick="openApprovalCenterDetail(${row.id},'view')">查看</button><button class="link danger-link" onclick="voidApprovalCenterItem(${row.id})">作废</button>`;
   return `<button class="link" onclick="openApprovalCenterDetail(${row.id},'view')">查看</button>`;
+}
+
+function toggleApprovalCenterSort(key){
+  if(approvalCenterState.sortKey===key)approvalCenterState.sortDir=approvalCenterState.sortDir==="asc"?"desc":"asc";
+  else{approvalCenterState.sortKey=key;approvalCenterState.sortDir="asc";}
+  approvalCenterState.page=1;
+  renderApprovalCenter();
+}
+
+function renderApprovalCenterHeader(column,columns){
+  const sortable=column.sortable!==false&&column.key!=="operation"&&column.key!=="index";
+  const active=approvalCenterState.sortKey===column.key;
+  const title=sortable?`<button type="button" class="economy-table-sort ${active?"active":""}" onclick="toggleApprovalCenterSort('${column.key}')"><span>${column.title}</span><i>${active?(approvalCenterState.sortDir==="asc"?"↑":"↓"):"↕"}</i></button>`:column.title;
+  return `<th class="${getTableColumnClass("approvalCenter",column,columns)}" data-column-key="${escapeAttr(column.key)}" style="${getTableColumnStickyStyle("approvalCenter",column,columns)}width:${column.width}px;min-width:${column.width}px;max-width:${column.width}px;text-align:${column.align||"left"}">${title}</th>`;
+}
+
+function exportApprovalCenter(){
+  const columns=getVisibleColumns("approvalCenter").filter(column=>column.key!=="operation");
+  const plainValue=(row,column,index)=>column.key==="index"?index+1:row[column.key]??"";
+  const csv=[columns.map(column=>column.title),...getApprovalCenterRows().map((row,index)=>columns.map(column=>plainValue(row,column,index)))]
+    .map(line=>line.map(value=>`"${String(value).replace(/"/g,'""')}"`).join(",")).join("\r\n");
+  const blob=new Blob(["\ufeff",csv],{type:"text/csv;charset=utf-8"});
+  const link=document.createElement("a");
+  link.href=URL.createObjectURL(blob);
+  link.download=`审批中心_${approvalCenterState.tab}_${new Date().toISOString().slice(0,10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+  showToast(`已导出 ${getApprovalCenterRows().length} 条审批记录`);
 }
 
 function renderApprovalCenterTable(){
   const page=getApprovalCenterPageData();
+  const columns=getVisibleColumns("approvalCenter");
   return `<div class="table-card approval-center-table-card">
-    <div class="table-wrap"><table><colgroup><col style="width:58px"/><col style="width:90px"/><col style="width:280px"/><col style="width:180px"/><col/><col style="width:100px"/><col style="width:150px"/><col style="width:96px"/><col style="width:105px"/></colgroup>
-      <thead><tr><th>序号</th><th>审批对象</th><th>对象名称</th><th>审批类型</th><th>审批内容</th><th>审批发起人</th><th>审批发起时间</th><th>审批状态</th><th>操作</th></tr></thead>
-      <tbody>${page.list.length?page.list.map((row,index)=>`<tr>
-        <td class="center">${(approvalCenterState.page-1)*approvalCenterState.pageSize+index+1}</td>
-        <td class="center">${tag(row.scope,row.scope==="企业"?"red":"blue")}</td>
-        <td><span class="approval-cell-ellipsis" title="${escapeAttr(row.name)}">${row.name}</span></td>
-        <td class="center">${tag(row.category,"blue")}</td>
-        <td><span class="approval-cell-ellipsis" title="${escapeAttr(row.content)}">${row.content}</span></td>
-        <td class="center">${row.initiator}</td><td class="center">${row.startTime}</td><td class="center">${renderApprovalStatus(row.status)}</td>
-        <td class="center approval-row-actions">${renderApprovalCenterActions(row)}</td>
-      </tr>`).join(""):`<tr><td colspan="9"><div class="message-empty">暂无审批记录</div></td></tr>`}</tbody>
+    <div class="card-hd approval-center-table-hd"><div class="card-title">审批列表</div><div class="actions"><button type="button" class="btn" onclick="exportApprovalCenter()">导出</button><button type="button" class="column-setting-icon-btn" title="列设置" onclick="openColumnSetting('approvalCenter','renderApprovalCenter')">⚙</button></div></div>
+    <div class="table-wrap"><table style="min-width:${getTableMinWidth("approvalCenter")}px">
+      <thead><tr>${columns.map(column=>renderApprovalCenterHeader(column,columns)).join("")}</tr></thead>
+      <tbody>${page.list.length?page.list.map((row,index)=>`<tr>${columns.map(column=>`<td class="${getTableColumnClass("approvalCenter",column,columns)} ${column.key==="operation"?"approval-row-actions":""}" data-column-key="${escapeAttr(column.key)}" style="${getTableColumnStickyStyle("approvalCenter",column,columns)}width:${column.width}px;min-width:${column.width}px;max-width:${column.width}px;text-align:${column.align||"left"}">${column.render(row,index)}</td>`).join("")}</tr>`).join(""):`<tr><td colspan="${columns.length}"><div class="message-empty">暂无审批记录</div></td></tr>`}</tbody>
     </table></div>
     ${renderApprovalCenterPagination(page)}
   </div>`;
@@ -952,6 +999,7 @@ function openApprovalCenterDetail(id,mode="view"){
   const body=`<div class="approval-detail-grid">
     ${renderProjectLogReadonlyField("审批对象",row.scope)}${renderProjectLogReadonlyField("对象名称",row.name)}
     ${renderProjectLogReadonlyField("审批类型",row.category)}${renderProjectLogReadonlyField("审批发起人",row.initiator)}
+    ${renderProjectLogReadonlyField("审批人",row.approver||"-")}
     ${renderProjectLogReadonlyField("审批发起时间",row.startTime)}${renderProjectLogReadonlyField("审批状态",row.status)}
     <div class="approval-detail-content"><label>审批内容</label><div>${row.content}</div></div>
   </div>`;
@@ -983,7 +1031,7 @@ function openApprovalCenter(){
 function renderApprovalCenter(){
   detailPage.innerHTML=`<div class="message-page approval-center-page">
     <div class="message-hero"><div><div class="message-hero-title">审批中心</div><div class="message-hero-sub">统一处理待审批事项，集中查看我发起及已办理的审批记录</div></div></div>
-    <div class="message-page-hd approval-center-hd">${renderApprovalCenterTabs()}<div class="message-search-box approval-center-search"><input id="approvalCenterSearch" value="${escapeAttr(approvalCenterState.search)}" placeholder="输入审批内容搜索" onkeydown="if(event.key==='Enter')searchApprovalCenter()"/><span onclick="searchApprovalCenter()">⌕</span></div></div>
+    <div class="message-page-hd approval-center-hd">${renderApprovalCenterTabs()}<div class="message-search-box approval-center-search"><input id="approvalCenterSearch" value="${escapeAttr(approvalCenterState.search)}" placeholder="输入审批内容、审批人姓名、审批对象名称搜索" title="支持搜索审批内容、审批发起人、审批人、审批对象" onkeydown="if(event.key==='Enter')searchApprovalCenter()"/><span onclick="searchApprovalCenter()">⌕</span></div></div>
     <div class="approval-center-body">${renderApprovalCategoryTree()}<main class="approval-center-main">${renderApprovalCenterTable()}</main></div>
   </div>`;
 }
