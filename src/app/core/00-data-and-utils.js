@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.566-PROJECT-PERSON-REVERSE-FILTER";
-const APP_CODE_VERSION_NAME="项目管理人员反向筛选版";
-const APP_CODE_VERSION_TIME="2026-08-04 17:00";
-const APP_CODE_VERSION_DESC="项目端指定人员查询条件调整为项目及管理人员八项条件，管理人员姓名、岗位和参建单位按人员数据反向筛选项目清单。";
+const APP_CODE_VERSION="EM-20260701-V2.2.567-CONSTRUCTION-LOG-WORD-TEMPLATE";
+const APP_CODE_VERSION_NAME="施工日志 Word 导出模板版";
+const APP_CODE_VERSION_TIME="2026-08-04 17:30";
+const APP_CODE_VERSION_DESC="新增与施工日志在线填报页面结构一致的 Word 导出模板，覆盖基础信息、人员、今日与明日工作、里程碑、风险及停工情况。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
