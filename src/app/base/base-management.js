@@ -4208,6 +4208,9 @@ function getApprovalFlowScopedRows(){
 
 function matchesApprovalFlowStat(row,stat=approvalFlowDetailState.stat){
   if(!stat)return true;
+  if(stat==="statusPending")return row.status==="审批中";
+  if(stat==="statusPassed")return row.status==="已通过";
+  if(stat==="statusRejected")return row.status==="已驳回";
   if(stat==="dueSoon")return row.dueSoon&&!row.overdueHours;
   if(stat==="overdue")return row.overdueHours>0;
   if(stat==="overdue3")return row.overdueHours>=72;
@@ -4236,6 +4239,10 @@ function renderApprovalFlowStats(){
     <div class="card-bd">
       <div class="construction-project-stats">
         <div class="construction-project-stat-group">
+          <div class="construction-project-stat-name">审批状态</div>
+          <div class="construction-project-stat-items">${renderApprovalFlowStatOption("statusPending","审批中",rows)}${renderApprovalFlowStatOption("statusPassed","已通过",rows)}${renderApprovalFlowStatOption("statusRejected","已驳回",rows)}</div>
+        </div>
+        <div class="construction-project-stat-group">
           <div class="construction-project-stat-name">超期状态</div>
           <div class="construction-project-stat-items">${renderApprovalFlowStatOption("dueSoon","即将超期",rows)}${renderApprovalFlowStatOption("overdue","已超期",rows)}${renderApprovalFlowStatOption("overdue3","超期3天以上",rows)}${renderApprovalFlowStatOption("overdue7","超期7天以上",rows)}</div>
         </div>
@@ -4256,12 +4263,17 @@ function setApprovalFlowStat(key){
   renderApprovalFlowDetailPage();
 }
 
+function getApprovalFlowOrgLevelIcon(level){
+  if(level===1)return "🏛️";
+  if(level===2)return "🏢";
+  return "🏬";
+}
+
 function renderApprovalFlowOrgNodes(node=approvalFlowOrgTree,level=1){
-  const hasChildren=node.children?.length;
   const active=approvalFlowDetailState.orgId===node.id;
   return `
     <div class="org-tree-node org-level-indent-${Math.min(level,5)} ${active?"active":""}" onclick="selectApprovalFlowOrg('${node.id}')">
-      <div class="org-node-left"><span>${hasChildren?"📂":"📄"}</span><span class="org-node-name" title="${node.name}">${node.name}</span></div>
+      <div class="org-node-left"><span class="approval-flow-org-level-icon" title="${level===1?"集团":level===2?"子公司":"分公司"}">${getApprovalFlowOrgLevelIcon(level)}</span><span class="org-node-name" title="${node.name}">${node.name}</span></div>
       <span class="approval-flow-org-count">${getApprovalFlowOrgCount(node.id)}</span>
     </div>
     ${(node.children||[]).map(child=>renderApprovalFlowOrgNodes(child,level+1)).join("")}`;

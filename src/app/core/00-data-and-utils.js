@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.551-APPROVAL-STATS-STANDARD-STYLE";
-const APP_CODE_VERSION_NAME="审批统计标准样式版";
-const APP_CODE_VERSION_TIME="2026-08-03 17:30";
-const APP_CODE_VERSION_DESC="审批流程明细筛选统计全面对齐施工项目一览，统一分组、统计项、间距、分隔线及选中样式。";
+const APP_CODE_VERSION="EM-20260701-V2.2.553-APPROVAL-ORG-LEVEL-ICONS";
+const APP_CODE_VERSION_NAME="审批组织层级图标版";
+const APP_CODE_VERSION_TIME="2026-08-04 09:30";
+const APP_CODE_VERSION_DESC="审批流程明细组织树按集团、子公司、分公司层级使用差异化组织图标，强化层级识别。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
