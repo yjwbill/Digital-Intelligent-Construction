@@ -143,6 +143,7 @@ function getSelectedRoleIdsFromModal(){
 }
 
 /* ---------- 组织树渲染 ---------- */
+let organizationManagementOrgKeyword="";
 function captureScrollPositions(selectors=[]){
   const states=[];
   const seen=new Set();
@@ -184,13 +185,14 @@ function renderWithPreservedScroll(render,selectors=[]){
 }
 
 function renderOrgTreeNodes(node=orgTreeData,level=1){
+  if(!unifiedOrgTreeMatches(node,organizationManagementOrgKeyword))return "";
   const isActive=node.id===currentOrgId;
   const hasChildren=node.children && node.children.length;
 
   return `
     <div class="org-tree-node org-level-indent-${Math.min(level,5)} ${isActive?"active":""}" onclick="selectOrgNode('${node.id}')">
       <div class="org-node-left">
-        <span>${hasChildren?"📂":"📄"}</span>
+        <span class="unified-org-level-icon">${getUnifiedOrgTreeIcon(level)}</span>
         <span class="org-node-name" title="${node.name}">${getOrgDisplayName(node)}</span>
       </div>
 
@@ -207,6 +209,12 @@ function renderOrgTreeNodes(node=orgTreeData,level=1){
   `;
 }
 
+function filterOrganizationManagementTree(keyword){
+  organizationManagementOrgKeyword=String(keyword||"");
+  const body=document.getElementById("orgTreeBody");
+  if(body)body.innerHTML=renderOrgTreeNodes() || '<div class="unified-org-tree-empty">暂无匹配的组织</div>';
+}
+
 function renderOrgManagementPage(){
   detailPage.style.display="none";
   listPage.style.display="flex";
@@ -220,8 +228,8 @@ function renderOrgManagementPage(){
       <div class="module-title">组织管理</div>
     </div>
 
-    <div class="base-auth-layout">
-      <section class="org-tree-panel">
+    <div class="base-auth-layout organization-management-layout">
+      <section class="org-tree-panel unified-org-tree-panel">
         <div class="org-tree-hd">
           <div class="card-title">组织树</div>
           <div class="actions">
@@ -230,6 +238,8 @@ function renderOrgManagementPage(){
             <button class="btn primary" onclick="openOrgAddModal('${currentOrgId}')">新增</button>
           </div>
         </div>
+
+        <div class="unified-org-tree-search"><input class="input" value="${escapeAttr(organizationManagementOrgKeyword)}" placeholder="请输入组织名称" oninput="filterOrganizationManagementTree(this.value)"/></div>
 
         <div class="org-tree-body" id="orgTreeBody">
           ${renderOrgTreeNodes()}
@@ -2594,6 +2604,7 @@ function renderMessageOrganizationRouteNodes(id,nodes,selectedSet,indeterminateS
     return `<div class="message-route-tree-item ${hasChildren&&level>1?"is-collapsed":""}" data-route-tree-item data-level="${level}" data-search="${safeLabel}">
       <button type="button" class="base-multi-select__option message-route-tree-option ${isSelected?"is-selected":""} ${isIndeterminate?"is-indeterminate":""}" role="option" aria-selected="${isSelected}" aria-checked="${isIndeterminate?"mixed":isSelected}" data-value="${safeValue}" data-label="${safeLabel}" data-path="${safePath}" style="--tree-level:${level}" onclick="toggleMessageRouteMultiOption('${id}',this)">
         <span class="message-route-tree-toggle ${hasChildren?"":"is-placeholder"}" role="button" aria-label="${hasChildren?`展开或收起${safeLabel}`:""}" aria-expanded="${hasChildren&&level===1}" onclick="toggleMessageRouteTreeBranch(event,this)">${hasChildren?"▾":""}</span>
+        <span class="unified-org-level-icon" aria-hidden="true">${getUnifiedOrgTreeIcon(level)}</span>
         <span class="base-multi-select__checkbox"></span>
         <span class="base-multi-select__label" title="${safePath}">${safeLabel}</span>
       </button>
@@ -3023,9 +3034,24 @@ function messagePersonOrgTreeMatches(node,keyword){
   return own || (node?.children||[]).some(child=>messagePersonOrgTreeMatches(child,normalized));
 }
 
-function renderMessagePersonOrganizationNodes(node,level=1){
-  if(!node || !messagePersonOrgTreeMatches(node,messagePersonPickerState.orgKeyword))return "";
-  const hasChildren=!!node.children?.length;
+function getMessagePersonPopulatedOrgIds(){
+  const directOrgIds=new Set(getMessagePersonPickerUsers().filter(user=>user.status!=="禁用").map(user=>user.orgId));
+  const populatedOrgIds=new Set();
+  const collect=node=>{
+    if(!node)return false;
+    const childPopulated=(node.children||[]).map(collect).some(Boolean);
+    const populated=directOrgIds.has(node.id)||childPopulated;
+    if(populated)populatedOrgIds.add(node.id);
+    return populated;
+  };
+  if(typeof orgTreeData!=="undefined")collect(orgTreeData);
+  return populatedOrgIds;
+}
+
+function renderMessagePersonOrganizationNodes(node,level=1,populatedOrgIds=getMessagePersonPopulatedOrgIds()){
+  if(!node || !populatedOrgIds.has(node.id) || !messagePersonOrgTreeMatches(node,messagePersonPickerState.orgKeyword))return "";
+  const visibleChildren=(node.children||[]).filter(child=>populatedOrgIds.has(child.id)&&messagePersonOrgTreeMatches(child,messagePersonPickerState.orgKeyword));
+  const hasChildren=visibleChildren.length>0;
   const forceExpand=!!messagePersonPickerState.orgKeyword;
   const expanded=forceExpand || messagePersonPickerState.expandedOrgIds.has(node.id);
   const active=messagePersonPickerState.activeOrgId===node.id;
@@ -3034,10 +3060,10 @@ function renderMessagePersonOrganizationNodes(node,level=1){
   return `<div class="message-person-org-tree-item" data-org-id="${safeId}">
     <div class="org-tree-node message-person-org-node ${active?"active":""}" data-org-id="${safeId}" style="--person-org-level:${level}" onclick="selectMessagePersonOrgNode(this.dataset.orgId)">
       <span class="message-person-org-toggle ${hasChildren?"":"is-placeholder"}" aria-hidden="true" onclick="toggleMessagePersonOrgNode(event,this.closest('.message-person-org-node').dataset.orgId)">${hasChildren?(expanded?"▾":"▸"):""}</span>
-      <span class="message-person-org-icon" aria-hidden="true">${hasChildren?"▣":"□"}</span>
+      <span class="message-person-org-icon unified-org-level-icon" aria-hidden="true">${getUnifiedOrgTreeIcon(level)}</span>
       <span class="org-node-name" title="${safeName}">${safeName}</span>
     </div>
-    ${hasChildren&&expanded?`<div class="message-person-org-children">${node.children.map(child=>renderMessagePersonOrganizationNodes(child,level+1)).join("")}</div>`:""}
+    ${hasChildren&&expanded?`<div class="message-person-org-children">${visibleChildren.map(child=>renderMessagePersonOrganizationNodes(child,level+1,populatedOrgIds)).join("")}</div>`:""}
   </div>`;
 }
 
@@ -4130,12 +4156,12 @@ const approvalFlowTimingMetrics={
 approvalFlowDetailData.forEach(row=>Object.assign(row,{stayHours:0,stayMinutes:0,overdueHours:0,dueSoon:false},approvalFlowTimingMetrics[row.id]||{}));
 
 const approvalFlowOrgAssignments={
-  1:["group","tunnel","tunnel-track"],2:["group","tunnel","tunnel-track"],3:["group","tunnel"],
-  4:["group","road","road-north"],5:["group","municipal","municipal-jiangxi"],6:["group","digital"],
-  7:["group","municipal","municipal-jiangxi"],8:["group","municipal","municipal-building"],9:["group","municipal"],
-  10:["group","municipal","municipal-branch"],11:["group","tunnel","tunnel-municipal"],12:["group","municipal","municipal-jiangxi"]
+  1:["隧道股份","上海隧道","轨交分公司"],2:["隧道股份","上海隧道","轨交分公司"],3:["隧道股份","上海隧道"],
+  4:["隧道股份","上海路桥","北方公司"],5:["隧道股份","市政集团","江西分公司"],6:["隧道股份","数字集团"],
+  7:["隧道股份","市政集团","江西分公司"],8:["隧道股份","市政集团","第二建筑"],9:["隧道股份","市政集团"],
+  10:["隧道股份","市政集团","市政分公司"],11:["隧道股份","上海隧道","市政分公司"],12:["隧道股份","市政集团","江西分公司"]
 };
-approvalFlowDetailData.forEach(row=>{row.orgPath=approvalFlowOrgAssignments[row.id]||["group"];});
+approvalFlowDetailData.forEach(row=>{row.orgPath=approvalFlowOrgAssignments[row.id]||["隧道股份"];});
 
 const approvalFlowOrgTree={id:"group",name:"隧道股份",children:[
   {id:"tunnel",name:"上海隧道",children:[
@@ -4151,7 +4177,7 @@ const approvalFlowOrgTree={id:"group",name:"隧道股份",children:[
   {id:"digital",name:"数字集团",children:[]}
 ]};
 
-const approvalFlowDetailState={filters:{},page:1,pageSize:50,orgAggregate:false,orgId:"group",stat:""};
+const approvalFlowDetailState={filters:{},page:1,pageSize:50,orgAggregate:false,orgId:orgTreeData.id,orgKeyword:"",stat:""};
 let approvalFlowDetailCurrent=[...approvalFlowDetailData];
 
 function approvalFlowDetailStatusTag(value){
@@ -4178,7 +4204,7 @@ tableColumnDefinitions.approvalFlowDetail=[
   {key:"stayDuration",title:"已停留时长",width:100,align:"center",render:row=>formatApprovalFlowDuration(row.stayHours,row.stayMinutes)},
   {key:"overdue",title:"是否超期",width:100,align:"center",render:row=>tag(row.overdue,row.overdue==="是"?"red":"green")},
   {key:"overdueDuration",title:"超期时长",width:100,align:"center",render:row=>formatApprovalFlowDuration(row.overdueHours)},
-  {key:"reminders",title:"超期提醒次数",width:120,align:"center",render:row=>`<button type="button" class="link approval-flow-reminder-link" onclick="document.getElementById('modalTitle').textContent='超期提醒消息记录';document.getElementById('modalBody').textContent='超期提醒消息记录内容待补充。';document.getElementById('modalBox').className='modal large';document.getElementById('modalMask').style.display='flex'">${row.reminders}</button>`},
+  {key:"reminders",title:"超期提醒次数",width:120,align:"center",render:row=>`<button type="button" class="link approval-flow-reminder-link" data-approval-reminder-id="${row.id}">${row.reminders}</button>`},
   {key:"status",title:"审批状态",width:110,align:"center",render:row=>approvalFlowDetailStatusTag(row.status)},
   {key:"operation",title:"操作",width:90,align:"center",render:row=>`<a class="link" onclick="openApprovalFlowDetail(${row.id})">查看</a>`}
 ];
@@ -4201,8 +4227,10 @@ function getApprovalFlowBaseFilteredRows(){
 
 function getApprovalFlowScopedRows(){
   const rows=getApprovalFlowBaseFilteredRows();
+  const selected=findOrgById(approvalFlowDetailState.orgId)?.node;
+  const names=new Set(getUnifiedOrgDescendantNames(selected,[]));
   return approvalFlowDetailState.orgAggregate&&approvalFlowDetailState.orgId
-    ?rows.filter(row=>row.orgPath.includes(approvalFlowDetailState.orgId))
+    ?rows.filter(row=>row.orgPath.some(name=>names.has(name)))
     :rows;
 }
 
@@ -4225,7 +4253,9 @@ function applyApprovalFlowDetailFilters(){
 }
 
 function getApprovalFlowOrgCount(orgId){
-  return getApprovalFlowBaseFilteredRows().filter(row=>row.orgPath.includes(orgId)&&matchesApprovalFlowStat(row)).length;
+  const node=findOrgById(orgId)?.node;
+  const names=new Set(getUnifiedOrgDescendantNames(node,[]));
+  return getApprovalFlowBaseFilteredRows().filter(row=>row.orgPath.some(name=>names.has(name))&&matchesApprovalFlowStat(row)).length;
 }
 
 function renderApprovalFlowStatOption(key,label,rows){
@@ -4263,17 +4293,12 @@ function setApprovalFlowStat(key){
   renderApprovalFlowDetailPage();
 }
 
-function getApprovalFlowOrgLevelIcon(level){
-  if(level===1)return "🏛️";
-  if(level===2)return "🏢";
-  return "🏬";
-}
-
-function renderApprovalFlowOrgNodes(node=approvalFlowOrgTree,level=1){
+function renderApprovalFlowOrgNodes(node=orgTreeData,level=1){
+  if(!unifiedOrgTreeMatches(node,approvalFlowDetailState.orgKeyword))return "";
   const active=approvalFlowDetailState.orgId===node.id;
   return `
     <div class="org-tree-node org-level-indent-${Math.min(level,5)} ${active?"active":""}" onclick="selectApprovalFlowOrg('${node.id}')">
-      <div class="org-node-left"><span class="approval-flow-org-level-icon" title="${level===1?"集团":level===2?"子公司":"分公司"}">${getApprovalFlowOrgLevelIcon(level)}</span><span class="org-node-name" title="${node.name}">${node.name}</span></div>
+      <div class="org-node-left"><span class="approval-flow-org-level-icon" title="${level===1?"集团":level===2?"子公司":"分公司"}">${getUnifiedOrgTreeIcon(level)}</span><span class="org-node-name" title="${node.name}">${node.name}</span></div>
       <span class="approval-flow-org-count">${getApprovalFlowOrgCount(node.id)}</span>
     </div>
     ${(node.children||[]).map(child=>renderApprovalFlowOrgNodes(child,level+1)).join("")}`;
@@ -4281,10 +4306,17 @@ function renderApprovalFlowOrgNodes(node=approvalFlowOrgTree,level=1){
 
 function renderApprovalFlowOrgPanel(){
   if(!approvalFlowDetailState.orgAggregate)return "";
-  return `<section class="org-tree-panel approval-flow-org-panel">
+  return `<section class="org-tree-panel approval-flow-org-panel unified-org-tree-panel">
     <div class="org-tree-hd"><div class="card-title">组织树</div></div>
-    <div class="org-tree-body">${renderApprovalFlowOrgNodes()}</div>
+    <div class="unified-org-tree-search"><input class="input" value="${escapeAttr(approvalFlowDetailState.orgKeyword)}" placeholder="请输入组织名称" oninput="filterApprovalFlowOrgTree(this.value)"/></div>
+    <div class="org-tree-body" id="approvalFlowOrgTreeBody">${renderApprovalFlowOrgNodes()}</div>
   </section>`;
+}
+
+function filterApprovalFlowOrgTree(keyword){
+  approvalFlowDetailState.orgKeyword=String(keyword||"");
+  const body=document.getElementById("approvalFlowOrgTreeBody");
+  if(body)body.innerHTML=renderApprovalFlowOrgNodes() || '<div class="unified-org-tree-empty">暂无匹配的组织</div>';
 }
 
 function renderApprovalFlowAggregateSwitch(){
@@ -4354,7 +4386,7 @@ function resetApprovalFlowDetails(){
 function toggleApprovalFlowOrgAggregate(checked){
   approvalFlowDetailState.filters=readApprovalFlowDetailFilters();
   approvalFlowDetailState.orgAggregate=Boolean(checked);
-  approvalFlowDetailState.orgId="group";
+  approvalFlowDetailState.orgId=orgTreeData.id;
   approvalFlowDetailState.page=1;
   applyApprovalFlowDetailFilters();
   renderApprovalFlowDetailPage();
@@ -4382,6 +4414,64 @@ function renderApprovalFlowDetailTable(){
 
 function exportApprovalFlowDetails(){
   showToast(`导出成功：审批流程明细（${approvalFlowDetailCurrent.length}条）.xlsx`);
+}
+
+function getApprovalReminderBatchNo(row){
+  return `AR${row.startTime.slice(0,10).replace(/-/g,"")}${String(row.id).padStart(4,"0")}`;
+}
+
+function ensureApprovalReminderRecords(row){
+  const batchNo=getApprovalReminderBatchNo(row);
+  if(messageRecordData.some(record=>record.batchNo===batchNo))return batchNo;
+  const receiverNames=[row.approver,"王安全","陈审批","赵主管"];
+  const orgName=row.orgPath.includes("上海隧道")?"上海隧道":row.orgPath.includes("市政集团")?"市政集团":row.orgPath.includes("上海路桥")?"上海路桥":row.orgPath.includes("数字集团")?"数字集团":"隧道股份";
+  for(let index=0;index<row.reminders;index+=1){
+    const read=index<Math.max(0,row.reminders-1);
+    const clicked=index<Math.max(0,row.reminders-2);
+    const hour=String(9+index).padStart(2,"0");
+    messageRecordData.push({
+      id:`approval-reminder-${row.id}-${index+1}`,
+      batchNo,
+      receiver:receiverNames[index%receiverNames.length],
+      account:`approval${row.id}${index+1}`,
+      org:orgName,
+      project:row.scope==="项目"?row.name:"--",
+      post:index===0?"当前审批人":"审批管理岗",
+      type:"预警通知",
+      biz:`基础管理>审批流程管理`,
+      title:`审批流程超期提醒（第${index+1}次）`,
+      content:`${row.name}的${row.type}流程已超期${formatApprovalFlowDuration(row.overdueHours)}，请尽快完成审批。`,
+      channel:"站内信",
+      deliverStatus:"发送成功",
+      deliverTime:`2026-08-0${Math.min(4,index+1)} ${hour}:00:02`,
+      sendTime:`2026-08-0${Math.min(4,index+1)} ${hour}:00:02`,
+      readStatus:read?"已读":"未读",
+      readTime:read?`2026-08-0${Math.min(4,index+1)} ${hour}:12:18`:"",
+      clickStatus:clicked?"已点击":"未点击",
+      clickTime:clicked?`2026-08-0${Math.min(4,index+1)} ${hour}:13:06`:"",
+      failReason:""
+    });
+  }
+  return batchNo;
+}
+
+function openApprovalReminderDrilldown(id){
+  const row=approvalFlowDetailData.find(item=>item.id===id);
+  if(!row)return;
+  const batchNo=ensureApprovalReminderRecords(row);
+  openSendRecordDrilldown(batchNo,"sent");
+  modalTitle.innerText="超期提醒消息明细";
+}
+
+window.openSendRecordDrilldown=openSendRecordDrilldown;
+window.openApprovalReminderDrilldown=openApprovalReminderDrilldown;
+if(!window.__approvalReminderDrilldownBound){
+  window.__approvalReminderDrilldownBound=true;
+  document.addEventListener("click",event=>{
+    const trigger=event.target.closest?.(".approval-flow-reminder-link");
+    if(!trigger)return;
+    openApprovalReminderDrilldown(Number(trigger.dataset.approvalReminderId));
+  });
 }
 
 function openApprovalFlowDetail(id){

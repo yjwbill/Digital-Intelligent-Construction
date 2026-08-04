@@ -1907,7 +1907,7 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
 /* ===== V1.0.14 基础 - 组织权限 ===== */
 .base-auth-layout{
   display:grid;
-  grid-template-columns:320px minmax(0,1fr);
+  grid-template-columns:300px minmax(0,1fr);
   gap:12px;
   height:100%;
   min-height:0;
@@ -1979,6 +1979,12 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
   white-space:nowrap;
   text-overflow:ellipsis;
 }
+.organization-management-layout{grid-template-columns:300px minmax(0,1fr)}
+.unified-org-tree-panel{width:300px;min-width:300px;max-width:300px;box-sizing:border-box}
+.unified-org-tree-search{flex:none;padding:10px 10px 8px;border-bottom:1px solid var(--border);background:#fff}
+.unified-org-tree-search .input{width:100%;height:32px}
+.unified-org-level-icon{width:20px;min-width:20px;display:inline-flex;align-items:center;justify-content:center;font-style:normal;line-height:20px}
+.unified-org-tree-empty{padding:24px 10px;color:var(--muted);font-size:13px;text-align:center}
 
 .operation-production-report-layout{
   grid-template-columns:240px minmax(0,1fr);
@@ -2029,7 +2035,7 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
   overflow:hidden;
 }
 .approval-flow-detail-layout.has-org{
-  grid-template-columns:280px minmax(0,1fr);
+  grid-template-columns:300px minmax(0,1fr);
 }
 .approval-flow-detail-layout>.table-card{
   min-width:0;
@@ -2084,7 +2090,7 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
   font:inherit;
 }
 @media(max-width:1100px){
-  .approval-flow-detail-layout.has-org{grid-template-columns:240px minmax(0,1fr)}
+  .approval-flow-detail-layout.has-org{grid-template-columns:300px minmax(0,1fr)}
 }
 
 .org-user-body{
@@ -3501,6 +3507,8 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
   color:var(--primary);
 }
 .org-node.child{padding-left:28px}
+.message-org-panel .org-node{padding-left:calc(8px + (var(--unified-org-level,1) - 1) * 18px)!important}
+.message-org-panel .org-node>span{min-width:0;display:flex;align-items:center;gap:6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .org-node em{
   min-width:34px;
   height:22px;
@@ -3882,7 +3890,7 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
   gap:16px !important;
 }
 .message-layout.has-org{
-  grid-template-columns:320px minmax(0,1fr) !important;
+  grid-template-columns:300px minmax(0,1fr) !important;
 }
 .message-org-panel{
   padding:16px !important;
@@ -4207,7 +4215,7 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
 .message-module-row strong{flex-shrink:0 !important;font-size:14px !important;}
 .message-module-row span{flex-shrink:0 !important;height:26px !important;padding:0 10px !important;font-size:12px !important;}
 .message-layout{gap:10px !important;}
-.message-layout.has-org{grid-template-columns:280px minmax(0,1fr) !important;}
+.message-layout.has-org{grid-template-columns:300px minmax(0,1fr) !important;}
 .message-org-panel{padding:10px !important;border-radius:12px !important;}
 .message-org-title{font-size:15px !important;margin-bottom:8px !important;}
 .message-org-search{margin-bottom:8px !important;}
@@ -7432,7 +7440,8 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
   transform:none;
 }
 .message-template-v2220 .message-route-org-tree .message-route-tree-dropdown{
-  min-width:360px;
+  width:300px;
+  min-width:300px;
   padding:6px 0;
 }
 .message-template-v2220 .message-route-org-tree .message-route-tree-item[hidden]{
@@ -7517,7 +7526,7 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
   height:100%;
   min-height:0;
   display:grid;
-  grid-template-columns:260px minmax(0,1fr);
+  grid-template-columns:300px minmax(0,1fr);
   gap:12px;
 }
 .message-person-picker-org-panel,
@@ -7699,7 +7708,7 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
     max-width:calc(100vw - 32px);
   }
   .message-person-picker-layout{
-    grid-template-columns:220px minmax(0,1fr);
+    grid-template-columns:300px minmax(0,1fr);
   }
   .message-person-picker-user-head{
     align-items:flex-start;
@@ -8665,7 +8674,7 @@ body.entry-mode .digital-entry-footer{position:fixed;left:50%;bottom:80px;transf
 @media(max-width:1540px){.trend-bars{grid-template-columns:repeat(25,minmax(5px,1fr));}.safety-process-interactive-chart{min-height:180px;}}
 
 /* V2.2.261 safety video monitoring */
-.safety-video-page{height:calc(100vh - 64px);min-height:660px;padding:12px;box-sizing:border-box;display:grid;grid-template-columns:356px minmax(0,1fr);gap:12px;background:#F3F6FA;color:#1D2129;overflow:hidden;}
+.safety-video-page{height:calc(100vh - 64px);min-height:660px;padding:12px;box-sizing:border-box;display:grid;grid-template-columns:300px minmax(0,1fr);gap:12px;background:#F3F6FA;color:#1D2129;overflow:hidden;}
 .safety-video-sidebar{min-width:0;min-height:0;display:flex;flex-direction:column;border-radius:8px;background:#fff;box-shadow:0 2px 10px rgba(31,45,61,.08);overflow:hidden;}
 .video-sidebar-tabs{height:52px;display:grid;grid-template-columns:repeat(3,1fr);padding:0 12px;border-bottom:1px solid #EEF2F7;}.video-sidebar-tabs button{position:relative;border:0;background:#fff;color:#86909C;font-size:14px;font-weight:800;cursor:pointer;}.video-sidebar-tabs button.active{color:#165DFF;}.video-sidebar-tabs button.active:after{content:"";position:absolute;bottom:0;left:18px;right:18px;height:3px;background:#165DFF;}
 .video-tree-filter{padding:12px;display:grid;grid-template-columns:116px minmax(0,1fr);gap:8px;border-bottom:1px solid #EEF2F7;}.video-tree-filter .select{height:34px;}.video-tree-filter>div{position:relative;min-width:0;}.video-tree-filter .input{width:100%;height:34px;padding-right:28px;}.video-tree-filter>div span{position:absolute;right:9px;top:6px;color:#86909C;font-size:20px;line-height:20px;pointer-events:none;}
@@ -8686,7 +8695,7 @@ body.entry-mode .digital-entry-footer{position:fixed;left:50%;bottom:80px;transf
 
 /* V2.2.265 视频监控组织树与多选摄像头 */
 .tree-company-icon{width:16px;height:16px;flex:0 0 16px;object-fit:contain;}
-.video-tree-toggle-icon{width:16px;height:16px;flex:0 0 16px;object-fit:contain;transform:rotate(-90deg);transition:transform .16s ease;}
+.video-tree-toggle-icon{width:16px;height:16px;flex:0 0 16px;display:inline-flex;align-items:center;justify-content:center;color:#86909C;font-size:12px;transform:rotate(-90deg);transition:transform .16s ease;}
 .video-tree-toggle-icon.expanded{transform:rotate(0deg);}
 .video-tree-camera.active .tree-check{font-weight:700;}
 
@@ -19369,6 +19378,33 @@ body.mobile-mode .mobile-tabbar .tab-create.active span:after{
   transform:rotate(0deg) !important;
   opacity:1 !important;
 }
+.nested-modal.message-project-picker-modal{width:94vw;max-width:calc(100vw - 40px);height:86vh;max-height:86vh}
+.nested-modal.message-project-picker-modal .modal-bd{padding:14px;overflow:hidden;background:#f5f7fa}
+.message-project-selector{height:100%;min-height:0;display:flex;flex-direction:column;gap:12px}
+.message-project-selector>.unified-query-card{flex:0 0 auto;margin:0}
+.message-project-selector>.unified-query-card .search-grid{grid-template-columns:repeat(4,minmax(0,1fr)) !important}
+.message-project-picker-table-card{flex:1;min-height:0;margin:0;display:flex;flex-direction:column;overflow:hidden}
+.message-project-picker-table-card>.table-wrap{flex:1;min-height:0}
+.message-project-picker .base-multi-select__control{cursor:pointer}
+@media(max-width:1000px){.message-project-selector>.unified-query-card .search-grid{grid-template-columns:repeat(2,minmax(0,1fr)) !important}}
+.nested-modal.message-project-person-picker-modal{width:94vw;max-width:calc(100vw - 40px);height:86vh;max-height:86vh}
+.message-project-person-picker-modal .modal-bd{padding:14px;overflow:hidden;background:#f5f7fa}
+.message-project-person-selector{height:100%;min-height:0;display:flex;flex-direction:column;gap:12px}
+.message-project-person-selector>.unified-query-card{flex:0 0 auto;margin:0}
+.message-project-person-selector>.unified-query-card .search-grid{grid-template-columns:repeat(4,minmax(0,1fr)) !important}
+.message-project-person-content{flex:1;min-height:0;display:grid;grid-template-columns:300px minmax(0,1fr);gap:12px}
+.message-project-person-project-panel{min-height:0;display:flex;flex-direction:column;background:#fff;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.message-project-person-panel-hd{height:48px;flex:0 0 48px;padding:0 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.message-project-person-panel-hd span{color:var(--muted);font-size:13px}
+.message-project-person-project-list{flex:1;min-height:0;overflow:auto;padding:6px}
+.message-project-person-project{width:100%;padding:9px 10px;border:0;border-radius:4px;background:transparent;text-align:left;cursor:pointer;color:var(--text);display:flex;flex-direction:column;gap:5px}
+.message-project-person-project:hover{background:#f5f7fa}.message-project-person-project.active{background:#e8f3ff;color:var(--primary)}
+.message-project-person-project-name{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;white-space:normal;line-height:20px;max-height:40px;word-break:break-all;font-size:14px}
+.message-project-person-project-meta{display:block;color:var(--muted);font-size:12px;line-height:18px}
+.message-project-person-table-card{min-height:0;margin:0;display:flex;flex-direction:column;overflow:hidden}.message-project-person-table-card .table-wrap{flex:1;min-height:0}
+.message-project-person-selected{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:13px}.message-project-person-selected b{color:var(--primary)}.message-project-person-selected a{margin-left:6px;color:var(--primary);cursor:pointer}
+.message-project-person-picker .base-multi-select__control{cursor:pointer}
+@media(max-width:1000px){.message-project-person-selector>.unified-query-card .search-grid{grid-template-columns:repeat(2,minmax(0,1fr)) !important}.message-project-person-content{grid-template-columns:240px minmax(0,1fr)}}
 
 .construction-project-stat-name.required-report-stat-name{
   flex-basis:42px !important;
@@ -19386,6 +19422,20 @@ body.mobile-mode .mobile-tabbar .tab-create.active span:after{
 .statistics-filling-page{width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden}
 .statistics-filling-page>.compact-title-row{flex:0 0 auto;margin-bottom:10px}
 .statistics-filling-layout{min-height:0;flex:1;grid-template-columns:240px minmax(0,1fr)}
+.project-safety-personnel-page{width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden}
+.project-safety-personnel-page>.compact-title-row{flex:0 0 auto;margin-bottom:10px}
+.project-safety-personnel-layout{min-height:0;flex:1;grid-template-columns:300px minmax(0,1fr)}
+.project-safety-personnel-unit-search{flex:0 0 auto;padding:10px;border-bottom:1px solid var(--border)}
+.project-safety-personnel-unit-search .input{width:100%}
+.project-safety-personnel-main{padding:12px;min-width:0;min-height:0;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.project-safety-personnel-main>.unified-query-card{flex:0 0 auto;margin:0}
+.project-safety-personnel-table-card{min-height:0;flex:1;margin:0;display:flex;flex-direction:column;overflow:hidden}
+.project-safety-personnel-table-card .table-wrap{min-height:0;flex:1}
+.project-safety-unit-node{min-height:38px;height:auto;padding-top:6px;padding-bottom:6px;align-items:center}
+.project-safety-unit-name{flex:1;min-width:0;align-items:flex-start}
+.project-safety-unit-icon{flex:0 0 auto;line-height:20px}
+.project-safety-unit-name .org-node-name{display:-webkit-box;min-width:0;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;white-space:normal;line-height:20px;word-break:break-all}
+.project-safety-unit-badge{flex:0 0 auto;align-self:center;padding:1px 5px;border:1px solid #d9dde5;border-radius:3px;background:#f4f4f5;color:#909399;font-size:11px;font-weight:400;white-space:nowrap}
 .statistics-filling-reported{flex:0 0 auto;min-width:22px;height:18px;padding:0 6px;border-radius:9px;background:#F2F3F5;color:#86909C;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
 .org-tree-node.active .statistics-filling-reported{background:#fff;color:var(--primary)}
 .statistics-filling-main{padding:12px;min-width:0;min-height:0;display:flex;flex-direction:column;gap:12px;overflow:hidden}

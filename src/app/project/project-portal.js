@@ -2116,6 +2116,7 @@ function renderProjectPortalPage(name){
   if(pcPortalState.projectLine==="production"&&name==="风险管控清单")return renderProjectRiskControlPage();
   if(pcPortalState.projectLine==="production"&&name==="创奖管理")return renderProjectAwardManagementPage();
   if(pcPortalState.projectLine==="production"&&name==="技术方案管理")return renderProjectTechSchemePage();
+  if(pcPortalState.projectLine==="safety"&&name==="管理人员名单"&&typeof renderProjectSafetyManagementPersonnelPage==="function")return renderProjectSafetyManagementPersonnelPage();
   if(pcPortalState.projectLine!=="home"){
     return renderProjectPlaceholderPage(name || projectPortalMenus[pcPortalState.projectLine]?.title || "项目管理");
   }

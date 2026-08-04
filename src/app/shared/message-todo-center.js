@@ -9,6 +9,7 @@ const messageCenterState={
   search:"",
   orgAggregate:false,
   org:"",
+  orgKeyword:"",
   page:1,
   pageSize:50
 };
@@ -86,6 +87,7 @@ const todoCenterState={
   search:"",
   orgAggregate:false,
   org:"",
+  orgKeyword:"",
   page:1,
   pageSize:50
 };
@@ -200,12 +202,25 @@ function getActiveMessageModuleGroups(){
 }
 
 function getActiveMessageOrgTree(){
-  return isProjectPortalMode()?projectMessageOrgTree:messageOrgTree;
+  return typeof orgTreeData!=="undefined"&&orgTreeData?[orgTreeData]:[];
 }
 
 function getActiveOrgNames(){
-  const tree=getActiveMessageOrgTree();
-  return tree.flatMap(root=>[root.name,...(root.children||[]).map(child=>child.name)]);
+  return getUnifiedOrgDescendantNames(getActiveMessageOrgTree()[0],[]);
+}
+
+function findActiveMessageOrgNode(name,node=getActiveMessageOrgTree()[0]){
+  if(!node)return null;
+  if(node.name===name)return node;
+  for(const child of node.children||[]){
+    const found=findActiveMessageOrgNode(name,child);
+    if(found)return found;
+  }
+  return null;
+}
+
+function getActiveMessageOrgScopeNames(name){
+  return getUnifiedOrgDescendantNames(findActiveMessageOrgNode(name),[]);
 }
 
 function ensureBottomFixedMenu(){
@@ -342,11 +357,8 @@ function getFilteredMessages(){
   }
 
   if(messageCenterState.orgAggregate&&messageCenterState.org){
-    if(messageCenterState.org===getActiveMessageOrgTree()[0]?.name){
-      list=list.filter(x=>getActiveOrgNames().includes(x.org));
-    }else{
-      list=list.filter(x=>x.org===messageCenterState.org);
-    }
+    const names=getActiveMessageOrgScopeNames(messageCenterState.org);
+    list=list.filter(x=>names.includes(x.org));
   }
 
   return list.slice().sort((a,b)=>{
@@ -423,13 +435,24 @@ function getMessageModuleCount(module1,module2){
 }
 
 function getMessageOrgCount(org){
-  if(org==="隧道股份"){
-    return getActiveMessageData().filter(x=>getActiveOrgNames().includes(x.org)).length;
-  }
-  if(isProjectPortalMode()&&org==="上海示范区线工程 SFQSG-15 标"){
-    return getActiveMessageData().filter(x=>getActiveOrgNames().includes(x.org)).length;
-  }
-  return getActiveMessageData().filter(x=>x.org===org).length;
+  const names=getActiveMessageOrgScopeNames(org);
+  return getActiveMessageData().filter(x=>names.includes(x.org)).length;
+}
+
+function renderCenterOrgNodes(kind,node=getActiveMessageOrgTree()[0],level=1){
+  if(!node)return "";
+  const state=kind==="message"?messageCenterState:todoCenterState;
+  if(!unifiedOrgTreeMatches(node,state.orgKeyword))return "";
+  const selectFn=kind==="message"?"setMessageOrg":"setTodoOrg";
+  const count=kind==="message"?getMessageOrgCount(node.name):getTodoOrgCount(node.name);
+  return `<div class="org-node ${state.org===node.name?"active":""}" style="--unified-org-level:${level}" onclick="${selectFn}('${escapeAttr(node.name)}')"><span><i class="unified-org-level-icon">${getUnifiedOrgTreeIcon(level)}</i>${node.name}</span><em>${count}</em></div>${(node.children||[]).map(child=>renderCenterOrgNodes(kind,child,level+1)).join("")}`;
+}
+
+function filterCenterOrgTree(kind,keyword){
+  const state=kind==="message"?messageCenterState:todoCenterState;
+  state.orgKeyword=String(keyword||"");
+  const body=document.getElementById(`${kind}CenterOrgTreeBody`);
+  if(body)body.innerHTML=renderCenterOrgNodes(kind) || '<div class="unified-org-tree-empty">暂无匹配的组织</div>';
 }
 
 function renderMessageModuleFilter(){
@@ -458,22 +481,13 @@ function renderMessageOrgTree(){
   if(!messageCenterState.orgAggregate)return "";
 
   return `
-    <aside class="message-org-panel">
+    <aside class="message-org-panel unified-org-tree-panel">
       <div class="message-org-title">组织聚合</div>
       <div class="message-org-search">
-        <input placeholder="请输入公司/项目名称进行搜索"/>
-        <button>⌕</button>
+        <input value="${escapeAttr(messageCenterState.orgKeyword)}" placeholder="请输入组织名称" oninput="filterCenterOrgTree('message',this.value)"/>
+        <button type="button" title="搜索">⌕</button>
       </div>
-      ${getActiveMessageOrgTree().map(root=>`
-        <div class="org-node root ${messageCenterState.org===root.name?"active":""}" onclick="setMessageOrg('${root.name}')">
-          <span>▾ 🏢 ${root.name}</span><em>${getMessageOrgCount(root.name)}</em>
-        </div>
-        ${root.children.map(c=>`
-          <div class="org-node child ${messageCenterState.org===c.name?"active":""}" onclick="setMessageOrg('${c.name}')">
-            <span>└ 🏢 ${c.name}</span><em>${getMessageOrgCount(c.name)}</em>
-          </div>
-        `).join("")}
-      `).join("")}
+      <div id="messageCenterOrgTreeBody">${renderCenterOrgNodes("message")}</div>
     </aside>
   `;
 }
@@ -640,11 +654,8 @@ function getFilteredTodos(){
   }
 
   if(todoCenterState.orgAggregate&&todoCenterState.org){
-    if(todoCenterState.org===getActiveMessageOrgTree()[0]?.name){
-      list=list.filter(x=>getActiveOrgNames().includes(x.org));
-    }else{
-      list=list.filter(x=>x.org===todoCenterState.org);
-    }
+    const names=getActiveMessageOrgScopeNames(todoCenterState.org);
+    list=list.filter(x=>names.includes(x.org));
   }
 
   return list.sort((a,b)=>{
@@ -716,34 +727,20 @@ function renderTodoModuleFilter(){
 }
 
 function getTodoOrgCount(org){
-  if(org==="隧道股份"){
-    return getActiveTodoData().filter(x=>getActiveOrgNames().includes(x.org)).length;
-  }
-  if(isProjectPortalMode()&&org==="上海示范区线工程 SFQSG-15 标"){
-    return getActiveTodoData().filter(x=>getActiveOrgNames().includes(x.org)).length;
-  }
-  return getActiveTodoData().filter(x=>x.org===org).length;
+  const names=getActiveMessageOrgScopeNames(org);
+  return getActiveTodoData().filter(x=>names.includes(x.org)).length;
 }
 
 function renderTodoOrgTree(){
   if(!todoCenterState.orgAggregate)return "";
   return `
-    <aside class="message-org-panel">
+    <aside class="message-org-panel unified-org-tree-panel">
       <div class="message-org-title">组织聚合</div>
       <div class="message-org-search">
-        <input placeholder="请输入公司/项目名称进行搜索"/>
-        <button>⌕</button>
+        <input value="${escapeAttr(todoCenterState.orgKeyword)}" placeholder="请输入组织名称" oninput="filterCenterOrgTree('todo',this.value)"/>
+        <button type="button" title="搜索">⌕</button>
       </div>
-      ${getActiveMessageOrgTree().map(root=>`
-        <div class="org-node root ${todoCenterState.org===root.name?"active":""}" onclick="setTodoOrg('${root.name}')">
-          <span>▾ 🏢 ${root.name}</span><em>${getTodoOrgCount(root.name)}</em>
-        </div>
-        ${root.children.map(c=>`
-          <div class="org-node child ${todoCenterState.org===c.name?"active":""}" onclick="setTodoOrg('${c.name}')">
-            <span>└ 🏢 ${c.name}</span><em>${getTodoOrgCount(c.name)}</em>
-          </div>
-        `).join("")}
-      `).join("")}
+      <div id="todoCenterOrgTreeBody">${renderCenterOrgNodes("todo")}</div>
     </aside>
   `;
 }

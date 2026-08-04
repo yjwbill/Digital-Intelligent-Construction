@@ -41,9 +41,33 @@ const safetyVideoState={
   expanded:new Set(["org-sd","branch-sz","project-sfq"]),
   selectedCameras:["cam-sfq-1"]
 };
+safetyVideoState.expanded.add(orgTreeData.id);
 
-function getSafetyVideoCameras(nodes=safetyVideoTree,result=[]){
-  nodes.forEach(node=>node.children?getSafetyVideoCameras(node.children,result):result.push(node));
+function findSafetyVideoSourceNode(name,nodes=safetyVideoTree){
+  for(const node of nodes||[]){
+    if(node.name===name)return node;
+    const found=findSafetyVideoSourceNode(name,node.children||[]);
+    if(found)return found;
+  }
+  return null;
+}
+
+function buildSafetyVideoOrgTree(node=orgTreeData,level=1){
+  const source=findSafetyVideoSourceNode(node.name);
+  const orgChildren=(node.children||[]).map(child=>buildSafetyVideoOrgTree(child,level+1));
+  const projectChildren=level>=3?(source?.children||[]).filter(child=>child.type==="project"):[];
+  return {id:node.id,name:node.name,type:"organization",orgLevel:level,children:[...orgChildren,...projectChildren]};
+}
+
+function getSafetyVideoTreeData(){
+  return [buildSafetyVideoOrgTree(orgTreeData)];
+}
+
+function getSafetyVideoCameras(nodes=getSafetyVideoTreeData(),result=[]){
+  nodes.forEach(node=>{
+    if(node.type==="ptz"||node.type==="gun")result.push(node);
+    else if(node.children?.length)getSafetyVideoCameras(node.children,result);
+  });
   return result;
 }
 
@@ -119,8 +143,8 @@ function renderSafetyVideoTree(nodes,depth=0,forceVisible=false){
     const expanded=safetyVideoState.expanded.has(node.id)||Boolean(keyword&&(matching||children));
     if(node.children){
       if(keyword&&!matching&&!children)return "";
-      const treeToggle=`<img class="video-tree-toggle-icon ${expanded?"expanded":""}" src="./src/assets/video-tree-expand.svg" alt="${expanded?"收起":"展开"}"/>`;
-      const treeIcon=node.type==="company"?`<img class="tree-company-icon" src="./src/assets/video-tree-company.svg" alt="子公司"/>`:`<span class="tree-icon ${node.type}">${node.type==="branch"?"⌂":"▣"}</span>`;
+      const treeToggle=`<span class="video-tree-toggle-icon ${expanded?"expanded":""}" aria-hidden="true">▾</span>`;
+      const treeIcon=`<span class="tree-icon ${node.type}">${node.type==="project"?getUnifiedOrgTreeIcon(0,"project"):getUnifiedOrgTreeIcon(node.orgLevel||depth+1)}</span>`;
       return `<div class="video-tree-node group depth-${depth}"><button type="button" onclick="toggleSafetyVideoTree('${node.id}')">${treeToggle}${treeIcon}<strong>${node.name}</strong><em>${node.type==="project"?`${getSafetyVideoCameras(node.children).length}路`:""}</em></button>${expanded?`<div class="video-tree-children">${children}</div>`:""}</div>`;
     }
     if(!matching)return "";
@@ -148,8 +172,9 @@ function renderSafetyVideoMonitorPage(){
   listPage.style.display="block";
   const selected=getSafetyVideoCamera(safetyVideoState.selectedCamera);
   const slots=Array.from({length:safetyVideoState.layout},(_,index)=>safetyVideoState.selectedCameras[index]?getSafetyVideoCamera(safetyVideoState.selectedCameras[index]):null);
-  const orgTree=safetyVideoState.organization?safetyVideoTree.filter(node=>node.name===safetyVideoState.organization):safetyVideoTree;
-  listPage.innerHTML=`<div class="safety-video-page"><aside class="safety-video-sidebar"><div class="video-sidebar-tabs"><button class="${safetyVideoState.tab==="live"?"active":""}" onclick="setSafetyVideoTab('live')">视频直播</button><button class="${safetyVideoState.tab==="replay"?"active":""}" onclick="setSafetyVideoTab('replay')">视频回放</button><button class="${safetyVideoState.tab==="preview"?"active":""}" onclick="setSafetyVideoTab('preview')">视频预案</button></div><div class="video-tree-filter"><select class="select" onchange="setSafetyVideoOrganization(this.value)"><option value="">全部组织</option>${safetyVideoTree.map(node=>`<option value="${node.name}" ${node.name===safetyVideoState.organization?"selected":""}>${node.name}</option>`).join("")}</select><div><input class="input" value="${escapeAttr(safetyVideoState.keyword)}" placeholder="搜索项目或摄像头" onkeydown="if(event.key==='Enter'){event.preventDefault();setSafetyVideoSearch(this.value)}" onchange="setSafetyVideoSearch(this.value)"/><span>⌕</span></div></div><div class="video-tree">${renderSafetyVideoTree(orgTree)}</div>${renderSafetyVideoPtz(selected)}</aside><main class="safety-video-main"><div class="video-main-head"><div><strong>${safetyVideoState.tab==="live"?"实时监控":"视频回放"}</strong><span>${selected.name} · ${selected.status==="online"?"在线":"离线"}</span></div><div class="video-layout-actions"><button class="${safetyVideoState.layout===1?"active":""}" onclick="setSafetyVideoLayout(1)">▣</button><button class="${safetyVideoState.layout===4?"active":""}" onclick="setSafetyVideoLayout(4)">▦</button><button class="${safetyVideoState.layout===9?"active":""}" onclick="setSafetyVideoLayout(9)">▦₉</button><button title="全屏" onclick="safetyVideoAction('已进入全屏预览')">⛶</button></div></div><div class="video-wall layout-${safetyVideoState.layout}">${slots.map(renderSafetyVideoFrame).join("")}</div><div class="video-player-bar"><div><button title="静音" onclick="safetyVideoAction('已切换静音')">♬</button><button title="截图" onclick="safetyVideoAction('监控截图已保存')">▣</button><button title="录像" onclick="safetyVideoAction('本地录像已开始')">●</button></div><span>2026-07-12 10:28:36</span><div><button title="清晰度" onclick="safetyVideoAction('已切换高清码流')">HD</button><button title="全屏" onclick="safetyVideoAction('已进入全屏预览')">⛶</button></div></div></main></div>`;
+  const allOrgTree=getSafetyVideoTreeData();
+  const orgTree=safetyVideoState.organization?(allOrgTree[0].children||[]).filter(node=>node.name===safetyVideoState.organization):allOrgTree;
+  listPage.innerHTML=`<div class="safety-video-page"><aside class="safety-video-sidebar unified-org-tree-panel"><div class="video-sidebar-tabs"><button class="${safetyVideoState.tab==="live"?"active":""}" onclick="setSafetyVideoTab('live')">视频直播</button><button class="${safetyVideoState.tab==="replay"?"active":""}" onclick="setSafetyVideoTab('replay')">视频回放</button><button class="${safetyVideoState.tab==="preview"?"active":""}" onclick="setSafetyVideoTab('preview')">视频预案</button></div><div class="video-tree-filter"><select class="select" onchange="setSafetyVideoOrganization(this.value)"><option value="">全部组织</option>${(orgTreeData.children||[]).map(node=>`<option value="${node.name}" ${node.name===safetyVideoState.organization?"selected":""}>${node.name}</option>`).join("")}</select><div><input class="input" value="${escapeAttr(safetyVideoState.keyword)}" placeholder="请输入组织名称" onkeydown="if(event.key==='Enter'){event.preventDefault();setSafetyVideoSearch(this.value)}" onchange="setSafetyVideoSearch(this.value)"/><span>⌕</span></div></div><div class="video-tree">${renderSafetyVideoTree(orgTree)}</div>${renderSafetyVideoPtz(selected)}</aside><main class="safety-video-main"><div class="video-main-head"><div><strong>${safetyVideoState.tab==="live"?"实时监控":"视频回放"}</strong><span>${selected.name} · ${selected.status==="online"?"在线":"离线"}</span></div><div class="video-layout-actions"><button class="${safetyVideoState.layout===1?"active":""}" onclick="setSafetyVideoLayout(1)">▣</button><button class="${safetyVideoState.layout===4?"active":""}" onclick="setSafetyVideoLayout(4)">▦</button><button class="${safetyVideoState.layout===9?"active":""}" onclick="setSafetyVideoLayout(9)">▦₉</button><button title="全屏" onclick="safetyVideoAction('已进入全屏预览')">⛶</button></div></div><div class="video-wall layout-${safetyVideoState.layout}">${slots.map(renderSafetyVideoFrame).join("")}</div><div class="video-player-bar"><div><button title="静音" onclick="safetyVideoAction('已切换静音')">♬</button><button title="截图" onclick="safetyVideoAction('监控截图已保存')">▣</button><button title="录像" onclick="safetyVideoAction('本地录像已开始')">●</button></div><span>2026-07-12 10:28:36</span><div><button title="清晰度" onclick="safetyVideoAction('已切换高清码流')">HD</button><button title="全屏" onclick="safetyVideoAction('已进入全屏预览')">⛶</button></div></div></main></div>`;
 }
 
 const safetyAiCaptureRows=[

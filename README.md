@@ -2,7 +2,7 @@
 
 这是一个用于产品演示的静态前端 Demo，已整理为适合 GitHub Pages 发布的目录结构。
 
-当前版本：`EM-20260701-V2.2.553-APPROVAL-ORG-LEVEL-ICONS`
+当前版本：`EM-20260701-V2.2.566-PROJECT-PERSON-REVERSE-FILTER`
 
 ## 在线发布
 

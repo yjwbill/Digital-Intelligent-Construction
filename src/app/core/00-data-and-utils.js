@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.553-APPROVAL-ORG-LEVEL-ICONS";
-const APP_CODE_VERSION_NAME="审批组织层级图标版";
-const APP_CODE_VERSION_TIME="2026-08-04 09:30";
-const APP_CODE_VERSION_DESC="审批流程明细组织树按集团、子公司、分公司层级使用差异化组织图标，强化层级识别。";
+const APP_CODE_VERSION="EM-20260701-V2.2.566-PROJECT-PERSON-REVERSE-FILTER";
+const APP_CODE_VERSION_NAME="项目管理人员反向筛选版";
+const APP_CODE_VERSION_TIME="2026-08-04 17:00";
+const APP_CODE_VERSION_DESC="项目端指定人员查询条件调整为项目及管理人员八项条件，管理人员姓名、岗位和参建单位按人员数据反向筛选项目清单。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
@@ -884,6 +884,28 @@ const genderOptions=["男","女"];
 
 let orgTreeData=buildOrgTreeDataFromOrganizationMaster();
 
+function getUnifiedOrgTreeIcon(level=1,type="organization"){
+  if(type==="project")return "🏗️";
+  if(type==="camera")return "📹";
+  if(Number(level)===1)return "🏛️";
+  if(Number(level)===2)return "🏢";
+  return "🏬";
+}
+
+function unifiedOrgTreeMatches(node,keyword){
+  const normalized=String(keyword||"").trim().toLowerCase();
+  if(!normalized)return true;
+  const own=[node?.name,node?.shortName,node?.code].some(value=>String(value||"").toLowerCase().includes(normalized));
+  return own || (node?.children||[]).some(child=>unifiedOrgTreeMatches(child,normalized));
+}
+
+function getUnifiedOrgDescendantNames(node,result=[]){
+  if(!node)return result;
+  result.push(node.name);
+  (node.children||[]).forEach(child=>getUnifiedOrgDescendantNames(child,result));
+  return result;
+}
+
 let postData=[
   {
     id:"post-1",
@@ -1330,7 +1352,13 @@ const projectPortalMenus={
       {icon:"🌿",name:"低碳管理",children:[{name:"建筑垃圾筹划"},{name:"建筑垃圾外运申请"},{name:"建筑垃圾信息"}]}
     ]
   },
-  safety:{title:"安全",menus:[{icon:"🛡️",name:"安全应用占位",active:true}]},
+  safety:{
+    title:"安全",
+    menus:[
+      {icon:"🛡️",name:"安全总览",active:true},
+      {icon:"👥",name:"管理人员",open:true,children:[{name:"管理人员名单"},{name:"管理人员考勤"}]}
+    ]
+  },
   economy:{title:"经济",menus:[{icon:"📊",name:"经济总览",active:true},{icon:"📋",name:"项目基本信息"}]}
 };
 let currentList=[...workers];

@@ -24,7 +24,8 @@ const dataDictionaryListV2284=[
   {name:"升级状态",code:"UPGRADE_STATUS",remark:"升级闭环状态"},
   {name:"人员状态",code:"PERSONNEL_STATUS",remark:"实名制人员状态"},
   {name:"预警类型",code:"ALERT_TYPE",remark:"预警消息分类"},
-  {name:"劳务类型",code:"LABOR_TYPE",remark:"劳务人员类型"}
+  {name:"劳务类型",code:"LABOR_TYPE",remark:"劳务人员类型"},
+  {name:"参建单位类型",code:"PARTICIPANT_UNIT_TYPE",remark:"项目参建单位角色分类"}
 ];
 const dataDictionaryValuesV2284={
   PROJECT_STATUS:[
@@ -83,6 +84,13 @@ const dataDictionaryValuesV2284={
     {name:"劳务工人",code:"WORKER",status:"启用",palette:2,remark:""},
     {name:"特种作业人员",code:"SPECIAL",status:"启用",palette:5,remark:""},
     {name:"管理人员",code:"MANAGER",status:"启用",palette:6,remark:""}
+  ],
+  PARTICIPANT_UNIT_TYPE:[
+    {name:"总包单位",code:"GENERAL_CONTRACTOR",status:"启用",palette:2,remark:"项目施工总承包单位"},
+    {name:"建设单位",code:"CONSTRUCTION_UNIT",status:"启用",palette:1,remark:"项目建设单位"},
+    {name:"设计单位",code:"DESIGN_UNIT",status:"启用",palette:5,remark:"项目设计单位"},
+    {name:"勘察单位",code:"SURVEY_UNIT",status:"启用",palette:3,remark:"项目勘察单位"},
+    {name:"监理单位",code:"SUPERVISION_UNIT",status:"启用",palette:6,remark:"项目监理单位"}
   ]
 };
 
@@ -341,18 +349,46 @@ function ensureInternationalProjectTypeDictionaryV2433(){
   return changed;
 }
 
+const participantUnitTypeDictionaryV2561={
+  type:{name:"参建单位类型",code:"PARTICIPANT_UNIT_TYPE",remark:"项目参建单位角色分类"},
+  values:[
+    {name:"总包单位",code:"GENERAL_CONTRACTOR",palette:2,remark:"项目施工总承包单位"},
+    {name:"建设单位",code:"CONSTRUCTION_UNIT",palette:1,remark:"项目建设单位"},
+    {name:"设计单位",code:"DESIGN_UNIT",palette:5,remark:"项目设计单位"},
+    {name:"勘察单位",code:"SURVEY_UNIT",palette:3,remark:"项目勘察单位"},
+    {name:"监理单位",code:"SUPERVISION_UNIT",palette:6,remark:"项目监理单位"}
+  ]
+};
+
+function ensureParticipantUnitTypeDictionaryV2561(){
+  const definition=participantUnitTypeDictionaryV2561;
+  let changed=false;
+  const existingType=dataDictionaryListV2284.find(item=>item.code===definition.type.code);
+  if(!existingType){dataDictionaryListV2284.push({...definition.type});changed=true;}
+  else if(existingType.name!==definition.type.name || existingType.remark!==definition.type.remark){Object.assign(existingType,definition.type);changed=true;}
+  const rows=dataDictionaryValuesV2284[definition.type.code] || (dataDictionaryValuesV2284[definition.type.code]=[]);
+  definition.values.forEach(seed=>{
+    const current=rows.find(item=>item.code===seed.code);
+    if(!current){rows.push({...seed,status:"启用"});changed=true;return;}
+    if(current.name!==seed.name || current.remark!==seed.remark){current.name=seed.name;current.remark=seed.remark;changed=true;}
+  });
+  return changed;
+}
+
 function ensureDataDictionaryLocalLoadedV2284(){
   if(dataDictionaryStateV2284.localLoaded || dataDictionaryStateV2284.localLoading)return;
   dataDictionaryStateV2284.localLoading=true;
   ensureEconomyWarningInternationalDictionaryV2431();
   ensureInternationalProjectTypeDictionaryV2433();
+  ensureParticipantUnitTypeDictionaryV2561();
   const seed=buildDataDictionaryPayloadV2284();
   const stored=window.EMMasterData?.ensure("dictionaries",[seed]);
   const payload=Array.isArray(stored) && stored[0] ? stored[0] : seed;
   applyDataDictionaryPayloadV2284(payload);
   const economyWarningChanged=ensureEconomyWarningInternationalDictionaryV2431();
   const internationalProjectTypeChanged=ensureInternationalProjectTypeDictionaryV2433();
-  if(economyWarningChanged||internationalProjectTypeChanged)syncDataDictionaryToLocalStoreV2284();
+  const participantUnitTypeChanged=ensureParticipantUnitTypeDictionaryV2561();
+  if(economyWarningChanged||internationalProjectTypeChanged||participantUnitTypeChanged)syncDataDictionaryToLocalStoreV2284();
   dataDictionaryStateV2284.localLoaded=true;
   dataDictionaryStateV2284.localLoading=false;
 }

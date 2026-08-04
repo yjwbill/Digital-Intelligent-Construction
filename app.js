@@ -1,11 +1,12 @@
 (function(){
-  const version="2.2.553-approval-org-level-icons";
+  const version="2.2.566-project-person-reverse-filter";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",
     "src/app/project/economy-overview.js",
     "src/app/project/economy-basic-info.js",
     "src/app/project/project-portal.js",
+    "src/app/project/safety-management-personnel.js",
     "src/app/shell/enterprise-navigation.js",
     "src/app/safety/labor-video-roster.js",
     "src/app/production/supplier-performance.js",
@@ -21,6 +22,8 @@
     "src/app/shared/worker-detail.js",
     "src/app/production/risk-management.js",
     "src/app/shared/message-todo-center.js",
+    "src/app/base/message-project-picker.js",
+    "src/app/base/message-project-person-picker.js",
     "src/app/mobile/entry-component-library.js",
     "src/app/mobile/workbench.js",
     "src/app/base/data-dictionary.js",

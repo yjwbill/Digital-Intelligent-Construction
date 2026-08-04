@@ -113,6 +113,16 @@
       "status": "ENABLED",
       "createdAt": "2026-07-28 00:00:00",
       "updatedAt": "2026-07-28 00:00:00"
+    },
+    {
+      "id": "dict-type-PARTICIPANT_UNIT_TYPE",
+      "dictCode": "PARTICIPANT_UNIT_TYPE",
+      "dictName": "参建单位类型",
+      "remark": "项目参建单位角色分类",
+      "sortNo": 12,
+      "status": "ENABLED",
+      "createdAt": "2026-08-04 00:00:00",
+      "updatedAt": "2026-08-04 00:00:00"
     }
   ],
   "dictItems": [
@@ -957,6 +967,76 @@
       "remark": "国际项目类型标准字典值",
       "createdAt": "2026-07-28 00:00:00",
       "updatedAt": "2026-07-28 00:00:00"
+    },
+    {
+      "id": "dict-item-PARTICIPANT_UNIT_TYPE-001",
+      "dictCode": "PARTICIPANT_UNIT_TYPE",
+      "itemCode": "GENERAL_CONTRACTOR",
+      "itemName": "总包单位",
+      "level": 1,
+      "parentCode": "",
+      "status": "ENABLED",
+      "sortNo": 1,
+      "palette": "blue",
+      "remark": "项目施工总承包单位",
+      "createdAt": "2026-08-04 00:00:00",
+      "updatedAt": "2026-08-04 00:00:00"
+    },
+    {
+      "id": "dict-item-PARTICIPANT_UNIT_TYPE-002",
+      "dictCode": "PARTICIPANT_UNIT_TYPE",
+      "itemCode": "CONSTRUCTION_UNIT",
+      "itemName": "建设单位",
+      "level": 1,
+      "parentCode": "",
+      "status": "ENABLED",
+      "sortNo": 2,
+      "palette": "green",
+      "remark": "项目建设单位",
+      "createdAt": "2026-08-04 00:00:00",
+      "updatedAt": "2026-08-04 00:00:00"
+    },
+    {
+      "id": "dict-item-PARTICIPANT_UNIT_TYPE-003",
+      "dictCode": "PARTICIPANT_UNIT_TYPE",
+      "itemCode": "DESIGN_UNIT",
+      "itemName": "设计单位",
+      "level": 1,
+      "parentCode": "",
+      "status": "ENABLED",
+      "sortNo": 3,
+      "palette": "purple",
+      "remark": "项目设计单位",
+      "createdAt": "2026-08-04 00:00:00",
+      "updatedAt": "2026-08-04 00:00:00"
+    },
+    {
+      "id": "dict-item-PARTICIPANT_UNIT_TYPE-004",
+      "dictCode": "PARTICIPANT_UNIT_TYPE",
+      "itemCode": "SURVEY_UNIT",
+      "itemName": "勘察单位",
+      "level": 1,
+      "parentCode": "",
+      "status": "ENABLED",
+      "sortNo": 4,
+      "palette": "orange",
+      "remark": "项目勘察单位",
+      "createdAt": "2026-08-04 00:00:00",
+      "updatedAt": "2026-08-04 00:00:00"
+    },
+    {
+      "id": "dict-item-PARTICIPANT_UNIT_TYPE-005",
+      "dictCode": "PARTICIPANT_UNIT_TYPE",
+      "itemCode": "SUPERVISION_UNIT",
+      "itemName": "监理单位",
+      "level": 1,
+      "parentCode": "",
+      "status": "ENABLED",
+      "sortNo": 5,
+      "palette": "cyan",
+      "remark": "项目监理单位",
+      "createdAt": "2026-08-04 00:00:00",
+      "updatedAt": "2026-08-04 00:00:00"
     }
   ]
 }
