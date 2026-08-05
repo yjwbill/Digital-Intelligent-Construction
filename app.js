@@ -1,7 +1,9 @@
 (function(){
-  const version="2.2.570-standard-statistics-filter";
+  const version="2.2.571-construction-log-word-export";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
+    "src/vendor/jszip.min.js",
+    "src/app/shared/construction-log-word-export.js",
     "src/components/statistics-filter/statistics-filter.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",
     "src/app/project/economy-overview.js",

@@ -538,10 +538,26 @@ function renderEnterpriseConstructionLogProjectCard(record){
   `;
 }
 
-function exportEnterpriseConstructionLog(projectId,day){
+async function exportEnterpriseConstructionLog(projectId,day){
   const project=getEnterpriseConstructionLogProjectById(projectId);
   const record=project&&getEnterpriseConstructionLogProjectRecords(project).find(item=>item.day===Number(day));
-  if(record)showToast("施工日志导出成功");
+  if(!record)return;
+  if(record.mode==="file"){
+    showToast("文件上报日志暂无在线填报内容，不能使用在线模板导出");
+    return;
+  }
+  try{
+    await exportConstructionLogWord({
+      row:record,
+      projectName:project.projectName,
+      detail:getProjectLogReadonlyOnlineDetail(record),
+      completedMilestones:typeof getProjectLogCompletedMilestoneRows==="function"?getProjectLogCompletedMilestoneRows():[]
+    });
+    showToast("施工日志 Word 导出成功");
+  }catch(error){
+    console.error("施工日志 Word 导出失败",error);
+    showToast("施工日志 Word 导出失败，请稍后重试");
+  }
 }
 
 function getEnterpriseConstructionLogProjectCalendarDays(project){

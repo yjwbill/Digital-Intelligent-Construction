@@ -1041,9 +1041,26 @@ function openProjectLogDetail(id){
   modalBox.classList.add("project-log-online-report-modal");
 }
 
-function exportProjectLog(id){
+async function exportProjectLog(id){
   const row=getProjectLogRows().find(item=>String(item.id)===String(id));
-  if(row)showToast("施工日志导出成功");
+  if(!row)return;
+  const onlineRow=row.onlineRecord||((row.mode==="online"||row.mode==="merged")?row:null);
+  if(!onlineRow){
+    showToast("文件上报日志暂无在线填报内容，不能使用在线模板导出");
+    return;
+  }
+  try{
+    await exportConstructionLogWord({
+      row:onlineRow,
+      projectName:onlineRow.projectName||pcPortalState.currentProject,
+      detail:getProjectLogReadonlyOnlineDetail(onlineRow),
+      completedMilestones:typeof getProjectLogCompletedMilestoneRows==="function"?getProjectLogCompletedMilestoneRows():[]
+    });
+    showToast("施工日志 Word 导出成功");
+  }catch(error){
+    console.error("施工日志 Word 导出失败",error);
+    showToast("施工日志 Word 导出失败，请稍后重试");
+  }
 }
 
 function editProjectLog(id){
