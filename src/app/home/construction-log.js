@@ -470,8 +470,19 @@ function getEnterpriseConstructionLogReportRecord(project,day,monthValue=enterpr
     milestoneStatus:"进度可控",
     milestoneProgress:"现场资源配置已完成，按调整计划持续推进。"
   }];
-  const fileName=hasFile?`施工日志_${project.projectCode}_${String(day).padStart(2,"0")}.pdf`:"";
-  const fileSize=hasFile?`${(1.1+(Number(day)%5)*0.18).toFixed(2)}MB`:"";
+  const attachmentCount=hasFile
+    ?mode==="merged"
+      ?(Number(day)%2===0?2:3)
+      :(Number(day)%3===0?3:Number(day)%2===0?1:2)
+    :0;
+  const attachmentExtensions=["pdf","jpg","xlsx"];
+  const attachmentLabels=["施工日志","现场施工照片","施工记录明细"];
+  const attachmentFiles=Array.from({length:attachmentCount},(_,index)=>({
+    name:`${attachmentLabels[index]}_${project.projectCode}_${String(day).padStart(2,"0")}.${attachmentExtensions[index]}`,
+    sizeText:`${(1.1+(Number(day)%5)*0.18+index*0.36).toFixed(2)}MB`
+  }));
+  const fileName=attachmentFiles[0]?.name||"";
+  const fileSize=attachmentFiles.length>1?`${attachmentFiles.length}个文件`:attachmentFiles[0]?.sizeText||"";
   return {
     id:`enterprise-log-${project.id}-${day}`,
     seed:Number(project.id)*100+Number(day),
@@ -485,8 +496,8 @@ function getEnterpriseConstructionLogReportRecord(project,day,monthValue=enterpr
     uploadTime:`${date} ${String(8+(Number(day)%10)).padStart(2,"0")}:${String(8+(Number(project.id)*7+Number(day)*3)%50).padStart(2,"0")}`,
     fileName,
     fileSize,
-    files:hasFile?[{name:fileName,sizeText:fileSize}]:[],
-    fileEntries:hasFile?[{area:workAreas[(Number(project.id)+Number(day))%workAreas.length],reporter:uploader,remark:"施工日志文件及当日施工说明已上传。",files:[{name:fileName,sizeText:fileSize}]}]:[],
+    files:attachmentFiles,
+    fileEntries:hasFile?[{area:workAreas[(Number(project.id)+Number(day))%workAreas.length],reporter:uploader,remark:"施工日志文件及当日施工说明已上传。",files:attachmentFiles}]:[],
     summary:hasOnline?"完成当日施工记录、机械台班和隐患排查记录上报。":"施工日志文件及当日施工说明已上传。",
     cover:"./src/assets/project-log-building.png",
     milestones,
@@ -542,21 +553,16 @@ async function exportEnterpriseConstructionLog(projectId,day){
   const project=getEnterpriseConstructionLogProjectById(projectId);
   const record=project&&getEnterpriseConstructionLogProjectRecords(project).find(item=>item.day===Number(day));
   if(!record)return;
-  if(record.mode==="file"){
-    showToast("文件上报日志暂无在线填报内容，不能使用在线模板导出");
-    return;
-  }
   try{
-    await exportConstructionLogWord({
-      row:record,
+    const result=await exportConstructionLogRecords([record],{
       projectName:project.projectName,
-      detail:getProjectLogReadonlyOnlineDetail(record),
+      detailBuilder:getProjectLogReadonlyOnlineDetail,
       completedMilestones:typeof getProjectLogCompletedMilestoneRows==="function"?getProjectLogCompletedMilestoneRows():[]
     });
-    showToast("施工日志 Word 导出成功");
+    showToast(result.type==="day-zip"?"当日施工日志压缩包导出成功":"施工日志导出成功");
   }catch(error){
-    console.error("施工日志 Word 导出失败",error);
-    showToast("施工日志 Word 导出失败，请稍后重试");
+    console.error("施工日志导出失败",error);
+    showToast("施工日志导出失败，请稍后重试");
   }
 }
 
@@ -774,11 +780,25 @@ function resetEnterpriseConstructionLogProject(){
   renderEnterpriseConstructionLogProjectView();
 }
 
-function exportEnterpriseConstructionLogProject(){
+async function exportEnterpriseConstructionLogProject(){
   const project=getEnterpriseConstructionLogProjectById(enterpriseConstructionLogProjectViewState.projectId);
   const records=project?getEnterpriseConstructionLogProjectRecords(project):[];
   const filteredRecords=getEnterpriseConstructionLogProjectFilteredRecords(records);
-  showToast(`已按当前筛选条件导出 ${filteredRecords.length} 条施工日志文件`);
+  if(!filteredRecords.length){
+    showToast("当前筛选条件下暂无可导出的施工日志");
+    return;
+  }
+  try{
+    const result=await exportConstructionLogRecords(filteredRecords,{
+      projectName:project.projectName,
+      detailBuilder:getProjectLogReadonlyOnlineDetail,
+      completedMilestones:typeof getProjectLogCompletedMilestoneRows==="function"?getProjectLogCompletedMilestoneRows():[]
+    });
+    showToast(result.type==="multi-day-zip"?`已导出 ${result.days} 天施工日志压缩包`:`已导出 ${result.count} 个施工日志文件`);
+  }catch(error){
+    console.error("筛选施工日志导出失败",error);
+    showToast("施工日志导出失败，请稍后重试");
+  }
 }
 
 function changeEnterpriseConstructionLogProjectMonth(delta){

@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.571-construction-log-word-export";
+  const version="2.2.574-construction-log-batch-export";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/vendor/jszip.min.js",

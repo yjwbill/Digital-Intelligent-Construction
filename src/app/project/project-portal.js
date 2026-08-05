@@ -828,8 +828,8 @@ function getProjectLogReadonlyWeekday(date){
 function getProjectLogReadonlyOnlineDetail(row){
   const variation=Number(row.seed??row.id)%4;
   const risks=Array.isArray(row.risks)&&row.risks.length?row.risks:[
-    ["风险类型","深基坑开挖","风险名称","附属结构土方开挖","风险等级","II级","是否完成","否","是否受控","是","风险情况","风险可控","风险进展情况","现场监测数据正常，风险处于受控状态"],
-    ["风险类型","承重支模架","风险名称","主体结构模板支撑","风险等级","II级","是否完成","否","是否受控","是","风险情况","风险可控","风险进展情况","按专项方案组织施工，验收记录齐全"]
+    ["风险类型","深基坑开挖","风险名称","附属结构土方开挖","风险等级","II级","计划开始日期","2026-01-01","计划完成日期","2026-09-16","实际开始日期","2026-03-26","风险描述","附属土方开挖","挂牌领导","蔡群群","计划持续时间","258天","是否完成","否","是否受控","是","风险情况","风险可控","风险进展情况","现场监测数据正常，风险处于受控状态"],
+    ["风险类型","承重支模架","风险名称","主体结构模板支撑","风险等级","II级","计划开始日期","2026-03-31","计划完成日期","2026-11-15","实际开始日期","2026-04-15","风险描述","附属主体结构","挂牌领导","蔡群群","计划持续时间","229天","是否完成","否","是否受控","是","风险情况","风险可控","风险进展情况","按专项方案组织施工，验收记录齐全"]
   ];
   const milestones=Array.isArray(row.milestones)?row.milestones:[];
   const today=Array.isArray(row.today)&&row.today.length?row.today:[{area:row.workArea,subitem:"主体结构施工",position:"主体结构区",content:row.summary,progress:"按计划推进",imageName:"",reporter:row.uploader,remark:"现场材料、机具及安全防护检查正常"}];
@@ -1044,22 +1044,16 @@ function openProjectLogDetail(id){
 async function exportProjectLog(id){
   const row=getProjectLogRows().find(item=>String(item.id)===String(id));
   if(!row)return;
-  const onlineRow=row.onlineRecord||((row.mode==="online"||row.mode==="merged")?row:null);
-  if(!onlineRow){
-    showToast("文件上报日志暂无在线填报内容，不能使用在线模板导出");
-    return;
-  }
   try{
-    await exportConstructionLogWord({
-      row:onlineRow,
-      projectName:onlineRow.projectName||pcPortalState.currentProject,
-      detail:getProjectLogReadonlyOnlineDetail(onlineRow),
+    const result=await exportConstructionLogRecords([row],{
+      projectName:row.projectName||pcPortalState.currentProject,
+      detailBuilder:getProjectLogReadonlyOnlineDetail,
       completedMilestones:typeof getProjectLogCompletedMilestoneRows==="function"?getProjectLogCompletedMilestoneRows():[]
     });
-    showToast("施工日志 Word 导出成功");
+    showToast(result.type==="day-zip"?"当日施工日志压缩包导出成功":"施工日志导出成功");
   }catch(error){
-    console.error("施工日志 Word 导出失败",error);
-    showToast("施工日志 Word 导出失败，请稍后重试");
+    console.error("施工日志导出失败",error);
+    showToast("施工日志导出失败，请稍后重试");
   }
 }
 
@@ -1721,7 +1715,8 @@ function handleProjectLogFileFiles(files,rowIndex=0){
       name:file.name,
       size:file.size,
       sizeText:formatProjectLogFileSize(file.size),
-      type:file.type || ""
+      type:file.type || "",
+      blob:file
     });
   });
   projectLogReportFileList=projectLogReportFileRows.flatMap(item=>item.files||[]);
@@ -4101,9 +4096,23 @@ function renderProjectLogPage(){
   bindProjectLogControls();
 }
 
-function exportFilteredProjectLogs(){
+async function exportFilteredProjectLogs(){
   const rows=getProjectLogFilteredRows();
-  showToast(`已按当前筛选条件导出 ${rows.length} 条施工日志文件`);
+  if(!rows.length){
+    showToast("当前筛选条件下暂无可导出的施工日志");
+    return;
+  }
+  try{
+    const result=await exportConstructionLogRecords(rows,{
+      projectName:pcPortalState.currentProject,
+      detailBuilder:getProjectLogReadonlyOnlineDetail,
+      completedMilestones:typeof getProjectLogCompletedMilestoneRows==="function"?getProjectLogCompletedMilestoneRows():[]
+    });
+    showToast(result.type==="multi-day-zip"?`已导出 ${result.days} 天施工日志压缩包`:`已导出 ${result.count} 个施工日志文件`);
+  }catch(error){
+    console.error("筛选施工日志导出失败",error);
+    showToast("施工日志导出失败，请稍后重试");
+  }
 }
 
 function bindProjectLogControls(){

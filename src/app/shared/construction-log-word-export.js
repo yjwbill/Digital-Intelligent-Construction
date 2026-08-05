@@ -13,6 +13,21 @@
     return text(value,"施工日志").replace(/[\\/:*?"<>|]/g,"_");
   }
 
+  function compactDate(value){
+    return String(value||"").replace(/\D/g,"").slice(0,8)||"unknown";
+  }
+
+  function downloadBlob(blob,fileName){
+    const url=URL.createObjectURL(blob);
+    const anchor=document.createElement("a");
+    anchor.href=url;
+    anchor.download=fileName;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+
   function setNodeText(node,value){
     const nodes=[...node.getElementsByTagName("w:t")];
     if(!nodes.length)return;
@@ -127,11 +142,10 @@
     replaceParagraph(xml,"今日主要工作",`今日主要工作  ${row.date}`);
     const tomorrowDate=typeof getProjectLogNextDateValue==="function"?getProjectLogNextDateValue(row.date):row.date;
     replaceParagraph(xml,"明日主要工作",`明日主要工作  ${tomorrowDate}`);
-    replaceParagraph(xml,"说明：","说明：本文件由数智施工平台根据在线填报内容自动生成。");
     return new XMLSerializer().serializeToString(xml);
   }
 
-  async function exportConstructionLogWord(payload){
+  async function createConstructionLogWordBlob(payload){
     if(!global.JSZip)throw new Error("Word 导出组件未加载");
     const response=await fetch(TEMPLATE_URL,{cache:"no-store"});
     if(!response.ok)throw new Error(`Word 模板加载失败（${response.status}）`);
@@ -140,16 +154,153 @@
     if(!documentPart)throw new Error("Word 模板正文缺失");
     const xmlText=await documentPart.async("string");
     zip.file("word/document.xml",buildDocumentXml(xmlText,payload));
-    const blob=await zip.generateAsync({type:"blob",mimeType:WORD_MIME,compression:"DEFLATE",compressionOptions:{level:6}});
-    const url=URL.createObjectURL(blob);
-    const anchor=document.createElement("a");
-    anchor.href=url;
-    anchor.download=`施工日志_${safeFileName(payload.projectName)}_${safeFileName(payload.row.date)}.docx`;
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    return zip.generateAsync({type:"blob",mimeType:WORD_MIME,compression:"DEFLATE",compressionOptions:{level:6}});
   }
 
+  async function exportConstructionLogWord(payload){
+    const blob=await createConstructionLogWordBlob(payload);
+    downloadBlob(blob,`施工日志_${safeFileName(payload.projectName)}_${safeFileName(payload.row.date)}.docx`);
+  }
+
+  function getOnlineRecord(row){
+    if(row?.onlineRecord)return row.onlineRecord;
+    return row?.mode==="online"||row?.mode==="merged"?row:null;
+  }
+
+  function getFileRecord(row){
+    if(row?.fileRecord)return row.fileRecord;
+    return row?.mode==="file"||row?.mode==="merged"?row:null;
+  }
+
+  function collectAttachmentFiles(row){
+    const fileRow=getFileRecord(row);
+    if(!fileRow)return [];
+    const entryFiles=Array.isArray(fileRow.fileEntries)
+      ?fileRow.fileEntries.flatMap(entry=>Array.isArray(entry.files)?entry.files:[])
+      :[];
+    const directFiles=Array.isArray(fileRow.files)?fileRow.files:[];
+    const source=entryFiles.length?entryFiles:directFiles.length?directFiles:(fileRow.fileName?[{name:fileRow.fileName,sizeText:fileRow.fileSize}]:[]);
+    return source.map((file,index)=>({
+      file,
+      name:safeFileName(file?.name||`施工日志附件_${index+1}.dat`)
+    }));
+  }
+
+  function getAttachmentBlob(file,date){
+    if(file instanceof Blob)return file;
+    if(file?.blob instanceof Blob)return file.blob;
+    if(file?.content instanceof Blob)return file.content;
+    if(typeof file?.content==="string")return new Blob([file.content],{type:file.type||"application/octet-stream"});
+    return new Blob([
+      `数智施工平台模拟附件\r\n`,
+      `日志日期：${date}\r\n`,
+      `文件名称：${file?.name||"施工日志附件"}\r\n`,
+      `文件大小：${file?.sizeText||file?.size||"-"}\r\n`
+    ],{type:file?.type||"application/octet-stream"});
+  }
+
+  function uniqueEntryName(name,usedNames){
+    const normalized=safeFileName(name);
+    const lower=normalized.toLowerCase();
+    if(!usedNames.has(lower)){
+      usedNames.add(lower);
+      return normalized;
+    }
+    const dot=normalized.lastIndexOf(".");
+    const base=dot>0?normalized.slice(0,dot):normalized;
+    const extension=dot>0?normalized.slice(dot):"";
+    let index=1;
+    let candidate="";
+    do{
+      candidate=`${base}(${index++})${extension}`;
+    }while(usedNames.has(candidate.toLowerCase()));
+    usedNames.add(candidate.toLowerCase());
+    return candidate;
+  }
+
+  async function buildDayExportFiles(row,options){
+    const files=[];
+    const onlineRow=getOnlineRecord(row);
+    if(onlineRow){
+      const payload={
+        row:onlineRow,
+        projectName:options.projectName||onlineRow.projectName||"施工项目",
+        detail:options.detailBuilder(onlineRow),
+        completedMilestones:options.completedMilestones||[]
+      };
+      files.push({
+        name:`施工日志_${compactDate(row.date)}.docx`,
+        blob:await createConstructionLogWordBlob(payload)
+      });
+    }
+    collectAttachmentFiles(row).forEach(item=>files.push({
+      name:item.name,
+      blob:getAttachmentBlob(item.file,row.date)
+    }));
+    return files;
+  }
+
+  async function exportConstructionLogRecords(records,options={}){
+    if(!global.JSZip)throw new Error("压缩导出组件未加载");
+    if(typeof options.detailBuilder!=="function")throw new Error("施工日志详情转换器缺失");
+    const rows=(Array.isArray(records)?records:[]).filter(row=>row?.date);
+    if(!rows.length)return {count:0,type:"empty"};
+    const groups=new Map();
+    rows.forEach(row=>{
+      if(!groups.has(row.date))groups.set(row.date,[]);
+      groups.get(row.date).push(row);
+    });
+    const dates=[...groups.keys()].sort((a,b)=>b.localeCompare(a));
+    const mergedRows=dates.map(date=>{
+      const group=groups.get(date);
+      if(group.length===1)return group[0];
+      const onlineRecord=group.map(getOnlineRecord).find(Boolean)||null;
+      const attachments=group.flatMap(row=>collectAttachmentFiles(row).map(item=>item.file));
+      const sourceFileRecord=group.map(getFileRecord).find(Boolean)||null;
+      const fileRecord=attachments.length?{...(sourceFileRecord||{}),mode:"file",fileEntries:[],files:attachments}:null;
+      return {
+        ...group[0],
+        date,
+        mode:onlineRecord&&fileRecord?"merged":onlineRecord?"online":"file",
+        onlineRecord,
+        fileRecord,
+        files:attachments
+      };
+    });
+
+    if(mergedRows.length===1){
+      const row=mergedRows[0];
+      const files=await buildDayExportFiles(row,options);
+      if(!files.length)return {count:0,type:"empty"};
+      if(files.length===1){
+        downloadBlob(files[0].blob,files[0].name);
+        return {count:1,type:"file",fileName:files[0].name};
+      }
+      const zip=new global.JSZip();
+      const used=new Set();
+      files.forEach(file=>zip.file(uniqueEntryName(file.name,used),file.blob));
+      const fileName=`施工日志_${compactDate(row.date)}.zip`;
+      downloadBlob(await zip.generateAsync({type:"blob",compression:"DEFLATE",compressionOptions:{level:6}}),fileName);
+      return {count:files.length,type:"day-zip",fileName};
+    }
+
+    const zip=new global.JSZip();
+    let fileCount=0;
+    for(const row of mergedRows){
+      const folder=zip.folder(`施工日志_${compactDate(row.date)}`);
+      const used=new Set();
+      const files=await buildDayExportFiles(row,options);
+      files.forEach(file=>{
+        folder.file(uniqueEntryName(file.name,used),file.blob);
+        fileCount++;
+      });
+    }
+    const fileName="施工日志.zip";
+    downloadBlob(await zip.generateAsync({type:"blob",compression:"DEFLATE",compressionOptions:{level:6}}),fileName);
+    return {count:fileCount,type:"multi-day-zip",fileName,days:mergedRows.length};
+  }
+
+  global.createConstructionLogWordBlob=createConstructionLogWordBlob;
   global.exportConstructionLogWord=exportConstructionLogWord;
+  global.exportConstructionLogRecords=exportConstructionLogRecords;
 })(window);
