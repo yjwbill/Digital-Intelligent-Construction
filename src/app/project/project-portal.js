@@ -2229,6 +2229,12 @@ function renderProjectMilestoneStatsCard(){
   const delayedFinished=count(row=>row.actualDeviation==="延期完成");
   const delayedUnfinished=count(row=>row.actualDeviation==="延期未完成");
   const ontimeRate=due?Math.round(ontime*100/due):0;
+  return StatisticsFilter.render({id:"project-milestone-statistics-filter",activeKey:projectMilestoneNodeState.statKey,groups:[
+    {label:"全部节点",items:[{key:"all",label:"全部节点",value:all}]},
+    {label:"节点状态",items:[{key:"normal",label:"正常",value:normal},{key:"finished",label:"已完成",value:finished},{key:"delayed",label:"延期",value:delayed}]},
+    {label:"实际完成偏差",items:[{key:"due",label:"应完成",value:due},{key:"ontime",label:"按期完成",value:ontime},{key:"delayedFinished",label:"延期完成",value:delayedFinished},{key:"delayedUnfinished",label:"延期未完成",value:delayedUnfinished},{key:"ontimeRate",label:"按期完成率",value:`${ontimeRate}%`,metric:true}]},
+    {label:"重点管控",items:[{key:"keyNode",label:"重点进度节点",value:count(row=>row.keyNode==="是")},{key:"redWarning",label:"红色预警",value:count(row=>row.warningStatus==="红色预警")},{key:"blackWarning",label:"黑色预警",value:count(row=>row.warningStatus==="黑色预警")}]}
+  ],onChange:key=>setProjectMilestoneStat(key)});
   const statItem=(key,label,value,metric=false)=>`
     <div class="construction-project-stat-item ${projectMilestoneNodeState.statKey===key?"active":""} ${metric?"metric-only":""}" onclick="${metric?"showToast('按期完成率=按期完成/应完成')":`setProjectMilestoneStat('${key}')`}">
       <strong>${value}</strong><span>${label}</span>
@@ -2457,6 +2463,15 @@ function setProjectRiskControlStat(key){
 function renderProjectRiskControlStatsCard(){
   const rows=projectRiskControlRows;
   const count=predicate=>rows.filter(predicate).length;
+  return StatisticsFilter.render({id:"project-risk-control-statistics-filter",activeKey:projectRiskControlState.statKey,groups:[
+    {label:"风险等级",items:[["level1","I级",count(row=>row.riskLevel==="I级")],["level2","II级",count(row=>row.riskLevel==="II级")],["level3","III级",count(row=>row.riskLevel==="III级")]].map(item=>({key:item[0],label:item[1],value:item[2]}))},
+    {label:"当年完成",items:[["annualAll","全部",count(row=>row.annualRisk==="是")],["annual1","I级",count(row=>row.annualRisk==="是"&&row.riskLevel==="I级")],["annual2","II级",count(row=>row.annualRisk==="是"&&row.riskLevel==="II级")],["annual3","III级",count(row=>row.annualRisk==="是"&&row.riskLevel==="III级")]].map(item=>({key:item[0],label:item[1],value:item[2]}))},
+    {label:"当年进入",items:[["currentAll","全部",count(row=>row.riskStatus==="未完成")],["current1","I级",count(row=>row.riskStatus==="未完成"&&row.riskLevel==="I级")],["current2","II级",count(row=>row.riskStatus==="未完成"&&row.riskLevel==="II级")],["current3","III级",count(row=>row.riskStatus==="未完成"&&row.riskLevel==="III级")]].map(item=>({key:item[0],label:item[1],value:item[2]}))},
+    {label:"进行中",items:[["progressAll","全部",count(row=>row.riskStatus==="未完成")],["progress1","I级",count(row=>row.riskStatus==="未完成"&&row.riskLevel==="I级")],["progress2","II级",count(row=>row.riskStatus==="未完成"&&row.riskLevel==="II级")],["progress3","III级",count(row=>row.riskStatus==="未完成"&&row.riskLevel==="III级")]].map(item=>({key:item[0],label:item[1],value:item[2]}))},
+    {label:"未来两周",items:[{key:"nextTwoWeeks",label:"全部",value:0}]},
+    {label:"风险状态",items:[{key:"finished",label:"已完成",value:count(row=>row.riskStatus==="已完成")},{key:"unfinished",label:"未完成",value:count(row=>row.riskStatus==="未完成")}]},
+    {label:"条件验收",items:[{key:"acceptYes",label:"是",value:count(row=>row.acceptance==="是")},{key:"acceptNo",label:"否",value:count(row=>row.acceptance==="否")}]}
+  ],onChange:key=>setProjectRiskControlStat(key)});
   const statItem=(key,label,value,metric=false)=>`
     <div class="construction-project-stat-item ${projectRiskControlState.statKey===key?"active":""} ${metric?"metric-only":""}" onclick="${metric?"showToast('该统计项用于展示占比/提示')":`setProjectRiskControlStat('${key}')`}">
       <strong>${value}</strong><span>${label}</span>
@@ -2704,37 +2719,11 @@ function setProjectAwardStat(key){
 function renderProjectAwardStatsCard(){
   const rows=projectAwardManagementRows;
   const count=predicate=>rows.filter(predicate).length;
-  const statItem=(key,label,value)=>`
-    <div class="construction-project-stat-item ${projectAwardManagementState.statKey===key?"active":""}" onclick="setProjectAwardStat('${key}')">
-      <strong>${value}</strong><span>${label}</span>
-    </div>
-  `;
-  return renderUnifiedStatsCard(`
-    <div class="construction-project-stats">
-      <div class="construction-project-stat-group">
-        <div class="construction-project-stat-name">统计筛选</div>
-        <div class="construction-project-stat-items">
-          ${statItem("all","计划创奖数",rows.length)}
-        </div>
-      </div>
-      <div class="construction-project-stat-group">
-        <div class="construction-project-stat-name">上报情况</div>
-        <div class="construction-project-stat-items">
-          ${statItem("participated","已参评",count(row=>!!row.participateDate))}
-          ${statItem("awarded","已获奖",count(row=>!!row.awardDate))}
-          ${statItem("issued","已颁发",count(row=>!!row.certificateMonth))}
-        </div>
-      </div>
-      <div class="construction-project-stat-group">
-        <div class="construction-project-stat-name">创奖等级</div>
-        <div class="construction-project-stat-items">
-          ${statItem("gradeNational","国家级",count(row=>row.awardLevel==="国家级"))}
-          ${statItem("gradeProvince","省部级/直辖市",count(row=>row.awardLevel==="省部级/直辖市"))}
-          ${statItem("gradeBelow","省部级以下",count(row=>row.awardLevel==="省部级以下"))}
-        </div>
-      </div>
-    </div>
-  `);
+  return StatisticsFilter.render({id:"project-award-statistics-filter",activeKey:projectAwardManagementState.statKey,groups:[
+    {label:"统计筛选",items:[{key:"all",label:"计划创奖数",value:rows.length}]},
+    {label:"上报情况",items:[{key:"participated",label:"已参评",value:count(row=>!!row.participateDate)},{key:"awarded",label:"已获奖",value:count(row=>!!row.awardDate)},{key:"issued",label:"已颁发",value:count(row=>!!row.certificateMonth)}]},
+    {label:"创奖等级",items:[{key:"gradeNational",label:"国家级",value:count(row=>row.awardLevel==="国家级")},{key:"gradeProvince",label:"省部级/直辖市",value:count(row=>row.awardLevel==="省部级/直辖市")},{key:"gradeBelow",label:"省部级以下",value:count(row=>row.awardLevel==="省部级以下")}]}
+  ],onChange:key=>setProjectAwardStat(key)});
 }
 
 function renderProjectAwardManagementPage(){
@@ -2923,35 +2912,11 @@ function setProjectTechSchemeStat(key){
 function renderProjectTechSchemeStatsCard(){
   const rows=projectTechSchemeRows;
   const count=predicate=>rows.filter(predicate).length;
-  const statItem=(key,label,value)=>`
-    <div class="construction-project-stat-item ${projectTechSchemeState.statKey===key?"active":""}" onclick="setProjectTechSchemeStat('${key}')">
-      <strong>${value}</strong><span>${label}</span>
-    </div>
-  `;
-  return renderUnifiedStatsCard(`
-    <div class="construction-project-stats">
-      <div class="construction-project-stat-group">
-        <div class="construction-project-stat-name">计划总数</div>
-        <div class="construction-project-stat-items">
-          ${statItem("all","计划总数",rows.length)}
-        </div>
-      </div>
-      <div class="construction-project-stat-group">
-        <div class="construction-project-stat-name">技术方案</div>
-        <div class="construction-project-stat-items">
-          ${statItem("unapproved","未审批",count(row=>row.approvalStatus==="未审批"))}
-          ${statItem("approved","已审批",count(row=>row.approvalStatus==="已审批"))}
-        </div>
-      </div>
-      <div class="construction-project-stat-group">
-        <div class="construction-project-stat-name">方案关联</div>
-        <div class="construction-project-stat-items">
-          ${statItem("linkedMilestone","已关联里程碑",count(row=>Number(row.milestoneCount)>0))}
-          ${statItem("linkedRisk","已关联风险",count(row=>Number(row.riskCount)>0))}
-        </div>
-      </div>
-    </div>
-  `);
+  return StatisticsFilter.render({id:"project-tech-scheme-statistics-filter",activeKey:projectTechSchemeState.statKey,groups:[
+    {label:"计划总数",items:[{key:"all",label:"计划总数",value:rows.length}]},
+    {label:"技术方案",items:[{key:"unapproved",label:"未审批",value:count(row=>row.approvalStatus==="未审批")},{key:"approved",label:"已审批",value:count(row=>row.approvalStatus==="已审批")}]},
+    {label:"方案关联",items:[{key:"linkedMilestone",label:"已关联里程碑",value:count(row=>Number(row.milestoneCount)>0)},{key:"linkedRisk",label:"已关联风险",value:count(row=>Number(row.riskCount)>0)}]}
+  ],onChange:key=>setProjectTechSchemeStat(key)});
 }
 
 function renderProjectTechSchemePage(){

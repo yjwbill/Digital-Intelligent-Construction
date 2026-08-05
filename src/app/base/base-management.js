@@ -1446,18 +1446,17 @@ function renderMessageTemplatePage(){
     <div class="form-item"><label>消息标题</label><input class="input" id="msgTplTitleFilter" placeholder="请输入消息标题" value="${messageAdminState.templateTitle||''}"/></div>
     <div class="form-item"><label>消息内容</label><input class="input" id="msgTplContentFilter" placeholder="请输入消息内容" value="${messageAdminState.templateContent||''}"/></div>
   `;
-  const statsHtml=`
-    <div class="stats message-admin-stats message-template-stats">
-      <div class="stat message-type-stat"><div class="stat-name">消息类型</div><div class="message-call-stat-grid stat-click-grid">${renderMessageStatItem("type","消息通知",typeNotice,"消息通知")}${renderMessageStatItem("type","预警通知",typeWarn,"预警通知")}</div></div>
-      <div class="stat message-type-stat"><div class="stat-name">模板状态</div><div class="message-call-stat-grid stat-click-grid">${renderMessageStatItem("status","启用",enabled,"启用模板")}${renderMessageStatItem("status","禁用",disabled,"禁用模板")}</div></div>
-      <div class="stat message-call-stat"><div class="stat-name">累计调用</div><div class="message-call-stat-grid"><div><strong>${calls}</strong><span>累计调用</span></div><div><strong>${systemCalls}</strong><span>系统调用</span></div><div><strong>${manualCalls}</strong><span>手动调用</span></div></div></div>
-    </div>
-  `;
+  const activeTemplateStat=messageAdminState.templateType?`type|${messageAdminState.templateType}`:messageAdminState.templateStatus?`status|${messageAdminState.templateStatus}`:"";
+  const statsHtml=StatisticsFilter.render({id:"message-template-statistics-filter",activeKey:activeTemplateStat,groups:[
+    {label:"消息类型",items:[{key:"type|消息通知",label:"消息通知",value:typeNotice},{key:"type|预警通知",label:"预警通知",value:typeWarn}]},
+    {label:"模板状态",items:[{key:"status|启用",label:"启用模板",value:enabled},{key:"status|禁用",label:"禁用模板",value:disabled}]},
+    {label:"累计调用",items:[{key:"calls",label:"累计调用",value:calls,metric:true},{key:"systemCalls",label:"系统调用",value:systemCalls,metric:true},{key:"manualCalls",label:"手动调用",value:manualCalls,metric:true}]}
+  ],onChange:key=>{const [type,value]=key.split("|");setMessageTemplateStatFilter(type,value);}});
 
   listPage.innerHTML=`
     ${messageAdminHeader("消息模板","配置业务触发和手动发送可复用的消息内容、接收路由与展示方式")}
     ${renderUnifiedQueryCard(queryFields,{gridClass:"search-grid message-template-search-grid",queryFn:"syncMessageAdminFilters('template')",resetFn:"resetMessageAdminFilters('template')"})}
-    ${renderUnifiedStatsCard(statsHtml)}
+    ${statsHtml}
     ${renderUnifiedTableCard({
       title:"模板列表",
       tableKey:"messageTemplate",
@@ -1768,15 +1767,15 @@ function renderMessageTodoBatchPage(){
     <div class="form-item"><label>发送状态</label><select class="select" id="msgTodoBatchStatus"><option value="">全部</option><option>待发送</option><option>已发送</option><option>部分发送</option><option>失败</option><option>已撤回</option></select></div>
     <div class="form-item"><label>触发方式</label><select class="select" id="msgTodoBatchTrigger"><option value="">全部</option><option>业务接口</option><option>定时任务</option><option>手动发送</option></select></div>`;
   const sent=all.reduce((n,x)=>n+x.sentCount,0),read=all.reduce((n,x)=>n+x.readCount,0),clicked=all.reduce((n,x)=>n+x.clickCount,0),handled=all.reduce((n,x)=>n+x.handleCount,0);
-  const statsHtml=`<div class="stats message-record-stats message-todo-record-stats">
-    <div class="stat message-record-stat-group todo-batch-status-group"><div class="stat-name">发送状态</div><div class="message-call-stat-grid stat-click-grid five-col">${["待发送","已发送","部分发送","失败","已撤回"].map(status=>renderMessageTodoBatchStatusStat(status,all.filter(x=>x.status===status).length)).join("")}</div></div>
-    <div class="stat message-record-stat-group"><div class="stat-name">指标统计</div><div class="message-call-stat-grid stat-click-grid">${renderMessageSendMetricStat("触达率",calcPercent(sent,all.reduce((n,x)=>n+x.shouldCount,0)),"实发 / 应发")}${renderMessageSendMetricStat("阅读率",calcPercent(read,sent),"已读 / 实发")}</div></div>
-    <div class="stat message-record-stat-group"><div class="stat-name">互动统计</div><div class="message-call-stat-grid stat-click-grid">${renderMessageSendMetricStat("点击率",calcPercent(clicked,read),"点击 / 已读")}${renderMessageSendMetricStat("办理率",calcPercent(handled,sent),"办理 / 实发")}</div></div>
-  </div>`;
+  const statsHtml=StatisticsFilter.render({id:"message-todo-batch-statistics-filter",activeKey:messageAdminState.todoBatchStatus,groups:[
+    {label:"发送状态",items:["待发送","已发送","部分发送","失败","已撤回"].map(status=>({key:status,label:status,value:all.filter(x=>x.status===status).length}))},
+    {label:"指标统计",items:[{key:"reachRate",label:"触达率",value:calcPercent(sent,all.reduce((n,x)=>n+x.shouldCount,0)),metric:true},{key:"readRate",label:"阅读率",value:calcPercent(read,sent),metric:true}]},
+    {label:"互动统计",items:[{key:"clickRate",label:"点击率",value:calcPercent(clicked,read),metric:true},{key:"handleRate",label:"办理率",value:calcPercent(handled,sent),metric:true}]}
+  ],onChange:key=>setMessageTodoBatchStatusFilter(key)});
   listPage.innerHTML=`
     ${renderMessageSendBatchTitleRow()}
     ${renderUnifiedQueryCard(queryFields,{gridClass:"search-grid message-record-search-grid",queryFn:"syncMessageTodoBatchFilters()",resetFn:"resetMessageTodoBatchFilters()"})}
-    ${renderUnifiedStatsCard(statsHtml)}
+    ${statsHtml}
     ${renderUnifiedTableCard({title:"待办触达批次",tableKey:"messageTodoBatch",tableId:"messageTodoBatchTable",theadId:"messageTodoBatchThead",tbodyId:"messageTodoBatchTbody",totalId:"messageTodoBatchTotalText",total:list.length,renderFnName:"renderMessageTodoBatchPage",refreshAction:"renderMessageTodoBatchPage();showToast('已刷新待办触达批次')",exportAction:"showToast('导出成功：待办触达批次.xlsx')"})}
   `;
   setSelectValue("msgTodoBatchStatus",messageAdminState.todoBatchStatus);
@@ -1866,49 +1865,18 @@ function renderMessageSendRecordPage(){
     <div class="form-item"><label>接收人项目</label><input class="input" id="msgSendProject" placeholder="匹配消息记录项目" value="${messageAdminState.sendProject||''}"/></div>
     <div class="form-item"><label>接收人岗位</label><input class="input" id="msgSendPost" placeholder="匹配消息记录岗位" value="${messageAdminState.sendPost||''}"/></div>
   `;
-  const statsHtml=`
-    <div class="stats message-send-stats">
-      <div class="stat message-send-stat-group type-group">
-        <div class="stat-name">消息类型</div>
-        <div class="message-call-stat-grid stat-click-grid">
-          ${renderMessageSendTypeStat("消息通知",typeCounts.notice,"消息通知")}
-          ${renderMessageSendTypeStat("通知公告",typeCounts.announcement,"通知公告")}
-          ${renderMessageSendTypeStat("预警通知",typeCounts.warning,"预警通知")}
-        </div>
-      </div>
-      <div class="stat message-send-stat-group status-group">
-        <div class="stat-name">发送状态</div>
-        <div class="message-call-stat-grid stat-click-grid five-col">
-          ${renderMessageSendStatusStat("待发送",statusCounts.wait,"待发送")}
-          ${renderMessageSendStatusStat("已发送",statusCounts.sent,"已发送")}
-          ${renderMessageSendStatusStat("部分发送",statusCounts.partial,"部分发送")}
-          ${renderMessageSendStatusStat("失败",statusCounts.failed,"失败")}
-          ${renderMessageSendStatusStat("已撤回",statusCounts.withdrawn,"已撤回")}
-        </div>
-      </div>
-      <div class="stat message-send-stat-group trigger-group">
-        <div class="stat-name">触发方式</div>
-        <div class="message-call-stat-grid stat-click-grid">
-          ${renderMessageSendTriggerStat("手动发送",triggerCounts.manual,"手动发送")}
-          ${renderMessageSendTriggerStat("业务接口",triggerCounts.api,"业务接口")}
-          ${renderMessageSendTriggerStat("定时任务",triggerCounts.timer,"定时任务")}
-        </div>
-      </div>
-      <div class="stat message-send-stat-group metric-group">
-        <div class="stat-name">指标统计</div>
-        <div class="message-call-stat-grid stat-click-grid">
-          ${renderMessageSendMetricStat("触达率",calcPercent(sent,should),"实发 / 应发")}
-          ${renderMessageSendMetricStat("阅读率",calcPercent(read,sent),"已读 / 实发")}
-          ${renderMessageSendMetricStat("点击率",calcPercent(clicked,read),"点击 / 已读")}
-        </div>
-      </div>
-    </div>
-  `;
+  const activeSendStat=messageAdminState.sendType?`type|${messageAdminState.sendType}`:messageAdminState.sendStatus?`status|${messageAdminState.sendStatus}`:messageAdminState.sendTrigger?`trigger|${messageAdminState.sendTrigger}`:"";
+  const statsHtml=StatisticsFilter.render({id:"message-send-statistics-filter",activeKey:activeSendStat,groups:[
+    {label:"消息类型",items:[{key:"type|消息通知",label:"消息通知",value:typeCounts.notice},{key:"type|通知公告",label:"通知公告",value:typeCounts.announcement},{key:"type|预警通知",label:"预警通知",value:typeCounts.warning}]},
+    {label:"发送状态",items:[{key:"status|待发送",label:"待发送",value:statusCounts.wait},{key:"status|已发送",label:"已发送",value:statusCounts.sent},{key:"status|部分发送",label:"部分发送",value:statusCounts.partial},{key:"status|失败",label:"失败",value:statusCounts.failed},{key:"status|已撤回",label:"已撤回",value:statusCounts.withdrawn}]},
+    {label:"触发方式",items:[{key:"trigger|手动发送",label:"手动发送",value:triggerCounts.manual},{key:"trigger|业务接口",label:"业务接口",value:triggerCounts.api},{key:"trigger|定时任务",label:"定时任务",value:triggerCounts.timer}]},
+    {label:"指标统计",items:[{key:"reachRate",label:"触达率",value:calcPercent(sent,should),metric:true},{key:"readRate",label:"阅读率",value:calcPercent(read,sent),metric:true},{key:"clickRate",label:"点击率",value:calcPercent(clicked,read),metric:true}]}
+  ],onChange:key=>{const [type,value]=key.split("|");setMessageSendStatFilter(type,value);}});
 
   listPage.innerHTML=`
     ${renderMessageSendBatchTitleRow()}
     ${renderUnifiedQueryCard(queryFields,{gridClass:"search-grid message-send-search-grid",queryFn:"syncMessageAdminFilters('send')",resetFn:"resetMessageAdminFilters('send')"})}
-    ${renderUnifiedStatsCard(statsHtml)}
+    ${statsHtml}
     ${renderUnifiedTableCard({
       title:"发送批次",
       tableKey:"messageSend",
@@ -2093,20 +2061,20 @@ function renderMessageTodoReachPage(){
     <div class="form-item"><label>点击状态</label><select class="select" id="msgTodoClick"><option value="">全部</option><option>未点击</option><option>已点击</option></select></div>
     <div class="form-item"><label>办理状态</label><select class="select" id="msgTodoHandle"><option value="">全部</option><option>未办理</option><option>办理中</option><option>已办理</option></select></div>
   `;
-  const statsHtml=`
-    <div class="stats message-record-stats message-todo-record-stats">
-      <div class="stat message-record-stat-group"><div class="stat-name">送达状态</div><div class="message-call-stat-grid stat-click-grid">${renderMessageTodoStatItem("deliver","已送达",all.filter(x=>x.deliverStatus==="已送达").length,"已送达")}${renderMessageTodoStatItem("deliver","送达失败",all.filter(x=>x.deliverStatus==="送达失败").length,"送达失败")}</div></div>
-      <div class="stat message-record-stat-group"><div class="stat-name">阅读状态</div><div class="message-call-stat-grid stat-click-grid">${renderMessageTodoStatItem("read","未读",all.filter(x=>x.readStatus==="未读").length,"未读")}${renderMessageTodoStatItem("read","已读",all.filter(x=>x.readStatus==="已读").length,"已读")}</div></div>
-      <div class="stat message-record-stat-group"><div class="stat-name">点击状态</div><div class="message-call-stat-grid stat-click-grid">${renderMessageTodoStatItem("click","未点击",all.filter(x=>x.clickStatus==="未点击").length,"未点击")}${renderMessageTodoStatItem("click","已点击",all.filter(x=>x.clickStatus==="已点击").length,"已点击")}</div></div>
-      <div class="stat message-record-stat-group"><div class="stat-name">办理状态</div><div class="message-call-stat-grid stat-click-grid message-todo-handle-grid">${renderMessageTodoStatItem("handle","未办理",all.filter(x=>x.handleStatus==="未办理").length,"未办理")}${renderMessageTodoStatItem("handle","办理中",all.filter(x=>x.handleStatus==="办理中").length,"办理中")}${renderMessageTodoStatItem("handle","已办理",all.filter(x=>x.handleStatus==="已办理").length,"已办理")}</div></div>
-      <div class="stat message-record-stat-group"><div class="stat-name">超期状态</div><div class="message-call-stat-grid stat-click-grid">${renderMessageTodoOverdueStatItem("dueSoon","即将超期",all)}${renderMessageTodoOverdueStatItem("overdue","已超期",all)}${renderMessageTodoOverdueStatItem("overdue3","超期3天以上",all)}${renderMessageTodoOverdueStatItem("overdue7","超期7天以上",all)}</div></div>
-    </div>
-  `;
+  const todoStatEntries=[["deliver",messageAdminState.todoDeliver],["read",messageAdminState.todoRead],["click",messageAdminState.todoClick],["handle",messageAdminState.todoHandle],["overdue",messageAdminState.todoOverdue]];
+  const activeTodoStat=todoStatEntries.find(([,value])=>value);
+  const statsHtml=StatisticsFilter.render({id:"message-todo-reach-statistics-filter",activeKey:activeTodoStat?`${activeTodoStat[0]}|${activeTodoStat[1]}`:"",groups:[
+    {label:"送达状态",items:[{key:"deliver|已送达",label:"已送达",value:all.filter(x=>x.deliverStatus==="已送达").length},{key:"deliver|送达失败",label:"送达失败",value:all.filter(x=>x.deliverStatus==="送达失败").length}]},
+    {label:"阅读状态",items:[{key:"read|未读",label:"未读",value:all.filter(x=>x.readStatus==="未读").length},{key:"read|已读",label:"已读",value:all.filter(x=>x.readStatus==="已读").length}]},
+    {label:"点击状态",items:[{key:"click|未点击",label:"未点击",value:all.filter(x=>x.clickStatus==="未点击").length},{key:"click|已点击",label:"已点击",value:all.filter(x=>x.clickStatus==="已点击").length}]},
+    {label:"办理状态",items:[{key:"handle|未办理",label:"未办理",value:all.filter(x=>x.handleStatus==="未办理").length},{key:"handle|办理中",label:"办理中",value:all.filter(x=>x.handleStatus==="办理中").length},{key:"handle|已办理",label:"已办理",value:all.filter(x=>x.handleStatus==="已办理").length}]},
+    {label:"超期状态",items:[["dueSoon","即将超期"],["overdue","已超期"],["overdue3","超期3天以上"],["overdue7","超期7天以上"]].map(([key,label])=>({key:`overdue|${key}`,label,value:all.filter(row=>matchesMessageTodoOverdueStat(row,key)).length}))}
+  ],onChange:key=>{const [type,value]=key.split("|");setMessageTodoStatFilter(type,value);}});
 
   listPage.innerHTML=`
     ${renderMessageRecordTitleRow()}
     ${renderUnifiedQueryCard(queryFields,{id:"messageTodoQueryCard",gridClass:"search-grid message-record-search-grid",queryFn:"syncMessageAdminFilters('todo')",resetFn:"resetMessageAdminFilters('todo')"})}
-    ${renderUnifiedStatsCard(statsHtml)}
+    ${statsHtml}
     ${renderUnifiedTableCard({
       title:"待办触达明细",
       tableKey:"messageTodoReach",
@@ -2158,18 +2126,18 @@ function renderMessageRecordPage(){
     <div class="form-item"><label>接收人项目</label><input class="input" id="msgRecordProject" placeholder="请输入接收人项目" value="${messageAdminState.recordProject||''}"/></div>
     <div class="form-item"><label>接收人岗位</label><input class="input" id="msgRecordPost" placeholder="请输入接收人岗位" value="${messageAdminState.recordPost||''}"/></div>
   `;
-  const statsHtml=`
-    <div class="stats message-record-stats">
-      <div class="stat message-record-stat-group"><div class="stat-name">送达状态</div><div class="message-call-stat-grid stat-click-grid">${renderMessageRecordStatItem("deliver","发送成功",success,"发送成功")}${renderMessageRecordStatItem("deliver","发送失败",failed,"发送失败")}</div></div>
-      <div class="stat message-record-stat-group"><div class="stat-name">阅读状态</div><div class="message-call-stat-grid stat-click-grid">${renderMessageRecordStatItem("read","未读",unread,"未读")}${renderMessageRecordStatItem("read","已读",read,"已读")}</div></div>
-      <div class="stat message-record-stat-group"><div class="stat-name">点击状态</div><div class="message-call-stat-grid stat-click-grid">${renderMessageRecordStatItem("click","未点击",unclicked,"未点击")}${renderMessageRecordStatItem("click","已点击",clicked,"已点击")}</div></div>
-    </div>
-  `;
+  const recordStatEntries=[["deliver",messageAdminState.recordDeliver],["read",messageAdminState.recordRead],["click",messageAdminState.recordClick]];
+  const activeRecordStat=recordStatEntries.find(([,value])=>value);
+  const statsHtml=StatisticsFilter.render({id:"message-record-statistics-filter",activeKey:activeRecordStat?`${activeRecordStat[0]}|${activeRecordStat[1]}`:"",groups:[
+    {label:"送达状态",items:[{key:"deliver|发送成功",label:"发送成功",value:success},{key:"deliver|发送失败",label:"发送失败",value:failed}]},
+    {label:"阅读状态",items:[{key:"read|未读",label:"未读",value:unread},{key:"read|已读",label:"已读",value:read}]},
+    {label:"点击状态",items:[{key:"click|未点击",label:"未点击",value:unclicked},{key:"click|已点击",label:"已点击",value:clicked}]}
+  ],onChange:key=>{const [type,value]=key.split("|");setMessageRecordStatFilter(type,value);}});
 
   listPage.innerHTML=`
     ${renderMessageRecordTitleRow()}
     ${renderUnifiedQueryCard(queryFields,{gridClass:"search-grid message-record-search-grid",queryFn:"syncMessageAdminFilters('record')",resetFn:"resetMessageAdminFilters('record')"})}
-    ${renderUnifiedStatsCard(statsHtml)}
+    ${statsHtml}
     ${renderUnifiedTableCard({
       title:"消息发送明细",
       tableKey:"messageRecord",
@@ -4315,20 +4283,10 @@ function renderApprovalFlowStatOption(key,label,rows){
 
 function renderApprovalFlowStats(){
   const rows=getApprovalFlowScopedRows();
-  return `<section class="card construction-project-stat-card approval-flow-stat-card">
-    <div class="card-bd">
-      <div class="construction-project-stats">
-        <div class="construction-project-stat-group">
-          <div class="construction-project-stat-name">审批状态</div>
-          <div class="construction-project-stat-items">${renderApprovalFlowStatOption("statusPending","审批中",rows)}${renderApprovalFlowStatOption("statusPassed","已通过",rows)}${renderApprovalFlowStatOption("statusRejected","已驳回",rows)}</div>
-        </div>
-        <div class="construction-project-stat-group">
-          <div class="construction-project-stat-name">停留状态</div>
-          <div class="construction-project-stat-items">${renderApprovalFlowStatOption("stay3","停留3天以上",rows)}${renderApprovalFlowStatOption("stay7","停留7天以上",rows)}</div>
-        </div>
-      </div>
-    </div>
-  </section>`;
+  return StatisticsFilter.render({id:"approval-flow-statistics-filter",className:"approval-flow-stat-card",activeKey:approvalFlowDetailState.stat,groups:[
+    {label:"审批状态",items:[["statusPending","审批中"],["statusPassed","已通过"],["statusRejected","已驳回"]].map(([key,label])=>({key,label,value:rows.filter(row=>matchesApprovalFlowStat(row,key)).length}))},
+    {label:"停留状态",items:[["stay3","停留3天以上"],["stay7","停留7天以上"]].map(([key,label])=>({key,label,value:rows.filter(row=>matchesApprovalFlowStat(row,key)).length}))}
+  ],onChange:key=>setApprovalFlowStat(key)});
 }
 
 function setApprovalFlowStat(key){

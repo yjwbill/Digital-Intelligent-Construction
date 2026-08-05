@@ -231,7 +231,12 @@ function renderRiskStats(){
     {name:'风险状态',key:'status',items:[['已完成',c(r=>r.status==='已完成')],['未完成',c(r=>r.status==='未完成')]]},
     {name:'条件验收',key:'accepted',items:[['是',c(r=>r.conditionAccepted==='是')],['否',c(r=>r.conditionAccepted==='否')]]}
   ];
-  replaceProductionDashboardFragment(box,groups.map(g=>`<div class="risk-stat"><div class="risk-stat-name">${g.name}</div><div class="risk-stat-items">${g.items.map(it=>`<div class="risk-stat-chip ${activeRiskStat?.key===g.key&&activeRiskStat?.val===it[0]?'active':''}" onclick="filterRiskByStat('${g.key}','${it[0]}')"><strong>${it[1]}</strong><span>${it[0]}</span></div>`).join('')}</div></div>`).join(''));
+  replaceProductionDashboardFragment(box,StatisticsFilter.render({
+    id:"enterprise-risk-ledger-statistics-filter",
+    activeKey:activeRiskStat?`${activeRiskStat.key}|${activeRiskStat.val}`:"",
+    groups:groups.map(group=>({label:group.name,items:group.items.map(item=>({key:`${group.key}|${item[0]}`,label:item[0],value:item[1]}))})),
+    onChange:key=>{const [group,value]=key.split("|");filterRiskByStat(group,value);}
+  }));
 }
 function applyRiskFilter(){
   const name=document.getElementById("riskNameFilter")?.value.trim() || "";

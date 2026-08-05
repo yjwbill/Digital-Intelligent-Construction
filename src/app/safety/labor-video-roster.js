@@ -282,28 +282,11 @@ function openSafetyAiCapturePreview(id){
 }
 
 function renderSafetyAiCaptureStats(stats){
-  const item=(group,key,label,value,status="")=>`<div class="construction-project-stat-item ${status} ${safetyAiCaptureState[group==="status"?"statStatus":"statType"]===key?"active":""}" onclick="setSafetyAiCaptureStat('${group}','${key}')"><strong>${value}</strong><span>${label}</span></div>`;
-  return renderUnifiedStatsCard(`
-    <div class="construction-project-stats ai-capture-standard-stats">
-      <div class="construction-project-stat-group">
-        <div class="construction-project-stat-name">复核 状态</div>
-        <div class="construction-project-stat-items">
-          ${item("status","待确认","待确认",stats.pending,"pending")}
-          ${item("status","有效","有效",stats.valid,"valid")}
-          ${item("status","无效","无效",stats.invalid,"invalid")}
-        </div>
-      </div>
-      <div class="construction-project-stat-group">
-        <div class="construction-project-stat-name">抓拍 类型</div>
-        <div class="construction-project-stat-items">
-          ${item("type","未带安全帽","未带安全帽",stats.helmet)}
-          ${item("type","人机碰撞","人机碰撞",stats.collision)}
-          ${item("type","危险区域闯入","危险区域",stats.area)}
-          ${item("type","火光识别","火光识别",stats.fire)}
-        </div>
-      </div>
-    </div>
-  `);
+  const activeKey=safetyAiCaptureState.statStatus?`status|${safetyAiCaptureState.statStatus}`:safetyAiCaptureState.statType?`type|${safetyAiCaptureState.statType}`:"";
+  return StatisticsFilter.render({id:"safety-ai-capture-statistics-filter",className:"ai-capture-standard-stats",activeKey,groups:[
+    {label:"复核 状态",items:[{key:"status|待确认",label:"待确认",value:stats.pending,className:"pending"},{key:"status|有效",label:"有效",value:stats.valid,className:"valid"},{key:"status|无效",label:"无效",value:stats.invalid,className:"invalid"}]},
+    {label:"抓拍 类型",items:[{key:"type|未带安全帽",label:"未带安全帽",value:stats.helmet},{key:"type|人机碰撞",label:"人机碰撞",value:stats.collision},{key:"type|危险区域闯入",label:"危险区域",value:stats.area},{key:"type|火光识别",label:"火光识别",value:stats.fire}]}
+  ],onChange:key=>{const [type,value]=key.split("|");setSafetyAiCaptureStat(type,value);}});
 }
 
 function renderSafetyAiCapturePage(){
@@ -397,11 +380,7 @@ function renderRosterPage(){
       </div>
     </section>
 
-    <section class="card unified-stats-card roster-stat-card">
-      <div class="card-bd">
-        <div class="stats" id="statsBox"></div>
-      </div>
-    </section>
+    <div id="statsBox"></div>
 
     <section class="card table-card">
       <div class="card-hd">
@@ -464,21 +443,13 @@ function renderStats(){
     ["资质证书",["已上传",c(w=>w.special&&w.cert)],["未上传",c(w=>w.special&&!w.cert)],"cert"]
   ];
 
-  box.innerHTML=stats.map(s=>`
-    <div class="stat">
-      <div class="stat-name">${s[0]}</div>
-      <div class="stat-row">
-        <div class="stat-chip ${activeStat?.key===s[3]&&activeStat?.val===s[1][0]?"active":""}" onclick="filterByStat('${s[3]}','${s[1][0]}')">
-          <strong>${s[1][1]}</strong>
-          <span>${s[1][0]}</span>
-        </div>
-        <div class="stat-chip ${activeStat?.key===s[3]&&activeStat?.val===s[2][0]?"active":""}" onclick="filterByStat('${s[3]}','${s[2][0]}')">
-          <strong>${s[2][1]}</strong>
-          <span>${s[2][0]}</span>
-        </div>
-      </div>
-    </div>
-  `).join("");
+  box.innerHTML=StatisticsFilter.render({
+    id:"labor-roster-statistics-filter",
+    className:"roster-stat-card",
+    activeKey:activeStat?`${activeStat.key}|${activeStat.val}`:"",
+    groups:stats.map(stat=>({label:stat[0],items:[stat[1],stat[2]].map(item=>({key:`${stat[3]}|${item[0]}`,label:item[0],value:item[1]}))})),
+    onChange:key=>{const [type,value]=key.split("|");filterByStat(type,value);}
+  });
 }
 
 function applyFilter(){

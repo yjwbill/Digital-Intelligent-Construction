@@ -1,7 +1,8 @@
 (function(){
-  const version="2.2.569-approval-flow-supervision";
+  const version="2.2.570-standard-statistics-filter";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
+    "src/components/statistics-filter/statistics-filter.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",
     "src/app/project/economy-overview.js",
     "src/app/project/economy-basic-info.js",

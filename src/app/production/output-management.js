@@ -293,41 +293,11 @@ function renderOutputForecastStatsCard(){
   const transferCount=rows.filter(row=>row.statisticNature==="转接").length;
   const finishedCount=rows.filter(row=>row.statisticNature==="完工未结算").length;
   const sumValue=key=>rows.reduce((sum,row)=>sum+(Number(row[key])||0),0);
-  const item=(key,label,value)=>`
-    <div class="construction-project-stat-item ${outputForecastState.statKey===key?"active":""}" onclick="setOutputForecastStat('${key}')">
-      <strong>${value}</strong><span>${label}</span>
-    </div>
-  `;
-  const metric=(label,value)=>`
-    <div class="construction-project-stat-item metric-only">
-      <strong>${formatForecastAmount(value)}</strong><span>${label}</span>
-    </div>
-  `;
-  return renderUnifiedStatsCard(`
-    <div class="construction-project-stats">
-      <div class="construction-project-stat-group">
-        <div class="construction-project-stat-name">统计 性质</div>
-        <div class="construction-project-stat-items">
-          ${item("new","新接",newCount)}
-          ${item("transfer","转接",transferCount)}
-          ${item("finished","完工未结算",finishedCount)}
-        </div>
-      </div>
-      <div class="construction-project-stat-group">
-        <div class="construction-project-stat-name">产值 合计</div>
-        <div class="construction-project-stat-items">
-          ${metric("至2025年末累计完成产值(万元)",sumValue("completedTo2025"))}
-          ${metric("年度计划产值(万元)",sumValue("annualPlanOutput"))}
-          ${metric("年度累计完成产值(万元)",sumValue("annualCompletedOutput"))}
-          ${metric("5月完成产值(万元)",sumValue("mayOutput"))}
-          ${metric("剩余合同产值(万元)",sumValue("remainingContractOutput"))}
-          ${metric("2026年剩余合同产值预计完成(万元)",sumValue("remaining2026Forecast"))}
-          ${metric("2027年剩余合同产值预计完成(万元)",sumValue("forecast2027"))}
-          ${metric("开累产值(万元)",sumValue("accumulatedOutput"))}
-        </div>
-      </div>
-    </div>
-  `);
+  const metrics=[["completedTo2025","至2025年末累计完成产值(万元)"],["annualPlanOutput","年度计划产值(万元)"],["annualCompletedOutput","年度累计完成产值(万元)"],["mayOutput","5月完成产值(万元)"],["remainingContractOutput","剩余合同产值(万元)"],["remaining2026Forecast","2026年剩余合同产值预计完成(万元)"],["forecast2027","2027年剩余合同产值预计完成(万元)"],["accumulatedOutput","开累产值(万元)"]];
+  return StatisticsFilter.render({id:"output-forecast-statistics-filter",activeKey:outputForecastState.statKey,groups:[
+    {label:"统计 性质",items:[{key:"new",label:"新接",value:newCount},{key:"transfer",label:"转接",value:transferCount},{key:"finished",label:"完工未结算",value:finishedCount}]},
+    {label:"产值 合计",items:metrics.map(([key,label])=>({key,label,value:formatForecastAmount(sumValue(key)),metric:true}))}
+  ],onChange:key=>setOutputForecastStat(key)});
 }
 
 tableColumnDefinitions.outputForecastConstruction=[
@@ -644,25 +614,9 @@ function renderActualOutputStatsCard(){
   const approving=rows.filter(row=>row.reportStatus==="上报审批中").length;
   const unreported=rows.filter(row=>row.reportStatus==="未上报").length;
   const completion=required?Math.round(reported*100/required):0;
-  const item=(key,label,value,metric=false)=>`
-    <div class="construction-project-stat-item ${actualOutputReportState.statKey===key?"active":""} ${metric?"metric-only":""}" onclick="${metric?"showToast('上报完成率=已上报/应上报总数')":`setActualOutputReportStat('${key}')`}">
-      <strong>${value}</strong><span>${label}</span>
-    </div>
-  `;
-  return renderUnifiedStatsCard(`
-    <div class="construction-project-stats">
-      <div class="construction-project-stat-group">
-        <div class="construction-project-stat-name">上报情况</div>
-        <div class="construction-project-stat-items">
-          ${item("all","应上报",required)}
-          ${item("reported","已上报",reported)}
-          ${item("approving","上报审批中",approving)}
-          ${item("unreported","应报未报",unreported)}
-          ${item("completion","上报完成率",`${completion}%`,true)}
-        </div>
-      </div>
-    </div>
-  `);
+  return StatisticsFilter.render({id:"actual-output-statistics-filter",activeKey:actualOutputReportState.statKey,groups:[{label:"上报情况",items:[
+    {key:"all",label:"应上报",value:required},{key:"reported",label:"已上报",value:reported},{key:"approving",label:"上报审批中",value:approving},{key:"unreported",label:"应报未报",value:unreported},{key:"completion",label:"上报完成率",value:`${completion}%`,metric:true}
+  ]}],onChange:key=>setActualOutputReportStat(key)});
 }
 
 function renderActualOutputReportTable(){
@@ -1249,25 +1203,9 @@ function renderOtherBizOutputStatsCard(){
   const approving=rows.filter(row=>row.reportStatus==="上报审批中").length;
   const unreported=rows.filter(row=>row.reportStatus==="未上报").length;
   const completion=required?Math.round(reported*100/required):0;
-  const item=(key,label,value,metric=false)=>`
-    <div class="construction-project-stat-item ${otherBizOutputState.statKey===key?"active":""} ${metric?"metric-only":""}" onclick="${metric?"showToast('上报完成率=已上报/应上报总数')":`setOtherBizOutputStat('${key}')`}">
-      <strong>${value}</strong><span>${label}</span>
-    </div>
-  `;
-  return renderUnifiedStatsCard(`
-    <div class="construction-project-stats">
-      <div class="construction-project-stat-group">
-        <div class="construction-project-stat-name">上报情况</div>
-        <div class="construction-project-stat-items">
-          ${item("all","应上报",required)}
-          ${item("reported","已上报",reported)}
-          ${item("approving","上报审批中",approving)}
-          ${item("unreported","应报未报",unreported)}
-          ${item("completion","上报完成率",`${completion}%`,true)}
-        </div>
-      </div>
-    </div>
-  `);
+  return StatisticsFilter.render({id:"other-business-output-statistics-filter",activeKey:otherBizOutputState.statKey,groups:[{label:"上报情况",items:[
+    {key:"all",label:"应上报",value:required},{key:"reported",label:"已上报",value:reported},{key:"approving",label:"上报审批中",value:approving},{key:"unreported",label:"应报未报",value:unreported},{key:"completion",label:"上报完成率",value:`${completion}%`,metric:true}
+  ]}],onChange:key=>setOtherBizOutputStat(key)});
 }
 
 function renderOtherBizOutputAmount(row,key){

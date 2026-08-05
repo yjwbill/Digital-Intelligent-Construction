@@ -234,6 +234,7 @@ const componentLibraryStateV2288={
   active:"button"
 };
 const componentDashboardOrgStateV2276={company:"",branch:""};
+const componentStatisticsFilterState={activeKey:"registeredDone"};
 
 const componentLibraryDatePickerStateV2297={
   size:"default",
@@ -312,7 +313,7 @@ const componentLibraryMenusV2288={
     {group:"基础组件",items:[["button","按钮 Button"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"]]},
     {group:"表单组件",items:[["input","输入框 Input"],["select","选择器 Select"]]},
     {group:"数据展示",items:[["tag","标签 Tag"],["table","表格 Table"]]},
-    {group:"业务组件",items:[["dashboard-org-switch","看板组织切换 DashboardOrgSwitch"]]}
+    {group:"业务组件",items:[["statistics-filter","统计筛选 StatisticsFilter"],["dashboard-org-switch","看板组织切换 DashboardOrgSwitch"]]}
   ],
   mobile:[
     {group:"基础组件",items:[["button","按钮 Button"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"]]},
@@ -588,6 +589,19 @@ function renderPcComponentPreviewV2288(type){
     table:`
       <div class="component-mini-table"><table><thead><tr><th>序号</th><th>组件名称</th><th>状态</th></tr></thead><tbody><tr><td>1</td><td>按钮 Button</td><td>${tag("已启用","green")}</td></tr><tr><td>2</td><td>日期选择器</td><td>${tag("设计中","blue")}</td></tr></tbody></table></div>
       <p>表格统一复用现有列表组件，支持列设置、分页、导出和固定表头。</p>
+    `,
+    "statistics-filter":`
+      <div class="component-statistics-filter-demo">${StatisticsFilter.render({
+        id:"component-library-statistics-filter",
+        activeKey:componentStatisticsFilterState.activeKey,
+        groups:[
+          {label:"项目总数",items:[{key:"total",label:"项目总数",value:128}]},
+          {label:"登记情况",items:[{key:"registeredRate",label:"登记完成率",value:"86%",metric:true},{key:"registeredDone",label:"已登记",value:110},{key:"registeredTodo",label:"未登记",value:18}]},
+          {label:"项目状态",items:[{key:"active",label:"在建",value:76},{key:"finished",label:"完工",value:32},{key:"stopped",label:"停工",value:20}]}
+        ],
+        onChange:key=>{componentStatisticsFilterState.activeKey=componentStatisticsFilterState.activeKey===key?"":key;refreshComponentLibraryPreviewV2300();}
+      })}</div>
+      <p>列表页统计筛选的标准业务组件。页面只配置分组、统计项、只读指标和筛选回调；布局、选中态、键盘操作及横向适配由组件统一控制。</p>
     `,
     "dashboard-org-switch":`
       <div class="component-dashboard-org-demo">${DashboardOrgSwitch.render({id:"component-dashboard-org-switch",records:dashboardOrgDemoRecords,state:componentDashboardOrgStateV2276,onChange:selection=>{Object.assign(componentDashboardOrgStateV2276,selection);refreshComponentLibraryPreviewV2300();}})}</div>

@@ -5702,6 +5702,19 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
 .construction-project-stat-item.metric-only{
   cursor:default;
 }
+.statistics-filter__item{
+  appearance:none;
+  font-family:inherit;
+}
+.statistics-filter__item:focus-visible{
+  outline:2px solid var(--primary);
+  outline-offset:4px;
+  border-radius:2px !important;
+}
+.statistics-filter__item:disabled{
+  cursor:not-allowed;
+  opacity:.45;
+}
 .construction-project-stat-item:hover strong,
 .construction-project-stat-item:hover span,
 .construction-project-stat-item.active strong,

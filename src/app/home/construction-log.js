@@ -226,39 +226,11 @@ function refreshEnterpriseConstructionLogColumns(){
 function renderEnterpriseConstructionLogStats(){
   const rows=getEnterpriseConstructionLogTodayStatRows();
   const count=status=>rows.filter(row=>row.reportStatus===status).length;
-  const item=(key,label,value)=>`
-    <div class="construction-project-stat-item ${enterpriseConstructionLogState.statKey===key?"active":""}" onclick="setEnterpriseConstructionLogStat('${key}')">
-      <strong>${value}</strong><span>${label}</span>
-    </div>
-  `;
-  return renderUnifiedStatsCard(`
-    <div class="construction-project-stats">
-      <div class="construction-project-stat-group">
-        <div class="construction-project-stat-name">今日 上报</div>
-        <div class="construction-project-stat-items">
-          ${item("all","应上报",rows.length)}
-          ${item("reported","已上报",count("已上报"))}
-          ${item("unreported","应报未报",count("未上报"))}
-          ${item("stopped","停工未上报",count("停工未上报"))}
-        </div>
-      </div>
-      <div class="construction-project-stat-group">
-        <div class="construction-project-stat-name">上报方式</div>
-        <div class="construction-project-stat-items">
-          ${item("online","在线上报",rows.filter(row=>row.reportMethod==="在线上报").length)}
-          ${item("file","文件上报",rows.filter(row=>row.reportMethod==="文件上报").length)}
-          ${item("merged","在线+文件上报",rows.filter(row=>row.reportMethod==="在线+文件上报").length)}
-        </div>
-      </div>
-      <div class="construction-project-stat-group">
-        <div class="construction-project-stat-name required-report-stat-name"><span>按要求</span><span>上报</span></div>
-        <div class="construction-project-stat-items">
-          ${item("onTime","按要求上报",rows.filter(row=>row.onTimeUpload==="是").length)}
-          ${item("notOnTime","未按要求上报",rows.filter(row=>row.onTimeUpload==="否").length)}
-        </div>
-      </div>
-    </div>
-  `);
+  return StatisticsFilter.render({id:"enterprise-construction-log-statistics-filter",activeKey:enterpriseConstructionLogState.statKey,groups:[
+    {label:"今日 上报",items:[{key:"all",label:"应上报",value:rows.length},{key:"reported",label:"已上报",value:count("已上报")},{key:"unreported",label:"应报未报",value:count("未上报")},{key:"stopped",label:"停工未上报",value:count("停工未上报")}]},
+    {label:"上报方式",items:[{key:"online",label:"在线上报",value:rows.filter(row=>row.reportMethod==="在线上报").length},{key:"file",label:"文件上报",value:rows.filter(row=>row.reportMethod==="文件上报").length},{key:"merged",label:"在线+文件上报",value:rows.filter(row=>row.reportMethod==="在线+文件上报").length}]},
+    {label:"按要求 上报",items:[{key:"onTime",label:"按要求上报",value:rows.filter(row=>row.onTimeUpload==="是").length},{key:"notOnTime",label:"未按要求上报",value:rows.filter(row=>row.onTimeUpload==="否").length}]}
+  ],onChange:key=>setEnterpriseConstructionLogStat(key)});
 }
 
 function renderEnterpriseConstructionLogQueryFields(){

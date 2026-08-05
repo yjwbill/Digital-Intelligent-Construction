@@ -1010,40 +1010,12 @@ function renderOperationLeaseStatsCard(){
     success:base.filter(item=>item.pushStatus==="成功").length,
     fail:base.filter(item=>item.pushStatus==="失败").length
   };
-  const chip=(active,key,label,count,fn)=>`
-    <button class="stat-chip ${active===key?"active":""}" onclick="${fn}">
-      <strong>${count}</strong>
-      <span>${label}</span>
-    </button>
-  `;
-  return renderUnifiedStatsCard(`
-    <div class="stats">
-      <div class="stat">
-        <div class="stat-name">核算项目</div>
-        <div class="stat-row">
-          ${chip(operationLeaseReportState.relationStatus,"all","全部",totals.all,"setOperationLeaseRelationStatus('all')")}
-          ${chip(operationLeaseReportState.relationStatus,"unlinked","未关联",totals.unlinked,"setOperationLeaseRelationStatus('unlinked')")}
-          ${chip(operationLeaseReportState.relationStatus,"linked","已关联",totals.linked,"setOperationLeaseRelationStatus('linked')")}
-        </div>
-      </div>
-      <div class="stat">
-        <div class="stat-name">创建模式</div>
-        <div class="stat-row">
-          ${chip(operationLeaseReportState.createMode,"","全部",createTotals.all,"setOperationLeaseCreateMode('')")}
-          ${chip(operationLeaseReportState.createMode,"手动","手动",createTotals.manual,"setOperationLeaseCreateMode('手动')")}
-          ${chip(operationLeaseReportState.createMode,"集成","集成",createTotals.integrate,"setOperationLeaseCreateMode('集成')")}
-        </div>
-      </div>
-      <div class="stat">
-        <div class="stat-name">报账推送</div>
-        <div class="stat-row">
-          ${chip(operationLeaseReportState.pushStatus,"","全部",pushTotals.all,"setOperationLeasePushStatus('')")}
-          ${chip(operationLeaseReportState.pushStatus,"成功","成功",pushTotals.success,"setOperationLeasePushStatus('成功')")}
-          ${chip(operationLeaseReportState.pushStatus,"失败","失败",pushTotals.fail,"setOperationLeasePushStatus('失败')")}
-        </div>
-      </div>
-    </div>
-  `);
+  const activeKey=operationLeaseReportState.relationStatus!=="all"?`relation|${operationLeaseReportState.relationStatus}`:operationLeaseReportState.createMode?`create|${operationLeaseReportState.createMode}`:operationLeaseReportState.pushStatus?`push|${operationLeaseReportState.pushStatus}`:"relation|all";
+  return StatisticsFilter.render({id:"operation-project-report-statistics-filter",activeKey,groups:[
+    {label:"核算项目",items:[{key:"relation|all",label:"全部",value:totals.all},{key:"relation|unlinked",label:"未关联",value:totals.unlinked},{key:"relation|linked",label:"已关联",value:totals.linked}]},
+    {label:"创建模式",items:[{key:"create|",label:"全部",value:createTotals.all},{key:"create|手动",label:"手动",value:createTotals.manual},{key:"create|集成",label:"集成",value:createTotals.integrate}]},
+    {label:"报账推送",items:[{key:"push|",label:"全部",value:pushTotals.all},{key:"push|成功",label:"成功",value:pushTotals.success},{key:"push|失败",label:"失败",value:pushTotals.fail}]}
+  ],onChange:key=>{const [type,value]=key.split("|");if(type==="relation")setOperationLeaseRelationStatus(value);if(type==="create")setOperationLeaseCreateMode(value);if(type==="push")setOperationLeasePushStatus(value);}});
 }
 
 function renderOperationLeaseTable(){

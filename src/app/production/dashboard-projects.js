@@ -756,23 +756,12 @@ function renderConstructionProjectStats(){
     {name:"项目完工",items:[{key:"finishedAll",label:"所有完工",value:count(x=>x.projectStatus==="完工")},{key:"finishedThisYear",label:"当年完工",value:count(x=>(x.actualEnd||"").startsWith(currentYear))},{key:"finishedUnsettled",label:"完工未结算",value:count(x=>x.projectStatus==="完工"&&x.completedSettled!=="是")},{key:"finishedSettled",label:"完工已结算",value:count(x=>x.projectStatus==="完工"&&x.completedSettled==="是")}]},
     {name:"项目竣工",items:[{key:"completedAll",label:"所有竣工",value:count(x=>x.projectStatus==="完工")},{key:"completedSettled",label:"竣工已结算",value:count(x=>x.projectStatus==="完工"&&x.completedSettled==="是")}]}
   ];
-  replaceProductionDashboardFragment(box,`
-    <div class="construction-project-stats">
-      ${groups.map(g=>`
-        <div class="construction-project-stat-group">
-          <div class="construction-project-stat-name">${g.name}</div>
-          <div class="construction-project-stat-items">
-            ${g.items.map(item=>`
-              <div class="construction-project-stat-item ${constructionProjectActiveStat?.key===item.key?"active":""} ${item.metric?"metric-only":""}" onclick="${item.metric?"showToast('比例指标用于观察，不参与筛选')":`filterConstructionProjectByStat('${item.key}')`}">
-                <strong>${item.value}</strong>
-                <span>${item.label}</span>
-              </div>
-            `).join("")}
-          </div>
-        </div>
-      `).join("")}
-    </div>
-  `);
+  replaceProductionDashboardFragment(box,StatisticsFilter.render({
+    id:"construction-project-statistics-filter",
+    activeKey:constructionProjectActiveStat?.key||"",
+    groups:groups.map(group=>({label:group.name,items:group.items})),
+    onChange:key=>filterConstructionProjectByStat(key)
+  }));
 }
 
 function renderConstructionProjectTableHeader(){

@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.569-APPROVAL-FLOW-SUPERVISION";
-const APP_CODE_VERSION_NAME="审批流程督办版";
-const APP_CODE_VERSION_TIME="2026-08-05 10:00";
-const APP_CODE_VERSION_DESC="审批流程明细移除超期概念，保留停留状态并新增审批中流程督办、提醒次数及提醒触达明细。";
+const APP_CODE_VERSION="EM-20260701-V2.2.570-STANDARD-STATISTICS-FILTER";
+const APP_CODE_VERSION_NAME="标准统计筛选组件版";
+const APP_CODE_VERSION_TIME="2026-08-05 15:00";
+const APP_CODE_VERSION_DESC="以施工项目一览为基准抽象 StatisticsFilter 标准组件，纳入数智施工组件库并统一现有列表页统计筛选。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,

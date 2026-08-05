@@ -1384,37 +1384,12 @@ function renderSafetyEvalIndicatorStats(){
   const calcRule=safetyEvalIndicatorRows.filter(row=>row.calculationMethod==="规则计算").length;
   const enabled=safetyEvalIndicatorRows.filter(row=>row.status==="启用").length;
   const disabled=safetyEvalIndicatorRows.filter(row=>row.status==="停用").length;
-  return `
-    <section class="card construction-project-stat-card safety-eval-management-stat-card">
-      <div class="card-bd">
-        <div class="construction-project-stats">
-          <div class="construction-project-stat-group single">
-            <div class="construction-project-stat-items">
-              <div class="construction-project-stat-item ${safetyEvalIndicatorState.statKey==="all"?"active":""}" onclick="setSafetyEvalIndicatorStat('all')">
-                <strong>${total}</strong><span>全部指标</span>
-              </div>
-            </div>
-          </div>
-          ${[
-            ["指标类型",[["basic","基础指标",basic],["composite","复合指标",composite]]],
-            ["计算方式",[["calcAuto","自动计算",calcAuto],["calcManual","手动计算",calcManual],["calcRule","规则计算",calcRule]]],
-            ["指标状态",[["enabled","启用指标",enabled],["disabled","停用指标",disabled]]]
-          ].map(group=>`
-            <div class="construction-project-stat-group">
-              <div class="construction-project-stat-name">${group[0]}</div>
-              <div class="construction-project-stat-items">
-                ${group[1].map(item=>`
-                  <div class="construction-project-stat-item ${safetyEvalIndicatorState.statKey===item[0]?"active":""}" onclick="setSafetyEvalIndicatorStat('${item[0]}')">
-                    <strong>${item[2]}</strong><span>${item[1]}</span>
-                  </div>
-                `).join("")}
-              </div>
-            </div>
-          `).join("")}
-        </div>
-      </div>
-    </section>
-  `;
+  return StatisticsFilter.render({id:"safety-evaluation-indicator-statistics-filter",className:"safety-eval-management-stat-card",activeKey:safetyEvalIndicatorState.statKey,groups:[
+    {label:"全部指标",items:[{key:"all",label:"全部指标",value:total}]},
+    {label:"指标类型",items:[{key:"basic",label:"基础指标",value:basic},{key:"composite",label:"复合指标",value:composite}]},
+    {label:"计算方式",items:[{key:"calcAuto",label:"自动计算",value:calcAuto},{key:"calcManual",label:"手动计算",value:calcManual},{key:"calcRule",label:"规则计算",value:calcRule}]},
+    {label:"指标状态",items:[{key:"enabled",label:"启用指标",value:enabled},{key:"disabled",label:"停用指标",value:disabled}]}
+  ],onChange:key=>setSafetyEvalIndicatorStat(key)});
 }
 
 let safetyEvalIndicatorEditingId=null;
@@ -1823,19 +1798,10 @@ function renderSafetyEvalObjectStats(){
     ["bound","已绑定模型对象",countSafetyEvalObjects(row=>row.modelBindStatus==="已绑定"),"已配置评价体系"],
     ["unbound","未绑定模型对象",countSafetyEvalObjects(row=>row.modelBindStatus==="未绑定"),"未配置评价体系"]
   ];
-  const renderGroup=(title,items)=>`
-    <div class="construction-project-stat-group">
-      <div class="construction-project-stat-name">${title}</div>
-      <div class="construction-project-stat-items">
-        ${items.map(item=>`
-          <div class="construction-project-stat-item ${safetyEvalObjectState.statKey===item[0]?"active":""}" onclick="setSafetyEvalObjectStat('${item[0]}')">
-            <strong>${item[2]}</strong><span>${item[1]}</span>
-          </div>
-        `).join("")}
-      </div>
-    </div>
-  `;
-  return `<section class="card construction-project-stat-card safety-eval-management-stat-card"><div class="card-bd"><div class="construction-project-stats">${renderGroup("类型分布",typeItems)}${renderGroup("对象状态",statusItems)}</div></div></section>`;
+  return StatisticsFilter.render({id:"safety-evaluation-object-statistics-filter",className:"safety-eval-management-stat-card",activeKey:safetyEvalObjectState.statKey,groups:[
+    {label:"类型分布",items:typeItems.map(item=>({key:item[0],label:item[1],value:item[2],title:item[3]}))},
+    {label:"对象状态",items:statusItems.map(item=>({key:item[0],label:item[1],value:item[2],title:item[3]}))}
+  ],onChange:key=>setSafetyEvalObjectStat(key)});
 }
 
 function renderSafetyEvalObjectTable(rows){
