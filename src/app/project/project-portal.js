@@ -856,7 +856,7 @@ function renderProjectLogReadonlyWorkTable(rows,showProgress=true){
   return `
     <table class="project-log-report-table project-log-readonly-work-table">
       <thead><tr><th>序号</th><th>施工工区</th><th>施工分项</th><th>施工部位</th><th>工作内容</th>${showProgress?"<th>工作进度</th>":""}<th>施工图片</th><th>记录人</th><th>备注</th></tr></thead>
-      <tbody>${rows.map((item,index)=>`<tr><td>${index+1}</td><td>${item.area}</td><td>${item.subitem||"-"}</td><td>${item.position||"-"}</td><td>${item.content}</td>${showProgress?`<td>${item.progress}</td>`:""}<td>${item.imageUrl?`<button type="button" class="project-log-work-thumb-btn" onclick="openProjectLogWorkImagePreview('${escapeAttr(item.imageUrl)}','${escapeAttr(item.imageName||"施工图片")}')"><img class="project-log-work-thumb" src="${item.imageUrl}" alt="${escapeAttr(item.imageName||"施工图片")}"/></button>`:item.imageName||"-"}</td><td>${item.reporter||"-"}</td><td>${item.remark||"-"}</td></tr>`).join("")}</tbody>
+      <tbody>${rows.map((item,index)=>`<tr><td>${index+1}</td><td>${item.area}</td><td>${item.subitem||"-"}</td><td>${item.position||"-"}</td><td>${item.content}</td>${showProgress?`<td>${item.progress}</td>`:""}<td>${renderProjectLogReadonlyWorkImages(item)}</td><td>${item.reporter||"-"}</td><td>${item.remark||"-"}</td></tr>`).join("")}</tbody>
     </table>
   `;
 }
@@ -886,6 +886,12 @@ function renderProjectLogReadonlyMilestoneTable(rows){
     <div class="project-log-readonly-milestone-panel" data-readonly-milestone-panel="ongoing">${cards(ongoingRows)}</div>
     <div class="project-log-readonly-milestone-panel" data-readonly-milestone-panel="completed" hidden>${cards(completedRows)}</div>
   </div>`;
+}
+
+function renderProjectLogReadonlyWorkImages(item={}){
+  const images=Array.isArray(item.images)&&item.images.length?item.images:(item.imageUrl?[{name:item.imageName||"施工图片",url:item.imageUrl}]:[]);
+  if(!images.length)return "-";
+  return `<div class="project-log-work-readonly-images">${images.slice(0,9).map(image=>`<button type="button" class="project-log-work-thumb-btn" onclick="openProjectLogWorkImagePreview('${escapeAttr(image.url)}','${escapeAttr(image.name||"施工图片")}')"><img class="project-log-work-thumb" src="${image.url}" alt="${escapeAttr(image.name||"施工图片")}"/></button>`).join("")}</div>`;
 }
 
 function renderProjectLogReadonlyMilestoneSection(rows){
@@ -1145,17 +1151,31 @@ function renderProjectLogReporterOptions(value=""){
 }
 
 function renderProjectLogWorkImageUpload(row={}){
-  const name=row.imageName||"";
-  const url=row.imageUrl||"";
+  const images=Array.isArray(row.images)&&row.images.length
+    ?row.images.slice(0,9)
+    :(row.imageUrl?[{name:row.imageName||"施工图片",url:row.imageUrl}]:[]);
   return `
-    <div class="project-log-work-image-upload" data-project-log-work-image-name="${escapeAttr(name)}" data-project-log-work-image-url="${escapeAttr(url)}">
-      <input type="file" accept="image/*" hidden onchange="handleProjectLogWorkImageFile(this)"/>
-      <button type="button" class="btn small" onclick="this.previousElementSibling?.click()">上传</button>
-      <div class="project-log-work-image-preview ${url?"has-image":""}" ${url?"":"hidden"}>
-        ${url?`<button type="button" onclick="openProjectLogWorkImagePreview('${escapeAttr(url)}','${escapeAttr(name||"施工图片")}')"><img src="${url}" alt="${escapeAttr(name||"施工图片")}"/></button>`:""}
+    <div class="project-log-work-image-upload">
+      <input type="file" accept="image/*" multiple hidden onchange="handleProjectLogWorkImageFiles(this)"/>
+      <div class="project-log-work-image-grid">
+        ${images.map((image,index)=>renderProjectLogWorkImageItem(image,index)).join("")}
+        ${images.length<9?renderProjectLogWorkImageAdd():""}
       </div>
     </div>
   `;
+}
+
+function renderProjectLogWorkImageItem(image,index){
+  const name=image?.name||"施工图片";
+  const url=image?.url||"";
+  return `<div class="project-log-work-image-item" data-image-name="${escapeAttr(name)}" data-image-url="${escapeAttr(url)}">
+    <button type="button" class="project-log-work-image-view" onclick="openProjectLogWorkImagePreview('${escapeAttr(url)}','${escapeAttr(name)}')"><img src="${url}" alt="${escapeAttr(name)}"/></button>
+    <button type="button" class="project-log-work-image-remove" title="删除图片" aria-label="删除图片" onclick="removeProjectLogWorkImage(this)">×</button>
+  </div>`;
+}
+
+function renderProjectLogWorkImageAdd(){
+  return `<button type="button" class="project-log-work-image-add" onclick="this.closest('.project-log-work-image-upload')?.querySelector('input[type=file]')?.click()"><span>＋</span><em>上传图片</em></button>`;
 }
 
 function renderProjectLogWorkRow(type,row={},index=0){
@@ -1205,26 +1225,44 @@ function refreshProjectLogWorkReporters(){
   syncProjectLogRecorderFromWorkRows();
 }
 
-function handleProjectLogWorkImageFile(input){
-  const file=input?.files?.[0];
-  if(!file)return;
+function getProjectLogWorkImages(upload){
+  return [...(upload?.querySelectorAll(".project-log-work-image-item")||[])].map(item=>({
+    name:item.dataset.imageName||"施工图片",
+    url:item.dataset.imageUrl||""
+  })).filter(item=>item.url);
+}
+
+function refreshProjectLogWorkImageGrid(upload,images){
+  const grid=upload?.querySelector(".project-log-work-image-grid");
+  if(!grid)return;
+  const list=(images||[]).slice(0,9);
+  grid.innerHTML=`${list.map((image,index)=>renderProjectLogWorkImageItem(image,index)).join("")}${list.length<9?renderProjectLogWorkImageAdd():""}`;
+}
+
+function handleProjectLogWorkImageFiles(input){
   const upload=input.closest(".project-log-work-image-upload");
-  if(upload){
-    upload.dataset.projectLogWorkImageName=file.name;
+  if(!upload)return;
+  const current=getProjectLogWorkImages(upload);
+  const incoming=[...(input.files||[])].filter(file=>file.type.startsWith("image/"));
+  const available=Math.max(0,9-current.length);
+  incoming.slice(0,available).forEach(file=>{
     const reader=new FileReader();
     reader.onload=event=>{
-      const url=event.target.result;
-      upload.dataset.projectLogWorkImageUrl=url;
-      const preview=upload.querySelector(".project-log-work-image-preview");
-      if(preview){
-        preview.hidden=false;
-        preview.classList.add("has-image");
-        preview.innerHTML=`<button type="button" onclick="openProjectLogWorkImagePreview('${escapeAttr(url)}','${escapeAttr(file.name)}')"><img src="${url}" alt="${escapeAttr(file.name)}"/></button>`;
-      }
+      current.push({name:file.name,url:event.target.result});
+      refreshProjectLogWorkImageGrid(upload,current);
     };
     reader.readAsDataURL(file);
-  }
+  });
+  if(incoming.length>available)showToast("施工图片最多上传9张");
   input.value="";
+}
+
+function removeProjectLogWorkImage(button){
+  const upload=button?.closest(".project-log-work-image-upload");
+  const item=button?.closest(".project-log-work-image-item");
+  if(!upload||!item)return;
+  item.remove();
+  refreshProjectLogWorkImageGrid(upload,getProjectLogWorkImages(upload));
 }
 
 function openProjectLogWorkImagePreview(url,name="施工图片"){
@@ -1235,17 +1273,21 @@ function openProjectLogWorkImagePreview(url,name="施工图片"){
 
 function collectProjectLogWorkRows(type){
   const rows=[...document.querySelectorAll(`#projectLogWorkTbody-${type} .project-log-report-work-row`)];
-  return rows.map(row=>({
-    area:row.querySelector(".project-log-work-area")?.value||"",
-    subitem:row.querySelector(".project-log-work-subitem")?.value.trim()||"",
-    position:row.querySelector(".project-log-work-position")?.value.trim()||"",
-    content:row.querySelector(".project-log-work-content")?.value.trim()||"",
-    progress:row.querySelector(".project-log-work-progress")?.value||"",
-    imageName:row.querySelector(".project-log-work-image-upload")?.dataset.projectLogWorkImageName||"",
-    imageUrl:row.querySelector(".project-log-work-image-upload")?.dataset.projectLogWorkImageUrl||"",
-    reporter:row.querySelector(".project-log-work-reporter")?.value||"",
-    remark:row.querySelector(".project-log-work-remark")?.value.trim()||""
-  })).filter(row=>row.area||row.subitem||row.position||row.content||row.progress||row.imageName||row.remark);
+  return rows.map(row=>{
+    const images=getProjectLogWorkImages(row.querySelector(".project-log-work-image-upload"));
+    return {
+      area:row.querySelector(".project-log-work-area")?.value||"",
+      subitem:row.querySelector(".project-log-work-subitem")?.value.trim()||"",
+      position:row.querySelector(".project-log-work-position")?.value.trim()||"",
+      content:row.querySelector(".project-log-work-content")?.value.trim()||"",
+      progress:row.querySelector(".project-log-work-progress")?.value||"",
+      images,
+      imageName:images[0]?.name||"",
+      imageUrl:images[0]?.url||"",
+      reporter:row.querySelector(".project-log-work-reporter")?.value||"",
+      remark:row.querySelector(".project-log-work-remark")?.value.trim()||""
+    };
+  }).filter(row=>row.area||row.subitem||row.position||row.content||row.progress||row.images.length||row.remark);
 }
 
 function getProjectLogDueMilestoneRows(reportDate=getProjectLogTodayValue()){
