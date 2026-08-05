@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.567-CONSTRUCTION-LOG-WORD-TEMPLATE";
-const APP_CODE_VERSION_NAME="施工日志 Word 导出模板版";
-const APP_CODE_VERSION_TIME="2026-08-04 17:30";
-const APP_CODE_VERSION_DESC="新增与施工日志在线填报页面结构一致的 Word 导出模板，覆盖基础信息、人员、今日与明日工作、里程碑、风险及停工情况。";
+const APP_CODE_VERSION="EM-20260701-V2.2.569-APPROVAL-FLOW-SUPERVISION";
+const APP_CODE_VERSION_NAME="审批流程督办版";
+const APP_CODE_VERSION_TIME="2026-08-05 10:00";
+const APP_CODE_VERSION_DESC="审批流程明细移除超期概念，保留停留状态并新增审批中流程督办、提醒次数及提醒触达明细。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
@@ -1245,6 +1245,23 @@ let messageTodoReachRecordData=[
   {id:"todo-010",batchNo:"TD202607250009",biz:"基础管理>组织管理",todoTitle:"项目组织信息变更确认",todoContent:"机场联络线工程所属分公司信息已调整，请确认项目组织关系。",receiver:"吴组织",org:"隧道股份",project:"机场联络线工程",post:"组织管理员",deliverStatus:"已送达",deliverTime:"2026-07-25 11:25:33",readStatus:"已读",readTime:"2026-07-25 11:33:27",clickStatus:"已点击",clickTime:"2026-07-25 11:34:02",handleStatus:"办理中",handleTime:"",failReason:""}
 ];
 
+const messageTodoOverdueMeta={
+  "todo-001":{dueSoon:false,overdueHours:0,reminders:0},
+  "todo-002":{dueSoon:false,overdueHours:26,reminders:2},
+  "todo-003":{dueSoon:false,overdueHours:49,reminders:2},
+  "todo-004":{dueSoon:true,overdueHours:0,reminders:0},
+  "todo-005":{dueSoon:false,overdueHours:0,reminders:0},
+  "todo-006":{dueSoon:false,overdueHours:76,reminders:3},
+  "todo-007":{dueSoon:true,overdueHours:0,reminders:0},
+  "todo-008":{dueSoon:false,overdueHours:181,reminders:5},
+  "todo-009":{dueSoon:false,overdueHours:0,reminders:0},
+  "todo-010":{dueSoon:false,overdueHours:100,reminders:4}
+};
+messageTodoReachRecordData=messageTodoReachRecordData.map(row=>{
+  const meta=messageTodoOverdueMeta[row.id]||{dueSoon:false,overdueHours:0,reminders:0};
+  return {...row,...meta,overdue:meta.overdueHours>0?"是":"否"};
+});
+
 const messageAdminState={
   templateType:"",
   templateBiz:"",
@@ -1291,7 +1308,8 @@ const messageAdminState={
   todoDeliver:"",
   todoRead:"",
   todoClick:"",
-  todoHandle:""
+  todoHandle:"",
+  todoOverdue:""
 };
 
 const messageSendDrillState={

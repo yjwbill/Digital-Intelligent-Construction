@@ -1279,6 +1279,7 @@ function getMessageTodoReachFiltered(){
     if(messageAdminState.todoRead&&x.readStatus!==messageAdminState.todoRead)return false;
     if(messageAdminState.todoClick&&x.clickStatus!==messageAdminState.todoClick)return false;
     if(messageAdminState.todoHandle&&x.handleStatus!==messageAdminState.todoHandle)return false;
+    if(messageAdminState.todoOverdue&&!matchesMessageTodoOverdueStat(x,messageAdminState.todoOverdue))return false;
     return true;
   });
 }
@@ -1957,6 +1958,39 @@ function messageTodoBizTag(value){
   return tag(value,colorMap[value]||"blue");
 }
 
+function getMessageTodoReminderBatchNo(row){
+  return `TR${String(row.batchNo||row.id).replace(/\D/g,"").slice(-12).padStart(12,"0")}`;
+}
+
+function ensureMessageTodoReminderRecords(row){
+  const batchNo=getMessageTodoReminderBatchNo(row);
+  if(messageRecordData.some(record=>record.batchNo===batchNo))return batchNo;
+  for(let index=0;index<row.reminders;index+=1){
+    const read=index<Math.max(0,row.reminders-1);
+    const clicked=index<Math.max(0,row.reminders-2);
+    const hour=String(9+index).padStart(2,"0");
+    messageRecordData.push({
+      id:`todo-reminder-${row.id}-${index+1}`,batchNo,receiver:row.receiver,account:`todo${String(row.id).replace(/\D/g,"")}${index+1}`,
+      org:row.org,project:row.project,post:row.post,type:"预警通知",biz:row.biz,
+      title:`待办超期提醒（第${index+1}次）`,content:`${row.todoTitle}已超期${formatApprovalFlowDuration(row.overdueHours)}，请尽快完成办理。`,channel:"站内信",
+      deliverStatus:"发送成功",deliverTime:`2026-07-${String(26+Math.min(index,4)).padStart(2,"0")} ${hour}:00:02`,sendTime:`2026-07-${String(26+Math.min(index,4)).padStart(2,"0")} ${hour}:00:02`,
+      readStatus:read?"已读":"未读",readTime:read?`2026-07-${String(26+Math.min(index,4)).padStart(2,"0")} ${hour}:12:18`:"",
+      clickStatus:clicked?"已点击":"未点击",clickTime:clicked?`2026-07-${String(26+Math.min(index,4)).padStart(2,"0")} ${hour}:13:06`:"",failReason:""
+    });
+  }
+  return batchNo;
+}
+
+function openMessageTodoReminderDrilldown(id){
+  const row=messageTodoReachRecordData.find(item=>item.id===id);
+  if(!row)return;
+  const batchNo=ensureMessageTodoReminderRecords(row);
+  openSendRecordDrilldown(batchNo,"sent");
+  modalTitle.innerText="超期提醒消息明细";
+}
+
+window.openMessageTodoReminderDrilldown=openMessageTodoReminderDrilldown;
+
 tableColumnDefinitions.messageTodoReach=[
   {key:"index",title:"序号",width:70,align:"center",render:(x,i)=>i+1},
   {key:"biz",title:"业务分类",width:160,align:"center",render:x=>messageTodoBizTag(x.biz)},
@@ -1974,6 +2008,9 @@ tableColumnDefinitions.messageTodoReach=[
   {key:"clickTime",title:"点击时间",width:165,align:"center",render:x=>x.clickTime||"--"},
   {key:"handleStatus",title:"办理状态",width:100,align:"center",render:x=>messageStatusTag(x.handleStatus||"--")},
   {key:"handleTime",title:"办理时间",width:165,align:"center",render:x=>x.handleTime||"--"},
+  {key:"overdue",title:"是否超期",width:100,align:"center",render:x=>tag(x.overdue,x.overdue==="是"?"red":"green")},
+  {key:"overdueDuration",title:"超期时长",width:100,align:"center",render:x=>formatApprovalFlowDuration(x.overdueHours)},
+  {key:"reminders",title:"超期提醒次数",width:120,align:"center",render:x=>`<button type="button" class="link approval-flow-reminder-link" data-todo-reminder-id="${x.id}" onclick="openMessageTodoReminderDrilldown('${x.id}')">${x.reminders}</button>`},
   {key:"batchNo",title:"发送批次号",width:180,align:"left",render:x=>x.batchNo?`<a class="link" onclick="openMessageBatchDetail('${x.batchNo}')">${x.batchNo}</a>`:"--"},
   {key:"failReason",title:"失败原因",width:200,align:"left",render:x=>x.failReason||"--"},
   {key:"operation",title:"操作",width:150,align:"center",render:x=>`<a class="link" onclick="openMessageTodoReachDetail('${x.id}')">查看</a>${x.deliverStatus==="送达失败"?` <a class="link" onclick="retryMessageTodoReach('${x.id}')">重新推送</a>`:""}`}
@@ -2018,7 +2055,7 @@ function renderMessageRecordTitleRow(){
 }
 
 function setMessageTodoStatFilter(type,value){
-  const keyMap={deliver:"todoDeliver",read:"todoRead",click:"todoClick",handle:"todoHandle"};
+  const keyMap={deliver:"todoDeliver",read:"todoRead",click:"todoClick",handle:"todoHandle",overdue:"todoOverdue"};
   const key=keyMap[type];
   if(!key)return;
   messageAdminState[key]=messageAdminState[key]===value?"":value;
@@ -2026,12 +2063,25 @@ function setMessageTodoStatFilter(type,value){
 }
 
 function renderMessageTodoStatItem(filterType,value,count,label){
-  const keyMap={deliver:"todoDeliver",read:"todoRead",click:"todoClick",handle:"todoHandle"};
+  const keyMap={deliver:"todoDeliver",read:"todoRead",click:"todoClick",handle:"todoHandle",overdue:"todoOverdue"};
   const active=messageAdminState[keyMap[filterType]]===value;
   return `<button class="message-stat-option ${active?'active':''}" onclick="setMessageTodoStatFilter('${filterType}','${value}')"><strong>${count}</strong><span>${label}</span></button>`;
 }
 
+function matchesMessageTodoOverdueStat(row,stat){
+  if(stat==="dueSoon")return row.dueSoon&&!row.overdueHours;
+  if(stat==="overdue")return row.overdueHours>0;
+  if(stat==="overdue3")return row.overdueHours>=72;
+  if(stat==="overdue7")return row.overdueHours>=168;
+  return true;
+}
+
+function renderMessageTodoOverdueStatItem(key,label,rows){
+  return renderMessageTodoStatItem("overdue",key,rows.filter(row=>matchesMessageTodoOverdueStat(row,key)).length,label);
+}
+
 function renderMessageTodoReachPage(){
+  window.openMessageTodoReminderDrilldown=openMessageTodoReminderDrilldown;
   const list=getMessageTodoReachFiltered();
   const all=messageTodoReachRecordData;
   const queryFields=`
@@ -2049,6 +2099,7 @@ function renderMessageTodoReachPage(){
       <div class="stat message-record-stat-group"><div class="stat-name">阅读状态</div><div class="message-call-stat-grid stat-click-grid">${renderMessageTodoStatItem("read","未读",all.filter(x=>x.readStatus==="未读").length,"未读")}${renderMessageTodoStatItem("read","已读",all.filter(x=>x.readStatus==="已读").length,"已读")}</div></div>
       <div class="stat message-record-stat-group"><div class="stat-name">点击状态</div><div class="message-call-stat-grid stat-click-grid">${renderMessageTodoStatItem("click","未点击",all.filter(x=>x.clickStatus==="未点击").length,"未点击")}${renderMessageTodoStatItem("click","已点击",all.filter(x=>x.clickStatus==="已点击").length,"已点击")}</div></div>
       <div class="stat message-record-stat-group"><div class="stat-name">办理状态</div><div class="message-call-stat-grid stat-click-grid message-todo-handle-grid">${renderMessageTodoStatItem("handle","未办理",all.filter(x=>x.handleStatus==="未办理").length,"未办理")}${renderMessageTodoStatItem("handle","办理中",all.filter(x=>x.handleStatus==="办理中").length,"办理中")}${renderMessageTodoStatItem("handle","已办理",all.filter(x=>x.handleStatus==="已办理").length,"已办理")}</div></div>
+      <div class="stat message-record-stat-group"><div class="stat-name">超期状态</div><div class="message-call-stat-grid stat-click-grid">${renderMessageTodoOverdueStatItem("dueSoon","即将超期",all)}${renderMessageTodoOverdueStatItem("overdue","已超期",all)}${renderMessageTodoOverdueStatItem("overdue3","超期3天以上",all)}${renderMessageTodoOverdueStatItem("overdue7","超期7天以上",all)}</div></div>
     </div>
   `;
 
@@ -2074,6 +2125,10 @@ function renderMessageTodoReachPage(){
   setSelectValue("msgTodoClick",messageAdminState.todoClick);
   setSelectValue("msgTodoHandle",messageAdminState.todoHandle);
   renderTableByColumns("messageTodoReach",list,"messageTodoReachTbody");
+  document.getElementById("messageTodoReachTbody")?.addEventListener("click",event=>{
+    const trigger=event.target.closest?.("[data-todo-reminder-id]");
+    if(trigger)openMessageTodoReminderDrilldown(trigger.dataset.todoReminderId);
+  });
   setTimeout(()=>refreshTemplateTreeStates("msgTodoBizTreeFilter"),0);
 }
 
@@ -4101,6 +4156,7 @@ function openMessageTodoReachDetail(id){
       ${info("接收人岗位",x.post)}${info("发送批次号",x.batchNo)}${info("送达状态",x.deliverStatus)}${info("送达时间",x.deliverTime||"--")}
       ${info("阅读状态",x.readStatus)}${info("阅读时间",x.readTime||"--")}${info("点击状态",x.clickStatus)}${info("点击时间",x.clickTime||"--")}
       ${info("办理状态",x.handleStatus)}${info("办理时间",x.handleTime||"--")}${info("失败原因",x.failReason||"--")}
+      ${info("是否超期",x.overdue)}${info("超期时长",formatApprovalFlowDuration(x.overdueHours))}${info("超期提醒次数",String(x.reminders))}
       <div class="message-admin-content"><strong>${x.todoTitle}</strong>${x.todoContent}</div>
     </div>
   `,`<button class="btn" onclick="closeModal()">关闭</button>${x.deliverStatus==="送达失败"?`<button class="btn primary" onclick="retryMessageTodoReach('${x.id}')">重新推送</button>`:""}`,"large");
@@ -4131,7 +4187,7 @@ function retryMessageTodoReach(id){
    审批流程明细
 ========================= */
 const approvalFlowDetailData=[
-  {id:1,scope:"项目",name:"上海示范区线工程 SFQSG-15 标",type:"I级风险条件验收",content:"深基坑开挖前置条件验收",initiator:"张建国",startTime:"2026-08-03 09:10",node:"项目负责人审批",approver:"王安全",arrivalTime:"2026-08-03 09:12",stayDuration:"4小时18分钟",overdue:"否",reminders:0,status:"审批中"},
+  {id:1,scope:"项目",name:"上海示范区线工程 SFQSG-15 标",type:"I级风险条件验收",content:"深基坑开挖前置条件验收",initiator:"张建国",startTime:"2026-08-03 09:10",node:"项目负责人审批",approver:"王安全",arrivalTime:"2026-08-03 09:12",stayDuration:"4小时18分钟",reminders:0,status:"审批中"},
   {id:2,scope:"项目",name:"机场联络线工程 JCXSG-4 标",type:"II级风险变更",content:"风险等级及管控措施变更",initiator:"王晨",startTime:"2026-08-03 08:42",node:"分公司安全负责人审批",approver:"陈审批",arrivalTime:"2026-08-03 08:45",stayDuration:"4小时45分钟",overdue:"否",reminders:0,status:"审批中"},
   {id:3,scope:"企业",name:"上海隧道工程有限公司",type:"实际产值上报",content:"2026年7月实际产值上报",initiator:"赵经营",startTime:"2026-08-02 17:30",node:"股份产运部复核",approver:"赵主管",arrivalTime:"2026-08-03 09:00",stayDuration:"4小时30分钟",overdue:"否",reminders:0,status:"审批中"},
   {id:4,scope:"项目",name:"北方数据中心项目",type:"停工申请",content:"申请2026年8月5日起临时停工",initiator:"陈启航",startTime:"2026-08-02 16:05",node:"审批结束",approver:"李经理",arrivalTime:"2026-08-02 18:26",stayDuration:"-",overdue:"否",reminders:0,status:"已驳回"},
@@ -4146,14 +4202,14 @@ const approvalFlowDetailData=[
 ];
 
 const approvalFlowTimingMetrics={
-  1:{stayHours:4,stayMinutes:18,dueSoon:true},
-  2:{stayHours:4,stayMinutes:45,dueSoon:true},
-  3:{stayHours:4,stayMinutes:30,dueSoon:false},
-  6:{stayHours:26,overdueHours:2},
-  8:{stayHours:198,overdueHours:80},
-  10:{stayHours:241,overdueHours:180}
+  1:{stayHours:4,stayMinutes:18},
+  2:{stayHours:4,stayMinutes:45},
+  3:{stayHours:4,stayMinutes:30},
+  6:{stayHours:26},
+  8:{stayHours:198},
+  10:{stayHours:241}
 };
-approvalFlowDetailData.forEach(row=>Object.assign(row,{stayHours:0,stayMinutes:0,overdueHours:0,dueSoon:false},approvalFlowTimingMetrics[row.id]||{}));
+approvalFlowDetailData.forEach(row=>Object.assign(row,{stayHours:0,stayMinutes:0},approvalFlowTimingMetrics[row.id]||{}));
 
 const approvalFlowOrgAssignments={
   1:["隧道股份","上海隧道","轨交分公司"],2:["隧道股份","上海隧道","轨交分公司"],3:["隧道股份","上海隧道"],
@@ -4202,11 +4258,9 @@ tableColumnDefinitions.approvalFlowDetail=[
   {key:"approver",title:"当前审批人",width:120,align:"center",render:row=>row.approver},
   {key:"arrivalTime",title:"流程到达时间",width:165,align:"center",render:row=>row.arrivalTime},
   {key:"stayDuration",title:"已停留时长",width:100,align:"center",render:row=>formatApprovalFlowDuration(row.stayHours,row.stayMinutes)},
-  {key:"overdue",title:"是否超期",width:100,align:"center",render:row=>tag(row.overdue,row.overdue==="是"?"red":"green")},
-  {key:"overdueDuration",title:"超期时长",width:100,align:"center",render:row=>formatApprovalFlowDuration(row.overdueHours)},
-  {key:"reminders",title:"超期提醒次数",width:120,align:"center",render:row=>`<button type="button" class="link approval-flow-reminder-link" data-approval-reminder-id="${row.id}">${row.reminders}</button>`},
+  {key:"reminders",title:"提醒次数",width:100,align:"center",render:row=>`<button type="button" class="link approval-flow-reminder-link" data-approval-reminder-id="${row.id}">${row.reminders}</button>`},
   {key:"status",title:"审批状态",width:110,align:"center",render:row=>approvalFlowDetailStatusTag(row.status)},
-  {key:"operation",title:"操作",width:90,align:"center",render:row=>`<a class="link" onclick="openApprovalFlowDetail(${row.id})">查看</a>`}
+  {key:"operation",title:"操作",width:130,align:"center",render:row=>`<a class="link" onclick="openApprovalFlowDetail(${row.id})">查看</a>${row.status==="审批中"?` <a class="link" onclick="superviseApprovalFlow(${row.id})">督办</a>`:""}`}
 ];
 
 function approvalFlowDetailOptions(key){
@@ -4239,10 +4293,6 @@ function matchesApprovalFlowStat(row,stat=approvalFlowDetailState.stat){
   if(stat==="statusPending")return row.status==="审批中";
   if(stat==="statusPassed")return row.status==="已通过";
   if(stat==="statusRejected")return row.status==="已驳回";
-  if(stat==="dueSoon")return row.dueSoon&&!row.overdueHours;
-  if(stat==="overdue")return row.overdueHours>0;
-  if(stat==="overdue3")return row.overdueHours>=72;
-  if(stat==="overdue7")return row.overdueHours>=168;
   if(stat==="stay3")return row.stayHours>=72;
   if(stat==="stay7")return row.stayHours>=168;
   return true;
@@ -4271,10 +4321,6 @@ function renderApprovalFlowStats(){
         <div class="construction-project-stat-group">
           <div class="construction-project-stat-name">审批状态</div>
           <div class="construction-project-stat-items">${renderApprovalFlowStatOption("statusPending","审批中",rows)}${renderApprovalFlowStatOption("statusPassed","已通过",rows)}${renderApprovalFlowStatOption("statusRejected","已驳回",rows)}</div>
-        </div>
-        <div class="construction-project-stat-group">
-          <div class="construction-project-stat-name">超期状态</div>
-          <div class="construction-project-stat-items">${renderApprovalFlowStatOption("dueSoon","即将超期",rows)}${renderApprovalFlowStatOption("overdue","已超期",rows)}${renderApprovalFlowStatOption("overdue3","超期3天以上",rows)}${renderApprovalFlowStatOption("overdue7","超期7天以上",rows)}</div>
         </div>
         <div class="construction-project-stat-group">
           <div class="construction-project-stat-name">停留状态</div>
@@ -4439,8 +4485,8 @@ function ensureApprovalReminderRecords(row){
       post:index===0?"当前审批人":"审批管理岗",
       type:"预警通知",
       biz:`基础管理>审批流程管理`,
-      title:`审批流程超期提醒（第${index+1}次）`,
-      content:`${row.name}的${row.type}流程已超期${formatApprovalFlowDuration(row.overdueHours)}，请尽快完成审批。`,
+      title:`审批流程督办提醒（第${index+1}次）`,
+      content:`${row.name}的${row.type}流程已停留${formatApprovalFlowDuration(row.stayHours,row.stayMinutes)}，请尽快完成审批。`,
       channel:"站内信",
       deliverStatus:"发送成功",
       deliverTime:`2026-08-0${Math.min(4,index+1)} ${hour}:00:02`,
@@ -4460,17 +4506,37 @@ function openApprovalReminderDrilldown(id){
   if(!row)return;
   const batchNo=ensureApprovalReminderRecords(row);
   openSendRecordDrilldown(batchNo,"sent");
-  modalTitle.innerText="超期提醒消息明细";
+  modalTitle.innerText="督办提醒消息明细";
+}
+
+function superviseApprovalFlow(id){
+  const row=approvalFlowDetailData.find(item=>item.id===id);
+  if(!row||row.status!=="审批中")return;
+  ensureApprovalReminderRecords(row);
+  row.reminders+=1;
+  const batchNo=getApprovalReminderBatchNo(row);
+  const index=row.reminders-1;
+  const hour=String(9+index).padStart(2,"0");
+  messageRecordData.push({
+    id:`approval-reminder-${row.id}-${row.reminders}`,batchNo,receiver:row.approver,account:`approval${row.id}${row.reminders}`,
+    org:row.orgPath[1]||row.orgPath[0],project:row.scope==="项目"?row.name:"--",post:"当前审批人",type:"预警通知",biz:"基础管理>审批流程管理",
+    title:`审批流程督办提醒（第${row.reminders}次）`,content:`${row.name}的${row.type}流程已停留${formatApprovalFlowDuration(row.stayHours,row.stayMinutes)}，请尽快完成审批。`,channel:"站内信",
+    deliverStatus:"发送成功",deliverTime:`2026-08-05 ${hour}:00:02`,sendTime:`2026-08-05 ${hour}:00:02`,readStatus:"未读",readTime:"",clickStatus:"未点击",clickTime:"",failReason:""
+  });
+  applyApprovalFlowDetailFilters();
+  renderApprovalFlowDetailPage();
+  showToast(`督办消息已发送给${row.approver}`);
 }
 
 window.openSendRecordDrilldown=openSendRecordDrilldown;
 window.openApprovalReminderDrilldown=openApprovalReminderDrilldown;
+window.superviseApprovalFlow=superviseApprovalFlow;
 if(!window.__approvalReminderDrilldownBound){
   window.__approvalReminderDrilldownBound=true;
   document.addEventListener("click",event=>{
     const trigger=event.target.closest?.(".approval-flow-reminder-link");
     if(!trigger)return;
-    openApprovalReminderDrilldown(Number(trigger.dataset.approvalReminderId));
+    if(!trigger.dataset.todoReminderId)openApprovalReminderDrilldown(Number(trigger.dataset.approvalReminderId));
   });
 }
 
@@ -4480,8 +4546,7 @@ function openApprovalFlowDetail(id){
   openModal("审批流程详情",`<div class="message-admin-detail">
     ${info("审批对象",row.scope)}${info("对象名称",row.name)}${info("审批类型",row.type)}${info("审批状态",approvalFlowDetailStatusTag(row.status))}
     ${info("审批发起人",row.initiator)}${info("审批发起时间",row.startTime)}${info("当前流程节点",row.node)}${info("当前审批人",row.approver)}
-    ${info("流程到达时间",row.arrivalTime)}${info("已停留时长",formatApprovalFlowDuration(row.stayHours,row.stayMinutes))}${info("是否超期",row.overdue)}${info("超期时长",formatApprovalFlowDuration(row.overdueHours))}
-    ${info("超期提醒次数",String(row.reminders))}
+    ${info("流程到达时间",row.arrivalTime)}${info("已停留时长",formatApprovalFlowDuration(row.stayHours,row.stayMinutes))}${info("提醒次数",String(row.reminders))}
     <div class="message-admin-content"><strong>审批内容</strong>${row.content}</div>
   </div>`,`<button class="btn primary" onclick="closeModal()">关闭</button>`,"large");
 }

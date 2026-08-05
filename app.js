@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.567-construction-log-word-template";
+  const version="2.2.569-approval-flow-supervision";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",
