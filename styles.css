@@ -19404,6 +19404,10 @@ body.mobile-mode .mobile-tabbar .tab-create.active span:after{
 .nested-modal.operation-order-project-picker-modal .modal-bd{padding:14px;overflow:hidden;background:#f5f7fa;display:flex;flex-direction:column;gap:12px}
 .operation-order-project-picker-modal .operation-order-picker-card{min-height:0;flex:1;margin:0;display:flex;flex-direction:column}
 .operation-order-project-picker-modal .operation-order-picker-card .table-wrap{min-height:0;flex:1;overflow:auto}
+.operation-order-project-picker-modal .operation-order-picker-card table th.center,
+.operation-order-project-picker-modal .operation-order-picker-card table td.center{text-align:center !important}
+.operation-unbound-link{color:#d81e06;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.operation-unbound-icon{width:14px;height:14px;display:block;flex:0 0 14px}
 .nested-modal.message-project-picker-modal .modal-bd{padding:14px;overflow:hidden;background:#f5f7fa}
 .message-project-selector{height:100%;min-height:0;display:flex;flex-direction:column;gap:12px}
 .message-project-selector>.unified-query-card{flex:0 0 auto;margin:0}

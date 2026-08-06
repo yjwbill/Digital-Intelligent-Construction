@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.585-order-project-picker-alignment";
+  const version="2.2.588-operation-project-unbound-svg";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/vendor/jszip.min.js",

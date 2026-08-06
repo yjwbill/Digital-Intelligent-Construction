@@ -69,7 +69,7 @@
   const select=(id,label,values,value="")=>`<div class="form-item"><label>${label}</label><select class="select" id="${id}"><option value="">全部</option>${values.map(item=>`<option value="${item}" ${item===value?"selected":""}>${item}</option>`).join("")}</select></div>`;
   const dateRange=(label,startId,endId,start="",end="")=>`<div class="form-item"><label>${label}</label><div class="date-range ep-date-range"><input class="input" type="date" id="${startId}" value="${start}"/><span>至</span><input class="input" type="date" id="${endId}" value="${end}"/></div></div>`;
   const yesNoTag=(value,yes="已关联",no="未关联")=>value===yes?tag(value,"green"):`<span style="color:#f53f3f">● ${value||no}</span>`;
-  const linkCell=value=>value?`<a class="link" title="${escapeAttr(value)}">${value}</a>`:`<span style="color:#f53f3f">● 去查询 ›</span>`;
+  const linkCell=value=>value?`<span title="${escapeAttr(value)}">${value}</span>`:`<span class="operation-unbound-link" title="未绑定"><svg class="operation-unbound-icon" viewBox="0 0 1024 1024" aria-hidden="true"><path d="M510.983345 63.599504c246.331291 0 447.87554 201.544249 447.87554 447.87554 0 246.332315-201.544249 447.87554-447.87554 447.87554S63.108828 757.806335 63.108828 511.474021C63.108828 265.143753 264.652054 63.599504 510.983345 63.599504L510.983345 63.599504zM575.273581 639.544885l-127.913275 0 0 127.913275 127.913275 0L575.273581 639.544885zM575.273581 255.42132l-127.913275 0 0 320.67858 127.913275 0L575.273581 255.42132z" fill="currentColor"></path></svg><span>未绑定</span></span>`;
 
   tableColumnDefinitions.operationProductionProjectList=[
     {key:"selection",title:"",width:48,align:"center",render:()=>`<input type="checkbox"/>`},
