@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.606-output-chart-axis-label-gap";
+  const version="2.2.607-output-chart-axis-label-offset";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/vendor/jszip.min.js",

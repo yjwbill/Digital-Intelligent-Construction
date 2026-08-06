@@ -1,3 +1,6 @@
+EM-20260701-V2.2.607-OUTPUT-CHART-AXIS-LABEL-OFFSET
+- 横坐标公司名称和月份的下移偏移由 6px 增加至 14px，进一步解决旋转文字与 0 轴重叠。
+
 EM-20260701-V2.2.606-OUTPUT-CHART-AXIS-LABEL-GAP
 - 修复横坐标公司名称、月份与图表 0 轴重叠的问题，旋转标签增加 6px 下移偏移。
 

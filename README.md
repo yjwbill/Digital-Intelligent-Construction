@@ -2,7 +2,7 @@
 
 这是一个用于产品演示的静态前端 Demo，已整理为适合 GitHub Pages 发布的目录结构。
 
-当前版本：`EM-20260701-V2.2.606-OUTPUT-CHART-AXIS-LABEL-GAP`
+当前版本：`EM-20260701-V2.2.607-OUTPUT-CHART-AXIS-LABEL-OFFSET`
 
 ## 在线发布
 
@@ -53,7 +53,9 @@ npx serve .
 
 ## 当前版本
 
-`EM-20260701-V2.2.606-OUTPUT-CHART-AXIS-LABEL-GAP`
+`EM-20260701-V2.2.607-OUTPUT-CHART-AXIS-LABEL-OFFSET`
+
+本版本继续下移图表横坐标公司名称和月份，将旋转标签偏移增加到 14px，彻底避开 0 轴。
 
 本版本修复图表横坐标公司名称和月份与 0 轴重叠的问题，增加旋转文字的 6px 下移间距。
 

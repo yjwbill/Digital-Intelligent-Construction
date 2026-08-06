@@ -18016,7 +18016,7 @@ body.mobile-mode .mobile-manual-scroll{
   font-size:12px;
   font-weight:800;
   white-space:nowrap;
-  transform:translateY(6px) rotate(-42deg);
+  transform:translateY(14px) rotate(-42deg);
   transform-origin:center top;
 }
 .production-chart-tooltip{
