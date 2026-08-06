@@ -2,7 +2,7 @@
 
 这是一个用于产品演示的静态前端 Demo，已整理为适合 GitHub Pages 发布的目录结构。
 
-当前版本：`EM-20260701-V2.2.576-APPROVAL-FLOW-PRD`
+当前版本：`EM-20260701-V2.2.577-SAFETY-EVALUATION-MANUAL`
 
 ## 在线发布
 
@@ -53,7 +53,7 @@ npx serve .
 
 ## 当前版本
 
-`EM-20260701-V2.2.576-APPROVAL-FLOW-PRD`
+`EM-20260701-V2.2.577-SAFETY-EVALUATION-MANUAL`
 
 本版本实现施工日志筛选结果批量导出：单天单文件直接下载，单天多文件生成日期 ZIP，多天生成总 ZIP 并按日期建立文件夹；在线记录自动生成 Word，文件上报保留原文件名。
 

@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.576-approval-flow-prd";
+  const version="2.2.577-safety-evaluation-manual";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/vendor/jszip.min.js",
