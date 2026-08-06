@@ -1639,6 +1639,19 @@ const productionValueCompanyBusinessRules={
   "城建物资":["产品销售"]
 };
 
+const productionValueCompanyColumnWeights={
+  "上海隧道":[2,1],
+  "市政集团":[2,1,1],
+  "上海路桥":[2,1],
+  "城市环境":[2,1],
+  "上海能建":[2,1],
+  "城建设计":[2,1],
+  "城市运营":[2,1,1],
+  "数字集团":[2,1],
+  "地空公司":[2,1,1],
+  "地空":[2,1,1]
+};
+
 const productionValueBusinessDataKeys={
   "产品销售":["产品销售"],
   "设计":["设计"],
@@ -1723,12 +1736,12 @@ function renderProductionDualAxisShell({rows,projectMax,valueMax,lineKey,groupsH
         <div class="production-dual-grid"></div>
         <svg class="production-dual-line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
           <polyline points="${getProductionLinePoints(rows,lineKey,valueMax)}"></polyline>
-          ${rows.map((row,index)=>{
-            const x=((index+.5)/rows.length*100).toFixed(2);
-            const y=(100-Math.min(100,Number(row[lineKey]||0)/valueMax*100)).toFixed(2);
-            return `<circle cx="${x}" cy="${y}" r="3"></circle>`;
-          }).join("")}
         </svg>
+        <div class="production-dual-line-points" aria-hidden="true">${rows.map((row,index)=>{
+          const x=((index+.5)/rows.length*100).toFixed(2);
+          const y=(100-Math.min(100,Number(row[lineKey]||0)/valueMax*100)).toFixed(2);
+          return `<i style="left:${x}%;top:${y}%"></i>`;
+        }).join("")}</div>
         <div class="production-dual-groups">
           ${groupsHtml}
         </div>
@@ -1799,19 +1812,19 @@ function renderProductionValueReportChart(){
     {company:"数字集团",reported:7,unreported:13,value:2100},
     {company:"运营集团",reported:30,unreported:13,value:2400}
   ];
-  const projectMax=100;
+  const projectMax=160;
   const valueMax=10000;
   const groupsHtml=rows.map(row=>`
     <div class="production-dual-group" tabindex="0">
       <div class="production-chart-tooltip">
         <h4>${row.company}</h4>
-        <p><i class="reported"></i><span>已上报项目数</span><b>${row.reported}</b></p>
-        <p><i class="unreported"></i><span>未上报项目数</span><b>${row.unreported}</b></p>
-        <p><i class="line"></i><span>已上报产值</span><b>${formatProductionValuePlain(row.value,0)}万元</b></p>
+        <p><i class="project-total"></i><span>项目数</span><b>${row.reported+row.unreported}</b></p>
+        <p><i class="reported-output"></i><span>上报产值项目数</span><b>${row.reported}</b></p>
+        <p><i class="line"></i><span>上报产值</span><b>${formatProductionValuePlain(row.value,0)}万元</b></p>
       </div>
       <div class="production-dual-bars">
-        <span class="reported" style="height:${Math.max(2,row.reported/projectMax*100)}%"></span>
-        <span class="unreported" style="height:${Math.max(2,row.unreported/projectMax*100)}%"></span>
+        <span class="project-total" style="height:${Math.max(2,(row.reported+row.unreported)/projectMax*100)}%"></span>
+        <span class="reported-output" style="height:${Math.max(2,row.reported/projectMax*100)}%"></span>
       </div>
       <em>${row.company}</em>
     </div>
@@ -1827,7 +1840,7 @@ function renderProductionValueReportChart(){
         valueMax,
         lineKey:"value",
         groupsHtml,
-        legendHtml:`<div class="production-value-legend"><span><i class="reported"></i>已上报项目数</span><span><i class="unreported"></i>未上报项目数</span><span><i class="line"></i>已上报产值</span></div>`
+        legendHtml:`<div class="production-value-legend"><span><i class="project-total"></i>项目数</span><span><i class="reported-output"></i>上报产值项目数</span><span><i class="line"></i>上报产值（万元）</span></div>`
       })}
     </section>
   `;
@@ -1877,7 +1890,7 @@ function renderProductionValueMonthlyChart(){
         valueMax,
         lineKey:"value",
         groupsHtml,
-        legendHtml:`<div class="production-value-legend"><span><i class="new"></i>新接项目</span><span><i class="carry"></i>转接项目</span><span><i class="done"></i>完工未结算项目</span><span><i class="line"></i>已上报产值</span></div>`
+        legendHtml:`<div class="production-value-legend"><span><i class="new"></i>新接项目数</span><span><i class="carry"></i>转接项目数</span><span><i class="done"></i>完工未结算项目数</span><span><i class="line"></i>上报产值（万元）</span></div>`
       })}
     </section>
   `;
@@ -1961,14 +1974,24 @@ async function renderProductionValueDashboardPage(){
   replaceProductionScreenFragment(productionScreenSlot("main-summary"),mainItems.map(renderProductionValueMainSummaryCard).join(""));
   const matrixSlot=productionScreenSlot("main-matrix");
   if(matrixSlot){
+    const useShanghaiTunnelLayout=!isAll&&productionValueOrgActive==="上海隧道"&&displayMainRows.length===4;
+    const useMunicipalGroupLayout=!isAll&&productionValueOrgActive==="市政集团"&&displayMainRows.length===3;
+    const useStackedConstructionLayout=!isAll&&["城市环境","上海能建"].includes(productionValueOrgActive)&&displayMainRows.length===3;
     const useMultiColumn=!isAll && displayMainRows.length>=2;
-    const useThreeBusinessLayout=!isAll && displayMainRows.length===3;
-    const matrixRows=useThreeBusinessLayout ? 1 : useMultiColumn && displayMainRows.length===2 ? 1 : useMultiColumn ? 2 : Math.max(1,displayMainRows.length);
-    const matrixColumns=useThreeBusinessLayout ? 3 : useMultiColumn && displayMainRows.length===2 ? 2 : useMultiColumn ? Math.ceil(displayMainRows.length/2) : 1;
+    const useThreeBusinessLayout=!isAll && displayMainRows.length===3&&!useStackedConstructionLayout;
+    const matrixRows=useStackedConstructionLayout?2:useThreeBusinessLayout ? 1 : useMultiColumn && displayMainRows.length===2 ? 1 : useMultiColumn ? 2 : Math.max(1,displayMainRows.length);
+    const matrixColumns=useStackedConstructionLayout?2:useThreeBusinessLayout ? 3 : useMultiColumn && displayMainRows.length===2 ? 2 : useMultiColumn ? Math.ceil(displayMainRows.length/2) : 1;
     matrixSlot.classList.toggle("multi-column",useMultiColumn);
     matrixSlot.classList.toggle("three-business",useThreeBusinessLayout);
+    matrixSlot.classList.toggle("shanghai-tunnel-weighted",useShanghaiTunnelLayout);
+    matrixSlot.classList.toggle("municipal-group-weighted",useMunicipalGroupLayout);
+    matrixSlot.classList.toggle("stacked-construction-weighted",useStackedConstructionLayout);
     matrixSlot.style.setProperty("--matrix-row-count",matrixRows);
     matrixSlot.style.setProperty("--matrix-column-count",matrixColumns);
+    const columnWeights=!isAll?productionValueCompanyColumnWeights[productionValueOrgActive]:null;
+    matrixSlot.style.gridTemplateColumns=columnWeights&&columnWeights.length===matrixColumns
+      ?columnWeights.map(weight=>`minmax(0,${weight}fr)`).join(" ")
+      :"";
   }
   replaceProductionScreenFragment(matrixSlot,displayMainRows.map(renderProductionValueMainMatrixRow).join(""));
   replaceProductionScreenFragment(productionScreenSlot("right"),isAll?renderProductionValueBizPanel():"");
