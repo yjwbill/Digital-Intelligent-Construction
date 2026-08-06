@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.588-operation-project-unbound-svg";
+  const version="2.2.591-actual-output-column-width-fix";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/vendor/jszip.min.js",

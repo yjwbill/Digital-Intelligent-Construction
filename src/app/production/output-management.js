@@ -955,11 +955,11 @@ const otherBizOutputBizColumns=[
   {key:"design",label:"设计",width:110},
   {key:"digital",label:"数字",width:110},
   {key:"cityOperation",label:"城市运营",width:120},
-  {key:"propertyManage",label:"房产【物业管理】",width:150},
-  {key:"businessOperation",label:"房产【商业运营】",width:150},
-  {key:"propertyDevelop",label:"房产【房产开发】",width:150},
-  {key:"equityInvestment",label:"投资【股权项目】",width:150},
-  {key:"infrastructureInvestment",label:"投资【基建项目】",width:150},
+  {key:"propertyManage",label:"房产【物业管理】",width:180},
+  {key:"businessOperation",label:"房产【商业运营】",width:180},
+  {key:"propertyDevelop",label:"房产【房产开发】",width:180},
+  {key:"equityInvestment",label:"投资【股权项目】",width:180},
+  {key:"infrastructureInvestment",label:"投资【基建项目】",width:180},
   {key:"leaseFactoring",label:"投资【租赁及保理】",width:160}
 ];
 
@@ -1006,7 +1006,7 @@ const comprehensiveActualOutputBizColumns=[
   {key:"pipeline",label:"管线",width:100},
   ...otherBizOutputBizColumns.filter(col=>col.key!=="total").map(col=>({
     ...col,
-    width:col.key==="leaseFactoring"?180:100
+    width:["propertyManage","businessOperation","propertyDevelop","equityInvestment","infrastructureInvestment","leaseFactoring"].includes(col.key)?180:100
   }))
 ];
 
@@ -1523,7 +1523,7 @@ function renderOtherBizOutputTableCard(total,totalPages){
   return `
     <section class="card table-card construction-project-table-card monthly-fill-table-card">
       <div class="card-hd">
-        <div class="card-title">产值上报明细</div>
+        <div class="card-title actual-output-table-title">产值上报明细<span class="actual-output-report-guidance"><i class="info-tip">i</i>请在当月25号到次月10号上报当月产值</span></div>
         <div class="actions">
           <button class="btn primary" onclick="openOtherBizOutputReportForm()">产值上报</button>
           <button class="btn" onclick="renderOtherBizOutputReportPage()">刷新</button>
@@ -1559,7 +1559,7 @@ function renderComprehensiveActualOutputTableCard(total,totalPages){
   return `
     <section class="card table-card construction-project-table-card monthly-fill-table-card">
       <div class="card-hd">
-        <div class="card-title">产值上报明细</div>
+        <div class="card-title actual-output-table-title">产值上报明细<span class="actual-output-report-guidance"><i class="info-tip">i</i>请在当月25号到次月10号上报当月产值</span></div>
         <div class="actions">
           ${org.level===3?`<button class="btn primary" onclick="openComprehensiveActualOutputReportForm()">产值上报</button>`:""}
           <button class="btn" onclick="renderComprehensiveActualOutputReportPage()">刷新</button>
@@ -1691,7 +1691,7 @@ function renderComprehensiveActualOutputProjectAttachment(project,formMode){
     <div class="comprehensive-project-attachment-cell">
       ${formMode?`<div class="comprehensive-project-attachment-action"><button type="button" class="btn mini" onclick="openComprehensiveActualOutputProjectAttachmentPicker('${escapeAttr(key)}')">上传</button><em data-comprehensive-attachment-required="${escapeAttr(key)}">${required?"*":""}</em></div>`:""}
       <div class="comprehensive-project-attachment-files">
-        ${files.length?files.map(file=>`<span title="${escapeAttr(file)}">📄 ${escapeAttr(file)}</span>`).join(""):`<i data-comprehensive-attachment-empty="${escapeAttr(key)}">${formMode?(required?"未上传":"无需上传"):"暂无附件"}</i>`}
+        ${files.length?files.map((file,index)=>`<span class="comprehensive-project-attachment-file" title="${escapeAttr(file)}"><b>📄 ${escapeAttr(file)}</b>${formMode?`<button type="button" class="comprehensive-project-attachment-delete" title="删除附件" aria-label="删除附件" onclick="removeComprehensiveActualOutputProjectAttachment('${escapeAttr(key)}',${index})">×</button>`:""}</span>`).join(""):`<i data-comprehensive-attachment-empty="${escapeAttr(key)}">${formMode?"未上传":"暂无附件"}</i>`}
       </div>
     </div>
   `;
@@ -1829,6 +1829,17 @@ function addComprehensiveActualOutputProjectAttachment(projectKey){
   openComprehensiveActualOutputProjectAttachmentPicker(projectKey);
 }
 
+function removeComprehensiveActualOutputProjectAttachment(projectKey,fileIndex){
+  if(!comprehensiveActualOutputDetailState.formMode)return;
+  const row=comprehensiveActualOutputRows.find(item=>item.id===comprehensiveActualOutputDetailState.rowId);
+  const files=comprehensiveActualOutputDetailState.projectAttachments[projectKey]||[];
+  if(!row||fileIndex<0||fileIndex>=files.length)return;
+  files.splice(fileIndex,1);
+  comprehensiveActualOutputDetailState.projectAttachments[projectKey]=files;
+  rerenderComprehensiveActualOutputDetail(row);
+  showToast("附件已删除");
+}
+
 function openComprehensiveActualOutputProjectAttachmentPicker(projectKey){
   const row=comprehensiveActualOutputRows.find(item=>item.id===comprehensiveActualOutputDetailState.rowId);
   if(!row)return;
@@ -1895,7 +1906,7 @@ function updateComprehensiveActualOutputValue(input){
   const attachmentRequired=document.querySelector(`[data-comprehensive-attachment-required="${CSS.escape(attachmentKey)}"]`);
   if(attachmentRequired)attachmentRequired.textContent=project.current>0?"*":"";
   const attachmentEmpty=document.querySelector(`[data-comprehensive-attachment-empty="${CSS.escape(attachmentKey)}"]`);
-  if(attachmentEmpty)attachmentEmpty.textContent=project.current>0?"未上传":"无需上传";
+  if(attachmentEmpty)attachmentEmpty.textContent="未上传";
   refreshComprehensiveActualOutputAggregates(row);
 }
 
