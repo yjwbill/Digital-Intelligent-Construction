@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.577-safety-evaluation-manual";
+  const version="2.2.585-order-project-picker-alignment";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/vendor/jszip.min.js",
@@ -32,6 +32,7 @@
     "src/app/base/data-dictionary.js",
     "src/app/mobile/polish-monthly-output.js",
     "src/app/operation/production-project-report.js",
+    "src/app/operation/production-project-list.js",
     "src/app/operation/interface-sync-exceptions.js",
     "src/app/economy/project-initiation.js",
     "src/app/economy/economy-analysis-report.js",

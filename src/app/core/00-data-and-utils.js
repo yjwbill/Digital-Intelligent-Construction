@@ -720,7 +720,6 @@ const businessMenus={
           {name:"产值预测分析报表"},
           {name:"目标设置"},
           {name:"产值申报"},
-          {name:"项目产值上报（废）"},
           {name:"实际产值上报"},
           {name:"完工未结算管理"},
           {name:"其他业态产值申报"}
@@ -762,6 +761,14 @@ const businessMenus={
         children:[
           {name:"建筑垃圾筹划"},
           {name:"建筑垃圾外运申报"}
+        ]
+      },
+      {
+        icon:"🕘",
+        name:"历史功能",
+        open:false,
+        children:[
+          {name:"项目产值上报（废）"}
         ]
       }
     ]
@@ -871,7 +878,8 @@ const businessMenus={
         name:"生产项目",
         open:true,
         children:[
-          {name:"生产项目报表",active:true}
+          {name:"生产项目报表",active:true},
+          {name:"生产项目列表"}
         ]
       },
       {icon:"⚠️",name:"接口同步异常记录",active:false}

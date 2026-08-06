@@ -220,6 +220,7 @@ function selectBusinessChildMenu(line,gi,ci,name){
   if(line==="safety"&&name==="视频监控")return renderSafetyVideoMonitorPage();
   if(line==="safety"&&name==="AI违规抓拍")return renderSafetyAiCapturePage();
   if(line==="safety"&&(parent?.name==="安全评价"||parent?.name==="历史功能"))return renderSafetyEvaluationManagePage(name);
+  if(line==="operation"&&name==="生产项目列表")return renderOperationProductionProjectListPage();
   if(line==="operation")return renderOperationProductionProjectReportPage();
   if(line==="economy"&&parent?.name==="经济开项"&&name==="开项审批")return renderEconomyProjectInitiationPage();
   if(line==="economy"&&parent?.name==="大屏看板"&&name==="经济总览")return renderEconomyDashboardPage("overview");
@@ -229,7 +230,7 @@ function selectBusinessChildMenu(line,gi,ci,name){
 
   if(line==="production"&&parent?.name==="风险管理"&&(name==="风险管控清单"||name==="风险管理台账"))return renderRiskLedgerPage();
   if(line==="production"&&parent?.name==="产值管理"&&name==="产值预测分析报表")return renderOutputForecastAnalysisPage();
-  if(line==="production"&&parent?.name==="产值管理"&&name==="项目产值上报（废）")return renderActualOutputReportPage();
+  if(line==="production"&&parent?.name==="历史功能"&&name==="项目产值上报（废）")return renderActualOutputReportPage();
   if(line==="production"&&parent?.name==="产值管理"&&name==="实际产值上报")return renderComprehensiveActualOutputReportPage();
   if(line==="production"&&parent?.name==="产值管理"&&name==="完工未结算管理")return renderFinishedUnsettledOutputPage();
   if(line==="production"&&parent?.name==="产值管理"&&name==="其他业态产值申报")return renderOtherBizOutputReportPage();
