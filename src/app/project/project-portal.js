@@ -425,6 +425,10 @@ function getProjectLogRecordKey(row){
   return `${row.projectName||pcPortalState.currentProject}|${row.date}`;
 }
 
+function getProjectLogModeRecordKey(row){
+  return `${getProjectLogRecordKey(row)}|${row.mode||""}`;
+}
+
 function removeProjectLogCustomRowForEdit(editing){
   if(!editing)return;
   const targetId=editing.sourceId||editing.id;
@@ -451,10 +455,10 @@ function getProjectLogRows(){
       .map(day=>({...getEnterpriseConstructionLogReportRecord(project,day,monthValue),projectName:project.projectName}));
   });
   const customRows=projectLogCustomRows.filter(row=>row.projectName===project.projectName&&!projectLogDeletedKeys.has(getProjectLogRecordKey(row)));
-  const customDateKeys=new Set(customRows.map(row=>getProjectLogRecordKey(row)));
+  const customModeKeys=new Set(customRows.map(row=>getProjectLogModeRecordKey(row)));
   const sourceRows=[
     ...customRows,
-    ...generated.filter(row=>!customDateKeys.has(getProjectLogRecordKey(row))&&!projectLogDeletedKeys.has(getProjectLogRecordKey(row)))
+    ...generated.filter(row=>!customModeKeys.has(getProjectLogModeRecordKey(row))&&!projectLogDeletedKeys.has(getProjectLogRecordKey(row)))
   ];
   return sortProjectLogRows(mergeProjectLogRowsByDate(sourceRows));
 }
@@ -483,14 +487,12 @@ function getProjectLogRowAreas(row){
   return [...new Set(areas)];
 }
 
-function getProjectLogMonthAreas(monthValue=projectLogState.month){
-  return [...new Set(getProjectLogRows()
-    .filter(row=>row.date.startsWith(monthValue+"-"))
-    .flatMap(row=>getProjectLogRowAreas(row)))];
+function getProjectLogFilterAreas(){
+  return [...new Set(getProjectLogRows().flatMap(row=>getProjectLogRowAreas(row)))];
 }
 
 function normalizeProjectLogAreaFilter(){
-  if(projectLogState.workArea&&!getProjectLogMonthAreas().includes(projectLogState.workArea)){
+  if(projectLogState.workArea&&!getProjectLogFilterAreas().includes(projectLogState.workArea)){
     projectLogState.workArea="";
   }
 }
@@ -585,7 +587,6 @@ function refreshProjectLogSharedSections(prefix){
 
 function getProjectLogFilteredRows(){
   return getProjectLogRows().filter(row=>{
-    if(!row.date.startsWith(projectLogState.month+"-"))return false;
     if(projectLogState.workArea&&!getProjectLogRowAreas(row).includes(projectLogState.workArea))return false;
     if(projectLogState.mode&&row.mode!==projectLogState.mode)return false;
     if(projectLogState.keyword&&!(row.title.includes(projectLogState.keyword)||row.uploader.includes(projectLogState.keyword)||row.workArea.includes(projectLogState.keyword)||row.summary.includes(projectLogState.keyword)||row.fileName.includes(projectLogState.keyword)))return false;
@@ -4079,7 +4080,7 @@ function renderProjectDetailPage(){
 function renderProjectLogPage(){
   normalizeProjectLogAreaFilter();
   const rows=getProjectLogPagedRows();
-  const areas=getProjectLogMonthAreas();
+  const areas=getProjectLogFilterAreas();
   renderProjectPageShell("施工日志","",`
     <div class="project-log-template-page">
       <section class="card project-log-list-panel">

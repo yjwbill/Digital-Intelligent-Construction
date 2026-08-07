@@ -43,6 +43,112 @@
     setNodeText(cell,value);
   }
 
+  function getWorkImages(item){
+    const images=Array.isArray(item?.images)&&item.images.length
+      ?item.images
+      :(item?.imageUrl?[{name:item.imageName||"施工图片",url:item.imageUrl}]:[]);
+    return images
+      .map(image=>({name:text(image?.name,"施工图片"),url:String(image?.url||"")}))
+      .filter(image=>image.url);
+  }
+
+  function parseDataImage(url){
+    const match=String(url||"").match(/^data:(image\/(?:png|jpe?g|gif));base64,([\s\S]+)$/i);
+    if(!match)return null;
+    const contentType=match[1].toLowerCase()==="image/jpg"?"image/jpeg":match[1].toLowerCase();
+    const ext={ "image/png":"png", "image/jpeg":"jpg", "image/gif":"gif" }[contentType];
+    if(!ext)return null;
+    return {contentType,ext,base64:match[2].replace(/\s/g,"")};
+  }
+
+  function escapeXml(value){
+    return String(value??"").replace(/[<>&"']/g,char=>({
+      "<":"&lt;",
+      ">":"&gt;",
+      "&":"&amp;",
+      "\"":"&quot;",
+      "'":"&apos;"
+    }[char]));
+  }
+
+  function createImageManager(){
+    let index=1;
+    let docPrId=1000;
+    const parts=[];
+    return {
+      parts,
+      add(image){
+        const parsed=parseDataImage(image.url);
+        if(!parsed)return null;
+        const part={
+          ...parsed,
+          rId:`rIdProjectLogImage${index}`,
+          fileName:`project-log-work-${index}.${parsed.ext}`,
+          docPrId:docPrId++,
+          name:text(image.name,`施工图片${index}`)
+        };
+        index++;
+        parts.push(part);
+        return part;
+      }
+    };
+  }
+
+  function createImageParagraphXml(part){
+    const cx=914400;
+    const cy=685800;
+    const name=escapeXml(part.name);
+    return `
+      <w:p>
+        <w:r>
+          <w:drawing>
+            <wp:inline distT="0" distB="0" distL="0" distR="0">
+              <wp:extent cx="${cx}" cy="${cy}"/>
+              <wp:effectExtent l="0" t="0" r="0" b="0"/>
+              <wp:docPr id="${part.docPrId}" name="${name}"/>
+              <wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr>
+              <a:graphic>
+                <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                  <pic:pic>
+                    <pic:nvPicPr>
+                      <pic:cNvPr id="0" name="${name}"/>
+                      <pic:cNvPicPr/>
+                    </pic:nvPicPr>
+                    <pic:blipFill>
+                      <a:blip r:embed="${part.rId}"/>
+                      <a:stretch><a:fillRect/></a:stretch>
+                    </pic:blipFill>
+                    <pic:spPr>
+                      <a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm>
+                      <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
+                    </pic:spPr>
+                  </pic:pic>
+                </a:graphicData>
+              </a:graphic>
+            </wp:inline>
+          </w:drawing>
+        </w:r>
+      </w:p>
+    `;
+  }
+
+  function setCellImages(cell,images,imageManager){
+    const parts=images.map(image=>imageManager.add(image)).filter(Boolean);
+    if(!parts.length){
+      setCellText(cell,images.length?"施工图片":"-");
+      return;
+    }
+    [...cell.childNodes].forEach(node=>{
+      if(node.nodeName!=="w:tcPr")cell.removeChild(node);
+    });
+    const parser=new DOMParser();
+    parts.forEach(part=>{
+      const doc=parser.parseFromString(`<root xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">${createImageParagraphXml(part)}</root>`,"application/xml");
+      const paragraph=[...doc.documentElement.childNodes].find(node=>node.nodeName==="w:p");
+      if(paragraph)cell.appendChild(cell.ownerDocument.importNode(paragraph,true));
+    });
+  }
+
   function getTables(xml){
     return [...xml.getElementsByTagName("w:tbl")];
   }
@@ -65,7 +171,7 @@
     });
   }
 
-  function fillWorkTable(table,rows,includeProgress){
+  function fillWorkTable(table,rows,includeProgress,imageManager){
     const sourceRows=getRows(table);
     const header=sourceRows[0];
     const sample=sourceRows[1]||sourceRows[0];
@@ -78,7 +184,11 @@
       const rowValues=includeProgress
         ?[index+1,item.area,item.subitem,item.position,item.content,item.progress,imageLabel,item.reporter,item.remark]
         :[index+1,item.area,item.subitem,item.position,item.content,imageLabel,item.reporter,item.remark];
-      cells.forEach((cell,cellIndex)=>setCellText(cell,rowValues[cellIndex]));
+      const imageCellIndex=includeProgress?6:5;
+      cells.forEach((cell,cellIndex)=>{
+        if(cellIndex===imageCellIndex)setCellImages(cell,getWorkImages(item),imageManager);
+        else setCellText(cell,rowValues[cellIndex]);
+      });
       table.appendChild(row);
     });
     if(!header.parentNode)table.insertBefore(header,table.firstChild);
@@ -110,7 +220,7 @@
     if(paragraph)setNodeText(paragraph,value);
   }
 
-  function buildDocumentXml(xmlText,payload){
+  function buildDocumentXml(xmlText,payload,imageManager){
     const parser=new DOMParser();
     const xml=parser.parseFromString(xmlText,"application/xml");
     if(xml.getElementsByTagName("parsererror").length)throw new Error("Word 模板 XML 解析失败");
@@ -127,8 +237,8 @@
       "上报时间":row.uploadTime
     });
     fillLabelValueTable(tables[1],Object.fromEntries((detail.personnel||[]).map(item=>[item[0],`${text(item[1],"0")} 人`])));
-    fillWorkTable(tables[2],detail.today||[],true);
-    fillWorkTable(tables[3],detail.tomorrow||[],false);
+    fillWorkTable(tables[2],detail.today||[],true,imageManager);
+    fillWorkTable(tables[3],detail.tomorrow||[],false,imageManager);
 
     const allMilestones=[...(detail.milestones||[]),...(payload.completedMilestones||[])];
     const ongoing=allMilestones.find(item=>!item.actualDate)||{};
@@ -145,6 +255,46 @@
     return new XMLSerializer().serializeToString(xml);
   }
 
+  function upsertImageContentTypes(zip,imageParts){
+    if(!imageParts.length)return;
+    const part=zip.file("[Content_Types].xml");
+    if(!part)return Promise.resolve();
+    return part.async("string").then(xmlText=>{
+      const parser=new DOMParser();
+      const xml=parser.parseFromString(xmlText,"application/xml");
+      const root=xml.documentElement;
+      const existing=new Set([...xml.getElementsByTagName("Default")].map(node=>node.getAttribute("Extension")));
+      [...new Set(imageParts.map(item=>item.ext))].forEach(ext=>{
+        if(existing.has(ext))return;
+        const node=xml.createElementNS("http://schemas.openxmlformats.org/package/2006/content-types","Default");
+        node.setAttribute("Extension",ext);
+        node.setAttribute("ContentType",imageParts.find(item=>item.ext===ext)?.contentType||"image/png");
+        root.appendChild(node);
+      });
+      zip.file("[Content_Types].xml",new XMLSerializer().serializeToString(xml));
+    });
+  }
+
+  function upsertDocumentRelationships(zip,imageParts){
+    if(!imageParts.length)return Promise.resolve();
+    const relsPath="word/_rels/document.xml.rels";
+    const relsPart=zip.file(relsPath);
+    const fallback=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>`;
+    return (relsPart?relsPart.async("string"):Promise.resolve(fallback)).then(xmlText=>{
+      const parser=new DOMParser();
+      const xml=parser.parseFromString(xmlText,"application/xml");
+      const root=xml.documentElement;
+      imageParts.forEach(part=>{
+        const node=xml.createElementNS("http://schemas.openxmlformats.org/package/2006/relationships","Relationship");
+        node.setAttribute("Id",part.rId);
+        node.setAttribute("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
+        node.setAttribute("Target",`media/${part.fileName}`);
+        root.appendChild(node);
+      });
+      zip.file(relsPath,new XMLSerializer().serializeToString(xml));
+    });
+  }
+
   async function createConstructionLogWordBlob(payload){
     if(!global.JSZip)throw new Error("Word 导出组件未加载");
     const response=await fetch(TEMPLATE_URL,{cache:"no-store"});
@@ -153,7 +303,11 @@
     const documentPart=zip.file("word/document.xml");
     if(!documentPart)throw new Error("Word 模板正文缺失");
     const xmlText=await documentPart.async("string");
-    zip.file("word/document.xml",buildDocumentXml(xmlText,payload));
+    const imageManager=createImageManager();
+    zip.file("word/document.xml",buildDocumentXml(xmlText,payload,imageManager));
+    imageManager.parts.forEach(part=>zip.file(`word/media/${part.fileName}`,part.base64,{base64:true}));
+    await upsertImageContentTypes(zip,imageManager.parts);
+    await upsertDocumentRelationships(zip,imageManager.parts);
     return zip.generateAsync({type:"blob",mimeType:WORD_MIME,compression:"DEFLATE",compressionOptions:{level:6}});
   }
 
