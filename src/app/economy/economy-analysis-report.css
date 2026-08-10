@@ -41,3 +41,30 @@
 .secondary-warning-report-page .eco-report-bar-item{width:44px}.secondary-warning-report-page .eco-report-bar-item small{width:40px;max-width:40px}.secondary-warning-report-page .eco-report-bar-item small span{display:block;width:100%;word-break:break-all;overflow-wrap:anywhere}
 .eco-report-slide.report-page.warning-report-page .warning-report-copy,.eco-report-slide.report-page.company-warning-report-page .company-warning-copy,.eco-report-slide.report-page.company-warning-report-page .company-warning-region-copy{font-family:"Source Han Sans CN","思源黑体 CN","Noto Sans CJK SC","Microsoft YaHei",sans-serif;font-size:20px;font-weight:400;line-height:40px;font-optical-sizing:auto;letter-spacing:0}
 .series-four-report-page .eco-report-trend-points b{top:calc(100% + 5px);left:-28px;width:56px;min-height:28px;display:flex;align-items:flex-end;justify-content:center;font-family:"Source Han Sans CN","思源黑体 CN","Noto Sans CJK SC","Microsoft YaHei",sans-serif;font-size:14px;font-weight:400;line-height:13.8px;text-align:center;letter-spacing:0}.series-four-report-page .eco-report-two-charts.trend{padding-bottom:22px;box-sizing:border-box}.series-five-report-page .eco-report-two-charts.finance .eco-report-bars{gap:12px}
+/* 15-inch 16:9 presentation baseline: render all eight report pages at 80%. */
+.eco-report-stage>.eco-report-slide{
+  width:125% !important;
+  height:125% !important;
+  zoom:1 !important;
+  transform:scale(.8);
+  transform-origin:top left;
+}
+
+/* The 80% presentation scale keeps all report text at 12px or larger. */
+.eco-report-slide .eco-report-bar-item em,
+.eco-report-slide .eco-report-bar-item small,
+.eco-report-slide .eco-report-stack i,
+.eco-report-slide .eco-report-stack-item small,
+.eco-report-slide .eco-report-table table,
+.eco-report-slide .eco-report-muted,
+.eco-report-slide .eco-report-note,
+.eco-report-slide .eco-report-sunburst-label,
+.eco-report-slide .eco-report-trend-points b,
+.eco-report-slide .contents-row em{
+  font-size:15px !important;
+  line-height:15px !important;
+}
+.eco-report-slide .eco-report-overview .eco-report-bar-item small{
+  font-size:16px !important;
+  line-height:normal !important;
+}

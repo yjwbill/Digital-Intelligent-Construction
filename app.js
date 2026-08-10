@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.632-economy-report-series4-5-charts";
+  const version="2.2.638-economy-report-order-font-min";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/vendor/jszip.min.js",
