@@ -17339,6 +17339,13 @@ body.mobile-mode .mobile-manual-scroll{
   max-height:492px;
   overflow:hidden;
 }
+.production-value-metric.is-clickable{cursor:pointer;transition:border-color .2s ease,box-shadow .2s ease,transform .2s ease;}
+.production-value-metric.is-clickable:hover{border-color:#8bb9dc;box-shadow:0 4px 14px rgba(11,103,178,.14);transform:translateY(-1px);}
+.production-value-metric.is-clickable:focus-visible{outline:2px solid #0b67b2;outline-offset:2px;}
+.modal.production-value-report-modal.fullscreen .modal-bd{padding:16px 18px;background:#eef1f6;overflow:auto;}
+.production-value-report-embed{min-width:1180px;min-height:100%;}
+.production-value-report-embed>.other-biz-output-page{min-height:100%;}
+.production-value-report-embed .compact-title-row{display:none;}
 .production-value-panel.biz-output{
   width:560px;
   height:492px;

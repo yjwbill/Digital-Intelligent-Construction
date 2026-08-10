@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.609-project-log-word-images";
+  const version="2.2.632-economy-report-series4-5-charts";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/vendor/jszip.min.js",
@@ -36,6 +36,7 @@
     "src/app/operation/interface-sync-exceptions.js",
     "src/app/economy/project-initiation.js",
     "src/app/economy/economy-analysis-report.js",
+    "src/app/economy/economy-monthly-check-report.js",
     "src/app/economy/dashboard.js",
     "src/app/mobile/project-overview.js",
     "src/app/core/99-initial-route.js"

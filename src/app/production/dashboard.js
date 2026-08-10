@@ -1469,11 +1469,11 @@ function renderProductionStatisticsDashboardPreservingScroll(){
   renderWithPreservedScroll(renderProductionStatisticsDashboardPage,[".production-statistics-dashboard",".production-statistics-table-wrap","#listPage",".main"]);
 }
 
-function renderProductionValueMetric(label,value,unit,icon,extra=""){
+function renderProductionValueMetric(label,value,unit,icon,extra="",onClick=""){
   const isImageIcon=String(icon).endsWith(".svg");
   const iconHtml=isImageIcon?`<img src="${icon}" alt=""/>`:icon;
   return `
-    <div class="production-value-metric">
+    <div class="production-value-metric ${onClick?"is-clickable":""}" ${onClick?`role="button" tabindex="0" title="查看产值报表" onclick="${onClick}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${onClick}}"`:""}>
       <span class="production-value-icon ${isImageIcon?"image":""}">${iconHtml}</span>
       <div>
         <p>${label}</p>
@@ -1970,7 +1970,7 @@ async function renderProductionValueDashboardPage(){
   if(dashboard)dashboard.classList.toggle("single-company",!isAll);
   replaceProductionScreenFragment(productionScreenSlot("header"),renderProductionScreenHeader("产值看板"));
   replaceProductionScreenFragment(productionScreenSlot("org-tabs"),productionValueOrgs.map(org=>`<button class="${org===productionValueOrgActive?"active":""}" onclick="setProductionValueOrg('${org}')">${org}</button>`).join(""));
-  replaceProductionScreenFragment(productionScreenSlot("top"),topStats.map(item=>renderProductionValueMetric(...item)).join(""));
+  replaceProductionScreenFragment(productionScreenSlot("top"),topStats.map(item=>renderProductionValueMetric(...item,"","openProductionValueReportDrilldown()")).join(""));
   replaceProductionScreenFragment(productionScreenSlot("main-summary"),mainItems.map(renderProductionValueMainSummaryCard).join(""));
   const matrixSlot=productionScreenSlot("main-matrix");
   if(matrixSlot){

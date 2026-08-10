@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.570-STANDARD-STATISTICS-FILTER";
-const APP_CODE_VERSION_NAME="标准统计筛选组件版";
-const APP_CODE_VERSION_TIME="2026-08-05 15:00";
-const APP_CODE_VERSION_DESC="以施工项目一览为基准抽象 StatisticsFilter 标准组件，纳入数智施工组件库并统一现有列表页统计筛选。";
+const APP_CODE_VERSION="EM-20260701-V2.2.632-ECONOMY-REPORT-SERIES4-5-CHARTS";
+const APP_CODE_VERSION_NAME="经济报告系列四五图表统一版";
+const APP_CODE_VERSION_TIME="2026-08-11 00:00";
+const APP_CODE_VERSION_DESC="系列四图表复用系列二横轴和柱宽规范，系列五图表复用系列三公司标签和32px柱宽规范。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,

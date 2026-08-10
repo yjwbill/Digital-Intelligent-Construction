@@ -53,22 +53,33 @@ function loadOutputManagementTemplates(){
   return outputManagementTemplatePromise;
 }
 
-async function mountOutputManagementTemplate(name){
+async function mountOutputManagementTemplate(name,target=listPage){
   const templates=await loadOutputManagementTemplates();
   const template=templates.get(name);
   if(!template){
+    if(name==="actual-comprehensive"){
+      target.innerHTML=`
+        <div class="other-biz-output-page">
+          <div class="compact-title-row"><div class="module-title">实际产值上报</div></div>
+          <div data-output-slot="query"></div>
+          <div data-output-slot="stats"></div>
+          <div data-output-slot="table"></div>
+        </div>
+      `;
+      return true;
+    }
     const fallback=document.createElement("div");
     fallback.className="project-log-empty";
     fallback.textContent="产值管理页面模板加载失败";
-    listPage.replaceChildren(fallback);
+    target.replaceChildren(fallback);
     return false;
   }
-  listPage.replaceChildren(document.importNode(template.content,true));
+  target.replaceChildren(document.importNode(template.content,true));
   return true;
 }
 
-function outputSlot(name){
-  return document.querySelector(`[data-output-slot="${name}"]`);
+function outputSlot(name,root=document){
+  return root.querySelector(`[data-output-slot="${name}"]`);
 }
 
 function getOutputForecastProjectStatusOptions(){
@@ -2098,6 +2109,25 @@ function applyComprehensiveActualOutputOrgScope(org=getComprehensiveActualOutput
 }
 
 let comprehensiveActualOutputAppliedOrgKey="";
+let comprehensiveActualOutputEmbedRoot=null;
+
+async function openProductionValueReportDrilldown(){
+  openModal(
+    "产值报表",
+    `<div id="productionValueReportEmbed" class="production-value-report-embed"><div class="project-log-empty">产值报表加载中...</div></div>`,
+    `<button class="btn" onclick="closeProductionValueReportDrilldown()">关闭</button>`,
+    "large"
+  );
+  modalBox.classList.add("production-value-report-modal");
+  if(!modalBox.classList.contains("fullscreen"))toggleModalFullscreen();
+  comprehensiveActualOutputEmbedRoot=document.getElementById("productionValueReportEmbed");
+  await renderComprehensiveActualOutputReportPage({target:comprehensiveActualOutputEmbedRoot,embedded:true});
+}
+
+function closeProductionValueReportDrilldown(){
+  comprehensiveActualOutputEmbedRoot=null;
+  closeModal();
+}
 
 document.addEventListener("organizationchange",event=>{
   if(outputIndustryReportMode!=="actual"||!document.getElementById("comprehensiveActualOutputTable"))return;
@@ -2106,7 +2136,10 @@ document.addEventListener("organizationchange",event=>{
   renderComprehensiveActualOutputReportPage();
 });
 
-async function renderComprehensiveActualOutputReportPage(){
+async function renderComprehensiveActualOutputReportPage(options={}){
+  const connectedEmbed=comprehensiveActualOutputEmbedRoot?.isConnected?comprehensiveActualOutputEmbedRoot:null;
+  const target=options.target?.isConnected?options.target:(connectedEmbed || listPage);
+  const embedded=options.embedded===true || target!==listPage;
   outputIndustryReportMode="actual";
   const orgContext=getComprehensiveActualOutputOrgContext();
   const orgKey=`${orgContext.level}-${orgContext.company}-${orgContext.branch}`;
@@ -2115,22 +2148,24 @@ async function renderComprehensiveActualOutputReportPage(){
     comprehensiveActualOutputAppliedOrgKey=orgKey;
   }
   if(orgContext.level===3)getOrCreateComprehensiveActualOutputBranchRow(orgContext);
-  detailPage.style.display="none";
-  listPage.style.display="flex";
+  if(!embedded){
+    detailPage.style.display="none";
+    listPage.style.display="flex";
+  }
   const companyOptions=orgContext.level>=2?[orgContext.company]:getOrganizationCompanies();
   const branchOptions=orgContext.level===3?[orgContext.branch]:getOrganizationBranchOptions(otherBizOutputState.company);
   const rows=getComprehensiveActualOutputFilteredRows();
   const totalPages=Math.max(1,Math.ceil(rows.length/otherBizOutputState.pageSize));
-  const mounted=await mountOutputManagementTemplate("actual-comprehensive");
+  const mounted=await mountOutputManagementTemplate("actual-comprehensive",target);
   if(!mounted)return;
-  replaceProductionDashboardFragment(outputSlot("query"),renderUnifiedQueryCard(`
+  replaceProductionDashboardFragment(outputSlot("query",target),renderUnifiedQueryCard(`
     <div class="form-item"><label>上报月份</label><input class="input" id="otherBizOutputMonth" type="month" value="${otherBizOutputState.outputMonth}"/></div>
     <div class="form-item"><label>子公司</label><select class="select" id="otherBizOutputCompany" onchange="syncOtherBizOutputBranchOptions()" ${orgContext.level>=2?"disabled":""}>${renderActualOutputOptions(companyOptions,otherBizOutputState.company,"全部")}</select></div>
     <div class="form-item"><label>分公司</label><select class="select" id="otherBizOutputBranch" ${orgContext.level===3?"disabled":""}>${renderActualOutputOptions(branchOptions,otherBizOutputState.branch,"全部")}</select></div>
     <div class="form-item"><label>上报情况</label><select class="select" id="otherBizOutputStatus">${renderActualOutputOptions(["未上报","上报审批中","已上报"],otherBizOutputState.reportStatus,"全部")}</select></div>
   `,{title:"查询条件",queryFn:"queryOtherBizOutputReport()",resetFn:"resetOtherBizOutputReport()",gridClass:"search-grid",canCollapse:false}));
-  replaceProductionDashboardFragment(outputSlot("stats"),renderOtherBizOutputStatsCard());
-  replaceProductionDashboardFragment(outputSlot("table"),renderComprehensiveActualOutputTableCard(rows.length,totalPages));
+  replaceProductionDashboardFragment(outputSlot("stats",target),renderOtherBizOutputStatsCard());
+  replaceProductionDashboardFragment(outputSlot("table",target),renderComprehensiveActualOutputTableCard(rows.length,totalPages));
   renderTableByColumns("comprehensiveActualOutputReport",getComprehensiveActualOutputPagedRows(),"comprehensiveActualOutputTbody");
 }
 
