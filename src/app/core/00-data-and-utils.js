@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.644-ECONOMY-REPORT-CHART-SPACING";
-const APP_CODE_VERSION_NAME="经济分析报告柱图横向布局优化版";
-const APP_CODE_VERSION_TIME="2026-08-11 12:00";
-const APP_CODE_VERSION_DESC="系列二、三、四柱图保持原柱宽，扩大有效横向绘图区，并根据可用宽度自适应柱间距。";
+const APP_CODE_VERSION="EM-20260701-V2.2.671-ECONOMY-SECTION-TITLE-LIGHTBAND";
+const APP_CODE_VERSION_NAME="经济总览设计稿还原";
+const APP_CODE_VERSION_TIME="2026-08-11 23:10";
+const APP_CODE_VERSION_DESC="经济总览依据MasterGo 1920×1080设计稿完成整页校准，复用设计原图并优化品牌、边框、指标、地图、风险汇总和空状态。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,

@@ -204,3 +204,295 @@
   justify-content:space-between !important;
   gap:0 !important;
 }
+.eco-report-secondary-trend{
+  flex:1 1 auto;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.eco-report-secondary-trend svg{
+  width:94%;
+  min-height:0;
+  flex:1 1 auto;
+  overflow:visible;
+}
+.eco-report-secondary-trend svg g line{
+  stroke:#c8ddf5;
+  stroke-width:1;
+}
+.eco-report-secondary-trend svg .axis{
+  stroke:#2383df;
+  stroke-width:1.5;
+}
+.eco-report-secondary-trend svg text{
+  font-family:"Source Han Sans CN","思源黑体 CN","Noto Sans CJK SC","Microsoft YaHei",sans-serif;
+  font-size:15px;
+  fill:#59636f;
+}
+.eco-report-secondary-trend svg .month{
+  font-size:16px;
+  font-weight:500;
+  fill:#333;
+}
+.eco-report-secondary-trend svg .value{
+  font-size:15px;
+  font-weight:500;
+}
+.eco-report-secondary-legend{
+  width:90%;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px 12px;
+  margin-top:6px;
+  font-size:15px;
+}
+.eco-report-secondary-legend span{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  white-space:nowrap;
+}
+.eco-report-secondary-legend i{
+  width:12px;
+  height:12px;
+  flex:0 0 12px;
+  display:block;
+  background:var(--legend-color);
+}
+.eco-report-secondary-legend i.circle{border-radius:50%}
+.eco-report-secondary-legend i.triangle{clip-path:polygon(50% 0,100% 100%,0 100%)}
+.eco-report-secondary-legend i.star{clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 94%,50% 72%,21% 94%,32% 57%,2% 35%,39% 35%)}
+.eco-report-secondary-legend i.diamond{clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.eco-report-secondary-legend i.octagon{clip-path:polygon(30% 0,70% 0,100% 30%,100% 70%,70% 100%,30% 100%,0 70%,0 30%)}
+.series-four-report-page .eco-report-two-charts.trend>article>.eco-report-legend{
+  width:90%;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px 12px;
+  margin:6px auto 0;
+  font-size:15px;
+}
+.series-four-report-page .eco-report-two-charts.trend>article>.eco-report-legend span{
+  gap:7px;
+  white-space:nowrap;
+}
+.series-four-report-page .eco-report-two-charts.trend>article>.eco-report-legend i{
+  width:12px;
+  height:12px;
+}
+.eco-report-revenue-progress{
+  flex:1 1 auto;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.eco-report-revenue-progress svg{
+  width:96%;
+  min-height:0;
+  flex:1 1 auto;
+}
+.eco-report-revenue-progress svg g line{stroke:#c8ddf5;stroke-width:1}
+.eco-report-revenue-progress svg .axis{stroke:#2383df;stroke-width:1.5}
+.eco-report-revenue-progress svg text{
+  font-family:"Source Han Sans CN","思源黑体 CN","Noto Sans CJK SC","Microsoft YaHei",sans-serif;
+  font-size:15px;
+  fill:#59636f;
+}
+.eco-report-revenue-progress svg .right-axis{text-anchor:start}
+.eco-report-revenue-progress svg .plan{fill:#2383df}
+.eco-report-revenue-progress svg .actual{fill:#ff8617}
+.eco-report-revenue-progress svg .amount{font-size:15px;fill:#333}
+.eco-report-revenue-progress svg .company{font-size:16px;font-weight:500;fill:#333}
+.eco-report-revenue-progress svg .progress-line{fill:none;stroke:#ef3027;stroke-width:2}
+.eco-report-revenue-progress svg .progress-dot{fill:#ef3027}
+.eco-report-revenue-progress svg .rate{font-size:15px;font-weight:500;fill:#ef3027}
+.eco-report-revenue-legend{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:30px;
+  margin-top:4px;
+  font-size:15px;
+}
+.eco-report-revenue-legend span{display:flex;align-items:center;gap:7px;white-space:nowrap}
+.eco-report-revenue-legend i{width:12px;height:12px;display:block;background:#2383df}
+.eco-report-revenue-legend i.actual{background:#ff8617}
+.eco-report-revenue-legend i.progress{border-radius:50%;background:#ef3027}
+.eco-report-weighted-rates{
+  flex:1 1 auto;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.eco-report-weighted-rates svg{
+  width:96%;
+  min-height:0;
+  flex:1 1 auto;
+}
+.eco-report-weighted-rates svg g line{stroke:#c8ddf5;stroke-width:1}
+.eco-report-weighted-rates svg g line.zero{stroke:#2383df;stroke-width:1.8}
+.eco-report-weighted-rates svg .axis{stroke:#2383df;stroke-width:1.5}
+.eco-report-weighted-rates svg text{
+  font-family:"Source Han Sans CN","思源黑体 CN","Noto Sans CJK SC","Microsoft YaHei",sans-serif;
+  font-size:15px;
+  fill:#59636f;
+}
+.eco-report-weighted-rates svg .inventory{fill:#2383df}
+.eco-report-weighted-rates svg .target{fill:#ff8617}
+.eco-report-weighted-rates svg .rate-value{font-size:15px;fill:#333}
+.eco-report-weighted-rates svg .rate-value.negative{fill:#e5484d}
+.eco-report-weighted-rates svg .company{font-size:16px;font-weight:500;fill:#333}
+.eco-report-weighted-legend{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:22px;
+  margin-top:4px;
+  font-size:15px;
+}
+.eco-report-weighted-legend span{display:flex;align-items:center;gap:7px;white-space:nowrap}
+.eco-report-weighted-legend i{width:12px;height:12px;display:block}
+.eco-report-weighted-legend i.inventory{background:#2383df}
+.eco-report-weighted-legend i.target{background:#ff8617}
+.series-five-report-page .series-five-summary{
+  margin-bottom:8px;
+  font-size:15px;
+  line-height:24px;
+}
+.series-five-report-page .series-five-summary p{margin:0}
+.series-five-report-page .series-five-summary ol{
+  margin:0;
+  padding-left:22px;
+}
+.series-five-report-page .series-five-summary li{margin:0}
+.series-five-report-page .eco-report-two-charts.finance{
+  height:35.2%;
+  margin-top:10px;
+}
+.series-four-report-page .series-four-summary{
+  margin-bottom:10px;
+  font-size:15px;
+  line-height:26px;
+}
+.series-four-report-page .series-four-summary p{margin:0}
+.series-four-report-page .series-four-summary .danger{font-weight:700}
+.series-four-report-page .eco-report-two-charts.trend{margin-top:0}
+.eco-report-slide .eco-report-overview h3,
+.eco-report-slide .eco-report-two-charts h3,
+.eco-report-slide .eco-report-wide-chart h3,
+.eco-report-slide .eco-report-six-charts h3{
+  font-size:17.5px !important;
+  font-weight:700 !important;
+  line-height:normal !important;
+}
+.eco-report-slide.report-page .eco-report-copy{
+  font-size:17.5px !important;
+  line-height:30px !important;
+  letter-spacing:0 !important;
+}
+.warning-report-page .eco-report-sunburst-label.red{
+  left:2%;
+  right:auto;
+  top:4%;
+  bottom:auto;
+}
+.warning-report-page .eco-report-sunburst-label.orange{
+  left:72%;
+  top:6%;
+}
+.warning-report-page .eco-report-sunburst-label.yellow{
+  left:74%;
+  top:38%;
+}
+.warning-report-page .eco-report-sunburst-label.blue{
+  left:72%;
+  right:auto;
+  top:auto;
+  bottom:14%;
+}
+.warning-report-page .eco-report-sunburst-label.none{
+  left:2%;
+  right:auto;
+  top:auto;
+  bottom:14%;
+}
+.eco-report-slide.report-page .eco-report-legend,
+.eco-report-slide.report-page .eco-report-secondary-legend,
+.eco-report-slide.report-page .eco-report-revenue-legend,
+.eco-report-slide.report-page .eco-report-weighted-legend{
+  column-gap:17.5px !important;
+  font-size:15px !important;
+}
+.eco-report-slide.report-page .eco-report-legend span,
+.eco-report-slide.report-page .eco-report-secondary-legend span,
+.eco-report-slide.report-page .eco-report-revenue-legend span,
+.eco-report-slide.report-page .eco-report-weighted-legend span{
+  gap:7.5px !important;
+}
+.eco-report-slide.report-page .eco-report-legend i,
+.eco-report-slide.report-page .eco-report-secondary-legend i,
+.eco-report-slide.report-page .eco-report-revenue-legend i,
+.eco-report-slide.report-page .eco-report-weighted-legend i{
+  width:15px !important;
+  height:15px !important;
+  flex-basis:15px !important;
+}
+/* Series 2-5 XY chart specification, compensated for the report's 80% scale. */
+.eco-report-slide.report-page .economy-report-axis-chart:before{
+  width:1.25px;
+}
+.eco-report-slide.report-page .economy-report-axis-chart:after{
+  height:1.25px;
+}
+.eco-report-slide.report-page .eco-report-y-axis i{
+  height:.625px;
+}
+.eco-report-slide.report-page .eco-report-y-axis b,
+.eco-report-slide.report-page .economy-report-axis-chart .eco-report-stack-item small,
+.eco-report-slide.report-page .economy-report-axis-chart .eco-report-bar-item small,
+.eco-report-slide.report-page .economy-report-axis-chart .eco-report-stack i,
+.eco-report-slide.report-page .economy-report-axis-chart .eco-report-bar-item em{
+  font-size:15px !important;
+  font-weight:400 !important;
+}
+.eco-report-slide.report-page .eco-report-secondary-trend svg g line,
+.eco-report-slide.report-page .eco-report-revenue-progress svg g line,
+.eco-report-slide.report-page .eco-report-weighted-rates svg g line{
+  stroke-width:.625px !important;
+}
+.eco-report-slide.report-page .eco-report-secondary-trend svg .axis,
+.eco-report-slide.report-page .eco-report-revenue-progress svg .axis,
+.eco-report-slide.report-page .eco-report-weighted-rates svg .axis,
+.eco-report-slide.report-page .eco-report-weighted-rates svg g line.zero{
+  stroke-width:1.25px !important;
+}
+.eco-report-slide.report-page .eco-report-secondary-trend svg g text,
+.eco-report-slide.report-page .eco-report-secondary-trend svg .month,
+.eco-report-slide.report-page .eco-report-secondary-trend svg .value,
+.eco-report-slide.report-page .eco-report-revenue-progress svg g text,
+.eco-report-slide.report-page .eco-report-revenue-progress svg .right-axis,
+.eco-report-slide.report-page .eco-report-revenue-progress svg .amount,
+.eco-report-slide.report-page .eco-report-revenue-progress svg .company,
+.eco-report-slide.report-page .eco-report-revenue-progress svg .rate,
+.eco-report-slide.report-page .eco-report-weighted-rates svg g text,
+.eco-report-slide.report-page .eco-report-weighted-rates svg .rate-value,
+.eco-report-slide.report-page .eco-report-weighted-rates svg .company{
+  font-size:15px !important;
+  font-weight:400 !important;
+}
+/* The secondary-warning SVG has its own viewBox scaling, so it needs a second compensation. */
+.eco-report-slide.report-page .eco-report-secondary-trend svg g text,
+.eco-report-slide.report-page .eco-report-secondary-trend svg .month,
+.eco-report-slide.report-page .eco-report-secondary-trend svg .value{
+  font-size:12.85px !important;
+  font-weight:400 !important;
+}
+.eco-report-slide.report-page .eco-report-secondary-trend svg .axis{
+  stroke-width:1.07px !important;
+}
+.eco-report-slide.report-page .eco-report-secondary-trend svg g line{
+  stroke-width:.535px !important;
+}
