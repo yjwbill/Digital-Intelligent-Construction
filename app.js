@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.638-economy-report-order-font-min";
+  const version="2.2.644-economy-report-chart-spacing";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/vendor/jszip.min.js",

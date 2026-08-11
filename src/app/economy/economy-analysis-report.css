@@ -68,3 +68,139 @@
   font-size:16px !important;
   line-height:normal !important;
 }
+.eco-report-slide .eco-report-company-label{
+  display:inline-block;
+  width:2em;
+  white-space:normal;
+  text-align:center;
+  line-height:15px;
+}
+.eco-report-slide .company-warning-chart .eco-report-stack-item small:has(.eco-report-company-label){
+  height:32px;
+}
+.series-five-report-page .eco-report-table th:first-child,
+.series-five-report-page .eco-report-table td:first-child{
+  width:5%;
+}
+.series-five-report-page .eco-report-table th:not(:first-child),
+.series-five-report-page .eco-report-table td:not(:first-child){
+  width:13.571%;
+}
+.series-five-report-page .eco-report-table th,
+.series-five-report-page .eco-report-table td{
+  height:38px;
+  padding-top:10px;
+  padding-bottom:10px;
+}
+.eco-report-slide .eco-report-two-charts article,
+.eco-report-slide .eco-report-wide-chart,
+.eco-report-slide .eco-report-six-charts article{
+  display:flex;
+  min-width:0;
+  min-height:0;
+  flex-direction:column;
+}
+.eco-report-slide .economy-report-axis-chart{
+  position:relative;
+  width:80% !important;
+  height:auto !important;
+  min-height:0;
+  flex:1 1 auto;
+  margin:0 auto !important;
+  padding:8px 4% 38px 56px !important;
+  border:0 !important;
+  box-sizing:border-box;
+  overflow:visible;
+  align-items:flex-end;
+}
+.eco-report-slide .economy-report-axis-chart:before{
+  content:"";
+  position:absolute;
+  z-index:2;
+  left:55px;
+  top:8px;
+  bottom:37px;
+  width:1px;
+  background:#6caef2;
+}
+.eco-report-slide .economy-report-axis-chart:after{
+  content:"";
+  position:absolute;
+  z-index:2;
+  left:55px;
+  right:4%;
+  bottom:37px;
+  height:1px;
+  background:#6caef2;
+}
+.eco-report-slide .eco-report-y-axis{
+  position:absolute;
+  z-index:0;
+  left:8px;
+  right:4%;
+  top:8px;
+  bottom:37px;
+  pointer-events:none;
+}
+.eco-report-slide .eco-report-y-axis span{
+  position:absolute;
+  left:0;
+  right:0;
+  height:1px;
+  display:flex;
+  align-items:center;
+}
+.eco-report-slide .eco-report-y-axis b{
+  width:40px;
+  flex:0 0 40px;
+  color:#667085;
+  font-size:15px;
+  line-height:15px;
+  font-weight:400;
+  text-align:right;
+  transform:translateY(50%);
+}
+.eco-report-slide .eco-report-y-axis i{
+  height:1px;
+  flex:1;
+  margin-left:8px;
+  background:#c8ddf5;
+}
+.eco-report-slide .economy-report-axis-chart .eco-report-stack-item,
+.eco-report-slide .economy-report-axis-chart .eco-report-bar-item{
+  position:relative;
+  z-index:1;
+  height:100%;
+}
+.eco-report-slide .economy-report-axis-chart .eco-report-stack,
+.eco-report-slide .economy-report-axis-chart .eco-report-bar{
+  position:relative;
+  height:100% !important;
+}
+.eco-report-slide .economy-report-axis-chart .eco-report-stack-item small,
+.eco-report-slide .economy-report-axis-chart .eco-report-bar-item small{
+  position:absolute;
+  top:calc(100% + 5px);
+  margin-top:0;
+}
+.eco-report-slide .economy-report-axis-chart .eco-report-bar-item em{
+  left:50%;
+  width:max-content;
+  position:absolute;
+  transform:translate(-50%,-4px);
+}
+.eco-report-slide.company-warning-report-page .eco-report-wide-chart{
+  height:30% !important;
+  padding:10px 12px !important;
+}
+.eco-report-slide.company-warning-report-page .eco-report-wide-chart>.economy-report-axis-chart{
+  flex:1 1 0;
+}
+.eco-report-slide.company-warning-report-page .economy-report-axis-chart,
+.eco-report-slide.secondary-warning-report-page:not(.series-five-report-page) .economy-report-axis-chart,
+.eco-report-slide.series-four-report-page .economy-report-axis-chart{
+  width:100% !important;
+  padding-right:2% !important;
+  justify-content:space-between !important;
+  gap:0 !important;
+}

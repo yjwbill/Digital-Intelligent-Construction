@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.638-ECONOMY-REPORT-ORDER-FONT-MIN";
-const APP_CODE_VERSION_NAME="经济分析报告顺序与最小字号修正版";
-const APP_CODE_VERSION_TIME="2026-08-10 21:00";
-const APP_CODE_VERSION_DESC="经济分析报告调整为系列四在前、系列五在后，并将80%缩放后小于12px的报告文字统一提升至12px。";
+const APP_CODE_VERSION="EM-20260701-V2.2.644-ECONOMY-REPORT-CHART-SPACING";
+const APP_CODE_VERSION_NAME="经济分析报告柱图横向布局优化版";
+const APP_CODE_VERSION_TIME="2026-08-11 12:00";
+const APP_CODE_VERSION_DESC="系列二、三、四柱图保持原柱宽，扩大有效横向绘图区，并根据可用宽度自适应柱间距。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
