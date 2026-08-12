@@ -1,6 +1,11 @@
 const messageProjectPickerState={
   targetId:"",
+  confirmHandler:null,
+  initialSelectedIds:[],
+  excludedSelectedIds:[],
   draftSelectedIds:[],
+  mode:"select",
+  resourceId:"",
   filters:{projectName:"",projectCode:"",subCompany:"",branchCompany:"",projectManager:"",projectStatus:"",region:"",provinceCity:"",projectType:"",implementationMode:"",controlLevel:"",generalContractor:"",builder:""},
   page:1,
   pageSize:50
@@ -73,7 +78,10 @@ function renderMessageProjectPickerOptions(key,current){
 
 function getMessageProjectPickerFilteredRows(){
   const f=messageProjectPickerState.filters;
-  return getMessageProjectPickerRows().filter(row=>{
+  const rows=messageProjectPickerState.mode==="manage"
+    ?getMessageProjectPickerRows().filter(row=>messageProjectPickerState.initialSelectedIds.includes(String(row.id)))
+    :ProjectSelector.getAvailableRows(messageProjectPickerState,getMessageProjectPickerRows());
+  return rows.filter(row=>{
     if(f.projectName&&!row.projectName?.includes(f.projectName))return false;
     if(f.projectCode&&!row.projectCode?.includes(f.projectCode))return false;
     if(f.subCompany&&row.subCompany!==f.subCompany)return false;
@@ -142,6 +150,14 @@ tableColumnDefinitions.messageReceiverProjectPicker=[
 ];
 tableColumnDefinitions.messageReceiverProjectPicker.freezeCount=3;
 
+tableColumnDefinitions.projectResourceAuthorizedProjectPicker=[
+  ...tableColumnDefinitions.messageReceiverProjectPicker.map(column=>({...column})),
+  {key:"operation",title:"操作",width:110,align:"center",render:row=>`<a class="link danger-link" onclick="cancelProjectResourceAuthorization('${row.id}')">取消授权</a>`}
+];
+tableColumnDefinitions.projectResourceAuthorizedProjectPicker.freezeCount=3;
+
+function getMessageProjectPickerTableKey(){return messageProjectPickerState.mode==="manage"?"projectResourceAuthorizedProjectPicker":"messageReceiverProjectPicker";}
+
 function getMessageProjectPickerPage(){
   const rows=getMessageProjectPickerFilteredRows();
   const pages=Math.max(1,Math.ceil(rows.length/messageProjectPickerState.pageSize));
@@ -152,19 +168,21 @@ function getMessageProjectPickerPage(){
 
 function renderMessageProjectPickerModalBody(){
   const page=getMessageProjectPickerPage();
+  const manageMode=messageProjectPickerState.mode==="manage";
+  const tableKey=getMessageProjectPickerTableKey();
   return `<div class="message-project-selector">${renderMessageProjectPickerQuery()}${renderUnifiedTableCard({
-    tableKey:"messageReceiverProjectPicker",tbodyId:"messageProjectPickerTbody",renderFnName:"renderMessageProjectPickerTable",refreshAction:"renderMessageProjectPickerModal()",exportAction:"showToast('项目选择数据导出任务已创建')",title:"项目列表",className:"message-project-picker-table-card",total:page.rows.length,pageText:`<span id="messageProjectPickerPageText">第 ${messageProjectPickerState.page} / ${page.pages} 页　每页 ${messageProjectPickerState.pageSize} 条</span>`
+    tableKey,tbodyId:"messageProjectPickerTbody",renderFnName:"renderMessageProjectPickerTable",refreshAction:"renderMessageProjectPickerModal()",exportAction:"showToast('项目选择数据导出任务已创建')",title:"项目列表",className:"message-project-picker-table-card",beforeActions:manageMode?`<button class="btn danger" type="button" onclick="batchCancelProjectResourceAuthorization()">批量取消授权</button>`:"",paginationHtml:ProjectSelector.renderPagination(messageProjectPickerState,page.rows.length,messageProjectPickerState.page,page.pages,messageProjectPickerState.pageSize)
   })}</div>`;
 }
 
-function openMessageProjectPicker(targetId){
+function openMessageProjectPicker(targetId,options={}){
   document.querySelectorAll(".nested-modal-mask .message-project-picker-modal").forEach(mask=>mask.closest(".nested-modal-mask")?.remove());
-  messageProjectPickerState.targetId=targetId;
-  messageProjectPickerState.draftSelectedIds=getMessageProjectPickerSelectedIds(targetId);
-  messageProjectPickerState.filters={projectName:"",projectCode:"",subCompany:"",branchCompany:"",projectManager:"",projectStatus:"",region:"",provinceCity:"",projectType:"",implementationMode:"",controlLevel:"",generalContractor:"",builder:""};
-  messageProjectPickerState.page=1;
-  messageProjectPickerState.pageSize=50;
-  openNestedModal("选择项目",renderMessageProjectPickerModalBody(),`<button class="btn" type="button" onclick="closeNestedModal(this)">取消</button><button class="btn primary" type="button" onclick="confirmMessageProjectPicker(this)">确定</button>`);
+  ProjectSelector.initializeState(messageProjectPickerState,{targetId,rows:getMessageProjectPickerRows(),selectedIds:Array.isArray(options.selectedIds)?options.selectedIds:getMessageProjectPickerSelectedIds(targetId),excludeSelected:options.excludeSelected!==false,onConfirm:options.onConfirm,pageSize:50});
+  messageProjectPickerState.mode=options.mode||"select";
+  messageProjectPickerState.resourceId=options.resourceId||"";
+  if(messageProjectPickerState.mode==="manage")messageProjectPickerState.draftSelectedIds=[];
+  const footer=messageProjectPickerState.mode==="manage"?`<span class="project-selector-footer-actions"><button class="btn" type="button" onclick="closeNestedModal(this)">关闭</button></span>`:ProjectSelector.renderFooter(messageProjectPickerState,`<button class="btn" type="button" onclick="closeNestedModal(this)">取消</button><button class="btn primary" type="button" onclick="confirmMessageProjectPicker(this)">确定</button>`);
+  openNestedModal(options.title||"选择项目",renderMessageProjectPickerModalBody(),footer);
   const modal=document.querySelector(".nested-modal-mask:last-child .nested-modal");
   modal?.classList.add("message-project-picker-modal");
   renderMessageProjectPickerTable();
@@ -179,7 +197,7 @@ function renderMessageProjectPickerModal(){
 
 function renderMessageProjectPickerTable(){
   const page=getMessageProjectPickerPage();
-  renderTableByColumns("messageReceiverProjectPicker",page.pageRows,"messageProjectPickerTbody");
+  renderTableByColumns(getMessageProjectPickerTableKey(),page.pageRows,"messageProjectPickerTbody");
   const total=document.getElementById("messageReceiverProjectPickerTotalText");
   const pageText=document.getElementById("messageProjectPickerPageText");
   if(total)total.textContent=`共 ${page.rows.length} 条`;
@@ -190,9 +208,51 @@ function queryMessageProjectPicker(){syncMessageProjectPickerFilters();messagePr
 function resetMessageProjectPicker(){Object.keys(messageProjectPickerState.filters).forEach(key=>messageProjectPickerState.filters[key]="");messageProjectPickerState.page=1;renderMessageProjectPickerModal();}
 function changeMessageProjectPickerPage(step){messageProjectPickerState.page+=Number(step||0);renderMessageProjectPickerTable();}
 function changeMessageProjectPickerPageSize(value){messageProjectPickerState.pageSize=Number(value)||50;messageProjectPickerState.page=1;renderMessageProjectPickerTable();}
-function toggleMessageProjectPickerRow(id,checked){const selected=new Set(messageProjectPickerState.draftSelectedIds);checked?selected.add(String(id)):selected.delete(String(id));messageProjectPickerState.draftSelectedIds=[...selected];}
+function toggleMessageProjectPickerRow(id,checked){ProjectSelector.toggle(messageProjectPickerState,id,checked);ProjectSelector.updateSelectedCount(messageProjectPickerState);}
 function toggleMessageProjectPickerPageSelection(checked){document.querySelectorAll(".message-project-picker-row-check").forEach(box=>{box.checked=checked;toggleMessageProjectPickerRow(box.value,checked);});}
-function confirmMessageProjectPicker(button){setMessageProjectPickerValues(messageProjectPickerState.targetId,messageProjectPickerState.draftSelectedIds);closeNestedModal(button);}
+function confirmMessageProjectPicker(button){
+  const selectedIds=ProjectSelector.getConfirmedIds(messageProjectPickerState);
+  const handler=messageProjectPickerState.confirmHandler;
+  messageProjectPickerState.confirmHandler=null;
+  if(handler)handler(selectedIds);
+  else setMessageProjectPickerValues(messageProjectPickerState.targetId,selectedIds);
+  closeNestedModal(button);
+}
+
+function removeProjectResourceAuthorizationIds(ids=[]){
+  const row=typeof getProjectResourceAuthorizationById==="function"?getProjectResourceAuthorizationById(messageProjectPickerState.resourceId):null;
+  if(!row)return 0;
+  const removeIds=new Set(ids.map(String));
+  const removeRows=getMessageProjectPickerRows().filter(project=>removeIds.has(String(project.id)));
+  const removeCodes=new Set(removeRows.map(project=>String(project.projectCode||"")));
+  const removeNames=new Set(removeRows.map(project=>String(project.projectName||"")));
+  const before=(row.projects||[]).length;
+  row.projects=(row.projects||[]).filter(project=>!removeCodes.has(String(project.code||""))&&!removeNames.has(String(project.name||"")));
+  return before-row.projects.length;
+}
+
+function refreshProjectResourceAuthorizationManager(message){
+  const row=typeof getProjectResourceAuthorizationById==="function"?getProjectResourceAuthorizationById(messageProjectPickerState.resourceId):null;
+  const selectedIds=(row?.projects||[]).map(project=>getMessageProjectPickerRows().find(item=>String(item.projectCode||"")===String(project.code||"")||String(item.projectName||"")===String(project.name||""))?.id).filter(Boolean);
+  messageProjectPickerState.initialSelectedIds=selectedIds.map(String);
+  messageProjectPickerState.draftSelectedIds=[];
+  messageProjectPickerState.page=1;
+  if(typeof renderProjectResourceAuthorizationPage==="function")renderProjectResourceAuthorizationPage();
+  renderMessageProjectPickerModal();
+  if(message)showToast(message);
+}
+
+function cancelProjectResourceAuthorization(projectId){
+  const count=removeProjectResourceAuthorizationIds([projectId]);
+  refreshProjectResourceAuthorizationManager(count?"项目授权已取消":"未找到可取消的项目授权");
+}
+
+function batchCancelProjectResourceAuthorization(){
+  const ids=[...messageProjectPickerState.draftSelectedIds];
+  if(!ids.length)return showToast("请先勾选需要取消授权的项目");
+  const count=removeProjectResourceAuthorizationIds(ids);
+  refreshProjectResourceAuthorizationManager(`已取消 ${count} 个项目的授权`);
+}
 
 function getMessageProjectPickerReceiverLevel(id){
   return document.getElementById(id==="msgTplOverdueTargetValue"?"msgTplOverdueReceiverLevel":"msgTplReceiverLevel")?.value||"enterprise";

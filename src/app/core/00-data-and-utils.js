@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.671-ECONOMY-SECTION-TITLE-LIGHTBAND";
-const APP_CODE_VERSION_NAME="经济总览设计稿还原";
-const APP_CODE_VERSION_TIME="2026-08-11 23:10";
-const APP_CODE_VERSION_DESC="经济总览依据MasterGo 1920×1080设计稿完成整页校准，复用设计原图并优化品牌、边框、指标、地图、风险汇总和空状态。";
+const APP_CODE_VERSION="EM-20260701-V2.2.679-PROJECT-BUTTON-PERMISSION-AND-EDIT-FORM";
+const APP_CODE_VERSION_NAME="项目按钮权限与编辑表单";
+const APP_CODE_VERSION_TIME="2026-08-12 17:30";
+const APP_CODE_VERSION_DESC="权限管理直接配置项目端和移动端按钮资源，项目资源包编辑调整为四列标准表单及整行长文本备注。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
@@ -663,7 +663,8 @@ const businessMenus={
         children:[
           {name:"组织管理",active:true},
           {name:"岗位管理"},
-          {name:"角色管理"}
+          {name:"角色管理"},
+          {name:"项目资源授权"}
         ]
       },
       {

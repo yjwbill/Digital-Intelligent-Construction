@@ -1001,6 +1001,272 @@ function savePostBatchAuthorize(postId){
   showToast("批量授权已保存");
 }
 
+/* ---------- 项目资源授权 ---------- */
+const projectResourceAuthorizationState={projectName:"",projectCode:""};
+const projectResourcePermissionState={resourceId:"",draftSelected:[]};
+const projectResourceAuthorizationData=[
+  {id:"pra-001",name:"标准项目资源包",code:"open_project_right",status:"启用",remark:"集团标准项目资源权限",projects:[{name:"机场联络线工程",code:"PJ20260001"},{name:"大外环西段项目",code:"PJ20260002"}]},
+  {id:"pra-002",name:"圆顶管项目资源包",code:"szsg_ydg",status:"启用",remark:"适用于圆顶管类项目",projects:[{name:"湾区金融中心项目",code:"PJ20260003"}]},
+  {id:"pra-003",name:"黄河大桥版",code:"szsg_hhdq",status:"启用",remark:"黄河大桥专项资源",projects:[{name:"北方数据中心项目",code:"PJ20260004"}]},
+  {id:"pra-004",name:"示范线初始版",code:"szsg_sfx",status:"禁用",remark:"历史示范线资源包",projects:[{name:"奉贤新城18单元项目",code:"PJ20260005"}]},
+  {id:"pra-005",name:"标准项目资源-含经济",code:"szsg_jj",status:"启用",remark:"包含经济管理相关资源",projects:[{name:"海南自贸港市政配套",code:"PJ20260006"},{name:"境外港口物流园",code:"PJ20260007"}]},
+  {id:"pra-006",name:"S204一体化专版",code:"szsg_yth",status:"启用",remark:"S204项目一体化资源",projects:[{name:"中原快速路提升工程",code:"PJ20260008"}]},
+  {id:"pra-007",name:"S32智慧工地专版",code:"szsg_s32",status:"启用",remark:"S32智慧工地专项资源",projects:[]},
+  {id:"pra-008",name:"全业务测试资源包",code:"test_all",status:"禁用",remark:"内部联调测试使用",projects:[{name:"机场联络线工程",code:"PJ20260001"}]},
+  {id:"pra-009",name:"标准版资源-生产可用",code:"szsg_sc",status:"启用",remark:"生产条线标准资源",projects:[]},
+  {id:"pra-010",name:"安全季化备用",code:"szsg_aqfh",status:"禁用",remark:"安全专项备用资源",projects:[]}
+];
+
+function getProjectResourceAssignedCount(row){return (row?.projects||[]).length;}
+
+tableColumnDefinitions.projectResourceAuthorization=[
+  {key:"index",title:"序号",width:70,align:"center",render:(row,index)=>index+1},
+  {key:"name",title:"资源包名称",width:230,align:"left",render:row=>row.name},
+  {key:"code",title:"资源包编号",width:210,align:"left",render:row=>row.code},
+  {key:"projectCount",title:"已分配项目数",width:150,align:"center",render:row=>`<button type="button" class="link project-resource-count-link" onclick="openProjectResourceAssignedProjects('${row.id}')">${getProjectResourceAssignedCount(row)}</button>`},
+  {key:"status",title:"状态",width:110,align:"center",render:row=>row.status==="启用"?tag("启用","green"):tag("禁用","gray")},
+  {key:"remark",title:"备注",width:300,align:"left",render:row=>row.remark||"-"},
+  {key:"operation",title:"操作",width:250,align:"center",render:row=>`<a class="link" onclick="openProjectResourceAuthorizationEdit('${row.id}')">编辑</a> <a class="link" onclick="openProjectResourcePermissionManagement('${row.id}')">权限管理</a> <a class="link" onclick="openProjectResourceAssignmentPlaceholder('${row.id}')">分配项目</a>`}
+];
+
+function normalizeProjectResourcePermissionNode(node,prefix){
+  const name=String(node.name||node.label||"");
+  const key=`${prefix}.${String(node.key||name).replace(/\s+/g,"-")}`;
+  return {key,name,children:(node.children||[]).map(child=>normalizeProjectResourcePermissionNode(child,key))};
+}
+
+function getProjectResourceMenuCatalog(){
+  const pc=(typeof projectPrimaryMenus!=="undefined"?projectPrimaryMenus:[]).map(primary=>normalizeProjectResourcePermissionNode({key:primary.key,name:primary.name,children:(typeof projectPortalMenus!=="undefined"?projectPortalMenus[primary.key]?.menus:[])||[]},"pc.menu"));
+  const mobileApps=typeof mobileAppNamesV2256!=="undefined"?mobileAppNamesV2256:[];
+  const mobile=[
+    normalizeProjectResourcePermissionNode({key:"navigation",name:"底部导航",children:[{key:"home",name:"首页"},{key:"apps",name:"应用"},{key:"message",name:"消息"},{key:"mine",name:"我的"}]},"mobile.menu"),
+    normalizeProjectResourcePermissionNode({key:"workbench",name:"工作台应用",children:mobileApps.map((name,index)=>({key:`app-${index+1}`,name}))},"mobile.menu")
+  ];
+  return {pc,mobile};
+}
+
+function getProjectResourceButtonCatalog(){
+  const actionNames=(name,platform)=>{
+    if(platform==="mobile"){
+      if(/考勤|打卡/.test(name))return ["查看记录","定位打卡","补卡申请"];
+      if(/巡检|隐患|风险|质量/.test(name))return ["查看详情","新增记录","拍照上传","提交整改","关闭"];
+      if(/日报|填报|进度/.test(name))return ["查看详情","新增填报","暂存","提交","撤回"];
+      return ["查看详情","新增","编辑","提交"];
+    }
+    if(/总览|总览|桌面/.test(name))return ["查看","刷新","导出"];
+    if(/日志|上报|填报|申请/.test(name))return ["查看","新增","编辑","提交","撤回","导出"];
+    if(/清单|管理|名单|台账|节点|整改/.test(name))return ["查看","新增","编辑","删除","导入","导出"];
+    return ["查看","新增","编辑","删除","导出"];
+  };
+  const withPcActions=node=>{
+    const children=node.children||[];
+    if(children.length)return {...node,children:children.map(withPcActions)};
+    return {...node,children:actionNames(node.name,"pc").map((name,index)=>({key:`action-${index+1}`,name}))};
+  };
+  const pc=(typeof projectPrimaryMenus!=="undefined"?projectPrimaryMenus:[]).map(primary=>normalizeProjectResourcePermissionNode(withPcActions({key:primary.key,name:primary.name,children:(typeof projectPortalMenus!=="undefined"?projectPortalMenus[primary.key]?.menus:[])||[]}),"pc.button"));
+  const mobileApps=typeof mobileAppNamesV2256!=="undefined"?mobileAppNamesV2256:[];
+  const mobileGroups=[
+    {key:"workbench",name:"工作台应用",children:mobileApps.map((name,index)=>({key:`app-${index+1}`,name,children:actionNames(name,"mobile").map((action,actionIndex)=>({key:`action-${actionIndex+1}`,name:action}))}))},
+    {key:"message",name:"消息与待办",children:["查看全部","标记已读","办理待办","审批通过","审批驳回"].map((name,index)=>({key:`action-${index+1}`,name}))},
+    {key:"mine",name:"我的",children:["版本记录","操作手册","意见反馈","设置"].map((name,index)=>({key:`action-${index+1}`,name}))}
+  ];
+  return {pc,mobile:mobileGroups.map(node=>normalizeProjectResourcePermissionNode(node,"mobile.button"))};
+}
+
+function getProjectResourcePermissionTree(platform){
+  return getProjectResourceButtonCatalog()[platform]||[];
+}
+
+function getProjectResourcePermissionLeafKeys(nodes){
+  return (nodes||[]).flatMap(node=>node.children?.length?getProjectResourcePermissionLeafKeys(node.children):[node.key]);
+}
+
+function ensureProjectResourcePermissions(row){
+  const all=[...getProjectResourcePermissionLeafKeys(getProjectResourcePermissionTree("pc")),...getProjectResourcePermissionLeafKeys(getProjectResourcePermissionTree("mobile"))];
+  if(Array.isArray(row.permissions)){
+    const valid=new Set(all);
+    row.permissions=row.permissions.filter(key=>valid.has(key));
+    return row.permissions;
+  }
+  const keepCount=Math.max(1,Math.round(all.length*(row.status==="启用"?.72:.38)));
+  row.permissions=all.filter((_,index)=>index<keepCount||index%Math.max(2,Number(row.id.slice(-1))||2)===0);
+  return row.permissions;
+}
+
+function getProjectResourcePermissionNodeState(node,selectedSet){
+  const leaves=getProjectResourcePermissionLeafKeys([node]);
+  const count=leaves.filter(key=>selectedSet.has(key)).length;
+  return {checked:leaves.length>0&&count===leaves.length,indeterminate:count>0&&count<leaves.length};
+}
+
+function renderProjectResourcePermissionNodes(nodes,level=1){
+  const selectedSet=new Set(projectResourcePermissionState.draftSelected);
+  return (nodes||[]).map(node=>{
+    const hasChildren=!!node.children?.length;
+    const state=getProjectResourcePermissionNodeState(node,selectedSet);
+    return `<div class="project-resource-permission-node ${hasChildren?"has-children":""}" data-permission-key="${escapeAttr(node.key)}" data-level="${level}"><div class="project-resource-permission-row" style="--permission-level:${level}"><button type="button" class="project-resource-permission-arrow ${hasChildren?"":"placeholder"}" onclick="toggleProjectResourcePermissionBranch(this)">${hasChildren?"▾":""}</button><input type="checkbox" ${state.checked?"checked":""} data-indeterminate="${state.indeterminate}" onchange="toggleProjectResourcePermissionNode('${escapeAttr(node.key)}',this.checked)"/><span>${escapeAttr(node.name)}</span></div>${hasChildren?`<div class="project-resource-permission-children">${renderProjectResourcePermissionNodes(node.children,level+1)}</div>`:""}</div>`;
+  }).join("");
+}
+
+function renderProjectResourcePermissionPanel(platform,title){
+  const tree=getProjectResourcePermissionTree(platform);
+  return `<section class="project-resource-permission-panel"><header><strong>${title}</strong></header><div class="project-resource-permission-tree">${renderProjectResourcePermissionNodes(tree)}</div></section>`;
+}
+
+function renderProjectResourcePermissionModalBody(){
+  return `<div class="project-resource-permission-layout">${renderProjectResourcePermissionPanel("pc","项目管理端-PC")}${renderProjectResourcePermissionPanel("mobile","项目管理端-移动端")}</div>`;
+}
+
+function refreshProjectResourcePermissionModal(){
+  const body=document.querySelector(".project-resource-permission-modal .modal-bd");
+  if(body)body.innerHTML=renderProjectResourcePermissionModalBody();
+  document.querySelectorAll(".project-resource-permission-modal input[data-indeterminate='true']").forEach(input=>input.indeterminate=true);
+}
+
+function openProjectResourcePermissionManagement(id){
+  const row=getProjectResourceAuthorizationById(id);
+  if(!row)return;
+  projectResourcePermissionState.resourceId=id;
+  projectResourcePermissionState.draftSelected=[...ensureProjectResourcePermissions(row)];
+  openModal("权限管理",renderProjectResourcePermissionModalBody(),`<button class="btn" onclick="closeModal()">关闭</button><button class="btn primary" onclick="saveProjectResourcePermissionManagement()">保存</button>`,"large");
+  modalBox.classList.add("project-resource-permission-modal");
+  refreshProjectResourcePermissionModal();
+}
+
+function findProjectResourcePermissionNode(key){
+  for(const platform of ["pc","mobile"]){
+    const stack=[...getProjectResourcePermissionTree(platform)];
+    while(stack.length){const node=stack.shift();if(node.key===key)return node;stack.push(...(node.children||[]));}
+  }
+  return null;
+}
+
+function toggleProjectResourcePermissionNode(key,checked){
+  const node=findProjectResourcePermissionNode(key);
+  if(!node)return;
+  const selected=new Set(projectResourcePermissionState.draftSelected);
+  getProjectResourcePermissionLeafKeys([node]).forEach(leaf=>checked?selected.add(leaf):selected.delete(leaf));
+  projectResourcePermissionState.draftSelected=[...selected];
+  refreshProjectResourcePermissionModal();
+}
+
+function toggleProjectResourcePermissionBranch(button){
+  const node=button.closest(".project-resource-permission-node");
+  node?.classList.toggle("collapsed");
+  if(button)button.textContent=node?.classList.contains("collapsed")?"▸":"▾";
+}
+
+function saveProjectResourcePermissionManagement(){
+  const row=getProjectResourceAuthorizationById(projectResourcePermissionState.resourceId);
+  if(!row)return;
+  row.permissions=[...projectResourcePermissionState.draftSelected];
+  closeModal();
+  showToast(`“${row.name}”资源权限已保存`);
+}
+
+function getProjectResourceAuthorizationFiltered(){
+  const name=projectResourceAuthorizationState.projectName.trim().toLowerCase();
+  const code=projectResourceAuthorizationState.projectCode.trim().toLowerCase();
+  return projectResourceAuthorizationData.filter(row=>{
+    const projectNames=(row.projects||[]).map(project=>project.name).join(" ").toLowerCase();
+    const projectCodes=(row.projects||[]).map(project=>project.code).join(" ").toLowerCase();
+    const matchName=!name||projectNames.includes(name);
+    const matchCode=!code||projectCodes.includes(code);
+    return matchName&&matchCode;
+  });
+}
+
+function queryProjectResourceAuthorization(){
+  projectResourceAuthorizationState.projectName=document.getElementById("projectResourceProjectName")?.value||"";
+  projectResourceAuthorizationState.projectCode=document.getElementById("projectResourceProjectCode")?.value||"";
+  renderProjectResourceAuthorizationPage();
+}
+
+function resetProjectResourceAuthorization(){
+  projectResourceAuthorizationState.projectName="";
+  projectResourceAuthorizationState.projectCode="";
+  renderProjectResourceAuthorizationPage();
+}
+
+function renderProjectResourceAuthorizationPage(){
+  detailPage.style.display="none";
+  listPage.style.display="flex";
+  const list=getProjectResourceAuthorizationFiltered();
+  const queryFields=`
+    <div class="form-item"><label>项目名称</label><input class="input" id="projectResourceProjectName" value="${escapeAttr(projectResourceAuthorizationState.projectName)}" placeholder="请输入项目名称" onkeydown="if(event.key==='Enter')queryProjectResourceAuthorization()"/></div>
+    <div class="form-item"><label>项目编号</label><input class="input" id="projectResourceProjectCode" value="${escapeAttr(projectResourceAuthorizationState.projectCode)}" placeholder="请输入项目编号" onkeydown="if(event.key==='Enter')queryProjectResourceAuthorization()"/></div>
+  `;
+  listPage.innerHTML=`
+    <div class="compact-title-row"><div class="module-title">项目资源授权</div></div>
+    ${renderUnifiedQueryCard(queryFields,{id:"projectResourceAuthorizationQuery",gridClass:"search-grid",queryFn:"queryProjectResourceAuthorization()",resetFn:"resetProjectResourceAuthorization()"})}
+    ${renderUnifiedTableCard({
+      title:"项目资源授权列表",
+      tableKey:"projectResourceAuthorization",
+      tableId:"projectResourceAuthorizationTable",
+      theadId:"projectResourceAuthorizationThead",
+      tbodyId:"projectResourceAuthorizationTbody",
+      totalId:"projectResourceAuthorizationTotalText",
+      total:list.length,
+      renderFnName:"renderProjectResourceAuthorizationPage",
+      refreshAction:"renderProjectResourceAuthorizationPage();showToast('已刷新项目资源授权列表')",
+      exportAction:"showToast('导出成功：项目资源授权列表.xlsx')"
+    })}
+  `;
+  renderTableByColumns("projectResourceAuthorization",list,"projectResourceAuthorizationTbody");
+}
+
+function getProjectResourceAuthorizationById(id){return projectResourceAuthorizationData.find(row=>row.id===id);}
+
+function openProjectResourceAssignedProjects(id){
+  const row=getProjectResourceAuthorizationById(id);
+  if(!row)return;
+  const selectedIds=(row.projects||[]).map(project=>getMessageProjectPickerRows().find(item=>String(item.projectCode||"")===String(project.code||"")||String(item.projectName||"")===String(project.name||""))?.id).filter(Boolean);
+  openMessageProjectPicker("projectResourceAuthorizationManager",{mode:"manage",title:`权限管理 - ${row.name}`,resourceId:id,selectedIds,excludeSelected:false});
+}
+
+function openProjectResourceAuthorizationDetail(id){
+  const row=getProjectResourceAuthorizationById(id);
+  if(!row)return;
+  openModal("查看项目资源授权",`<div class="form-grid-2"><div class="form-item"><label>资源包名称</label><input class="input" value="${escapeAttr(row.name)}" disabled/></div><div class="form-item"><label>资源包编号</label><input class="input" value="${escapeAttr(row.code)}" disabled/></div><div class="form-item"><label>已分配项目数</label><input class="input" value="${getProjectResourceAssignedCount(row)}" disabled/></div><div class="form-item"><label>状态</label><input class="input" value="${row.status}" disabled/></div><div class="form-item" style="grid-column:1/-1"><label>备注</label><textarea class="input" disabled>${row.remark||""}</textarea></div></div>`,`<button class="btn" onclick="closeModal()">关闭</button>`);
+}
+
+function openProjectResourceAuthorizationEdit(id){
+  const row=getProjectResourceAuthorizationById(id);
+  if(!row)return;
+  openModal("编辑项目资源授权",`<div class="project-resource-edit-form"><div class="form-item"><label>资源包名称</label><input class="input" id="projectResourceEditName" value="${escapeAttr(row.name)}"/></div><div class="form-item"><label>资源包编号</label><input class="input" value="${escapeAttr(row.code)}" disabled/></div><div class="form-item"><label>状态</label><select class="select" id="projectResourceEditStatus"><option ${row.status==="启用"?"selected":""}>启用</option><option ${row.status==="禁用"?"selected":""}>禁用</option></select></div><div class="form-item project-resource-edit-remark"><label>备注</label><textarea class="input" id="projectResourceEditRemark" placeholder="请输入备注">${row.remark||""}</textarea></div></div>`,`<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveProjectResourceAuthorizationEdit('${id}')">保存</button>`,"large");
+}
+
+function saveProjectResourceAuthorizationEdit(id){
+  const row=getProjectResourceAuthorizationById(id);
+  if(!row)return;
+  const name=document.getElementById("projectResourceEditName")?.value.trim();
+  if(!name)return showToast("请输入资源包名称");
+  row.name=name;
+  row.status=document.getElementById("projectResourceEditStatus")?.value||row.status;
+  row.remark=document.getElementById("projectResourceEditRemark")?.value.trim()||"";
+  closeModal();
+  renderProjectResourceAuthorizationPage();
+  showToast("项目资源授权已保存");
+}
+
+function openProjectResourceAssignmentPlaceholder(id){
+  const row=getProjectResourceAuthorizationById(id);
+  if(!row)return;
+  const selectedIds=(row.projects||[]).map(project=>{
+    const match=getMessageProjectPickerRows().find(item=>String(item.projectCode||"")===String(project.code||"")||String(item.projectName||"")===String(project.name||""));
+    return match?.id;
+  }).filter(Boolean);
+  openMessageProjectPicker("projectResourceAssignmentTarget",{
+    selectedIds,
+    onConfirm:ids=>{
+      const selectedRows=getMessageProjectPickerRows().filter(project=>ids.includes(String(project.id)));
+      row.projects=selectedRows.map(project=>({name:project.projectName,code:project.projectCode}));
+      renderProjectResourceAuthorizationPage();
+      showToast(`“${row.name}”已完成项目分配，共 ${getProjectResourceAssignedCount(row)} 个项目`);
+    }
+  });
+}
+
 /* ---------- 角色管理：基础维护，供新增人员选择 ---------- */
 function renderRoleManagementPage(){
   detailPage.style.display="none";

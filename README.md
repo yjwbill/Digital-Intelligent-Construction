@@ -2,7 +2,7 @@
 
 这是一个用于产品演示的静态前端 Demo，已整理为适合 GitHub Pages 发布的目录结构。
 
-当前版本：`EM-20260701-V2.2.671-ECONOMY-SECTION-TITLE-LIGHTBAND`
+当前版本：`EM-20260701-V2.2.679-PROJECT-BUTTON-PERMISSION-AND-EDIT-FORM`
 
 ## 在线发布
 
@@ -53,7 +53,7 @@ npx serve .
 
 ## 当前版本
 
-`EM-20260701-V2.2.671-ECONOMY-SECTION-TITLE-LIGHTBAND`
+`EM-20260701-V2.2.679-PROJECT-BUTTON-PERMISSION-AND-EDIT-FORM`
 
 本版本依据MasterGo 1920×1080设计稿完成经济总览整页校准，并使用设计原图替换机器人和空状态插画。
 

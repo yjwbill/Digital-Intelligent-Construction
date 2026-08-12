@@ -313,7 +313,7 @@ const componentLibraryMenusV2288={
     {group:"基础组件",items:[["button","按钮 Button"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"]]},
     {group:"表单组件",items:[["input","输入框 Input"],["select","选择器 Select"]]},
     {group:"数据展示",items:[["tag","标签 Tag"],["table","表格 Table"]]},
-    {group:"业务组件",items:[["statistics-filter","统计筛选 StatisticsFilter"],["dashboard-org-switch","看板组织切换 DashboardOrgSwitch"]]}
+    {group:"业务组件",items:[["statistics-filter","统计筛选 StatisticsFilter"],["dashboard-org-switch","看板组织切换 DashboardOrgSwitch"],["project-selector","项目选择器 ProjectSelector"]]}
   ],
   mobile:[
     {group:"基础组件",items:[["button","按钮 Button"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"]]},
@@ -606,7 +606,8 @@ function renderPcComponentPreviewV2288(type){
     "dashboard-org-switch":`
       <div class="component-dashboard-org-demo">${DashboardOrgSwitch.render({id:"component-dashboard-org-switch",records:dashboardOrgDemoRecords,state:componentDashboardOrgStateV2276,onChange:selection=>{Object.assign(componentDashboardOrgStateV2276,selection);refreshComponentLibraryPreviewV2300();}})}</div>
       <p>根据项目所属组织反推可选子公司和分公司，并通过组织管理主数据校验父子关系。选择子公司后自动展开第二行分公司选项。</p>
-    `
+    `,
+    "project-selector":ProjectSelector.renderLibraryPreview()
   };
   return demos[type] || demos.button;
 }
