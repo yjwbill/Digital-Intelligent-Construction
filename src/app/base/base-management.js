@@ -4418,6 +4418,216 @@ function retryMessageTodoReach(id){
 }
 
 /* =========================
+   审批流配置
+========================= */
+const approvalFlowConfigData=[
+  {id:1,name:"分公司变更",initiatorAsApprover:"否",projectInitiated:"是",approvalType:"分公司变更",code:"project_branch_company_change_apply",viewRoute:"ProjectBranchCompanyChangeDetail",editRoute:"ProjectBranchCompanyChangeEdit",formType:"自定义",sort:10,remark:"分公司信息变更审批",nodes:["项目负责人","子公司业务部门","子公司分管领导"]},
+  {id:2,name:"II级风险条件验收",initiatorAsApprover:"否",projectInitiated:"是",approvalType:"风险管理",code:"project_risk_list_level2_accept",viewRoute:"ProjectRiskListAccept",editRoute:"ProjectRiskListAcceptEdit",formType:"自定义",sort:20,remark:"II级风险条件验收审批",nodes:["项目安全负责人","项目经理","分公司安全负责人"]},
+  {id:3,name:"工程总体筹划-子公司",initiatorAsApprover:"否",projectInitiated:"是",approvalType:"项目状态",code:"project_prepare_subsidiary_major",viewRoute:"ProjectPrepareDetail",editRoute:"/project/overall/prepare",formType:"自定义",sort:30,remark:"子公司重大项目总体筹划",nodes:["项目经理","子公司产运部","子公司分管领导"]},
+  {id:4,name:"实际产值上报",initiatorAsApprover:"否",projectInitiated:"是",approvalType:"产值管理",code:"project_month_actual_output_report",viewRoute:"ActualReportDetail",editRoute:"ActualReportApply",formType:"自定义",sort:40,remark:"项目月度实际产值上报",nodes:["分公司产运人员","分公司分管领导","子公司产运部"]},
+  {id:5,name:"一体化备案",initiatorAsApprover:"否",projectInitiated:"是",approvalType:"项目状态",code:"project_integration",viewRoute:"ProjectIntegrationApplyDetail",editRoute:"ProjectIntegrationApply",formType:"自定义",sort:50,remark:"股份一体化项目备案",nodes:["项目经理","子公司业务部门","股份产运部"]},
+  {id:6,name:"险情解除",initiatorAsApprover:"是",projectInitiated:"是",approvalType:"险情管理",code:"emergency_discharge",viewRoute:"EmergencyDischargeApprovalDetail",editRoute:"EmergencyDischargeApproval",formType:"自定义",sort:60,remark:"项目险情解除审批",nodes:["项目安全负责人","项目经理","子公司安全负责人"]},
+  {id:7,name:"重大风险摄像头变更",initiatorAsApprover:"否",projectInitiated:"是",approvalType:"风险管理",code:"project_major_risk_camera_change",viewRoute:"ProjectMajorRiskCameraChangeDetail",editRoute:"ProjectMajorRiskCameraChange",formType:"自定义",sort:70,remark:"重大风险监控设备变更",nodes:["项目安全负责人","分公司安全负责人","子公司安全负责人"]},
+  {id:8,name:"创奖变更",initiatorAsApprover:"否",projectInitiated:"是",approvalType:"质量管理",code:"project_award_plan",viewRoute:"ProjectAwardPlanDetail",editRoute:"ProjectAwardPlanChange",formType:"自定义",sort:80,remark:"项目创奖计划变更",nodes:["项目质量负责人","项目经理","子公司质量部门"]},
+  {id:9,name:"技术方案变更",initiatorAsApprover:"否",projectInitiated:"是",approvalType:"技术管理",code:"project_technical_plan_change",viewRoute:"ProjectTechnicalPlanChangeDetail",editRoute:"ProjectTechnicalPlanChange",formType:"自定义",sort:90,remark:"项目技术方案变更",nodes:["项目总工程师","项目经理","子公司技术部门"]},
+  {id:10,name:"重大风险上传开工令",initiatorAsApprover:"否",projectInitiated:"是",approvalType:"风险管理",code:"project_major_risk_implement",viewRoute:"ProjectMajorRiskImplementDetail",editRoute:"ProjectMajorRiskImplement",formType:"自定义",sort:100,remark:"重大风险开工令审批",nodes:["项目安全负责人","项目经理","分公司安全负责人"]},
+  {id:11,name:"重大风险上传技术方案",initiatorAsApprover:"否",projectInitiated:"是",approvalType:"风险管理",code:"project_major_risk_technical",viewRoute:"ProjectMajorRiskTechnicalDetail",editRoute:"ProjectMajorRiskTechnicalDetail",formType:"自定义",sort:110,remark:"重大风险技术方案审批",nodes:["项目总工程师","项目经理","子公司技术部门"]},
+  {id:12,name:"保障申请",initiatorAsApprover:"否",projectInitiated:"是",approvalType:"保障管理",code:"project_insurance_apply",viewRoute:"ProjectInsuranceApplyDetail",editRoute:"ProjectInsuranceApplyEdit",formType:"自定义",sort:120,remark:"项目保险保障申请",nodes:["项目经办人","项目经理","子公司保障部门"]},
+  {id:13,name:"分公司工程巡查整改",initiatorAsApprover:"否",projectInitiated:"是",approvalType:"质量管理",code:"quality_inspection_problem_branch",viewRoute:"QualityInspectionProblemDetail",editRoute:"QualityInspectionProblemEdit",formType:"自定义",sort:130,remark:"分公司工程巡查整改闭环",nodes:["项目质量负责人","项目经理","分公司质量负责人"]},
+  {id:14,name:"子公司工程巡查整改",initiatorAsApprover:"否",projectInitiated:"是",approvalType:"质量管理",code:"quality_inspection_problem_child",viewRoute:"QualityInspectionProblemDetail",editRoute:"QualityInspectionProblemEdit",formType:"自定义",sort:140,remark:"子公司工程巡查整改闭环",nodes:["项目质量负责人","项目经理","子公司质量负责人"]},
+  {id:15,name:"工程总体筹划-股份",initiatorAsApprover:"否",projectInitiated:"是",approvalType:"项目状态",code:"project_prepare_group_major",viewRoute:"ProjectPrepareDetail",editRoute:"/project/overall/prepare",formType:"自定义",sort:150,remark:"股份重大项目总体筹划",nodes:["项目经理","子公司产运部","股份产运部"]},
+  {id:16,name:"项目经理变更",initiatorAsApprover:"否",projectInitiated:"是",approvalType:"项目经理变更",code:"project_manager_change_apply",viewRoute:"ProjectManagerChangeDetail",editRoute:"ProjectManagerChangeEdit",formType:"自定义",sort:160,remark:"项目经理变更审批",nodes:["项目负责人","分公司人力部门","子公司分管领导"]},
+  {id:17,name:"建筑垃圾计划变更",initiatorAsApprover:"否",projectInitiated:"是",approvalType:"建筑垃圾计划",code:"project_building_waste_change",viewRoute:"ProjectBuildingWasteChangeDetail",editRoute:"ProjectBuildingWasteChange",formType:"自定义",sort:170,remark:"建筑垃圾处置计划变更",nodes:["项目经办人","项目经理","分公司业务部门"]},
+  {id:18,name:"设备计划-变更",initiatorAsApprover:"否",projectInitiated:"是",approvalType:"设备计划",code:"project_equipment_plan_change",viewRoute:"ProjectEquipmentPlanChangeDetail",editRoute:"ProjectEquipmentPlanChange",formType:"自定义",sort:180,remark:"项目设备计划变更",nodes:["设备管理员","项目经理","分公司设备部门"]},
+  {id:19,name:"劳动力计划-变更",initiatorAsApprover:"否",projectInitiated:"是",approvalType:"劳动力计划",code:"project_labor_plan_change",viewRoute:"ProjectLaborPlanChangeDetail",editRoute:"ProjectLaborPlanChange",formType:"自定义",sort:190,remark:"项目劳动力计划变更",nodes:["劳务管理员","项目经理","分公司生产部门"]},
+  {id:20,name:"质量事故解除",initiatorAsApprover:"否",projectInitiated:"是",approvalType:"险情管理",code:"quality_accident_discharge",viewRoute:"QualityAccidentDischargeDetail",editRoute:"QualityAccidentDischargeApproval",formType:"自定义",sort:200,remark:"质量事故解除审批",nodes:["项目质量负责人","项目经理","子公司质量部门"]}
+];
+
+const approvalFlowConfigState={filters:{keyword:"",name:"",code:"",approvalType:""},selectedIds:[],page:1,pageSize:50};
+let approvalFlowConfigCurrent=[...approvalFlowConfigData];
+
+approvalFlowConfigData.forEach((row,index)=>{
+  const updateCount=index%5+1;
+  row.versionRecords=Array.from({length:updateCount},(_,recordIndex)=>({
+    version:`V1.${updateCount-recordIndex}`,
+    type:recordIndex===0?"审批流配置更新":recordIndex===1?"审批节点调整":"基础信息维护",
+    operator:["王安全","陈审批","系统管理员","李明"][recordIndex%4],
+    updateTime:`2026-${String(Math.max(4,8-recordIndex)).padStart(2,"0")}-${String(Math.max(1,12-index%8)).padStart(2,"0")} ${String(9+recordIndex).padStart(2,"0")}:20:00`,
+    summary:recordIndex===0?`更新${row.name}的审批流配置及页面路由`:recordIndex===1?`调整${row.name}的审批节点及审批人规则`:`维护${row.name}的表单基础信息`
+  }));
+});
+
+function approvalFlowConfigBooleanTag(value){return tag(value,value==="是"?"green":"red");}
+function approvalFlowConfigEllipsis(value){return `<span class="text-ellipsis" title="${escapeAttr(value||"")}">${value||"-"}</span>`;}
+
+tableColumnDefinitions.approvalFlowConfig=[
+  {key:"selection",title:'<input type="checkbox" aria-label="全选审批流" onchange="toggleAllApprovalFlowConfigs(this.checked)"/>',width:54,align:"center",render:row=>`<input type="checkbox" aria-label="选择${escapeAttr(row.name)}" ${approvalFlowConfigState.selectedIds.includes(row.id)?"checked":""} onchange="toggleApprovalFlowConfigSelection(${row.id},this.checked)"/>`},
+  {key:"index",title:"序号",width:70,align:"center",render:(row,index)=>(approvalFlowConfigState.page-1)*approvalFlowConfigState.pageSize+index+1},
+  {key:"name",title:"表单名称",width:220,render:row=>approvalFlowConfigEllipsis(row.name)},
+  {key:"initiatorAsApprover",title:"当前节点审批人为发起人",width:190,align:"center",render:row=>approvalFlowConfigBooleanTag(row.initiatorAsApprover)},
+  {key:"projectInitiated",title:"是否从项目端发起",width:160,align:"center",render:row=>approvalFlowConfigBooleanTag(row.projectInitiated)},
+  {key:"approvalType",title:"审批流类型",width:150,align:"center",render:row=>tag(row.approvalType,"blue")},
+  {key:"flowSetting",title:"审批流设置",width:110,align:"center",render:row=>`<a class="link" onclick="openApprovalFlowNodeSetting(${row.id})">设置</a>`},
+  {key:"code",title:"表单代码",width:290,render:row=>approvalFlowConfigEllipsis(row.code)},
+  {key:"viewRoute",title:"查看页路由",width:230,render:row=>approvalFlowConfigEllipsis(row.viewRoute)},
+  {key:"editRoute",title:"编辑页路由",width:230,render:row=>approvalFlowConfigEllipsis(row.editRoute)},
+  {key:"formType",title:"表单类型",width:110,align:"center",render:row=>tag(row.formType,"green")},
+  {key:"sort",title:"排序参数",width:100,align:"center",render:row=>row.sort},
+  {key:"historyVersion",title:"历史版本",width:100,align:"center",render:row=>`<a class="link" onclick="openApprovalFlowConfigVersionRecords(${row.id})">${row.versionRecords?.length||0}</a>`},
+  {key:"remark",title:"备注说明",width:220,render:row=>approvalFlowConfigEllipsis(row.remark)},
+  {key:"operation",title:"操作",width:170,align:"center",render:row=>`<span class="approval-row-actions"><a class="link" onclick="openApprovalFlowConfigView(${row.id})">查看</a><a class="link" onclick="openApprovalFlowConfigEdit(${row.id})">编辑</a><a class="link danger-link" onclick="deleteApprovalFlowConfig(${row.id})">删除</a></span>`}
+];
+
+function getApprovalFlowConfigFilteredRows(){
+  const f=approvalFlowConfigState.filters;
+  return approvalFlowConfigData.filter(row=>{
+    const searchable=[row.name,row.code,row.approvalType,row.viewRoute,row.editRoute,row.remark].join(" ");
+    return (!f.keyword||searchable.includes(f.keyword))&&(!f.name||row.name.includes(f.name))&&(!f.code||row.code.includes(f.code))&&(!f.approvalType||row.approvalType===f.approvalType);
+  }).sort((a,b)=>a.sort-b.sort);
+}
+
+function applyApprovalFlowConfigFilters(){approvalFlowConfigCurrent=getApprovalFlowConfigFilteredRows();}
+function approvalFlowConfigOptions(){return [...new Set(approvalFlowConfigData.map(row=>row.approvalType))];}
+function renderApprovalFlowConfigSelect(value=""){return `<select id="approvalFlowConfigType" class="select"><option value="">全部</option>${approvalFlowConfigOptions().map(item=>`<option ${item===value?"selected":""}>${item}</option>`).join("")}</select>`;}
+
+function renderApprovalFlowConfigPagination(){
+  const pages=Math.max(1,Math.ceil(approvalFlowConfigCurrent.length/approvalFlowConfigState.pageSize));
+  approvalFlowConfigState.page=Math.min(approvalFlowConfigState.page,pages);
+  return `<span>共 ${approvalFlowConfigCurrent.length} 条</span><div class="pager"><button class="btn" ${approvalFlowConfigState.page<=1?"disabled":""} onclick="setApprovalFlowConfigPage(${approvalFlowConfigState.page-1})">上一页</button><b>第 ${approvalFlowConfigState.page} / ${pages} 页</b><button class="btn" ${approvalFlowConfigState.page>=pages?"disabled":""} onclick="setApprovalFlowConfigPage(${approvalFlowConfigState.page+1})">下一页</button><select class="mini-select" onchange="setApprovalFlowConfigPageSize(this.value)"><option value="20" ${approvalFlowConfigState.pageSize===20?"selected":""}>20条/页</option><option value="50" ${approvalFlowConfigState.pageSize===50?"selected":""}>50条/页</option><option value="100" ${approvalFlowConfigState.pageSize===100?"selected":""}>100条/页</option></select></div>`;
+}
+
+function renderApprovalFlowConfigPage(){
+  detailPage.style.display="none";
+  listPage.style.display="flex";
+  applyApprovalFlowConfigFilters();
+  const f=approvalFlowConfigState.filters;
+  const fields=`
+    <div class="form-item"><label>关键字</label><input id="approvalFlowConfigKeyword" class="input" placeholder="请输入关键字模糊搜索" value="${escapeAttr(f.keyword)}"/></div>
+    <div class="form-item"><label>表单名称</label><input id="approvalFlowConfigName" class="input" placeholder="请输入表单名称" value="${escapeAttr(f.name)}"/></div>
+    <div class="form-item"><label>表单代码</label><input id="approvalFlowConfigCode" class="input" placeholder="请输入表单代码" value="${escapeAttr(f.code)}"/></div>
+    <div class="form-item"><label>审批类型</label>${renderApprovalFlowConfigSelect(f.approvalType)}</div>`;
+  const beforeActions=`<button class="btn primary" onclick="openApprovalFlowConfigEdit()">新增</button><button class="btn danger" onclick="batchDeleteApprovalFlowConfigs()">批量删除</button><button class="btn" onclick="updateApprovalFlowNodes()">更新审批节点</button>`;
+  const tableCard=renderUnifiedTableCard({title:"审批流配置",tableKey:"approvalFlowConfig",tableId:"approvalFlowConfigTable",theadId:"approvalFlowConfigThead",tbodyId:"approvalFlowConfigTbody",renderFnName:"renderApprovalFlowConfigTable",beforeActions,refreshAction:"refreshApprovalFlowConfigs()",exportAction:"exportApprovalFlowConfigs()",paginationHtml:renderApprovalFlowConfigPagination(),className:"approval-flow-config-table-card"});
+  listPage.innerHTML=`<div class="approval-flow-config-page"><div class="compact-title-row"><div class="module-title">审批流程管理 / 审批流配置</div></div>${renderUnifiedQueryCard(fields,{id:"approvalFlowConfigQueryCard",queryFn:"queryApprovalFlowConfigs()",resetFn:"resetApprovalFlowConfigs()",canCollapse:false})}${tableCard}</div>`;
+  renderApprovalFlowConfigTable();
+}
+
+function readApprovalFlowConfigFilters(){return {keyword:document.getElementById("approvalFlowConfigKeyword")?.value.trim()||"",name:document.getElementById("approvalFlowConfigName")?.value.trim()||"",code:document.getElementById("approvalFlowConfigCode")?.value.trim()||"",approvalType:document.getElementById("approvalFlowConfigType")?.value||""};}
+function queryApprovalFlowConfigs(){approvalFlowConfigState.filters=readApprovalFlowConfigFilters();approvalFlowConfigState.page=1;renderApprovalFlowConfigPage();}
+function resetApprovalFlowConfigs(){approvalFlowConfigState.filters={keyword:"",name:"",code:"",approvalType:""};approvalFlowConfigState.page=1;renderApprovalFlowConfigPage();}
+function refreshApprovalFlowConfigs(){renderApprovalFlowConfigPage();showToast("审批流配置已刷新");}
+function exportApprovalFlowConfigs(){showToast(`导出成功：审批流配置（${approvalFlowConfigCurrent.length}条）.xlsx`);}
+function setApprovalFlowConfigPage(page){approvalFlowConfigState.page=Math.max(1,Number(page)||1);renderApprovalFlowConfigPage();}
+function setApprovalFlowConfigPageSize(size){approvalFlowConfigState.pageSize=Number(size)||50;approvalFlowConfigState.page=1;renderApprovalFlowConfigPage();}
+
+function renderApprovalFlowConfigTable(){
+  const start=(approvalFlowConfigState.page-1)*approvalFlowConfigState.pageSize;
+  const rows=approvalFlowConfigCurrent.slice(start,start+approvalFlowConfigState.pageSize);
+  const thead=document.getElementById("approvalFlowConfigThead");
+  if(thead)thead.innerHTML=renderTableHeaderByColumns("approvalFlowConfig");
+  renderTableByColumns("approvalFlowConfig",rows,"approvalFlowConfigTbody");
+  const allSelected=rows.length&&rows.every(row=>approvalFlowConfigState.selectedIds.includes(row.id));
+  const selectAll=document.querySelector('#approvalFlowConfigThead input[type="checkbox"]');
+  if(selectAll)selectAll.checked=Boolean(allSelected);
+}
+
+function toggleApprovalFlowConfigSelection(id,checked){
+  const selected=new Set(approvalFlowConfigState.selectedIds);
+  checked?selected.add(id):selected.delete(id);
+  approvalFlowConfigState.selectedIds=[...selected];
+  renderApprovalFlowConfigTable();
+}
+
+function toggleAllApprovalFlowConfigs(checked){
+  const start=(approvalFlowConfigState.page-1)*approvalFlowConfigState.pageSize;
+  const ids=approvalFlowConfigCurrent.slice(start,start+approvalFlowConfigState.pageSize).map(row=>row.id);
+  const selected=new Set(approvalFlowConfigState.selectedIds);
+  ids.forEach(id=>checked?selected.add(id):selected.delete(id));
+  approvalFlowConfigState.selectedIds=[...selected];
+  renderApprovalFlowConfigTable();
+}
+
+function openApprovalFlowConfigView(id){
+  const row=approvalFlowConfigData.find(item=>item.id===id);if(!row)return;
+  openModal("查看审批流配置",`<div class="form-grid-2"><div class="form-item"><label>表单名称</label><input class="input" value="${escapeAttr(row.name)}" disabled/></div><div class="form-item"><label>表单代码</label><input class="input" value="${escapeAttr(row.code)}" disabled/></div><div class="form-item"><label>审批流类型</label><input class="input" value="${escapeAttr(row.approvalType)}" disabled/></div><div class="form-item"><label>表单类型</label><input class="input" value="${escapeAttr(row.formType)}" disabled/></div><div class="form-item"><label>查看页路由</label><input class="input" value="${escapeAttr(row.viewRoute)}" disabled/></div><div class="form-item"><label>编辑页路由</label><input class="input" value="${escapeAttr(row.editRoute)}" disabled/></div><div class="form-item"><label>是否从项目端发起</label><input class="input" value="${row.projectInitiated}" disabled/></div><div class="form-item"><label>当前节点审批人为发起人</label><input class="input" value="${row.initiatorAsApprover}" disabled/></div><div class="form-item" style="grid-column:1/-1"><label>备注说明</label><textarea class="input" disabled>${row.remark}</textarea></div></div>`,`<button class="btn" onclick="closeModal()">关闭</button>`,`large`);
+}
+
+function openApprovalFlowConfigEdit(id){
+  const row=approvalFlowConfigData.find(item=>item.id===id)||{name:"",code:"",approvalType:"",formType:"自定义",viewRoute:"",editRoute:"",projectInitiated:"是",initiatorAsApprover:"否",sort:(approvalFlowConfigData.length+1)*10,remark:"",nodes:["项目负责人","部门负责人"]};
+  openModal(id?"编辑审批流配置":"新增审批流配置",`<div class="form-grid-2"><div class="form-item"><label>表单名称 *</label><input id="approvalConfigEditName" class="input" value="${escapeAttr(row.name)}" placeholder="请输入表单名称"/></div><div class="form-item"><label>表单代码 *</label><input id="approvalConfigEditCode" class="input" value="${escapeAttr(row.code)}" placeholder="请输入表单代码"/></div><div class="form-item"><label>审批流类型 *</label><input id="approvalConfigEditType" class="input" value="${escapeAttr(row.approvalType)}" placeholder="请输入审批流类型"/></div><div class="form-item"><label>表单类型</label><select id="approvalConfigEditFormType" class="select"><option ${row.formType==="自定义"?"selected":""}>自定义</option><option ${row.formType==="系统"?"selected":""}>系统</option></select></div><div class="form-item"><label>查看页路由</label><input id="approvalConfigEditViewRoute" class="input" value="${escapeAttr(row.viewRoute)}" placeholder="请输入查看页路由"/></div><div class="form-item"><label>编辑页路由</label><input id="approvalConfigEditEditRoute" class="input" value="${escapeAttr(row.editRoute)}" placeholder="请输入编辑页路由"/></div><div class="form-item"><label>是否从项目端发起</label><select id="approvalConfigEditProjectInitiated" class="select"><option ${row.projectInitiated==="是"?"selected":""}>是</option><option ${row.projectInitiated==="否"?"selected":""}>否</option></select></div><div class="form-item"><label>当前节点审批人为发起人</label><select id="approvalConfigEditInitiator" class="select"><option ${row.initiatorAsApprover==="否"?"selected":""}>否</option><option ${row.initiatorAsApprover==="是"?"selected":""}>是</option></select></div><div class="form-item"><label>排序参数</label><input id="approvalConfigEditSort" class="input" type="number" value="${row.sort}"/></div><div class="form-item" style="grid-column:1/-1"><label>备注说明</label><textarea id="approvalConfigEditRemark" class="input" style="height:96px;padding-top:8px" placeholder="请输入备注说明">${row.remark}</textarea></div></div>`,`<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveApprovalFlowConfig(${id||0})">保存</button>`,`large`);
+}
+
+function saveApprovalFlowConfig(id){
+  const name=document.getElementById("approvalConfigEditName")?.value.trim();
+  const code=document.getElementById("approvalConfigEditCode")?.value.trim();
+  const approvalType=document.getElementById("approvalConfigEditType")?.value.trim();
+  if(!name||!code||!approvalType)return showToast("请完整填写表单名称、表单代码和审批流类型");
+  if(approvalFlowConfigData.some(row=>row.code===code&&row.id!==id))return showToast("表单代码不能重复");
+  const values={name,code,approvalType,formType:document.getElementById("approvalConfigEditFormType")?.value||"自定义",viewRoute:document.getElementById("approvalConfigEditViewRoute")?.value.trim()||"",editRoute:document.getElementById("approvalConfigEditEditRoute")?.value.trim()||"",projectInitiated:document.getElementById("approvalConfigEditProjectInitiated")?.value||"是",initiatorAsApprover:document.getElementById("approvalConfigEditInitiator")?.value||"否",sort:Number(document.getElementById("approvalConfigEditSort")?.value)||0,remark:document.getElementById("approvalConfigEditRemark")?.value.trim()||""};
+  const row=approvalFlowConfigData.find(item=>item.id===id);
+  if(row){
+    Object.assign(row,values);
+    appendApprovalFlowConfigVersion(row,"审批流配置更新","更新表单基础信息、发起规则及页面路由");
+  }else{
+    approvalFlowConfigData.push({id:Math.max(0,...approvalFlowConfigData.map(item=>item.id))+1,...values,nodes:["项目负责人","部门负责人"],versionRecords:[]});
+  }
+  closeModal();renderApprovalFlowConfigPage();showToast(id?"审批流配置已更新":"审批流配置已新增");
+}
+
+function openApprovalFlowNodeSetting(id){
+  const row=approvalFlowConfigData.find(item=>item.id===id);if(!row)return;
+  openModal("审批流设置",`<div class="approval-node-setting"><div class="approval-node-setting-summary"><span>审批表单</span><strong>${row.name}</strong><span>当前共 ${row.nodes.length} 个审批节点</span></div><div class="approval-node-setting-list">${row.nodes.map((node,index)=>`<div class="approval-node-setting-item"><i>${index+1}</i><div><strong>${node}</strong><span>${index===0?"发起后进入首个审批节点":"上一节点通过后进入"}</span></div><button class="btn" onclick="showToast('节点人员配置已打开')">配置审批人</button></div>`).join("")}</div></div>`,`<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveApprovalFlowNodeSetting(${row.id})">保存</button>`,`large`);
+}
+
+function appendApprovalFlowConfigVersion(row,type,summary){
+  if(!row)return;
+  row.versionRecords=Array.isArray(row.versionRecords)?row.versionRecords:[];
+  row.versionRecords.unshift({version:`V1.${row.versionRecords.length+1}`,type,operator:"王安全",updateTime:getMessageOperationTime(),summary});
+}
+
+function saveApprovalFlowNodeSetting(id){
+  const row=approvalFlowConfigData.find(item=>item.id===id);if(!row)return;
+  appendApprovalFlowConfigVersion(row,"审批节点调整","更新审批节点顺序及审批人配置");
+  closeModal();renderApprovalFlowConfigPage();showToast("审批流设置已保存");
+}
+
+function openApprovalFlowConfigVersionRecords(id){
+  const row=approvalFlowConfigData.find(item=>item.id===id);if(!row)return;
+  const records=row.versionRecords||[];
+  const html=`<div class="safety-eval-version-modal approval-flow-version-modal"><div class="safety-eval-version-model-name">审批表单：${row.name}　共更新 ${records.length} 次</div><div class="safety-eval-detail-table-wrap"><table class="safety-eval-detail-table safety-eval-version-table"><thead><tr><th>序号</th><th>版本号</th><th>更新类型</th><th>更新人</th><th>更新时间</th><th>更新内容</th><th>操作</th></tr></thead><tbody>${records.length?records.map((record,index)=>`<tr><td>${index+1}</td><td>${record.version}</td><td>${record.type}</td><td>${record.operator}</td><td>${record.updateTime}</td><td class="version-summary-cell" title="${escapeAttr(record.summary)}">${record.summary}</td><td><button class="link" onclick="openApprovalFlowConfigVersionDetail(${row.id},${index})">查看</button></td></tr>`).join(""):`<tr><td colspan="7">暂无版本更新记录</td></tr>`}</tbody></table></div></div>`;
+  openModal("版本更新记录",html,`<button class="btn" onclick="closeModal()">关闭</button>`,`large`);
+}
+
+function openApprovalFlowConfigVersionDetail(id,recordIndex){
+  const row=approvalFlowConfigData.find(item=>item.id===id);
+  const record=row?.versionRecords?.[recordIndex];if(!row||!record)return;
+  const html=`<div class="detail-info-grid safety-eval-version-detail-grid"><span>表单名称：<b>${row.name}</b></span><span>表单代码：<b>${row.code}</b></span><span>版本号：<b>${record.version}</b></span><span>更新类型：<b>${record.type}</b></span><span>更新人：<b>${record.operator}</b></span><span>更新时间：<b>${record.updateTime}</b></span><span class="version-detail-summary">更新内容：<b>${record.summary}</b></span></div>`;
+  openModal("版本更新记录详情",html,`<button class="btn" onclick="openApprovalFlowConfigVersionRecords(${row.id})">返回</button><button class="btn primary" onclick="closeModal()">关闭</button>`,`large`);
+}
+
+function deleteApprovalFlowConfig(id){
+  const index=approvalFlowConfigData.findIndex(item=>item.id===id);if(index<0)return;
+  if(!confirm(`确认删除“${approvalFlowConfigData[index].name}”吗？`))return;
+  approvalFlowConfigData.splice(index,1);approvalFlowConfigState.selectedIds=approvalFlowConfigState.selectedIds.filter(item=>item!==id);renderApprovalFlowConfigPage();showToast("审批流配置已删除");
+}
+
+function batchDeleteApprovalFlowConfigs(){
+  if(!approvalFlowConfigState.selectedIds.length)return showToast("请先选择需要删除的审批流配置");
+  if(!confirm(`确认删除已选择的 ${approvalFlowConfigState.selectedIds.length} 条审批流配置吗？`))return;
+  const ids=new Set(approvalFlowConfigState.selectedIds);for(let index=approvalFlowConfigData.length-1;index>=0;index-=1)if(ids.has(approvalFlowConfigData[index].id))approvalFlowConfigData.splice(index,1);
+  approvalFlowConfigState.selectedIds=[];renderApprovalFlowConfigPage();showToast("审批流配置已批量删除");
+}
+
+function updateApprovalFlowNodes(){
+  const selected=new Set(approvalFlowConfigState.selectedIds);
+  const rows=selected.size?approvalFlowConfigData.filter(row=>selected.has(row.id)):approvalFlowConfigCurrent;
+  rows.forEach(row=>appendApprovalFlowConfigVersion(row,"审批节点同步","同步最新审批节点及审批人数据"));
+  const count=rows.length;
+  renderApprovalFlowConfigPage();
+  showToast(`已更新 ${count} 条审批流的审批节点`);
+}
+
+/* =========================
    审批流程明细
 ========================= */
 const approvalFlowDetailData=[

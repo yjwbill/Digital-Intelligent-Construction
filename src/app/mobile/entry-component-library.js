@@ -245,6 +245,11 @@ const componentLibraryDatePickerStateV2297={
   viewMonth:6
 };
 
+const componentLibraryMonthPickerState={
+  normal:"2026-06",
+  screen:"2025-03"
+};
+
 const componentMobilePickerStateV2298={
   orgSingle:{company:"",branches:[]},
   orgMultiple:{company:"",branches:[]},
@@ -310,7 +315,7 @@ const componentChinaAreaDataV2298={
 
 const componentLibraryMenusV2288={
   pc:[
-    {group:"基础组件",items:[["button","按钮 Button"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"]]},
+    {group:"基础组件",items:[["button","按钮 Button"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"],["month","年月选择器 MonthPicker"]]},
     {group:"表单组件",items:[["input","输入框 Input"],["select","选择器 Select"]]},
     {group:"数据展示",items:[["tag","标签 Tag"],["table","表格 Table"]]},
     {group:"业务组件",items:[["statistics-filter","统计筛选 StatisticsFilter"],["dashboard-org-switch","看板组织切换 DashboardOrgSwitch"],["project-selector","项目选择器 ProjectSelector"]]}
@@ -556,6 +561,39 @@ function renderPcDatePickerPreviewV2297(){
   `;
 }
 
+function renderPcMonthPickerPreview(){
+  return `
+    <div class="component-month-picker-demo">
+      <section>
+        <span class="component-date-demonstration">通用样式</span>
+        <div class="component-month-picker-stage normal">
+          ${MonthPicker.render({
+            id:"componentMonthPickerNormal",
+            value:componentLibraryMonthPickerState.normal,
+            max:"2026-08",
+            onChange:value=>{componentLibraryMonthPickerState.normal=value;}
+          })}
+        </div>
+        <p>用于标准列表、查询条件和普通表单，采用通用浅色表单规范。</p>
+      </section>
+      <section>
+        <span class="component-date-demonstration">大屏深色样式</span>
+        <div class="component-month-picker-stage screen">
+          ${MonthPicker.render({
+            id:"componentMonthPickerScreen",
+            value:componentLibraryMonthPickerState.screen,
+            max:"2026-08",
+            theme:"screen",
+            onChange:value=>{componentLibraryMonthPickerState.screen=value;}
+          })}
+        </div>
+        <p>用于蓝黑大屏和全屏投屏场景，交互逻辑与通用样式完全一致。</p>
+      </section>
+    </div>
+    <p>基础能力统一包含年份切换、月份选择、选中回显、未来月份禁用和点击外部关闭；业务页面只需传入当前值、最大可选月份、主题及变更回调。</p>
+  `;
+}
+
 function renderPcComponentPreviewV2288(type){
   const dashboardOrgDemoRecords=getOrganizationCompanies().slice(0,3).flatMap(company=>getOrganizationBranches(company).slice(0,3).map((branch,index)=>({company,branch,project:`示例项目${index+1}`})));
   const demos={
@@ -574,6 +612,7 @@ function renderPcComponentPreviewV2288(type){
       <p>用于少量互斥选项，标题和值需清晰对齐，业务枚举优先读取数据字典。</p>
     `,
     date:renderPcDatePickerPreviewV2297(),
+    month:renderPcMonthPickerPreview(),
     input:`
       <div class="component-demo-row"><input class="input component-input-demo" placeholder="请输入项目名称" value="上海示范区线工程"></div>
       <p>输入框用于模糊搜索和表单录入，搜索场景建议失焦或回车后触发查询。</p>
