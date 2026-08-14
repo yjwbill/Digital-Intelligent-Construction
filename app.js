@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.679-project-button-permission-and-edit-form";
+  const version="2.2.699-enterprise-equipment-filter-bar-fields";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/vendor/jszip.min.js",
