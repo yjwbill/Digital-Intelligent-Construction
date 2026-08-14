@@ -1067,9 +1067,65 @@ async function exportProjectLog(id){
 function editProjectLog(id){
   const row=getProjectLogRows().find(item=>String(item.id)===String(id));
   if(!row)return;
-  projectLogEditingRow={...row,projectName:row.projectName||pcPortalState.currentProject};
-  if(row.mode==="file")openProjectLogFileReportModal(row);
-  else openProjectLogReportModal(row);
+  if(row.mode==="merged"||row.hasOnline&&row.hasFile){
+    openProjectLogEditChoice(row);
+    return;
+  }
+  openProjectLogEditByMode(row,row.mode==="file"?"file":"online");
+}
+
+function getProjectLogModeEditRecord(row,mode){
+  const source=mode==="file"?(row.fileRecord||row):(row.onlineRecord||row);
+  const modeSourceId=source.mode==="merged"?`${source.id}-${mode}`:(source.sourceId||source.id);
+  return {
+    ...source,
+    id:modeSourceId,
+    projectName:source.projectName||row.projectName||pcPortalState.currentProject,
+    mode,
+    sourceId:modeSourceId,
+    sourceMode:mode
+  };
+}
+
+function openProjectLogEditChoice(row){
+  openModal("选择日志",`
+    <div class="project-log-edit-choice">
+      <p>当前施工日志为合并显示，请选择需要编辑的日志类型，系统将进入对应表单进行编辑。</p>
+      <div class="project-log-edit-choice-list">
+        <button type="button" class="project-log-edit-choice-card online" onclick="openProjectLogEditById('${escapeAttr(row.id)}','online')">
+          <span class="project-log-edit-choice-copy">
+            <strong>编辑在线上报日志</strong>
+            <em>编辑在线填写的施工日志内容，包括基础信息、人员信息、工作内容、风险情况、施工照片等。</em>
+            <i>进入 <b aria-hidden="true">›</b></i>
+          </span>
+          <span class="project-log-edit-choice-art" aria-hidden="true"><span class="sheet"><i></i><i></i><i></i><b>⌁</b></span><span class="back"></span></span>
+        </button>
+        <button type="button" class="project-log-edit-choice-card file" onclick="openProjectLogEditById('${escapeAttr(row.id)}','file')">
+          <span class="project-log-edit-choice-copy">
+            <strong>编辑文件上报日志</strong>
+            <em>编辑通过本地文件上传的施工日志，支持重新上传施工相关附件并修改备注说明。</em>
+            <i>进入 <b aria-hidden="true">›</b></i>
+          </span>
+          <span class="project-log-edit-choice-art" aria-hidden="true"><span class="sheet file-sheet"><b>⇧</b></span><span class="back"></span></span>
+        </button>
+      </div>
+    </div>
+  `,`<span></span>`);
+  modalBox.classList.add("project-log-edit-choice-modal");
+}
+
+function openProjectLogEditById(id,mode){
+  const row=getProjectLogRows().find(item=>String(item.id)===String(id));
+  if(!row)return;
+  closeModal();
+  openProjectLogEditByMode(row,mode);
+}
+
+function openProjectLogEditByMode(row,mode){
+  const editRecord=getProjectLogModeEditRecord(row,mode);
+  projectLogEditingRow=editRecord;
+  if(mode==="file")openProjectLogFileReportModal(editRecord);
+  else openProjectLogReportModal(editRecord);
 }
 
 function deleteProjectLog(id){

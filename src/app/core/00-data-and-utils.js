@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.679-PROJECT-BUTTON-PERMISSION-AND-EDIT-FORM";
-const APP_CODE_VERSION_NAME="项目按钮权限与编辑表单";
-const APP_CODE_VERSION_TIME="2026-08-12 17:30";
-const APP_CODE_VERSION_DESC="权限管理直接配置项目端和移动端按钮资源，项目资源包编辑调整为四列标准表单及整行长文本备注。";
+const APP_CODE_VERSION="EM-20260701-V2.2.711-PROJECT-LOG-MERGED-EDIT-CHOICE";
+const APP_CODE_VERSION_NAME="组合施工日志编辑分流";
+const APP_CODE_VERSION_TIME="2026-08-13 18:55";
+const APP_CODE_VERSION_DESC="项目管理编辑在线+文件上报施工日志时，先选择在线上报或文件上报类型，再进入对应编辑表单并独立保存。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,

@@ -1,10 +1,11 @@
 (function(){
-  const version="2.2.679-project-button-permission-and-edit-form";
+  const version="2.2.711-project-log-merged-edit-choice";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/vendor/jszip.min.js",
     "src/app/shared/construction-log-word-export.js",
     "src/components/statistics-filter/statistics-filter.js",
+    "src/components/month-picker/month-picker.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",
     "src/components/project-selector/project-selector.js",
     "src/app/project/economy-overview.js",
