@@ -2611,7 +2611,7 @@ function renderProjectEquipmentLedgerActions(row){
     `<button class="btn mini" type="button" onclick="openProjectEquipmentRegistrationModal('${escapeAttr(row.planId)}','${escapeAttr(row.id)}')">编辑</button>`
   ];
   if(!row.actualEntryDate){
-    buttons.push(`<button class="btn primary mini" type="button" onclick="openProjectEquipmentMovementModal('${escapeAttr(row.id)}','entry')">进场</button>`);
+    buttons.push(`<button class="btn mini" type="button" onclick="openProjectEquipmentMovementModal('${escapeAttr(row.id)}','entry')">进场</button>`);
   }else if(!row.actualExitDate){
     buttons.push(`<button class="btn mini" type="button" onclick="openProjectEquipmentMovementModal('${escapeAttr(row.id)}','exit')">退场</button>`);
   }else{
@@ -2857,14 +2857,40 @@ function getProjectEquipmentPlanById(planId){
 
 function renderProjectEquipmentUploadField(key,label,required,files=[]){
   const list=getProjectEquipmentFiles(files);
-  return `<div class="form-item project-equipment-upload-field">
+  return `<div class="form-item project-equipment-upload-field project-equipment-image-upload-field">
     <label>${label} ${required?"<em>*</em>":"<small>小型机具非必填</small>"}</label>
-    <div class="project-equipment-upload">
-      <input id="projectEquipment${key}Input" type="file" accept="image/*" multiple hidden onchange="handleProjectEquipmentImageSelect('${key}',this)"/>
-      <button class="btn" type="button" onclick="document.getElementById('projectEquipment${key}Input')?.click()">上传图片</button>
-      <span id="projectEquipment${key}Name" data-files="${escapeAttr(JSON.stringify(list))}" data-file-name="${escapeAttr(list.map(file=>file.name).filter(Boolean).join("、"))}" data-image-url="${escapeAttr(list[0]?.url||"")}" title="${escapeAttr(list.map(file=>file.name||"附件").join("、"))}">${escapeAttr(renderProjectEquipmentFileSummary(list))}</span>
-    </div>
+    <input id="projectEquipment${key}Input" type="file" accept="image/*" multiple hidden onchange="handleProjectEquipmentImageSelect('${key}',this)"/>
+    <div class="project-equipment-image-upload-box" id="projectEquipment${key}Preview" data-files="${escapeAttr(JSON.stringify(list))}">${renderProjectEquipmentImageUploadContent(key,label,list)}</div>
+    <span class="project-equipment-image-upload-summary" hidden id="projectEquipment${key}Name" data-files="${escapeAttr(JSON.stringify(list))}" data-file-name="${escapeAttr(list.map(file=>file.name).filter(Boolean).join("、"))}" data-image-url="${escapeAttr(list[0]?.url||"")}" title="${escapeAttr(list.map(file=>file.name||"附件").join("、"))}">${escapeAttr(renderProjectEquipmentFileSummary(list))}</span>
   </div>`;
+}
+
+function renderProjectEquipmentImageUploadContent(key,label,files=[]){
+  const list=getProjectEquipmentFiles(files);
+  const first=list[0];
+  const extraCount=Math.max(0,list.length-1);
+  if(first?.url){
+    return `<div class="project-equipment-image-upload-preview-shell">
+      <button class="project-equipment-image-upload-preview project-equipment-image-upload-preview-main" type="button" onclick="openProjectEquipmentImagePreviewListFromBox(this,'${escapeAttr(label)}')" title="${escapeAttr(first.name||label)}">
+        <img src="${escapeAttr(first.url)}" alt="${escapeAttr(first.name||label)}"/>
+        ${extraCount?`<span class="project-equipment-image-upload-badge">+${extraCount}</span>`:""}
+      </button>
+      <button class="project-equipment-image-upload-add project-equipment-image-upload-add-overlay" type="button" onclick="document.getElementById('projectEquipment${key}Input')?.click()" aria-label="继续上传${escapeAttr(label)}"><span class="project-equipment-image-upload-plus" aria-hidden="true">+</span></button>
+    </div>`;
+  }
+  const pending=list.length?`<span class="project-equipment-image-upload-pending">${escapeAttr(renderProjectEquipmentFileSummary(list))}</span>`:"";
+  return `<button class="project-equipment-image-upload-preview project-equipment-image-upload-preview-main empty" type="button" onclick="document.getElementById('projectEquipment${key}Input')?.click()" aria-label="上传${escapeAttr(label)}">
+    ${pending||`<span class="project-equipment-image-upload-plus" aria-hidden="true">+</span>`}
+  </button>`;
+}
+
+function syncProjectEquipmentImageUploadPreview(key,label){
+  const preview=document.getElementById(`projectEquipment${key}Preview`);
+  const target=document.getElementById(`projectEquipment${key}Name`);
+  if(!preview||!target)return;
+  const list=parseProjectEquipmentFiles(target);
+  preview.dataset.files=JSON.stringify(list);
+  preview.innerHTML=renderProjectEquipmentImageUploadContent(key,label,list);
 }
 
 function isProjectEquipmentDocumentRequired(item,category){
@@ -2878,12 +2904,40 @@ function renderProjectEquipmentDocumentUploadField(item,documents={},category="�
   const required=isProjectEquipmentDocumentRequired(item,category);
   return `<div class="project-equipment-document-item" data-document-key="${escapeAttr(item.key)}" data-general-required="${item.generalRequired?"1":"0"}">
     <label>${escapeAttr(item.label)} ${required?"<em>*</em>":"<small>非必填</small>"}</label>
-    <div class="project-equipment-document-upload">
+    <div class="project-equipment-document-upload project-log-file-upload">
       <input id="projectEquipmentDocument-${escapeAttr(item.key)}" type="file" multiple hidden onchange="handleProjectEquipmentDocumentSelect('${escapeAttr(item.key)}',this)"/>
-      <button class="btn" type="button" onclick="document.getElementById('projectEquipmentDocument-${escapeAttr(item.key)}')?.click()">上传</button>
-      <span id="projectEquipmentDocumentName-${escapeAttr(item.key)}" data-files="${escapeAttr(JSON.stringify(files))}" data-file-name="${escapeAttr(files.map(file=>file.name).filter(Boolean).join("、"))}" title="${escapeAttr(files.map(file=>file.name||"附件").join("、"))}">${escapeAttr(renderProjectEquipmentFileSummary(files))}</span>
+      <p>支持多附件上传</p>
+      <button class="btn primary project-log-file-upload-btn project-equipment-document-upload-btn" type="button" onclick="document.getElementById('projectEquipmentDocument-${escapeAttr(item.key)}')?.click()">文件上传</button>
+      <div class="project-log-file-preview project-equipment-document-preview" id="projectEquipmentDocumentPreview-${escapeAttr(item.key)}">
+        ${files.map((file,index)=>renderProjectEquipmentDocumentFileItem(item.key,file,index,item.label)).join("")}
+      </div>
+      <span id="projectEquipmentDocumentName-${escapeAttr(item.key)}" hidden data-files="${escapeAttr(JSON.stringify(files))}" data-file-name="${escapeAttr(files.map(file=>file.name).filter(Boolean).join("、"))}" title="${escapeAttr(files.map(file=>file.name||"附件").join("、"))}">${escapeAttr(renderProjectEquipmentFileSummary(files))}</span>
     </div>
   </div>`;
+}
+
+function renderProjectEquipmentDocumentFileItem(key,file,index,label="附件"){
+  const name=file?.name||"附件";
+  const url=file?.url||"";
+  const isImage=(file?.type||"").startsWith("image/") || /^data:image\//.test(url);
+  const payload=[url,name,label,isImage?"1":"0"].map(value=>encodeURIComponent(value));
+  return `<div class="project-log-file-upload-item project-equipment-document-upload-item">
+    <div class="project-log-file-icon">▤</div>
+    <button type="button" class="project-log-file-preview-trigger" onclick="openProjectEquipmentAttachmentPreview(decodeURIComponent('${payload[0]}'),decodeURIComponent('${payload[1]}'),decodeURIComponent('${payload[2]}'),'${payload[3]}')">
+      <strong title="${escapeAttr(name)}">${escapeAttr(name)}</strong>
+      <span>${escapeAttr(file?.sizeText||"附件")}</span>
+    </button>
+    <button type="button" onclick="removeProjectEquipmentDocumentFile('${escapeAttr(key)}',${index})">×</button>
+  </div>`;
+}
+
+function syncProjectEquipmentDocumentUploadPreview(key){
+  const target=document.getElementById(`projectEquipmentDocumentName-${key}`);
+  const preview=document.getElementById(`projectEquipmentDocumentPreview-${key}`);
+  if(!target||!preview)return;
+  const config=projectEquipmentDocumentItems.find(item=>item.key===key);
+  const files=parseProjectEquipmentFiles(target);
+  preview.innerHTML=files.map((file,index)=>renderProjectEquipmentDocumentFileItem(key,file,index,config?.label||"附件")).join("");
 }
 
 function renderProjectEquipmentDocumentSection(documents={},category="特种设备"){
@@ -2935,6 +2989,8 @@ function openProjectEquipmentRegistrationModal(planId,registrationId=""){
         <div class="form-item"><label>联系人</label><input class="input" id="projectEquipmentContact" value="${escapeAttr(registration?.contact||"")}" placeholder="请输入联系人"/></div>
         <div class="form-item"><label>联系电话</label><input class="input" id="projectEquipmentPhone" value="${escapeAttr(registration?.phone||"")}" placeholder="请输入联系电话"/></div>
         <div class="form-item"><label>自有/租赁单位</label><input class="input" id="projectEquipmentOwnerUnit" value="${escapeAttr(registration?.ownerUnit||"")}" placeholder="请输入单位名称"/></div>
+      </div>
+      <div class="project-equipment-image-upload-rows">
         ${renderProjectEquipmentUploadField("DeviceImage","设备图片",true,getProjectEquipmentFiles(registration?.deviceImages,registration?.deviceImageName,registration?.deviceImageUrl))}
         ${renderProjectEquipmentUploadField("NameplateImage","铭牌图片",true,getProjectEquipmentFiles(registration?.nameplateImages,registration?.nameplateImageName,registration?.nameplateImageUrl))}
       </div>
@@ -2976,11 +3032,13 @@ function syncProjectEquipmentDocumentRequired(category=document.getElementById("
 
 function handleProjectEquipmentImageSelect(key,input){
   const target=document.getElementById(`projectEquipment${key}Name`);
+  const label=key==="NameplateImage"?"铭牌图片":"设备图片";
   const incoming=[...(input?.files||[])];
   if(!target)return;
   const next=[...parseProjectEquipmentFiles(target)];
   if(!incoming.length){
     setProjectEquipmentFiles(target,next);
+    syncProjectEquipmentImageUploadPreview(key,label);
     if(input)input.value="";
     return;
   }
@@ -2991,25 +3049,109 @@ function handleProjectEquipmentImageSelect(key,input){
     reader.onload=()=>{
       item.url=String(reader.result||"");
       setProjectEquipmentFiles(target,next);
+      syncProjectEquipmentImageUploadPreview(key,label);
     };
     reader.readAsDataURL(file);
   });
   setProjectEquipmentFiles(target,next);
+  syncProjectEquipmentImageUploadPreview(key,label);
   if(input)input.value="";
+}
+
+function renderProjectEquipmentImagePreviewCarousel(files=[],index=0,label="设备图片"){
+  const list=getProjectEquipmentFiles(files).filter(file=>file?.url);
+  const safeList=list.length?list:[{name:label,url:""}];
+  const safeIndex=Math.min(Math.max(0,index),safeList.length-1);
+  const current=safeList[safeIndex]||safeList[0];
+  return `
+    <div class="project-equipment-image-viewer project-equipment-image-preview-carousel" data-preview-files="${escapeAttr(JSON.stringify(safeList))}" data-preview-index="${safeIndex}" data-preview-label="${escapeAttr(label)}">
+      <button class="project-equipment-image-viewer-arrow prev" type="button" onclick="changeProjectEquipmentImagePreview(-1)" aria-label="上一张">‹</button>
+      <div class="project-equipment-image-viewer-stage">
+        <img src="${escapeAttr(current?.url||"")}" alt="${escapeAttr(current?.name||label)}"/>
+      </div>
+      <button class="project-equipment-image-viewer-arrow next" type="button" onclick="changeProjectEquipmentImagePreview(1)" aria-label="下一张">›</button>
+      <div class="project-equipment-image-viewer-counter">${safeIndex+1}/${safeList.length}</div>
+    </div>
+  `;
+}
+
+function openProjectEquipmentImagePreviewListFromBox(button,label="设备图片"){
+  const box=button?.closest(".project-equipment-image-upload-box");
+  if(!box)return;
+  const files=parseProjectEquipmentFiles(box);
+  openProjectEquipmentImagePreviewList(files,0,label);
+}
+
+function openProjectEquipmentImagePreviewList(files=[],index=0,label="设备图片"){
+  const list=getProjectEquipmentFiles(files).filter(file=>file?.url);
+  if(!list.length)return;
+  const safeIndex=Math.min(Math.max(0,index),list.length-1);
+  openNestedModal(`${label}预览`,renderProjectEquipmentImagePreviewCarousel(list,safeIndex,label),`<button class="btn" type="button" onclick="closeNestedModal(this)">关闭</button>`);
+  const modal=document.querySelector(".nested-modal-mask:last-of-type .nested-modal");
+  if(modal){
+    modal.classList.add("project-equipment-image-preview-modal");
+    modal.dataset.previewFiles=JSON.stringify(list);
+    modal.dataset.previewIndex=String(safeIndex);
+    modal.dataset.previewLabel=label;
+  }
+}
+
+function changeProjectEquipmentImagePreview(delta){
+  const modal=document.querySelector(".nested-modal-mask:last-of-type .project-equipment-image-preview-modal");
+  if(!modal)return;
+  let files=[];
+  try{files=JSON.parse(modal.dataset.previewFiles||"[]");}catch(error){files=[];}
+  files=getProjectEquipmentFiles(files).filter(file=>file?.url);
+  if(!files.length)return;
+  const current=Number(modal.dataset.previewIndex||0);
+  const next=(current+Number(delta||0)+files.length)%files.length;
+  modal.dataset.previewIndex=String(next);
+  const body=modal.querySelector(".modal-bd");
+  if(body)body.innerHTML=renderProjectEquipmentImagePreviewCarousel(files,next,modal.dataset.previewLabel||"设备图片");
 }
 
 function handleProjectEquipmentDocumentSelect(key,input){
   const target=document.getElementById(`projectEquipmentDocumentName-${key}`);
+  const incoming=[...(input?.files||[])];
   if(target){
-    const next=[...parseProjectEquipmentFiles(target),...[...(input?.files||[])].map(file=>({name:file.name||"附件"}))];
+    const next=[...parseProjectEquipmentFiles(target)];
+    incoming.forEach(file=>{
+      const item={name:file.name||"附件",size:file.size||0,sizeText:formatProjectLogFileSize(file.size||0),type:file.type||"",url:""};
+      next.push(item);
+      const reader=new FileReader();
+      reader.onload=()=>{
+        item.url=String(reader.result||"");
+        setProjectEquipmentFiles(target,next);
+        syncProjectEquipmentDocumentUploadPreview(key);
+      };
+      reader.readAsDataURL(file);
+    });
     setProjectEquipmentFiles(target,next);
+    syncProjectEquipmentDocumentUploadPreview(key);
   }
   if(input)input.value="";
 }
 
-function openProjectEquipmentImagePreview(url,name="设备图片"){
+function removeProjectEquipmentDocumentFile(key,index){
+  const target=document.getElementById(`projectEquipmentDocumentName-${key}`);
+  if(!target)return;
+  const files=parseProjectEquipmentFiles(target);
+  files.splice(index,1);
+  setProjectEquipmentFiles(target,files);
+  syncProjectEquipmentDocumentUploadPreview(key);
+}
+
+function openProjectEquipmentImagePreview(url,name="设备图片",files=[]){
+  const list=getProjectEquipmentFiles(files);
+  if(list.length>1){
+    const index=Math.max(0,list.findIndex(file=>file.url===url));
+    openProjectEquipmentImagePreviewList(list,index<0?0:index,name);
+    return;
+  }
   if(!url)return;
-  openNestedModal(name,`<div class="project-equipment-image-viewer"><img src="${url}" alt="${escapeAttr(name)}"/></div>`,`<button class="btn" type="button" onclick="closeNestedModal(this)">关闭</button>`);
+  openNestedModal(name,`<div class="project-equipment-image-viewer project-equipment-image-preview-single"><div class="project-equipment-image-viewer-stage"><img src="${url}" alt="${escapeAttr(name)}"/></div></div>`,`<button class="btn" type="button" onclick="closeNestedModal(this)">关闭</button>`);
+  const modal=document.querySelector(".nested-modal-mask:last-of-type .nested-modal");
+  if(modal)modal.classList.add("project-equipment-image-preview-modal");
 }
 
 function readProjectEquipmentValue(id){
@@ -5209,6 +5351,7 @@ Object.assign(window,{
   syncProjectEquipmentImageRequired,
   handleProjectEquipmentImageSelect,
   handleProjectEquipmentDocumentSelect,
+  removeProjectEquipmentDocumentFile,
   openProjectEquipmentImagePreview,
   saveProjectEquipmentRegistration
 });
