@@ -161,46 +161,29 @@ function renderDigitalConstructionEntry(){
       </div>
       <div class="digital-entry-safe"><span></span>演示环境 · 安全隔离</div>
       <section class="digital-entry-hero">
-        <h1>数智施工 · 智建未来</h1>
-        <p class="digital-entry-subtitle">一体化数字建造解决方案，驱动工程项目高效协同与智慧管理</p>
+        <h1>数智施工 · 平台入口</h1>
+        <p class="digital-entry-subtitle">选择不同产品与终端，进入演示环境体验完整功能</p>
         <div class="digital-entry-divider"><i></i><b></b><i></i></div>
-        <p class="digital-entry-desc">根据使用场景进入 PC 管理端、移动端工作台或组件库</p>
-        <div class="digital-entry-actions">
-          <button class="digital-entry-card pc" onclick="enterDigitalConstructionPc()">
-            <span class="digital-entry-card-tag">PC 端</span>
-            <span class="digital-entry-icon pc-icon"></span>
-            <strong>数智施工 PC 端</strong>
-            <span class="digital-entry-card-line"></span>
-            <em>进入后台管理与数据配置界面</em>
-            <span class="digital-entry-card-action">进入系统 <i>→</i></span>
-          </button>
-          <button class="digital-entry-card mobile" onclick="enterDigitalConstructionMobile()">
-            <span class="digital-entry-card-tag">移动端</span>
-            <span class="digital-entry-icon mobile-icon"></span>
-            <strong>数智施工移动端</strong>
-            <span class="digital-entry-card-line"></span>
-            <em>进入项目工作台与移动消息界面</em>
-            <span class="digital-entry-card-action">立即体验 <i>→</i></span>
-          </button>
-          <button class="digital-entry-card library" onclick="enterDigitalConstructionComponentLibrary()">
-            <span class="digital-entry-card-tag">组件库</span>
-            <span class="digital-entry-icon library-icon"></span>
-            <strong>数智施工组件库</strong>
-            <span class="digital-entry-card-line"></span>
-            <em>沉淀 PC 端与移动端通用组件、交互规范和基础示例</em>
-            <span class="digital-entry-card-action">立即查看 <i>→</i></span>
-          </button>
-          <div class="digital-entry-split-card" aria-label="专项看板入口">
-            <button type="button" class="digital-entry-mini-card shareholder" onclick="openDigitalConstructionExternalEntry('股份看板')">
-              <span class="digital-entry-mini-icon shareholder-icon" aria-hidden="true"></span>
-              <span class="digital-entry-mini-copy"><strong>股份看板</strong><em>进入看板</em></span>
-              <span class="digital-entry-mini-arrow" aria-hidden="true">→</span>
-            </button>
-            <button type="button" class="digital-entry-mini-card housing" onclick="openDigitalConstructionExternalEntry('住建委')">
-              <span class="digital-entry-mini-icon housing-icon" aria-hidden="true"></span>
-              <span class="digital-entry-mini-copy"><strong>住建委</strong><em>进入平台</em></span>
-              <span class="digital-entry-mini-arrow" aria-hidden="true">→</span>
-            </button>
+        <div class="entry-platform-grid">
+          <section class="entry-product-card construction">
+            <header class="entry-product-header"><span class="entry-product-logo building" aria-hidden="true"></span><div><h2>数智施工</h2><p>一体化数字建造解决方案，赋能工程项目<br>高效协同与智慧管理</p></div></header>
+            <div class="entry-terminal-grid">
+              <button class="entry-terminal-card" onclick="enterDigitalConstructionPc()"><span class="entry-terminal-icon pc" aria-hidden="true"></span><strong>PC端</strong><em>项目管理与数据运营</em><b>立即体验　→</b></button>
+              <button class="entry-terminal-card" onclick="enterDigitalConstructionMobile()"><span class="entry-terminal-icon mobile" aria-hidden="true"></span><strong>移动端</strong><em>现场作业与移动协同</em><b>立即体验　→</b></button>
+              <button class="entry-terminal-card" onclick="enterDigitalConstructionComponentLibrary()"><span class="entry-terminal-icon library" aria-hidden="true"></span><strong>组件库</strong><em>灵活组件与复用沉淀</em><b>立即体验　→</b></button>
+            </div>
+          </section>
+          <section class="entry-product-card housing">
+            <header class="entry-product-header"><span class="entry-product-logo government" aria-hidden="true"></span><div><h2>住建委</h2><p>监管与服务一体化平台，赋能城市治理<br>与行业监管</p></div></header>
+            <div class="entry-terminal-grid">
+              <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委PC端')"><span class="entry-terminal-icon pc" aria-hidden="true"></span><strong>PC端</strong><em>监管协同与业务办理</em><b>立即体验　→</b></button>
+              <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委移动端')"><span class="entry-terminal-icon mobile" aria-hidden="true"></span><strong>移动端</strong><em>移动审批与进度管理</em><b>立即体验　→</b></button>
+              <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委大屏端')"><span class="entry-terminal-icon screen" aria-hidden="true"></span><strong>大屏端</strong><em>可视化综合分析展示</em><b>立即体验　→</b></button>
+            </div>
+          </section>
+          <div class="entry-side-products">
+            <section class="entry-compact-product tunnel"><header><span class="entry-product-logo tunnel" aria-hidden="true"></span><div><h2>隧道股份</h2><p>隧道工程大屏可视化平台，掌控项目全局态势</p></div></header><button onclick="openDigitalConstructionExternalEntry('股份看板')"><span class="entry-terminal-icon screen" aria-hidden="true"></span><span><strong>大屏端</strong><em>工程态势与实时监控</em></span><b>立即体验　→</b></button></section>
+            <section class="entry-compact-product environment"><header><span class="entry-product-logo leaf" aria-hidden="true"></span><div><h2>环境集团</h2><p>环境治理智慧平台，助力绿色发展与运营管理</p></div></header><button onclick="openDigitalConstructionExternalEntry('环境集团PC端')"><span class="entry-terminal-icon pc" aria-hidden="true"></span><span><strong>PC端</strong><em>运营管理与数据看板</em></span><b>立即体验　→</b></button></section>
           </div>
         </div>
         <div class="digital-entry-values">
