@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+
+<defs>
+  <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#8EDBFF"/>
+    <stop offset="45%" stop-color="#2D93FF"/>
+    <stop offset="100%" stop-color="#1557D5"/>
+  </linearGradient>
+  <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#8DFFF7"/>
+    <stop offset="50%" stop-color="#18D4D1"/>
+    <stop offset="100%" stop-color="#0788B8"/>
+  </linearGradient>
+  <linearGradient id="green" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#84FFD6"/>
+    <stop offset="55%" stop-color="#22D3A6"/>
+    <stop offset="100%" stop-color="#079A83"/>
+  </linearGradient>
+  <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#FFD878"/>
+    <stop offset="55%" stop-color="#FF9B2F"/>
+    <stop offset="100%" stop-color="#F05B20"/>
+  </linearGradient>
+  <linearGradient id="red" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#FF9A8D"/>
+    <stop offset="55%" stop-color="#FF5647"/>
+    <stop offset="100%" stop-color="#D92727"/>
+  </linearGradient>
+</defs>
+
+
+<g stroke-linecap="round" stroke-linejoin="round">
+  <ellipse cx="25" cy="18" rx="14" ry="6" fill="url(#blue)" stroke="#BDEBFF" stroke-width="2"/>
+  <path d="M11 18v10c0 3.3 6.3 6 14 6s14-2.7 14-6V18" fill="url(#blue)" opacity=".92" stroke="#78C8FF" stroke-width="2"/>
+  <path d="M11 27c0 3.3 6.3 6 14 6s14-2.7 14-6M11 23c0 3.3 6.3 6 14 6s14-2.7 14-6" fill="none" stroke="#D8F5FF" stroke-width="1.7" opacity=".8"/>
+  <ellipse cx="40" cy="34" rx="13" ry="5.5" fill="url(#cyan)" stroke="#B6FFF7" stroke-width="2"/>
+  <path d="M27 34v10c0 3 5.8 5.5 13 5.5S53 47 53 44V34" fill="url(#cyan)" opacity=".92" stroke="#6CF2E9" stroke-width="2"/>
+  <path d="M27 39c0 3 5.8 5.5 13 5.5S53 42 53 39" fill="none" stroke="#E4FFFB" stroke-width="1.6" opacity=".85"/>
+</g>
+
+</svg>

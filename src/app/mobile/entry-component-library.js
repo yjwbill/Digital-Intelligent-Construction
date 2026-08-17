@@ -190,6 +190,18 @@ function renderDigitalConstructionEntry(){
             <em>沉淀 PC 端与移动端通用组件、交互规范和基础示例</em>
             <span class="digital-entry-card-action">立即查看 <i>→</i></span>
           </button>
+          <div class="digital-entry-split-card" aria-label="专项看板入口">
+            <button type="button" class="digital-entry-mini-card shareholder" onclick="openDigitalConstructionExternalEntry('股份看板')">
+              <span class="digital-entry-mini-icon shareholder-icon" aria-hidden="true"></span>
+              <span class="digital-entry-mini-copy"><strong>股份看板</strong><em>进入看板</em></span>
+              <span class="digital-entry-mini-arrow" aria-hidden="true">→</span>
+            </button>
+            <button type="button" class="digital-entry-mini-card housing" onclick="openDigitalConstructionExternalEntry('住建委')">
+              <span class="digital-entry-mini-icon housing-icon" aria-hidden="true"></span>
+              <span class="digital-entry-mini-copy"><strong>住建委</strong><em>进入平台</em></span>
+              <span class="digital-entry-mini-arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
         </div>
         <div class="digital-entry-values">
           <div><span class="safe"></span><strong>安全合规</strong><em>企业级安全防护体系</em></div>
@@ -201,6 +213,25 @@ function renderDigitalConstructionEntry(){
       </section>
     </main>
   `;
+}
+
+function openDigitalConstructionExternalEntry(name){
+  if(name==="股份看板"){
+    renderShareholderDashboardPage();
+    return;
+  }
+  const entry=document.querySelector(".digital-entry");
+  if(!entry)return;
+  let notice=entry.querySelector(".digital-entry-notice");
+  if(!notice){
+    notice=document.createElement("div");
+    notice.className="digital-entry-notice";
+    entry.appendChild(notice);
+  }
+  notice.textContent=`${name}入口暂未配置`;
+  notice.classList.add("show");
+  clearTimeout(window.__digitalEntryNoticeTimer);
+  window.__digitalEntryNoticeTimer=setTimeout(()=>notice.classList.remove("show"),1800);
 }
 
 function enterDigitalConstructionPc(options={}){
