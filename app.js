@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.721-project-equipment-entry-button-style";
+  const version="2.2.755-shareholder-fulfillment-waterfall";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/vendor/jszip.min.js",
@@ -19,6 +19,7 @@
     "src/app/safety/evaluation-dashboard.js",
     "src/app/production/dashboard-statistics-data.js",
     "src/app/production/dashboard.js",
+    "src/app/production/shareholder-dashboard.js",
     "src/app/production/statistics-filling.js",
     "src/app/production/statistics-unit-maintenance.js",
     "src/app/production/dashboard-projects.js",

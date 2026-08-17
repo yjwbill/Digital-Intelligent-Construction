@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.711-PROJECT-LOG-MERGED-EDIT-CHOICE";
-const APP_CODE_VERSION_NAME="组合施工日志编辑分流";
-const APP_CODE_VERSION_TIME="2026-08-13 18:55";
-const APP_CODE_VERSION_DESC="项目管理编辑在线+文件上报施工日志时，先选择在线上报或文件上报类型，再进入对应编辑表单并独立保存。";
+const APP_CODE_VERSION="EM-20260701-V2.2.755-SHAREHOLDER-FULFILLMENT-WATERFALL";
+const APP_CODE_VERSION_NAME="股份看板设备指标与生命周期图标优化";
+const APP_CODE_VERSION_TIME="2026-08-16";
+const APP_CODE_VERSION_DESC="生产要素保障设备分组新增智能监管接入数，项目全生命周期四个状态图标缩小至原展示尺寸的80%。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
