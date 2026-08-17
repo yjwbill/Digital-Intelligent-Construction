@@ -174,16 +174,16 @@ function renderDigitalConstructionEntry(){
             </div>
           </section>
           <section class="entry-product-card housing">
-            <header class="entry-product-header"><span class="entry-product-logo government" aria-hidden="true"></span><div><h2>住建委</h2><p>监管与服务一体化平台，赋能城市治理与行业监管</p></div></header>
+            <header class="entry-product-header"><span class="entry-product-logo entry-emoji-product" aria-hidden="true">🏛️</span><div><h2>住建委</h2><p>监管与服务一体化平台，赋能城市治理与行业监管</p></div></header>
             <div class="entry-terminal-grid">
-              <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委PC端')"><span class="entry-terminal-icon pc" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>PC端</strong><em>监管协同与业务办理</em></span><b>立即体验　→</b></button>
-              <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委移动端')"><span class="entry-terminal-icon mobile" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>移动端</strong><em>移动审批与进度管理</em></span><b>立即体验　→</b></button>
-              <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委大屏端')"><span class="entry-terminal-icon screen" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>大屏端</strong><em>可视化综合分析展示</em></span><b>立即体验　→</b></button>
+              <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委PC端')"><span class="entry-terminal-icon entry-emoji-icon" aria-hidden="true">🖥️</span><span class="entry-terminal-copy"><strong>PC端</strong><em>监管协同与业务办理</em></span><b>立即体验　→</b></button>
+              <button class="entry-terminal-card" onclick="enterZjwMobileDemo()"><span class="entry-terminal-icon entry-emoji-icon" aria-hidden="true">📱</span><span class="entry-terminal-copy"><strong>移动端</strong><em>移动审批与进度管理</em></span><b>立即体验　→</b></button>
+              <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委大屏端')"><span class="entry-terminal-icon entry-emoji-icon" aria-hidden="true">📊</span><span class="entry-terminal-copy"><strong>大屏端</strong><em>可视化综合分析展示</em></span><b>立即体验　→</b></button>
             </div>
           </section>
           <div class="entry-side-products">
-            <section class="entry-compact-product tunnel"><header><span class="entry-product-logo tunnel" aria-hidden="true"><img src="src/assets/shareholder-dashboard/tunnel-shareholder-logo.png" alt="隧道股份 上海城建"></span><div><h2>股份大屏</h2><p>环境治理智慧平台，助力绿色发展与运营管理</p></div></header><button onclick="openDigitalConstructionExternalEntry('股份看板')"><span class="entry-terminal-icon screen" aria-hidden="true"></span><span><strong>大屏端</strong><em>工程态势与实时监控</em></span><b>立即体验　→</b></button></section>
-            <section class="entry-compact-product environment"><header><span class="entry-product-logo leaf" aria-hidden="true"></span><div><h2>环境集团</h2><p>环境治理智慧平台，助力绿色发展与运营管理</p></div></header><button onclick="openDigitalConstructionExternalEntry('环境集团PC端')"><span class="entry-terminal-icon pc" aria-hidden="true"></span><span><strong>PC端</strong><em>运营管理与数据看板</em></span><b>立即体验　→</b></button></section>
+            <section class="entry-compact-product tunnel"><header><span class="entry-product-logo tunnel" aria-hidden="true"><img src="src/assets/shareholder-dashboard/tunnel-shareholder-logo.png" alt="隧道股份 上海城建"></span><div><h2>股份大屏</h2><p>环境治理智慧平台，助力绿色发展与运营管理</p></div></header><button onclick="openDigitalConstructionExternalEntry('股份看板')"><span class="entry-terminal-icon entry-emoji-icon" aria-hidden="true">📊</span><span><strong>大屏端</strong><em>工程态势与实时监控</em></span><b>立即体验　→</b></button></section>
+            <section class="entry-compact-product environment"><header><span class="entry-product-logo entry-emoji-product" aria-hidden="true">🌿</span><div><h2>环境集团</h2><p>环境治理智慧平台，助力绿色发展与运营管理</p></div></header><button onclick="openDigitalConstructionExternalEntry('环境集团PC端')"><span class="entry-terminal-icon entry-emoji-icon" aria-hidden="true">🖥️</span><span><strong>PC端</strong><em>运营管理与数据看板</em></span><b>立即体验　→</b></button></section>
           </div>
         </div>
         <div class="digital-entry-values">
@@ -215,6 +215,29 @@ function openDigitalConstructionExternalEntry(name){
   notice.classList.add("show");
   clearTimeout(window.__digitalEntryNoticeTimer);
   window.__digitalEntryNoticeTimer=setTimeout(()=>notice.classList.remove("show"),1800);
+}
+
+function enterZjwMobileDemo(){
+  const app=document.querySelector(".app");
+  if(!app)return;
+  window.__digitalConstructionMode="zjw-mobile";
+  removeBottomFixedMenu();
+  document.body.classList.remove("mobile-mode","entry-mode","component-library-mode");
+  document.body.classList.add("zjw-demo-mode");
+  app.innerHTML=`
+    <main class="zjw-demo-host">
+      <header class="zjw-demo-toolbar">
+        <div><strong>住建委移动端</strong><span>独立产品 · ZJW V2.10.0</span></div>
+        <button type="button" onclick="exitZjwMobileDemo()">返回 Demo 入口</button>
+      </header>
+      <iframe class="zjw-demo-frame" src="./src/products/zjw-mobile/index.html" title="住建委移动端" loading="eager"></iframe>
+    </main>
+  `;
+}
+
+function exitZjwMobileDemo(){
+  document.body.classList.remove("zjw-demo-mode");
+  renderDigitalConstructionEntry();
 }
 
 function enterDigitalConstructionPc(options={}){
@@ -329,6 +352,7 @@ const componentChinaAreaDataV2298={
 
 const componentLibraryMenusV2288={
   pc:[
+    {group:"设计规范",items:[["design-token","设计变量 Design Token"]]},
     {group:"基础组件",items:[["button","按钮 Button"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"],["month","年月选择器 MonthPicker"]]},
     {group:"表单组件",items:[["input","输入框 Input"],["select","选择器 Select"]]},
     {group:"数据展示",items:[["tag","标签 Tag"],["table","表格 Table"]]},
@@ -611,6 +635,7 @@ function renderPcMonthPickerPreview(){
 function renderPcComponentPreviewV2288(type){
   const dashboardOrgDemoRecords=getOrganizationCompanies().slice(0,3).flatMap(company=>getOrganizationBranches(company).slice(0,3).map((branch,index)=>({company,branch,project:`示例项目${index+1}`})));
   const demos={
+    "design-token":renderDesignTokenPreviewV01(),
     button:`
       <div class="component-demo-row">
         <button class="btn primary">主要按钮</button><button class="btn">默认按钮</button><button class="btn danger">危险按钮</button><button class="btn" disabled>禁用按钮</button>
@@ -640,8 +665,17 @@ function renderPcComponentPreviewV2288(type){
       <p>标签用于状态表达，颜色应和数据字典中的状态语义保持一致。</p>
     `,
     table:`
-      <div class="component-mini-table"><table><thead><tr><th>序号</th><th>组件名称</th><th>状态</th></tr></thead><tbody><tr><td>1</td><td>按钮 Button</td><td>${tag("已启用","green")}</td></tr><tr><td>2</td><td>日期选择器</td><td>${tag("设计中","blue")}</td></tr></tbody></table></div>
-      <p>表格统一复用现有列表组件，支持列设置、分页、导出和固定表头。</p>
+      <div class="component-table-demo-group">
+        <section>
+          <h4><span>单行表头</span><em>44px</em></h4>
+          <div class="component-mini-table"><table><thead><tr><th>序号</th><th>组件名称</th><th>状态</th></tr></thead><tbody><tr><td>1</td><td>按钮 Button</td><td>${tag("已启用","green")}</td></tr><tr><td>2</td><td>日期选择器</td><td>${tag("设计中","blue")}</td></tr></tbody></table></div>
+        </section>
+        <section>
+          <h4><span>双行/多行表头</span><em>每层 40px</em></h4>
+          <div class="component-mini-table component-multiline-table"><table class="table-multiline-header"><thead><tr><th rowspan="2">序号</th><th rowspan="2">项目名称</th><th colspan="3">本月完成情况</th><th rowspan="2">状态</th></tr><tr><th>计划值</th><th>实际值</th><th>完成率</th></tr></thead><tbody><tr><td>1</td><td>机场联络线工程</td><td>1,200</td><td>1,080</td><td>90.00%</td><td>${tag("正常","green")}</td></tr><tr><td>2</td><td>轨道交通示范项目</td><td>860</td><td>720</td><td>83.72%</td><td>${tag("关注","orange")}</td></tr></tbody></table></div>
+        </section>
+      </div>
+      <p>标准 Table 提供单行和多行两种表头模式。单行表头固定 44px；使用 <code>table-multiline-header</code> 标识双行或多级表头，每层固定 40px，并通过 rowspan / colspan 表达分组关系。所有数据行统一 40px，支持列设置、分页、导出和固定表头。</p>
     `,
     "statistics-filter":`
       <div class="component-statistics-filter-demo">${StatisticsFilter.render({
@@ -663,6 +697,28 @@ function renderPcComponentPreviewV2288(type){
     "project-selector":ProjectSelector.renderLibraryPreview()
   };
   return demos[type] || demos.button;
+}
+
+function renderDesignTokenPreviewV01(){
+  const colorGroups=[
+    ["语义颜色",[["主色","--dsc-color-primary","#165DFF"],["页面背景","--dsc-color-bg-page","#F5F7FA"],["容器背景","--dsc-color-bg-container","#FFFFFF"],["主文字","--dsc-color-text-primary","#1D2129"],["次文字","--dsc-color-text-secondary","#4E5969"],["边框","--dsc-color-border","#E5E6EB"],["成功","--dsc-color-success","#00B42A"],["警告","--dsc-color-warning","#FF7D00"],["危险","--dsc-color-danger","#F53F3F"]]],
+    ["经济预警",[["红色预警","--dsc-risk-economy-red","#FF0013"],["橙色预警","--dsc-risk-economy-orange","#FF9933"],["黄色预警","--dsc-risk-economy-yellow","#FFF44F"],["蓝色预警","--dsc-risk-economy-blue","#4596E2"]]]
+  ];
+  const questionGroups=[
+    ["默认控件高度","36px / 40px；历史值 30px"],
+    ["Card 圆角","8px / 12px；历史值 10px"],
+    ["Card Padding","16px / 20px / 24px"],
+    ["Modal 尺寸","固定 480/640/800/1120px 或 75vw × 75vh"],
+    ["Chart 柱宽 / 线宽","22px / 32px；1px / 2px"]
+  ];
+  return `
+    <div class="token-doc-intro"><strong>Design Token v0.1.0</strong><span>Draft · 已接入组件库，但暂不覆盖历史页面</span></div>
+    ${colorGroups.map(([title,items])=>`<section class="token-doc-section"><h4>${title}</h4><div class="token-color-grid">${items.map(([name,token,color])=>`<div><i style="background:var(${token})"></i><b>${name}<em>${color}</em></b><code>${token}</code></div>`).join("")}</div></section>`).join("")}
+    <section class="token-doc-section"><h4>标准字号</h4><div class="token-type-list">${[12,14,16,18,20,24,28,32].map(size=>`<span style="font-size:${size}px"><b>${size}px</b> 数智施工 Design Token</span>`).join("")}</div></section>
+    <section class="token-doc-section"><h4>4px 间距栅格</h4><div class="token-space-list">${[4,8,12,16,20,24,28,32,40,48,64].map(size=>`<span><i style="width:${size}px"></i><b>${size}px</b></span>`).join("")}</div></section>
+    <section class="token-doc-section token-question-section"><h4>❓ 待 UI 确认</h4><p>以下值目前存在歧义，已全部保留在 <code>--dsc-candidate-*</code> 命名空间；确认前不建议用于新业务。</p><div class="token-question-grid">${questionGroups.map(([name,value])=>`<div><b>❓ ${name}</b><span>${value}</span></div>`).join("")}</div></section>
+    <p>完整变量与说明位于 <code>src/components/design-tokens/tokens.css</code> 和 <code>README.md</code>。业务状态色不得与通用反馈色混用。</p>
+  `;
 }
 
 function encodeComponentPickerValueV2298(value){

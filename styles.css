@@ -896,12 +896,25 @@ th,td{
   vertical-align:middle;
 }
 th{
+  height:var(--dsc-table-header-height,44px) !important;
   background:#FAFBFC;
   color:var(--sub);
   font-weight:600;
   position:sticky;
   top:0;
   z-index:1;
+}
+table tbody td{
+  height:var(--dsc-table-row-height,40px) !important;
+}
+/* 双行/多行表头：保留40px高度，标题通过换行和line-height控制。 */
+.table-multiline-header th,
+.table-multiline-header thead th,
+.monthly-fill-group-table thead th,
+.economy-monthly-table-wrap thead th,
+.safety-process-overview-table thead th,
+.statistics-filling-table-wrap thead th{
+  height:var(--dsc-table-header-height-multiline,40px) !important;
 }
 tr:hover td{background:#FAFCFF}
 .link{color:var(--primary);cursor:pointer;text-decoration:none}
@@ -22334,6 +22347,18 @@ body.entry-mode .digital-entry-divider{margin-bottom:28px}
 .entry-product-card.housing .entry-terminal-card{border-color:rgba(228,201,149,.62);background:linear-gradient(165deg,rgba(255,253,248,.9),rgba(239,220,183,.48))}
 .entry-product-card.housing .entry-terminal-icon{color:#b9916a}
 .entry-product-card.housing .entry-terminal-card>b{background:linear-gradient(90deg,#e4c995,#b9916a);box-shadow:0 10px 20px rgba(185,145,106,.25)}
+
+/* 住建委移动端作为独立子应用接入，不继承数智施工组件与 Token。 */
+body.zjw-demo-mode{margin:0;overflow:hidden;background:#eef1f5}
+body.zjw-demo-mode .app{width:100vw;height:100vh;overflow:hidden}
+.zjw-demo-host{width:100%;height:100%;display:flex;flex-direction:column;background:#eef1f5}
+.zjw-demo-toolbar{height:56px;flex:0 0 56px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid #d9dee8;background:#fff;box-sizing:border-box}
+.zjw-demo-toolbar>div{display:flex;align-items:baseline;gap:12px}
+.zjw-demo-toolbar strong{color:#303133;font-size:16px}
+.zjw-demo-toolbar span{color:#909399;font-size:12px}
+.zjw-demo-toolbar button{height:32px;padding:0 14px;border:1px solid #c9cdd4;border-radius:4px;background:#fff;color:#4e5969;font-size:14px;cursor:pointer}
+.zjw-demo-toolbar button:hover{border-color:#b9916a;color:#8f6842;background:#fffaf2}
+.zjw-demo-frame{flex:1;min-height:0;width:100%;border:0;background:#f4f4f4}
 @media(min-width:1351px){.entry-platform-grid{grid-template-columns:minmax(0,1.65fr) minmax(300px,.85fr) minmax(300px,.85fr)}}
 .entry-product-card.housing .entry-terminal-grid{grid-template-columns:1fr;grid-template-rows:repeat(3,112px);height:360px;gap:12px}
 .entry-product-card.housing .entry-terminal-card{height:112px;display:grid;grid-template-columns:62px minmax(0,1fr) 112px;align-items:center;gap:14px;padding:12px 16px;border:1px solid rgba(228,201,149,.62);border-radius:17px;background:rgba(255,253,248,.68);box-shadow:0 12px 28px rgba(185,145,106,.1);text-align:left}
@@ -22401,7 +22426,7 @@ body.entry-mode .digital-entry h1{font-size:clamp(32px,2.4vw,46px);line-height:1
 body.entry-mode .digital-entry-subtitle{margin:9px 0 8px;color:#6b7f9d;font-size:clamp(14px,1vw,17px);line-height:24px;font-weight:500;letter-spacing:.04em}
 body.entry-mode .digital-entry-divider{height:6px;margin:0 auto 14px;opacity:.72}
 .entry-platform-grid{
-  grid-template-columns:minmax(0,1.55fr) minmax(0,.88fr) minmax(0,.88fr);
+  grid-template-columns:minmax(0,1.2fr) minmax(0,1.06fr) minmax(0,1.06fr);
   gap:14px;
   height:clamp(390px,57vh,540px);
   transform:none;
@@ -22445,6 +22470,9 @@ body.entry-mode .digital-entry-divider{height:6px;margin:0 auto 14px;opacity:.72
 .entry-product-card.construction .entry-terminal-card:nth-child(3) .entry-terminal-icon{color:#20a985}
 .entry-terminal-card:hover,.entry-terminal-card:focus-visible{transform:translateY(-3px);border-color:rgba(66,143,234,.36);box-shadow:0 16px 28px rgba(50,104,162,.14),inset 0 1px 0 #fff}
 .entry-terminal-icon{width:58px;height:58px}
+.entry-emoji-icon{display:flex;align-items:center;justify-content:center;font-family:"Segoe UI Emoji","Apple Color Emoji",sans-serif;font-size:40px;line-height:1;filter:drop-shadow(0 6px 10px rgba(31,81,120,.14))}
+.entry-emoji-icon:before,.entry-emoji-icon:after{display:none!important;content:none!important}
+.entry-emoji-product{display:flex;align-items:center;justify-content:center;width:60px;height:60px;border-radius:18px;background:rgba(255,255,255,.72);font-family:"Segoe UI Emoji","Apple Color Emoji",sans-serif;font-size:38px;line-height:1;box-shadow:0 10px 22px rgba(110,85,52,.12)}
 .entry-terminal-card strong,.entry-compact-product button strong{margin-top:12px;font-size:clamp(16px,1.2vw,20px);line-height:25px}
 .entry-terminal-card em,.entry-compact-product button em{margin-top:4px;font-size:12px;color:#7387a3}
 .entry-terminal-card>b,.entry-compact-product button>b{position:relative;z-index:1;height:34px;margin:18px auto 0;border-radius:18px;font-size:12px;line-height:34px;box-shadow:none}
@@ -22468,7 +22496,7 @@ body.entry-mode .digital-entry-footer{bottom:14px;color:#7c8da5;font-size:12px;f
 @media(max-width:1350px) and (min-width:851px){
   body.entry-mode .digital-entry{padding:58px 16px 42px}
   body.entry-mode .digital-entry-hero{width:100%;margin:0 auto}
-  .entry-platform-grid{grid-template-columns:minmax(0,1.55fr) minmax(0,.88fr) minmax(0,.88fr);height:clamp(370px,58vh,500px);transform:none;margin:0}
+  .entry-platform-grid{grid-template-columns:minmax(0,1.2fr) minmax(0,1.06fr) minmax(0,1.06fr);height:clamp(370px,58vh,500px);transform:none;margin:0}
   .entry-side-products{grid-column:auto;grid-template-columns:1fr;grid-template-rows:1fr 1fr}
 }
 @media(max-height:700px) and (min-width:851px){
