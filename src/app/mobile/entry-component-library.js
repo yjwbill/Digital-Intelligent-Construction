@@ -161,12 +161,12 @@ function renderDigitalConstructionEntry(){
       </div>
       <div class="digital-entry-safe"><span></span>演示环境 · 安全隔离</div>
       <section class="digital-entry-hero">
-        <h1>数智施工 · 平台入口</h1>
-        <p class="digital-entry-subtitle">选择不同产品与终端，进入演示环境体验完整功能</p>
+        <h1>数智施工 · 智建未来</h1>
+        <p class="digital-entry-subtitle">选择产品与终端，进入演示环境体验完整功能</p>
         <div class="digital-entry-divider"><i></i><b></b><i></i></div>
         <div class="entry-platform-grid">
           <section class="entry-product-card construction">
-            <header class="entry-product-header"><span class="entry-product-logo building" aria-hidden="true"></span><div><h2>数智施工</h2><p>一体化数字建造解决方案，赋能工程项目<br>高效协同与智慧管理</p></div></header>
+            <header class="entry-product-header"><span class="entry-product-logo building" aria-hidden="true"></span><div><h2>数智施工</h2><p>一体化数字建造解决方案，赋能工程项目高效协同与智慧管理</p></div></header>
             <div class="entry-terminal-grid">
               <button class="entry-terminal-card" onclick="enterDigitalConstructionPc()"><span class="entry-terminal-icon pc" aria-hidden="true"></span><strong>PC端</strong><em>项目管理与数据运营</em><b>立即体验　→</b></button>
               <button class="entry-terminal-card" onclick="enterDigitalConstructionMobile()"><span class="entry-terminal-icon mobile" aria-hidden="true"></span><strong>移动端</strong><em>现场作业与移动协同</em><b>立即体验　→</b></button>
@@ -174,15 +174,15 @@ function renderDigitalConstructionEntry(){
             </div>
           </section>
           <section class="entry-product-card housing">
-            <header class="entry-product-header"><span class="entry-product-logo government" aria-hidden="true"></span><div><h2>住建委</h2><p>监管与服务一体化平台，赋能城市治理<br>与行业监管</p></div></header>
+            <header class="entry-product-header"><span class="entry-product-logo government" aria-hidden="true"></span><div><h2>住建委</h2><p>监管与服务一体化平台，赋能城市治理与行业监管</p></div></header>
             <div class="entry-terminal-grid">
-              <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委PC端')"><span class="entry-terminal-icon pc" aria-hidden="true"></span><strong>PC端</strong><em>监管协同与业务办理</em><b>立即体验　→</b></button>
-              <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委移动端')"><span class="entry-terminal-icon mobile" aria-hidden="true"></span><strong>移动端</strong><em>移动审批与进度管理</em><b>立即体验　→</b></button>
-              <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委大屏端')"><span class="entry-terminal-icon screen" aria-hidden="true"></span><strong>大屏端</strong><em>可视化综合分析展示</em><b>立即体验　→</b></button>
+              <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委PC端')"><span class="entry-terminal-icon pc" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>PC端</strong><em>监管协同与业务办理</em></span><b>立即体验　→</b></button>
+              <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委移动端')"><span class="entry-terminal-icon mobile" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>移动端</strong><em>移动审批与进度管理</em></span><b>立即体验　→</b></button>
+              <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委大屏端')"><span class="entry-terminal-icon screen" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>大屏端</strong><em>可视化综合分析展示</em></span><b>立即体验　→</b></button>
             </div>
           </section>
           <div class="entry-side-products">
-            <section class="entry-compact-product tunnel"><header><span class="entry-product-logo tunnel" aria-hidden="true"></span><div><h2>隧道股份</h2><p>隧道工程大屏可视化平台，掌控项目全局态势</p></div></header><button onclick="openDigitalConstructionExternalEntry('股份看板')"><span class="entry-terminal-icon screen" aria-hidden="true"></span><span><strong>大屏端</strong><em>工程态势与实时监控</em></span><b>立即体验　→</b></button></section>
+            <section class="entry-compact-product tunnel"><header><span class="entry-product-logo tunnel" aria-hidden="true"><img src="src/assets/shareholder-dashboard/tunnel-shareholder-logo.png" alt="隧道股份 上海城建"></span><div><h2>股份大屏</h2><p>环境治理智慧平台，助力绿色发展与运营管理</p></div></header><button onclick="openDigitalConstructionExternalEntry('股份看板')"><span class="entry-terminal-icon screen" aria-hidden="true"></span><span><strong>大屏端</strong><em>工程态势与实时监控</em></span><b>立即体验　→</b></button></section>
             <section class="entry-compact-product environment"><header><span class="entry-product-logo leaf" aria-hidden="true"></span><div><h2>环境集团</h2><p>环境治理智慧平台，助力绿色发展与运营管理</p></div></header><button onclick="openDigitalConstructionExternalEntry('环境集团PC端')"><span class="entry-terminal-icon pc" aria-hidden="true"></span><span><strong>PC端</strong><em>运营管理与数据看板</em></span><b>立即体验　→</b></button></section>
           </div>
         </div>
@@ -192,7 +192,7 @@ function renderDigitalConstructionEntry(){
           <div><span class="team"></span><strong>高效协同</strong><em>多端协同提升效率</em></div>
           <div><span class="growth"></span><strong>持续创新</strong><em>技术引领智慧建造</em></div>
         </div>
-        <footer class="digital-entry-footer">© 2024 数智施工演示环境 仅供产品演示使用</footer>
+        <footer class="digital-entry-footer">© 2026 数智施工演示环境 仅供产品演示使用</footer>
       </section>
     </main>
   `;
