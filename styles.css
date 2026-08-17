@@ -19989,22 +19989,47 @@ body.mobile-mode .mobile-manual-scroll{
 .project-equipment-brand-field.show-custom{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
 .project-equipment-brand-field:not(.show-custom) #projectEquipmentBrandCustom{display:none;}
 .project-equipment-brand-field .input,.project-equipment-brand-field .select{width:100%;min-width:0;}
-.project-equipment-upload{height:34px;display:grid;grid-template-columns:88px minmax(0,1fr);gap:8px;align-items:center;}
-.project-equipment-upload .btn{height:34px;padding:0 10px;}
-.project-equipment-upload span{min-width:0;color:#4E5969;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.project-equipment-image-upload-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:14px;}
+.project-equipment-image-upload-field{display:grid;gap:6px;}
+.project-equipment-image-upload-box{width:min(220px,100%);height:220px;border:1px dashed #B9C9DC;border-radius:8px;background:#FAFCFF;color:#86909C;padding:0;overflow:hidden;transition:border-color .2s,background .2s,color .2s;position:relative;}
+.project-equipment-image-upload-box:hover{border-color:#165DFF;background:#F4F8FF;color:#165DFF;}
+.project-equipment-image-upload-preview-shell{width:100%;height:100%;position:relative;}
+.project-equipment-image-upload-preview,.project-equipment-image-upload-add{min-width:0;padding:0;border:0;background:transparent;overflow:hidden;cursor:pointer;}
+.project-equipment-image-upload-preview-main{width:100%;height:100%;position:absolute;inset:0;display:block;}
+.project-equipment-image-upload-preview-main img{width:100%;height:100%;display:block;object-fit:cover;}
+.project-equipment-image-upload-preview-main.empty{display:flex;align-items:center;justify-content:center;}
+.project-equipment-image-upload-preview-main.empty .project-equipment-image-upload-plus{font-size:40px;line-height:1;font-weight:300;}
+.project-equipment-image-upload-badge{position:absolute;top:10px;right:10px;min-width:34px;height:24px;padding:0 8px;border-radius:999px;background:rgba(22,93,255,.92);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:900;box-shadow:0 2px 8px rgba(22,93,255,.18);}
+.project-equipment-image-upload-add-overlay{position:absolute;right:10px;bottom:10px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.92);border:1px solid #DDE6F2;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(29,33,41,.08);}
+.project-equipment-image-upload-add-overlay:hover{border-color:#165DFF;background:#EEF4FF;}
+.project-equipment-image-upload-add-overlay .project-equipment-image-upload-plus{display:block;width:22px;height:22px;color:#86909C;font-size:22px;line-height:20px;font-weight:300;text-align:center;}
+.project-equipment-image-upload-plus{font-size:40px;line-height:1;font-weight:300;}
+.project-equipment-image-upload-pending{max-width:100%;color:#4E5969;font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.project-equipment-image-upload-summary{display:none;}
+.project-equipment-image-preview-modal .modal-bd{padding:0!important;overflow:hidden!important;background:#0F172A!important;}
+.project-equipment-image-preview-modal{width:min(88vw,1080px)!important;height:min(84vh,760px)!important;max-width:calc(100vw - 48px)!important;max-height:calc(100vh - 48px)!important;}
+.project-equipment-image-preview-carousel,.project-equipment-image-preview-single{width:100%;height:100%;position:relative;display:flex;align-items:center;justify-content:center;background:#0F172A;color:#fff;overflow:hidden;}
+.project-equipment-image-viewer-stage{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:42px 72px;box-sizing:border-box;}
+.project-equipment-image-viewer-stage img{max-width:100%;max-height:100%;object-fit:contain;display:block;border-radius:4px;}
+.project-equipment-image-viewer-arrow{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border:0;border-radius:50%;background:rgba(255,255,255,.12);color:#fff;font-size:30px;font-weight:300;display:grid;place-items:center;cursor:pointer;z-index:2;}
+.project-equipment-image-viewer-arrow:hover{background:rgba(255,255,255,.22);}
+.project-equipment-image-viewer-arrow.prev{left:14px;}
+.project-equipment-image-viewer-arrow.next{right:14px;}
+.project-equipment-image-viewer-counter{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.12);color:#fff;font-size:12px;font-weight:800;z-index:2;}
 .project-equipment-document-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px;}
 .project-equipment-document-item{min-width:0;display:grid;gap:6px;}
 .project-equipment-document-item label{font-size:13px;color:#4E5969;font-weight:800;}
 .project-equipment-document-item label em{color:#F53F3F;font-style:normal;margin-left:2px;}
 .project-equipment-document-item label small{margin-left:4px;color:#86909C;font-size:12px;font-weight:700;}
-.project-equipment-document-upload{height:34px;display:grid;grid-template-columns:72px minmax(0,1fr);gap:8px;align-items:center;}
-.project-equipment-document-upload .btn{height:34px;padding:0 10px;}
-.project-equipment-document-upload span{min-width:0;color:#4E5969;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.project-equipment-document-upload{display:grid;align-items:start;gap:10px;}
+.project-equipment-document-upload-btn{width:112px;height:34px;}
+.project-equipment-document-preview{grid-template-columns:1fr;}
+.project-equipment-document-upload-item{background:#F7F9FC;}
 @media(max-width:1100px){
   .project-equipment-filter,.project-equipment-summary,.project-equipment-form-grid.four,.project-equipment-enterprise-filter{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
 @media(max-width:720px){
-  .project-equipment-filter,.project-equipment-summary,.project-equipment-form-grid.four,.project-equipment-document-grid,.project-equipment-enterprise-filter{grid-template-columns:1fr;}
+  .project-equipment-filter,.project-equipment-summary,.project-equipment-form-grid.four,.project-equipment-document-grid,.project-equipment-enterprise-filter,.project-equipment-image-upload-rows{grid-template-columns:1fr;}
 }
 .project-overall-planning-page{height:calc(100vh - 64px);overflow-x:hidden;overflow-y:auto;background:#F5F6F8;padding:0 0 22px;box-sizing:border-box;color:#1D2129;}
 .project-overall-planning-page *{box-sizing:border-box;}
