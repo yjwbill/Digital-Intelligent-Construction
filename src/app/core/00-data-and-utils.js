@@ -756,6 +756,14 @@ const businessMenus={
         ]
       },
       {
+        icon:"🏗️",
+        name:"设备管理",
+        open:false,
+        children:[
+          {name:"设备台账"}
+        ]
+      },
+      {
         icon:"🌱",
         name:"低碳管理",
         open:false,
@@ -1374,7 +1382,7 @@ const projectPortalMenus={
       {icon:"👷",name:"劳动力管理",children:[{name:"资源计划"},{name:"劳动力动态"}]},
       {icon:"🧪",name:"技术管理",children:[{name:"技术方案管理"}]},
       {icon:"🚨",name:"险情管理",children:[{name:"险情列表"}]},
-      {icon:"🏗️",name:"设备管理",children:[{name:"设备进退场"},{name:"设备台账"}]},
+      {icon:"🏗️",name:"设备管理",children:[{name:"设备台账"}]},
       {icon:"📦",name:"材料管理",children:[{name:"材料筹划"},{name:"材料台账"},{name:"材料出入库"}]},
       {icon:"🌿",name:"低碳管理",children:[{name:"建筑垃圾筹划"},{name:"建筑垃圾外运申请"},{name:"建筑垃圾信息"}]}
     ]
