@@ -201,3 +201,10 @@
 .project-economy-subcontract-table tbody tr.measurement-rate-overrun td,.project-economy-subcontract-table tbody tr.measurement-rate-overrun:hover td{background:#fff1f0!important}
 .project-economy-subcontract-table tbody tr.measurement-rate-overrun td:last-child{color:#f53f3f;font-weight:600}
 @media(max-width:900px){.project-economy-subcontract-drill .search-grid{grid-template-columns:1fr}.project-economy-subcontract-table table{min-width:850px}}
+/* Design Token：趋势折线和阈值辅助线统一为 1px。 */
+.project-economy-trend-chart .trend-line {
+  stroke-width: var(--dsc-chart-line-width, 1px);
+}
+.project-economy-trend-chart .threshold {
+  stroke-width: var(--dsc-chart-reference-line-width, 1px);
+}

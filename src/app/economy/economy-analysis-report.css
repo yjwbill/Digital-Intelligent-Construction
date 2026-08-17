@@ -496,3 +496,20 @@
 .eco-report-slide.report-page .eco-report-secondary-trend svg g line{
   stroke-width:.535px !important;
 }
+/* Design Token：报告内数据折线、引导线与辅助线统一为 1px。 */
+.eco-report-slide.report-page polyline,
+.eco-report-slide.report-page .progress-line,
+.eco-report-sunburst-lines polyline {
+  stroke-width: var(--dsc-chart-line-width, 1px);
+}
+
+/* Design Token：报告概览使用紧凑柱，主要统计图使用标准柱。 */
+.eco-report-bar {
+  width: var(--dsc-chart-bar-width-compact, 18px);
+}
+.eco-report-value-column,
+.eco-report-stack,
+.company-warning-chart .eco-report-stack,
+.secondary-warning-report-page .eco-report-bar {
+  width: var(--dsc-chart-bar-width-standard, 28px);
+}

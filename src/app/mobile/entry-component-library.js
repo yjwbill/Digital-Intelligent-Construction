@@ -706,13 +706,24 @@ function renderDesignTokenPreviewV01(){
   ];
   const questionGroups=[
     ["默认控件高度","36px / 40px；历史值 30px"],
-    ["Card 圆角","8px / 12px；历史值 10px"],
     ["Card Padding","16px / 20px / 24px"],
     ["Modal 尺寸","固定 480/640/800/1120px 或 75vw × 75vh"],
-    ["Chart 柱宽 / 线宽","22px / 32px；1px / 2px"]
+    ["Chart 图例尺寸","图例标记待确认"]
   ];
   return `
     <div class="token-doc-intro"><strong>Design Token v0.1.0</strong><span>Draft · 已接入组件库，但暂不覆盖历史页面</span></div>
+    <section class="token-doc-section token-confirmed-section">
+      <h4>✅ 已确认并收敛</h4>
+      <div class="token-confirmed-grid">
+        <article><span class="token-confirmed-color" style="background:var(--dsc-color-primary)"></span><div><b>平台主色</b><strong>#165DFF</strong><code>--dsc-color-primary</code></div></article>
+        <article><span class="token-confirmed-table"><i style="height:44px">单行表头</i><i style="height:40px">多行表头</i></span><div><b>Table 表头</b><strong>44px / 40px</strong><code>--dsc-table-header-height</code></div></article>
+        <article><span class="token-confirmed-row"><i>数据行</i></span><div><b>Table 数据行</b><strong>40px</strong><code>--dsc-table-row-height</code></div></article>
+        <article><span class="token-confirmed-radius"><i>8</i><i>12</i></span><div><b>Card 圆角</b><strong>8px / 12px</strong><code>--dsc-card-radius</code></div></article>
+        <article><span class="token-confirmed-row"><i>线宽</i></span><div><b>Chart 折线/辅助线</b><strong>1px / 1px</strong><code>--dsc-chart-line-width</code></div></article>
+        <article><span class="token-confirmed-table"><i style="width:18px">18</i><i style="width:28px">28</i></span><div><b>Chart 柱宽</b><strong>18px / 28px</strong><code>--dsc-chart-bar-width-standard</code></div></article>
+      </div>
+      <p>表格规范：单行表头44px，双行或多级表头每层40px，所有数据行40px。Card规范：普通卡片8px，强调容器和Modal 12px。Chart规范：数据折线、辅助线和平均线统一1px；紧凑型柱宽18px，标准型柱宽28px。</p>
+    </section>
     ${colorGroups.map(([title,items])=>`<section class="token-doc-section"><h4>${title}</h4><div class="token-color-grid">${items.map(([name,token,color])=>`<div><i style="background:var(${token})"></i><b>${name}<em>${color}</em></b><code>${token}</code></div>`).join("")}</div></section>`).join("")}
     <section class="token-doc-section"><h4>标准字号</h4><div class="token-type-list">${[12,14,16,18,20,24,28,32].map(size=>`<span style="font-size:${size}px"><b>${size}px</b> 数智施工 Design Token</span>`).join("")}</div></section>
     <section class="token-doc-section"><h4>4px 间距栅格</h4><div class="token-space-list">${[4,8,12,16,20,24,28,32,40,48,64].map(size=>`<span><i style="width:${size}px"></i><b>${size}px</b></span>`).join("")}</div></section>
