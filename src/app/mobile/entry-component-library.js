@@ -355,7 +355,7 @@ const componentLibraryMenusV2288={
     {group:"设计规范",items:[["design-token","设计变量 Design Token"]]},
     {group:"基础组件",items:[["button","按钮 Button"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"],["month","年月选择器 MonthPicker"]]},
     {group:"表单组件",items:[["input","输入框 Input"],["select","选择器 Select"]]},
-    {group:"数据展示",items:[["tag","标签 Tag"],["table","表格 Table"]]},
+    {group:"数据展示",items:[["tag","标签 Tag"],["table","表格 Table"],["row-span-table","纵跨行组件 RowSpanTable"]]},
     {group:"业务组件",items:[["statistics-filter","统计筛选 StatisticsFilter"],["dashboard-org-switch","看板组织切换 DashboardOrgSwitch"],["project-selector","项目选择器 ProjectSelector"]]}
   ],
   mobile:[
@@ -632,6 +632,26 @@ function renderPcMonthPickerPreview(){
   `;
 }
 
+function renderPcRowSpanTablePreviewV2609(){
+  const data=[
+    {orderNo:"DD20260018",orderName:"上海轨道交通23号线项目",company:"上海隧道",detailNo:"MX-01",detailName:"土建工程",amount:"12,800.00",status:"已拆分"},
+    {orderNo:"DD20260018",orderName:"上海轨道交通23号线项目",company:"上海隧道",detailNo:"MX-02",detailName:"机电安装",amount:"3,600.00",status:"已拆分"},
+    {orderNo:"DD20260018",orderName:"上海轨道交通23号线项目",company:"上海隧道",detailNo:"MX-03",detailName:"装饰装修",amount:"2,400.00",status:"已拆分"},
+    {orderNo:"DD20260031",orderName:"长三角示范区线工程",company:"市政集团",detailNo:"MX-04",detailName:"主体施工",amount:"9,680.00",status:"已拆分"},
+    {orderNo:"DD20260031",orderName:"长三角示范区线工程",company:"市政集团",detailNo:"MX-05",detailName:"附属工程",amount:"1,920.00",status:"已拆分"}
+  ];
+  const columns=[
+    {key:"orderNo",title:"订单项目编号",width:130,align:"center",rowSpan:"orderNo"},
+    {key:"orderName",title:"订单项目名称",width:220,rowSpan:"orderNo"},
+    {key:"company",title:"子公司",width:110,align:"center",rowSpan:"orderNo"},
+    {key:"detailNo",title:"明细编号",width:100,align:"center"},
+    {key:"detailName",title:"明细名称",width:150},
+    {key:"amount",title:"明细金额（万元）",width:140,align:"right"},
+    {key:"status",title:"状态",width:100,align:"center",render:row=>tag(row.status,"blue")}
+  ];
+  return `${RowSpanTable.render({data,columns})}<p>用于“一个主对象拆分为多条明细”的场景。配置列的 <code>rowSpan</code> 分组键后，连续相同分组的公共字段自动纵向合并；明细字段仍逐行独立展示。表头固定 44px、数据行固定 40px，完整复用标准 Table 视觉规范。</p>`;
+}
+
 function renderPcComponentPreviewV2288(type){
   const dashboardOrgDemoRecords=getOrganizationCompanies().slice(0,3).flatMap(company=>getOrganizationBranches(company).slice(0,3).map((branch,index)=>({company,branch,project:`示例项目${index+1}`})));
   const demos={
@@ -661,8 +681,8 @@ function renderPcComponentPreviewV2288(type){
       <p>选择器用于枚举筛选，选项来源优先使用数据字典或组织树等基础数据。</p>
     `,
     tag:`
-      <div class="component-demo-row">${tag("成功","green")}${tag("处理中","blue")}${tag("预警","orange")}${tag("失败","red")}</div>
-      <p>标签用于状态表达，颜色应和数据字典中的状态语义保持一致。</p>
+      <div class="component-demo-row">${tag("Primary","primary")}${tag("Success","success")}${tag("Info","info")}${tag("Warning","warning")}${tag("Danger","danger")}</div>
+      <p>参考 Element Plus Tag 基础用法，提供 Primary、Success、Info、Warning、Danger 五种语义浅色标签；业务状态应按语义映射，避免同一状态使用不同颜色。</p>
     `,
     table:`
       <div class="component-table-demo-group">
@@ -677,6 +697,7 @@ function renderPcComponentPreviewV2288(type){
       </div>
       <p>标准 Table 提供单行和多行两种表头模式。单行表头固定 44px；使用 <code>table-multiline-header</code> 标识双行或多级表头，每层固定 40px，并通过 rowspan / colspan 表达分组关系。所有数据行统一 40px，支持列设置、分页、导出和固定表头。</p>
     `,
+    "row-span-table":renderPcRowSpanTablePreviewV2609(),
     "statistics-filter":`
       <div class="component-statistics-filter-demo">${StatisticsFilter.render({
         id:"component-library-statistics-filter",
