@@ -4142,9 +4142,9 @@ function renderSafetyMonthPicker(pickerId="safetyEvaluationMonth"){
   return `
     <div class="SafetyMonthPicker" data-picker-id="${pickerId}" onclick="event.stopPropagation()">
       <button type="button" class="SafetyMonthPicker__input ${state.open?"active":""}" id="${pickerId}Input" onclick="toggleSafetyMonthPicker('${pickerId}',event)">
-        <span class="SafetyMonthPicker__calendar" aria-hidden="true">▣</span>
+        <img class="SafetyMonthPicker__calendar" src="./src/components/month-picker/calendar.svg" alt="" aria-hidden="true"/>
         <span class="SafetyMonthPicker__value" id="${pickerId}Label">${formatSafetyMonthLabel(state.selectedMonth)}</span>
-        <span class="SafetyMonthPicker__arrow" aria-hidden="true">⌄</span>
+        <img class="SafetyMonthPicker__arrow" src="./src/components/month-picker/chevron-down.svg" alt="" aria-hidden="true"/>
       </button>
       <div class="SafetyMonthPicker__panel ${state.open?"open":""}" id="${pickerId}Panel"></div>
     </div>

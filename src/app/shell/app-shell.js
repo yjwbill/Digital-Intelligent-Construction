@@ -36,7 +36,7 @@
         <div class="org-current">
           <span class="org-label">组织</span>
           <span id="currentOrgName">隧道股份</span>
-          <span class="org-arrow">⌄</span>
+          <img class="org-arrow" src="./src/assets/common/chevron-down.svg" alt="" aria-hidden="true"/>
         </div>
         <div class="org-dropdown">
           <div class="org-dropdown-title">切换组织</div>

@@ -65,10 +65,10 @@
     instances.set(state.id,state);
     const calendar=state.theme==="screen"
       ?'<img class="MonthPicker__calendar" src="./src/assets/economy/economy-month-picker-file.svg" alt="">'
-      :'<span class="MonthPicker__calendar" aria-hidden="true">▣</span>';
+      :'<img class="MonthPicker__calendar" src="./src/components/month-picker/calendar.svg" alt="" aria-hidden="true">';
     const arrow=state.theme==="screen"
       ?'<img class="MonthPicker__arrow" src="./src/assets/economy/economy-month-picker-arrow.svg" alt="">'
-      :'<span class="MonthPicker__arrow" aria-hidden="true">⌄</span>';
+      :'<img class="MonthPicker__arrow" src="./src/components/month-picker/chevron-down.svg" alt="" aria-hidden="true">';
     return `<div class="MonthPicker MonthPicker--${state.theme} ${escapeHtml(state.className)}" data-month-picker-id="${escapeHtml(state.id)}" onclick="event.stopPropagation()"><button type="button" class="MonthPicker__input" id="${escapeHtml(state.id)}Input" ${state.disabled?"disabled":""} onclick="MonthPicker.toggle('${escapeHtml(state.id)}',event)">${calendar}<span class="MonthPicker__value" id="${escapeHtml(state.id)}Value">${state.value?formatLabel(state.value):escapeHtml(state.placeholder)}</span>${arrow}</button><div class="MonthPicker__panel" id="${escapeHtml(state.id)}Panel"></div></div>`;
   }
 

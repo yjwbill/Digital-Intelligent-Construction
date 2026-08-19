@@ -375,12 +375,48 @@ function ensureParticipantUnitTypeDictionaryV2561(){
   return changed;
 }
 
+/* MARKET_AREA 区域市场：按业务确认截图初始化，保留父子层级。 */
+const marketAreaDictionaryV2608={
+  type:{name:"区域市场",code:"MARKET_AREA",remark:"区域市场标准字典，支持两级区域层级"},
+  values:[
+    {name:"长三角区域",code:"CSJ",level:1,parentCode:"",palette:2,remark:"一级区域市场"},
+    {name:"大湾区域",code:"DW",level:1,parentCode:"",palette:2,remark:"一级区域市场"},
+    {name:"华中区域",code:"HZ",level:2,parentCode:"DW",palette:2,remark:"大湾区域下级区域市场"},
+    {name:"中原区域",code:"ZY",level:1,parentCode:"",palette:2,remark:"一级区域市场"},
+    {name:"川渝",code:"CY",level:2,parentCode:"ZY",palette:2,remark:"中原区域下级区域市场"},
+    {name:"海南",code:"HN",level:1,parentCode:"",palette:2,remark:"一级区域市场"},
+    {name:"境外区域",code:"JW",level:1,parentCode:"",palette:2,remark:"一级区域市场"}
+  ]
+};
+
+function ensureMarketAreaDictionaryV2608(){
+  const definition=marketAreaDictionaryV2608;
+  let changed=false;
+  const existingType=dataDictionaryListV2284.find(item=>item.code===definition.type.code);
+  if(!existingType){dataDictionaryListV2284.push({...definition.type});changed=true;}
+  else if(existingType.name!==definition.type.name || existingType.remark!==definition.type.remark){Object.assign(existingType,definition.type);changed=true;}
+  const rows=dataDictionaryValuesV2284[definition.type.code] || (dataDictionaryValuesV2284[definition.type.code]=[]);
+  definition.values.forEach((seed,index)=>{
+    const current=rows.find(item=>item.code===seed.code);
+    if(!current){rows.splice(index,0,{...seed,status:"启用"});changed=true;return;}
+    const expected={...seed,status:"启用"};
+    if(Object.keys(expected).some(key=>current[key]!==expected[key])){Object.assign(current,expected);changed=true;}
+  });
+  const orderedCodes=definition.values.map(item=>item.code);
+  rows.sort((a,b)=>{
+    const ai=orderedCodes.indexOf(a.code),bi=orderedCodes.indexOf(b.code);
+    return (ai<0?999:ai)-(bi<0?999:bi);
+  });
+  return changed;
+}
+
 function ensureDataDictionaryLocalLoadedV2284(){
   if(dataDictionaryStateV2284.localLoaded || dataDictionaryStateV2284.localLoading)return;
   dataDictionaryStateV2284.localLoading=true;
   ensureEconomyWarningInternationalDictionaryV2431();
   ensureInternationalProjectTypeDictionaryV2433();
   ensureParticipantUnitTypeDictionaryV2561();
+  ensureMarketAreaDictionaryV2608();
   const seed=buildDataDictionaryPayloadV2284();
   const stored=window.EMMasterData?.ensure("dictionaries",[seed]);
   const payload=Array.isArray(stored) && stored[0] ? stored[0] : seed;
@@ -388,7 +424,8 @@ function ensureDataDictionaryLocalLoadedV2284(){
   const economyWarningChanged=ensureEconomyWarningInternationalDictionaryV2431();
   const internationalProjectTypeChanged=ensureInternationalProjectTypeDictionaryV2433();
   const participantUnitTypeChanged=ensureParticipantUnitTypeDictionaryV2561();
-  if(economyWarningChanged||internationalProjectTypeChanged||participantUnitTypeChanged)syncDataDictionaryToLocalStoreV2284();
+  const marketAreaChanged=ensureMarketAreaDictionaryV2608();
+  if(economyWarningChanged||internationalProjectTypeChanged||participantUnitTypeChanged||marketAreaChanged)syncDataDictionaryToLocalStoreV2284();
   dataDictionaryStateV2284.localLoaded=true;
   dataDictionaryStateV2284.localLoading=false;
 }

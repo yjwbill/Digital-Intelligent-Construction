@@ -168,22 +168,22 @@ function renderDigitalConstructionEntry(){
           <section class="entry-product-card construction">
             <header class="entry-product-header"><span class="entry-product-logo building" aria-hidden="true"></span><div><h2>数智施工</h2><p>一体化数字建造解决方案，赋能工程项目高效协同与智慧管理</p></div></header>
             <div class="entry-terminal-grid">
-              <button class="entry-terminal-card" onclick="enterDigitalConstructionPc()"><span class="entry-terminal-icon pc" aria-hidden="true"></span><strong>PC端</strong><em>项目管理与数据运营</em><b>立即体验　→</b></button>
-              <button class="entry-terminal-card" onclick="enterDigitalConstructionMobile()"><span class="entry-terminal-icon mobile" aria-hidden="true"></span><strong>移动端</strong><em>现场作业与移动协同</em><b>立即体验　→</b></button>
+              <button class="entry-terminal-card" onclick="enterDigitalConstructionPc()"><span class="entry-terminal-icon terminal-image pc" aria-hidden="true"></span><strong>PC端</strong><em>项目管理与数据运营</em><b>立即体验　→</b></button>
+              <button class="entry-terminal-card" onclick="enterDigitalConstructionMobile()"><span class="entry-terminal-icon terminal-image mobile" aria-hidden="true"></span><strong>移动端</strong><em>现场作业与移动协同</em><b>立即体验　→</b></button>
               <button class="entry-terminal-card" onclick="enterDigitalConstructionComponentLibrary()"><span class="entry-terminal-icon library" aria-hidden="true"></span><strong>组件库</strong><em>灵活组件与复用沉淀</em><b>立即体验　→</b></button>
             </div>
           </section>
           <section class="entry-product-card housing">
-            <header class="entry-product-header"><span class="entry-product-logo entry-emoji-product" aria-hidden="true">🏛️</span><div><h2>住建委</h2><p>监管与服务一体化平台，赋能城市治理与行业监管</p></div></header>
+            <header class="entry-product-header"><span class="entry-product-logo government" aria-hidden="true"><img src="src/assets/zjw-logo.png" alt="住建委"></span><div><h2>住建委</h2><p>监管服务一体化，赋能城市治理</p></div></header>
             <div class="entry-terminal-grid">
-              <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委PC端')"><span class="entry-terminal-icon entry-emoji-icon" aria-hidden="true">🖥️</span><span class="entry-terminal-copy"><strong>PC端</strong><em>监管协同与业务办理</em></span><b>立即体验　→</b></button>
-              <button class="entry-terminal-card" onclick="enterZjwMobileDemo()"><span class="entry-terminal-icon entry-emoji-icon" aria-hidden="true">📱</span><span class="entry-terminal-copy"><strong>移动端</strong><em>移动审批与进度管理</em></span><b>立即体验　→</b></button>
-              <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委大屏端')"><span class="entry-terminal-icon entry-emoji-icon" aria-hidden="true">📊</span><span class="entry-terminal-copy"><strong>大屏端</strong><em>可视化综合分析展示</em></span><b>立即体验　→</b></button>
+              <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委PC端')"><span class="entry-terminal-icon terminal-image pc" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>PC端</strong><em>监管协同与业务办理</em></span><b>立即体验　→</b></button>
+              <button class="entry-terminal-card" onclick="enterZjwMobileDemo()"><span class="entry-terminal-icon terminal-image mobile" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>移动端</strong><em>移动审批与进度管理</em></span><b>立即体验　→</b></button>
+              <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委大屏端')"><span class="entry-terminal-icon terminal-image screen" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>大屏端</strong><em>可视化综合分析展示</em></span><b>立即体验　→</b></button>
             </div>
           </section>
           <div class="entry-side-products">
-            <section class="entry-compact-product tunnel"><header><span class="entry-product-logo tunnel" aria-hidden="true"><img src="src/assets/shareholder-dashboard/tunnel-shareholder-logo.png" alt="隧道股份 上海城建"></span><div><h2>股份大屏</h2><p>环境治理智慧平台，助力绿色发展与运营管理</p></div></header><button onclick="openDigitalConstructionExternalEntry('股份看板')"><span class="entry-terminal-icon entry-emoji-icon" aria-hidden="true">📊</span><span><strong>大屏端</strong><em>工程态势与实时监控</em></span><b>立即体验　→</b></button></section>
-            <section class="entry-compact-product environment"><header><span class="entry-product-logo entry-emoji-product" aria-hidden="true">🌿</span><div><h2>环境集团</h2><p>环境治理智慧平台，助力绿色发展与运营管理</p></div></header><button onclick="openDigitalConstructionExternalEntry('环境集团PC端')"><span class="entry-terminal-icon entry-emoji-icon" aria-hidden="true">🖥️</span><span><strong>PC端</strong><em>运营管理与数据看板</em></span><b>立即体验　→</b></button></section>
+            <section class="entry-compact-product tunnel"><header><span class="entry-product-logo tunnel" aria-hidden="true"><img src="src/assets/shareholder-dashboard/tunnel-shareholder-logo.png" alt="隧道股份 上海城建"></span><div><h2>股份大屏</h2><p>工程管理驾驶舱，助力智慧决策</p></div></header><button onclick="openDigitalConstructionExternalEntry('股份看板')"><span class="entry-terminal-icon terminal-image screen" aria-hidden="true"></span><span><strong>大屏端</strong><em>工程态势与实时监控</em></span><b>立即体验　→</b></button></section>
+            <section class="entry-compact-product environment"><header><span class="entry-product-logo entry-emoji-product" aria-hidden="true">🌿</span><div><h2>环境集团</h2><p>环境治理智慧平台，助力绿色发展与运营管理</p></div></header><button onclick="openDigitalConstructionExternalEntry('环境集团PC端')"><span class="entry-terminal-icon terminal-image pc" aria-hidden="true"></span><span><strong>PC端</strong><em>运营管理与数据看板</em></span><b>立即体验　→</b></button></section>
           </div>
         </div>
         <div class="digital-entry-values">
