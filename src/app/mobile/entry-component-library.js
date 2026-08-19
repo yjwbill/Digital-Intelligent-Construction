@@ -664,10 +664,10 @@ function renderPcComponentPreviewV2288(type){
       <p>用于页面主操作、次操作和危险操作。PC 端按钮高度建议 32px，列表工具栏按钮保持紧凑。</p>
     `,
     radio:`
-      <div class="component-demo-row">
-        <label class="component-radio checked"><input type="radio" checked> 手动</label>
-        <label class="component-radio"><input type="radio"> 集成</label>
-        <label class="component-radio disabled"><input type="radio" disabled> 禁用</label>
+      <div class="component-demo-row" role="radiogroup" aria-label="接入方式">
+        <label class="component-radio"><input type="radio" name="component-radio-basic" value="manual" checked> 手动</label>
+        <label class="component-radio"><input type="radio" name="component-radio-basic" value="integrated"> 集成</label>
+        <label class="component-radio disabled"><input type="radio" name="component-radio-basic" value="disabled" disabled> 禁用</label>
       </div>
       <p>用于少量互斥选项，标题和值需清晰对齐，业务枚举优先读取数据字典。</p>
     `,
@@ -741,19 +741,18 @@ function renderDesignTokenPreviewV01(){
   ];
   return `
     <div class="token-doc-intro"><strong>Design Token v0.1.0</strong><span>Draft · 已接入组件库，但暂不覆盖历史页面</span></div>
-    <section class="token-doc-section token-confirmed-section">
-      <h4>✅ 已确认并收敛</h4>
-      <div class="token-confirmed-grid">
-        <article><span class="token-confirmed-color" style="background:var(--dsc-color-primary)"></span><div><b>平台主色</b><strong>#165DFF</strong><code>--dsc-color-primary</code></div></article>
-        <article><span class="token-confirmed-table"><i style="height:44px">单行表头</i><i style="height:40px">多行表头</i></span><div><b>Table 表头</b><strong>44px / 40px</strong><code>--dsc-table-header-height</code></div></article>
-        <article><span class="token-confirmed-row"><i>数据行</i></span><div><b>Table 数据行</b><strong>40px</strong><code>--dsc-table-row-height</code></div></article>
-        <article><span class="token-confirmed-radius"><i>8</i><i>12</i></span><div><b>Card 圆角</b><strong>8px / 12px</strong><code>--dsc-card-radius</code></div></article>
-        <article><span class="token-confirmed-row"><i>线宽</i></span><div><b>Chart 折线/辅助线</b><strong>1px / 1px</strong><code>--dsc-chart-line-width</code></div></article>
-        <article><span class="token-confirmed-table"><i style="width:18px">18</i><i style="width:28px">28</i></span><div><b>Chart 柱宽</b><strong>18px / 28px</strong><code>--dsc-chart-bar-width-standard</code></div></article>
-      </div>
-      <p>表格规范：单行表头44px，双行或多级表头每层40px，所有数据行40px。Card规范：普通卡片8px，强调容器和Modal 12px。Chart规范：数据折线、辅助线和平均线统一1px；紧凑型柱宽18px，标准型柱宽28px。</p>
-    </section>
     ${colorGroups.map(([title,items])=>`<section class="token-doc-section"><h4>${title}</h4><div class="token-color-grid">${items.map(([name,token,color])=>`<div><i style="background:var(${token})"></i><b>${name}<em>${color}</em></b><code>${token}</code></div>`).join("")}</div></section>`).join("")}
+    <section class="token-doc-section"><h4>表格 Table</h4><div class="token-confirmed-grid">
+      <article><span class="token-confirmed-table"><i style="height:44px">单行表头</i><i style="height:40px">多行表头</i></span><div><b>表头高度</b><strong>44px / 40px</strong><code>--dsc-table-header-height</code></div></article>
+      <article><span class="token-confirmed-row"><i>数据行</i></span><div><b>数据行高</b><strong>40px</strong><code>--dsc-table-row-height</code></div></article>
+    </div><p>单行表头固定44px；双行或多级表头每层固定40px；所有数据行统一40px，不保留48px和52px。</p></section>
+    <section class="token-doc-section"><h4>圆角与容器</h4><div class="token-confirmed-grid">
+      <article><span class="token-confirmed-radius"><i>8</i><i>12</i></span><div><b>标准圆角</b><strong>8px / 12px</strong><code>--dsc-radius-md / --dsc-radius-lg</code></div></article>
+    </div><p>普通Card及常规控件容器使用8px；强调容器和Modal使用12px。历史16px及以上归并为12px，10px和6px归并为8px。</p></section>
+    <section class="token-doc-section"><h4>图表 Chart</h4><div class="token-confirmed-grid">
+      <article><span class="token-confirmed-row"><i>1px</i></span><div><b>折线与辅助线</b><strong>1px</strong><code>--dsc-chart-line-width</code></div></article>
+      <article><span class="token-confirmed-table"><i style="width:18px">18</i><i style="width:28px">28</i></span><div><b>柱状图柱宽</b><strong>18px / 28px</strong><code>--dsc-chart-bar-width-*</code></div></article>
+    </div><p>数据折线、辅助线和平均线统一1px；坐标轴1px，网格线0.5px；紧凑型柱宽18px，标准型柱宽28px。</p></section>
     <section class="token-doc-section"><h4>标准字号</h4><div class="token-type-list">${[12,14,16,18,20,24,28,32].map(size=>`<span style="font-size:${size}px"><b>${size}px</b> 数智施工 Design Token</span>`).join("")}</div></section>
     <section class="token-doc-section"><h4>4px 间距栅格</h4><div class="token-space-list">${[4,8,12,16,20,24,28,32,40,48,64].map(size=>`<span><i style="width:${size}px"></i><b>${size}px</b></span>`).join("")}</div></section>
     <section class="token-doc-section token-question-section"><h4>❓ 待 UI 确认</h4><p>以下值目前存在歧义，已全部保留在 <code>--dsc-candidate-*</code> 命名空间；确认前不建议用于新业务。</p><div class="token-question-grid">${questionGroups.map(([name,value])=>`<div><b>❓ ${name}</b><span>${value}</span></div>`).join("")}</div></section>

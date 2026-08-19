@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.773-economy-i18n-actions";
+  const version="2.2.780-economy-inspection-report-i18n";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/vendor/jszip.min.js",
