@@ -718,7 +718,7 @@ const businessMenus={
         name:"产值管理",
         open:false,
         children:[
-          {name:"产值预测分析报表"},
+          {name:"产值分析明细表"},
           {name:"目标设置"},
           {name:"产值申报"},
           {name:"实际产值上报"},

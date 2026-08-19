@@ -15609,16 +15609,44 @@ body.mobile-mode .mobile-manual-scroll{
 }
 
 .output-forecast-tabs{
-  flex:0 0 auto;
+  flex:1 1 auto;
+  overflow:auto hidden;
+  scrollbar-width:none;
+}
+
+.output-forecast-tabs::-webkit-scrollbar{
+  display:none;
 }
 
 .output-forecast-tabs button{
   height:36px;
-  min-width:150px;
-  padding:0 10px;
+  min-width:96px;
+  padding:0 14px;
   font-size:16px;
   line-height:36px;
   white-space:nowrap;
+}
+
+.output-forecast-subtabs{
+  flex:0 0 auto;
+  gap:8px;
+  padding:8px 0 2px;
+  overflow:auto hidden;
+  scrollbar-width:none;
+}
+
+.output-forecast-subtabs::-webkit-scrollbar{
+  display:none;
+}
+
+.output-forecast-subtabs button{
+  height:30px;
+  min-width:76px;
+  padding:0 14px;
+  border-radius:4px;
+  font-size:14px;
+  line-height:30px;
+  font-weight:700;
 }
 
 .output-forecast-tabs.message-record-tabs button{

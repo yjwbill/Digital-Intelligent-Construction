@@ -231,7 +231,7 @@ function selectBusinessChildMenu(line,gi,ci,name){
   if(line==="safety")return renderSafetyPlaceholder(name);
 
   if(line==="production"&&parent?.name==="风险管理"&&(name==="风险管控清单"||name==="风险管理台账"))return renderRiskLedgerPage();
-  if(line==="production"&&parent?.name==="产值管理"&&name==="产值预测分析报表")return renderOutputForecastAnalysisPage();
+  if(line==="production"&&parent?.name==="产值管理"&&name==="产值分析明细表")return renderOutputForecastAnalysisPage();
   if(line==="production"&&parent?.name==="历史功能"&&name==="项目产值上报（废）")return renderActualOutputReportPage();
   if(line==="production"&&parent?.name==="产值管理"&&name==="实际产值上报")return renderComprehensiveActualOutputReportPage();
   if(line==="production"&&parent?.name==="产值管理"&&name==="完工未结算管理")return renderFinishedUnsettledOutputPage();

@@ -1,5 +1,6 @@
 const outputForecastState={
-  activeTab:"施工项目（已立项）",
+  activeTab:"施工类",
+  activeSubTab:"全部分类",
   projectName:"",
   company:"",
   branch:"",
@@ -14,6 +15,12 @@ const outputForecastState={
   statKey:"all",
   page:1,
   pageSize:50
+};
+const outputForecastMainTabs=["施工类","产品销售","设计","数字","城市运营","房产","投资"];
+const outputForecastSubTabs={
+  "施工类":["全部分类","总承包","管线"],
+  "房产":["全部分类","物业管理","商业运营","房产开发"],
+  "投资":["全部分类","股权管理","基建项目","租赁及保理"]
 };
 const outputManagementTemplatePath=`src/app/production/output-management.html?v=${encodeURIComponent(window.__APP_VERSION__?.code||window.__APP_VERSION__?.version||"current")}`;
 let outputManagementTemplatePromise=null;
@@ -224,6 +231,7 @@ function syncOutputForecastBranchOptions(){
 function getOutputForecastSearchRows(){
   const s=outputForecastState;
   return outputForecastConstructionRows.filter(row=>{
+    if(!matchOutputForecastTab(row))return false;
     if(s.projectName&&!row.projectName.includes(s.projectName))return false;
     if(s.company&&row.company!==s.company)return false;
     if(s.branch&&row.branch!==s.branch)return false;
@@ -234,11 +242,28 @@ function getOutputForecastSearchRows(){
   });
 }
 
+function getOutputForecastRowCategory(row){
+  if(row.company==="城建物资")return {main:"产品销售",sub:"全部分类"};
+  if(row.company==="城建设计")return {main:"设计",sub:"全部分类"};
+  if(row.company==="城市环境")return {main:"城市运营",sub:"全部分类"};
+  if(row.projectName.includes("数字"))return {main:"数字",sub:"全部分类"};
+  if(row.projectName.includes("管廊")||row.projectName.includes("管线")||row.projectName.includes("排水")||row.projectName.includes("雨污"))return {main:"施工类",sub:"管线"};
+  return {main:"施工类",sub:"总承包"};
+}
+
+function matchOutputForecastTab(row){
+  const category=getOutputForecastRowCategory(row);
+  if(category.main!==outputForecastState.activeTab)return false;
+  const subTabs=outputForecastSubTabs[outputForecastState.activeTab] || [];
+  if(!subTabs.length || outputForecastState.activeSubTab==="全部分类")return true;
+  return category.sub===outputForecastState.activeSubTab;
+}
+
 function getOutputForecastFilteredRows(){
   const rows=getOutputForecastSearchRows();
-  if(outputForecastState.statKey==="new")return rows.filter(row=>row.statisticNature==="新接");
-  if(outputForecastState.statKey==="transfer")return rows.filter(row=>row.statisticNature==="转接");
-  if(outputForecastState.statKey==="finished")return rows.filter(row=>row.statisticNature==="完工未结算");
+  if(outputForecastState.activeTab==="施工类"&&outputForecastState.statKey==="new")return rows.filter(row=>row.statisticNature==="新接");
+  if(outputForecastState.activeTab==="施工类"&&outputForecastState.statKey==="transfer")return rows.filter(row=>row.statisticNature==="转接");
+  if(outputForecastState.activeTab==="施工类"&&outputForecastState.statKey==="finished")return rows.filter(row=>row.statisticNature==="完工未结算");
   return rows;
 }
 
@@ -251,20 +276,12 @@ function getOutputForecastPagedRows(){
 }
 
 function queryOutputForecastAnalysis(){
-  if(outputForecastState.activeTab==="订单项目（未立项）"){
-    outputForecastState.orderProjectName=document.getElementById("outputForecastOrderProjectName")?.value.trim() || "";
-    outputForecastState.orderCompany=document.getElementById("outputForecastOrderCompany")?.value || "";
-    outputForecastState.orderBidMonth=document.getElementById("outputForecastOrderBidMonth")?.value || "";
-    outputForecastState.orderProjectNo=document.getElementById("outputForecastOrderProjectNo")?.value.trim() || "";
-    outputForecastState.ownerUnit=document.getElementById("outputForecastOwnerUnit")?.value.trim() || "";
-  }else{
-    outputForecastState.projectName=document.getElementById("outputForecastProjectName")?.value.trim() || "";
-    outputForecastState.company=document.getElementById("outputForecastCompany")?.value || "";
-    outputForecastState.branch=document.getElementById("outputForecastBranch")?.value || "";
-    outputForecastState.projectStatus=document.getElementById("outputForecastProjectStatus")?.value || "";
-    outputForecastState.bidMonth=document.getElementById("outputForecastBidMonth")?.value || "";
-    outputForecastState.projectNo=document.getElementById("outputForecastProjectNo")?.value.trim() || "";
-  }
+  outputForecastState.projectName=document.getElementById("outputForecastProjectName")?.value.trim() || "";
+  outputForecastState.company=document.getElementById("outputForecastCompany")?.value || "";
+  outputForecastState.branch=document.getElementById("outputForecastBranch")?.value || "";
+  outputForecastState.projectStatus=document.getElementById("outputForecastProjectStatus")?.value || "";
+  outputForecastState.bidMonth=document.getElementById("outputForecastBidMonth")?.value || "";
+  outputForecastState.projectNo=document.getElementById("outputForecastProjectNo")?.value.trim() || "";
   outputForecastState.statKey="all";
   outputForecastState.page=1;
   renderOutputForecastAnalysisPage();
@@ -272,6 +289,8 @@ function queryOutputForecastAnalysis(){
 
 function resetOutputForecastAnalysis(){
   Object.assign(outputForecastState,{
+    activeTab:"施工类",
+    activeSubTab:"全部分类",
     projectName:"",
     company:"",
     branch:"",
@@ -296,7 +315,7 @@ function setOutputForecastStat(key){
 }
 
 function changeOutputForecastPage(delta){
-  const rows=outputForecastState.activeTab==="订单项目（未立项）"?getOutputForecastOrderSearchRows():getOutputForecastFilteredRows();
+  const rows=getOutputForecastFilteredRows();
   const totalPages=Math.max(1,Math.ceil(rows.length/outputForecastState.pageSize));
   outputForecastState.page=Math.min(Math.max(1,outputForecastState.page+delta),totalPages);
   renderOutputForecastTable();
@@ -310,18 +329,33 @@ function changeOutputForecastPageSize(value){
 
 function setOutputForecastTab(tab){
   outputForecastState.activeTab=tab;
+  outputForecastState.activeSubTab=outputForecastSubTabs[tab]?.[0] || "";
+  outputForecastState.statKey="all";
+  outputForecastState.page=1;
+  renderOutputForecastAnalysisPage();
+}
+
+function setOutputForecastSubTab(tab){
+  outputForecastState.activeSubTab=tab;
+  outputForecastState.statKey="all";
   outputForecastState.page=1;
   renderOutputForecastAnalysisPage();
 }
 
 function renderOutputForecastTitleRow(){
+  const subTabs=outputForecastSubTabs[outputForecastState.activeTab] || [];
   return `
     <div class="compact-title-row output-forecast-title-row">
-      <div class="module-title">产值预测分析报表</div>
+      <div class="module-title">产值分析明细表</div>
       <div class="screen-tabs output-forecast-tabs">
-        ${outputForecastTabs.map(tab=>`<button class="${outputForecastState.activeTab===tab?"active":""}" onclick="setOutputForecastTab('${tab}')">${tab}</button>`).join("")}
+        ${outputForecastMainTabs.map(tab=>`<button class="${outputForecastState.activeTab===tab?"active":""}" onclick="setOutputForecastTab('${tab}')">${tab}</button>`).join("")}
       </div>
     </div>
+    ${subTabs.length?`
+      <div class="screen-tabs output-forecast-subtabs">
+        ${subTabs.map(tab=>`<button class="${outputForecastState.activeSubTab===tab?"active":""}" onclick="setOutputForecastSubTab('${tab}')">${tab}</button>`).join("")}
+      </div>
+    `:""}
   `;
 }
 
@@ -331,10 +365,13 @@ function renderOutputForecastStatsCard(){
   const transferCount=rows.filter(row=>row.statisticNature==="转接").length;
   const finishedCount=rows.filter(row=>row.statisticNature==="完工未结算").length;
   const sumValue=key=>rows.reduce((sum,row)=>sum+(Number(row[key])||0),0);
-  const metrics=[["completedTo2025","至2025年末累计完成产值(万元)"],["annualPlanOutput","年度计划产值(万元)"],["annualCompletedOutput","年度累计完成产值(万元)"],["mayOutput","5月完成产值(万元)"],["remainingContractOutput","剩余合同产值(万元)"],["remaining2026Forecast","2026年剩余合同产值预计完成(万元)"],["forecast2027","2027年剩余合同产值预计完成(万元)"],["accumulatedOutput","开累产值(万元)"]];
-  return StatisticsFilter.render({id:"output-forecast-statistics-filter",activeKey:outputForecastState.statKey,groups:[
-    {label:"统计 性质",items:[{key:"new",label:"新接",value:newCount},{key:"transfer",label:"转接",value:transferCount},{key:"finished",label:"完工未结算",value:finishedCount}]},
+  const metrics=[["completedTo2025","至2025年末累计完成产值(万元)"],["annualPlanOutput","年度计划产值(万元)"],["annualCompletedOutput","年度累计完成产值(万元)"],["mayOutput","5月完成产值(万元)"],["remainingContractOutput","剩余合同产值(万元)"],["accumulatedOutput","开累产值(万元)"]];
+  const groups=[
+    ...(outputForecastState.activeTab==="施工类"?[{label:"统计 性质",items:[{key:"new",label:"新接",value:newCount},{key:"transfer",label:"转接",value:transferCount},{key:"finished",label:"完工未结算",value:finishedCount}]}]:[]),
     {label:"产值 合计",items:metrics.map(([key,label])=>({key,label,value:formatForecastAmount(sumValue(key)),metric:true}))}
+  ];
+  return StatisticsFilter.render({id:"output-forecast-statistics-filter",activeKey:outputForecastState.statKey,groups:[
+    ...groups
   ],onChange:key=>setOutputForecastStat(key)});
 }
 
@@ -354,8 +391,6 @@ tableColumnDefinitions.outputForecastConstruction=[
   {key:"annualCompletedOutput",title:"年度累计完成产值(万元)",width:210,align:"right",render:row=>formatForecastAmount(row.annualCompletedOutput)},
   {key:"mayOutput",title:"5月完成产值(万元)",width:170,align:"right",render:row=>formatForecastAmount(row.mayOutput)},
   {key:"remainingContractOutput",title:"剩余合同产值(万元)",width:180,align:"right",render:row=>formatForecastAmount(row.remainingContractOutput)},
-  {key:"remaining2026Forecast",title:"2026年剩余合同产值预计完成(万元)",width:260,align:"right",render:row=>formatForecastAmount(row.remaining2026Forecast)},
-  {key:"forecast2027",title:"2027年剩余合同产值预计完成(万元)",width:260,align:"right",render:row=>formatForecastAmount(row.forecast2027)},
   {key:"accumulatedOutput",title:"开累产值(万元)",width:160,align:"right",render:row=>formatForecastAmount(row.accumulatedOutput)}
 ];
 
@@ -367,13 +402,11 @@ tableColumnDefinitions.outputForecastOrder=[
   {key:"bidDate",title:"中标日期",width:130,align:"center",render:row=>row.bidDate},
   {key:"bidPriceEstimateYuan",title:"中标价（预估价）（元）",width:190,align:"right",render:row=>formatForecastYuan(row.bidPriceEstimateYuan)},
   {key:"annualPlanOutput",title:"年度计划产值(万元)",width:180,align:"right",render:row=>formatForecastAmount(row.annualPlanOutput)},
-  {key:"remainingContractOutput",title:"剩余合同产值(万元)",width:180,align:"right",render:row=>formatForecastAmount(row.remainingContractOutput)},
-  {key:"remaining2026Forecast",title:"2026年剩余合同产值预计完成(万元)",width:260,align:"right",render:row=>formatForecastAmount(row.remaining2026Forecast)},
-  {key:"forecast2027",title:"2027年剩余合同产值预计完成(万元)",width:260,align:"right",render:row=>formatForecastAmount(row.forecast2027)}
+  {key:"remainingContractOutput",title:"剩余合同产值(万元)",width:180,align:"right",render:row=>formatForecastAmount(row.remainingContractOutput)}
 ];
 
 function renderOutputForecastTable(){
-  const isOrder=outputForecastState.activeTab==="订单项目（未立项）";
+  const isOrder=false;
   const tableKey=isOrder?"outputForecastOrder":"outputForecastConstruction";
   const tbodyId=isOrder?"outputForecastOrderTbody":"outputForecastTbody";
   const rows=isOrder?getOutputForecastOrderSearchRows():getOutputForecastFilteredRows();
@@ -416,7 +449,7 @@ function renderOutputForecastConstructionPage(){
       renderFnName:"renderOutputForecastAnalysisPage",
       refreshAction:"renderOutputForecastAnalysisPage()",
       exportAction:"showToast('产值分析明细导出成功')",
-      title:"产值分析明细",
+      title:"产值分析明细台账",
       total:rows.length,
       pageText:`<span id="outputForecastPageText">第 1 / ${totalPages} 页　每页 ${outputForecastState.pageSize} 条</span>`,
       className:"construction-project-table-card output-forecast-table-card"
@@ -443,7 +476,7 @@ function renderOutputForecastOrderPage(){
       renderFnName:"renderOutputForecastAnalysisPage",
       refreshAction:"renderOutputForecastAnalysisPage()",
       exportAction:"showToast('订单项目产值分析明细导出成功')",
-      title:"产值分析明细",
+      title:"产值分析明细台账",
       total:rows.length,
       pageText:`<span id="outputForecastPageText">第 1 / ${totalPages} 页　每页 ${outputForecastState.pageSize} 条</span>`,
       className:"construction-project-table-card output-forecast-table-card"
@@ -457,7 +490,7 @@ async function renderOutputForecastAnalysisPage(){
   const mounted=await mountOutputManagementTemplate("forecast");
   if(!mounted)return;
   replaceProductionDashboardFragment(outputSlot("title"),renderOutputForecastTitleRow());
-  replaceProductionDashboardFragment(outputSlot("body"),outputForecastState.activeTab==="施工项目（已立项）"?renderOutputForecastConstructionPage():renderOutputForecastOrderPage());
+  replaceProductionDashboardFragment(outputSlot("body"),renderOutputForecastConstructionPage());
   renderOutputForecastTable();
 }
 
