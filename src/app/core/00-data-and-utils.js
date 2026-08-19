@@ -2455,6 +2455,7 @@ function renderUnifiedTableCard(options){
     <section class="card table-card ${options.className || ""}">
       <div class="card-hd">
         <div class="card-title">${options.title || "列表"}</div>
+        ${options.titleExtra || ""}
         <div class="actions">
           ${options.beforeActions || ""}
           <button class="btn" onclick="${options.refreshAction || ""}">刷新</button>

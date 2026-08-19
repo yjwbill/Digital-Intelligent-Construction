@@ -364,15 +364,28 @@ function renderOutputForecastStatsCard(){
   const newCount=rows.filter(row=>row.statisticNature==="新接").length;
   const transferCount=rows.filter(row=>row.statisticNature==="转接").length;
   const finishedCount=rows.filter(row=>row.statisticNature==="完工未结算").length;
+  if(outputForecastState.activeTab!=="施工类")return "";
+  return StatisticsFilter.render({id:"output-forecast-statistics-filter",activeKey:outputForecastState.statKey,groups:[
+    {label:"统计 性质",items:[{key:"new",label:"新接",value:newCount},{key:"transfer",label:"转接",value:transferCount},{key:"finished",label:"完工未结算",value:finishedCount}]}
+  ],onChange:key=>setOutputForecastStat(key)});
+}
+
+function renderOutputForecastTotalCard(){
+  const rows=getOutputForecastSearchRows();
   const sumValue=key=>rows.reduce((sum,row)=>sum+(Number(row[key])||0),0);
   const metrics=[["completedTo2025","至2025年末累计完成产值(万元)"],["annualPlanOutput","年度计划产值(万元)"],["annualCompletedOutput","年度累计完成产值(万元)"],["mayOutput","5月完成产值(万元)"],["remainingContractOutput","剩余合同产值(万元)"],["accumulatedOutput","开累产值(万元)"]];
-  const groups=[
-    ...(outputForecastState.activeTab==="施工类"?[{label:"统计 性质",items:[{key:"new",label:"新接",value:newCount},{key:"transfer",label:"转接",value:transferCount},{key:"finished",label:"完工未结算",value:finishedCount}]}]:[]),
-    {label:"产值 合计",items:metrics.map(([key,label])=>({key,label,value:formatForecastAmount(sumValue(key)),metric:true}))}
-  ];
-  return StatisticsFilter.render({id:"output-forecast-statistics-filter",activeKey:outputForecastState.statKey,groups:[
-    ...groups
-  ],onChange:key=>setOutputForecastStat(key)});
+  return `
+    <div class="output-forecast-total-card" aria-label="产值合计">
+      <div class="output-forecast-total-items">
+        ${metrics.map(([key,label])=>`
+          <div class="output-forecast-total-item">
+            <strong>${formatForecastAmount(sumValue(key))}</strong>
+            <span>${label}</span>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
 }
 
 tableColumnDefinitions.outputForecastConstruction=[
@@ -450,6 +463,7 @@ function renderOutputForecastConstructionPage(){
       refreshAction:"renderOutputForecastAnalysisPage()",
       exportAction:"showToast('产值分析明细导出成功')",
       title:"产值分析明细台账",
+      titleExtra:renderOutputForecastTotalCard(),
       total:rows.length,
       pageText:`<span id="outputForecastPageText">第 1 / ${totalPages} 页　每页 ${outputForecastState.pageSize} 条</span>`,
       className:"construction-project-table-card output-forecast-table-card"
