@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>鐢熶骇-浜у€肩鐞?/title>
+<title>生产-产值管理</title>
 <base href="../../../">
 <link rel="stylesheet" href="./styles.css?v=2.2.755-shareholder-fulfillment-waterfall">
 <link rel="stylesheet" href="./src/components/base-select/base-select.css">
@@ -19,7 +19,7 @@
 </template>
 
 <template data-output-management-template="actual">
-  <div class="compact-title-row"><div class="module-title">椤圭洰浜у€间笂鎶ワ紙搴燂級</div></div>
+  <div class="compact-title-row"><div class="module-title">项目产值上报（废）</div></div>
   <div data-output-slot="query"></div>
   <div data-output-slot="stats"></div>
   <div data-output-slot="table"></div>
@@ -27,16 +27,7 @@
 
 <template data-output-management-template="actual-comprehensive">
   <div class="other-biz-output-page output-standard-list-page">
-    <div class="compact-title-row"><div class="module-title">瀹為檯浜у€间笂鎶?/div></div>
-    <div data-output-slot="query"></div>
-    <div data-output-slot="stats"></div>
-    <div data-output-slot="table"></div>
-  </div>
-</template>
-
-<template data-output-management-template="other-biz">
-  <div class="other-biz-output-page">
-    <div class="compact-title-row"><div class="module-title">鍏朵粬涓氭€佷骇鍊肩敵鎶?/div></div>
+    <div class="compact-title-row"><div class="module-title">实际产值上报</div></div>
     <div data-output-slot="query"></div>
     <div data-output-slot="stats"></div>
     <div data-output-slot="table"></div>
@@ -45,7 +36,7 @@
 
 <template data-output-management-template="finished-unsettled">
   <div class="other-biz-output-page output-standard-list-page">
-    <div class="compact-title-row"><div class="module-title">瀹屽伐鏈粨绠楃鐞?/div></div>
+    <div class="compact-title-row"><div class="module-title">完工未结算管理</div></div>
     <div data-output-slot="query"></div>
     <div data-output-slot="stats"></div>
     <div data-output-slot="table"></div>
@@ -56,10 +47,10 @@
 <script src="./master-data.js?v=2.2.390-project-economy-basic-info"></script>
 <script>
 window.__APP_INITIAL_ROUTE__ = {
-  "mode": "enterprise",
-  "line": "production",
-  "group": "浜у€肩鐞?,
-  "child": "浜у€奸娴嬪垎鏋愭姤琛?
+  mode: "enterprise",
+  line: "production",
+  group: "产值管理",
+  child: "产值预测分析报表"
 };
 </script>
 <script src="./app.js?v=2.2.755-shareholder-fulfillment-waterfall"></script>

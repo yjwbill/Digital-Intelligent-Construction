@@ -722,8 +722,7 @@ const businessMenus={
           {name:"目标设置"},
           {name:"产值申报"},
           {name:"实际产值上报"},
-          {name:"完工未结算管理"},
-          {name:"其他业态产值申报"}
+          {name:"完工未结算管理"}
         ]
       },
       {

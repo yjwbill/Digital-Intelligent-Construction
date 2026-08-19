@@ -235,7 +235,6 @@ function selectBusinessChildMenu(line,gi,ci,name){
   if(line==="production"&&parent?.name==="历史功能"&&name==="项目产值上报（废）")return renderActualOutputReportPage();
   if(line==="production"&&parent?.name==="产值管理"&&name==="实际产值上报")return renderComprehensiveActualOutputReportPage();
   if(line==="production"&&parent?.name==="产值管理"&&name==="完工未结算管理")return renderFinishedUnsettledOutputPage();
-  if(line==="production"&&parent?.name==="产值管理"&&name==="其他业态产值申报")return renderOtherBizOutputReportPage();
   if(line==="production"&&parent?.name==="纳统管理"&&name==="纳统填报")return renderStatisticsFillingPage();
   if(line==="production"&&parent?.name==="纳统管理"&&name==="单位维护")return renderStatisticsUnitMaintenancePage();
   if(line==="production"&&parent?.name==="设备管理"&&name==="设备台账")return renderEnterpriseEquipmentLedgerPage();

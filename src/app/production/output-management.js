@@ -17,6 +17,36 @@ const outputForecastState={
 };
 const outputManagementTemplatePath=`src/app/production/output-management.html?v=${encodeURIComponent(window.__APP_VERSION__?.code||window.__APP_VERSION__?.version||"current")}`;
 let outputManagementTemplatePromise=null;
+const outputManagementTemplateFallbacks={
+  forecast:`
+    <div class="output-forecast-page">
+      <div data-output-slot="title"></div>
+      <div data-output-slot="body"></div>
+    </div>
+  `,
+  actual:`
+    <div class="compact-title-row"><div class="module-title">项目产值上报（废）</div></div>
+    <div data-output-slot="query"></div>
+    <div data-output-slot="stats"></div>
+    <div data-output-slot="table"></div>
+  `,
+  "actual-comprehensive":`
+    <div class="other-biz-output-page output-standard-list-page">
+      <div class="compact-title-row"><div class="module-title">实际产值上报</div></div>
+      <div data-output-slot="query"></div>
+      <div data-output-slot="stats"></div>
+      <div data-output-slot="table"></div>
+    </div>
+  `,
+  "finished-unsettled":`
+    <div class="other-biz-output-page output-standard-list-page">
+      <div class="compact-title-row"><div class="module-title">完工未结算管理</div></div>
+      <div data-output-slot="query"></div>
+      <div data-output-slot="stats"></div>
+      <div data-output-slot="table"></div>
+    </div>
+  `
+};
 
 function getOutputManagementTemplatesFromDocument(){
   const templates=new Map();
@@ -53,21 +83,18 @@ function loadOutputManagementTemplates(){
   return outputManagementTemplatePromise;
 }
 
+function getOutputManagementFallbackTemplate(name){
+  const html=outputManagementTemplateFallbacks[name];
+  if(!html)return null;
+  const template=document.createElement("template");
+  template.innerHTML=html.trim();
+  return template;
+}
+
 async function mountOutputManagementTemplate(name,target=listPage){
   const templates=await loadOutputManagementTemplates();
-  const template=templates.get(name);
+  const template=templates.get(name) || getOutputManagementFallbackTemplate(name);
   if(!template){
-    if(name==="actual-comprehensive"){
-      target.innerHTML=`
-        <div class="other-biz-output-page">
-          <div class="compact-title-row"><div class="module-title">实际产值上报</div></div>
-          <div data-output-slot="query"></div>
-          <div data-output-slot="stats"></div>
-          <div data-output-slot="table"></div>
-        </div>
-      `;
-      return true;
-    }
     const fallback=document.createElement("div");
     fallback.className="project-log-empty";
     fallback.textContent="产值管理页面模板加载失败";
