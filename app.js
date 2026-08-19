@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.756-row-span-table";
+  const version="2.2.773-economy-i18n-actions";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/vendor/jszip.min.js",
@@ -7,6 +7,9 @@
     "src/components/statistics-filter/statistics-filter.js",
     "src/components/month-picker/month-picker.js",
     "src/components/row-span-table/row-span-table.js",
+    "src/components/modal-gallery/modal-gallery.js",
+    "src/components/fullscreen-modal/fullscreen-modal.js",
+    "src/components/economy-i18n/economy-i18n.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",
     "src/components/project-selector/project-selector.js",
     "src/app/project/economy-overview.js",
@@ -47,6 +50,6 @@
   ];
   window.__APP_SCRIPT_CHUNKS__=scripts.slice();
   scripts.forEach(function(src){
-    document.write('<script src="./'+src+'?v='+version+'"><\/script>');
+    document.write('<script src="/'+src+'?v='+version+'"><\/script>');
   });
 })();

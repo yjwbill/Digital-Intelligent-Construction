@@ -1,5 +1,6 @@
 /* 企业管理 / 经济 / 大屏看板 */
 const economyDashboardState={tab:"diagnosis",edition:"domestic",projectName:"",projectType:"",region:"",month:"2026-06",sortKey:"",sortDirection:"",page:1,pageSize:50};
+window.economyDashboardState=economyDashboardState;
 const economyDashboardOrgState={company:"",branch:""};
 const economyWarningTypes=[
   {key:"subcontract",name:"分包分供等合同预警",total:19,red:7,orange:0,yellow:25,blue:0,delta:[-1,0,1,0]},
@@ -78,9 +79,10 @@ function toggleEconomyDiagnosisSort(key){
 function renderEconomyDashboardHeader(view="diagnosis"){
   const regionFilter=economyDashboardState.edition==="domestic"?`<select id="economyDashboardRegion" class="select" onchange="setEconomyDashboardFilter('region',this.value)"><option value="">所属区域</option>${["华东区域","华南区域","华北区域","西南区域"].map(x=>`<option ${economyDashboardState.region===x?'selected':''}>${x}</option>`).join('')}</select>`:"";
   const monthPicker=MonthPicker.render({id:"economyDashboardMonth",value:economyDashboardState.month,max:"2026-07",className:"economy-diagnosis-month-picker",onChange:value=>setEconomyDashboardFilter("month",value)});
-  const filters=view==="diagnosis"?`<div class="economy-dashboard-filters ${economyDashboardState.edition}"><input id="economyDashboardProject" class="input" placeholder="项目名称" value="${escapeAttr(economyDashboardState.projectName)}" onchange="setEconomyDashboardFilter('projectName',this.value)" onkeydown="if(event.key==='Enter'){this.blur()}"/><select id="economyDashboardType" class="select" onchange="setEconomyDashboardFilter('projectType',this.value)"><option value="">项目类型</option>${economyProjectTypes.map(x=>`<option ${economyDashboardState.projectType===x?'selected':''}>${x}</option>`).join('')}</select>${regionFilter}${monthPicker}<button class="btn primary economy-dashboard-download monthly" onclick="openEconomyMonthlyCheckReport()"><img src="./src/assets/economy/download.svg" alt="" aria-hidden="true">月度检验单</button><button class="btn primary economy-dashboard-download report" onclick="openEconomyAnalysisReport()"><img src="./src/assets/economy/download.svg" alt="" aria-hidden="true">分析报告</button></div>`:"";
+  const filters=view==="diagnosis"?`<div class="economy-dashboard-filters ${economyDashboardState.edition}"><input id="economyDashboardProject" class="input" placeholder="项目名称" value="${escapeAttr(economyDashboardState.projectName)}" onchange="setEconomyDashboardFilter('projectName',this.value)" onkeydown="if(event.key==='Enter'){this.blur()}"/><select id="economyDashboardType" class="select" onchange="setEconomyDashboardFilter('projectType',this.value)"><option value="">项目类型</option>${economyProjectTypes.map(x=>`<option ${economyDashboardState.projectType===x?'selected':''}>${x}</option>`).join('')}</select>${regionFilter}${monthPicker}<button class="btn primary economy-dashboard-download monthly" onclick="openEconomyMonthlyCheckReport()"><img src="./src/assets/economy/download.svg" alt="" aria-hidden="true">月度检验单</button><button class="btn primary economy-dashboard-download report" onclick="openEconomyAnalysisReport()"><img src="./src/assets/economy/download.svg" alt="" aria-hidden="true">分析报告</button>${EconomyI18n.renderSwitch()}</div>`:"";
   const editionTabs=view==="diagnosis"?`<div class="screen-tabs production-screen-tabs economy-edition-tabs" role="tablist" aria-label="经济诊断版本"><button type="button" role="tab" aria-selected="${economyDashboardState.edition==="domestic"}" class="${economyDashboardState.edition==="domestic"?"active":""}" onclick="setEconomyDashboardEdition('domestic')">国内版</button><button type="button" role="tab" aria-selected="${economyDashboardState.edition==="international"}" class="${economyDashboardState.edition==="international"?"active":""}" onclick="setEconomyDashboardEdition('international')">国际版</button></div>`:"";
-  return `<div class="safety-screen-header economy-screen-header"><div class="screen-brand"><span class="screen-logo">P</span><strong>数智施工项目经济管理平台</strong></div>${editionTabs}${filters}</div>`;
+  const modeTools=editionTabs?`<div class="economy-screen-mode-tools">${editionTabs}</div>`:"";
+  return `<div class="safety-screen-header economy-screen-header"><div class="screen-brand"><span class="screen-logo">P</span><strong>数智施工项目经济管理平台</strong></div>${modeTools}${filters}</div>`;
 }
 function renderEconomyOrgSwitch(){return DashboardOrgSwitch.render({id:"economy-dashboard-org",records:getEconomyEditionProjects(),state:economyDashboardOrgState,onChange:setEconomyDashboardOrg});}
 function renderEconomyWarningMark(color,overdue){return color?`<span class="economy-warning-mark ${color} ${overdue?'overdue':''}"></span>`:"";}
@@ -95,9 +97,8 @@ function openEconomyDiagnosisProjectOverview(projectId){
   const project=typeof constructionProjectData!=="undefined"?constructionProjectData.find(item=>String(item.id)===String(projectId)):null;
   if(!project)return showToast("未找到项目经济数据");
   window.__economyProjectOverviewEmbedProject=project;
-  openModal(`经济总览 - ${project.projectName}`,`<div id="economyProjectOverviewEmbed" class="economy-project-overview-embed">${renderProjectEconomyOverviewContent(project)}</div>`,`<button class="btn" onclick="closeModal()">关闭</button>`,"large");
-  modalBox.classList.add("economy-project-overview-modal");
-  toggleModalFullscreen();
+  FullscreenModal.open({title:`经济总览 - ${project.projectName}`,content:`<div id="economyProjectOverviewEmbed" class="economy-project-overview-embed">${renderProjectEconomyOverviewContent(project)}</div>`,footer:`<button class="btn" onclick="FullscreenModal.close()">关闭</button>`,className:"economy-project-overview-modal"});
+  EconomyI18n.refreshFullscreenChrome();
 }
 const economyWarningColorMeta={red:{label:"红色",icon:"红"},orange:{label:"橙色",icon:"橙"},yellow:{label:"黄色",icon:"黄"},blue:{label:"蓝色",icon:"蓝"}};
 const economyWarningDrillState={color:"",warningTypeKey:"",projectName:"",projectType:"",company:"",branch:""};
@@ -355,4 +356,5 @@ function renderEconomyDashboardPage(view="diagnosis"){
   const diagnosis=economyDashboardState.tab==="diagnosis";
   const list=diagnosis?getEconomyDiagnosisFiltered():[];
   listPage.innerHTML=`<div class="safety-screen-page economy-dashboard-page">${renderEconomyDashboardHeader(economyDashboardState.tab)}<div class="economy-dashboard-content">${diagnosis?`${renderEconomyOrgSwitch()}<div class="economy-dashboard-body">${renderEconomyDiagnosisMetrics(list)}${renderEconomyWarningCards(list)}${renderEconomyDiagnosisTable(list)}</div>`:`<div class="economy-dashboard-body">${renderEconomyOverview()}</div>`}</div></div>`;
+  if(economyDashboardState.edition==="international")EconomyI18n.apply(listPage);
 }

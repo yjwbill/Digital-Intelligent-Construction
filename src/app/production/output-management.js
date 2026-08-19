@@ -2215,14 +2215,12 @@ let comprehensiveActualOutputAppliedOrgKey="";
 let comprehensiveActualOutputEmbedRoot=null;
 
 async function openProductionValueReportDrilldown(){
-  openModal(
-    "产值报表",
-    `<div id="productionValueReportEmbed" class="production-value-report-embed"><div class="project-log-empty">产值报表加载中...</div></div>`,
-    `<button class="btn" onclick="closeProductionValueReportDrilldown()">关闭</button>`,
-    "large"
-  );
-  modalBox.classList.add("production-value-report-modal");
-  if(!modalBox.classList.contains("fullscreen"))toggleModalFullscreen();
+  FullscreenModal.open({
+    title:"产值报表",
+    content:`<div id="productionValueReportEmbed" class="production-value-report-embed"><div class="project-log-empty">产值报表加载中...</div></div>`,
+    footer:`<button class="btn" onclick="closeProductionValueReportDrilldown()">关闭</button>`,
+    className:"production-value-report-modal"
+  });
   comprehensiveActualOutputEmbedRoot=document.getElementById("productionValueReportEmbed");
   await renderComprehensiveActualOutputReportPage({target:comprehensiveActualOutputEmbedRoot,embedded:true});
 }

@@ -356,6 +356,7 @@ const componentLibraryMenusV2288={
     {group:"基础组件",items:[["button","按钮 Button"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"],["month","年月选择器 MonthPicker"]]},
     {group:"表单组件",items:[["input","输入框 Input"],["select","选择器 Select"]]},
     {group:"数据展示",items:[["tag","标签 Tag"],["table","表格 Table"],["row-span-table","纵跨行组件 RowSpanTable"]]},
+    {group:"弹层组件",items:[["modal-standard","基础标准弹框 Modal"],["modal-fullscreen","全屏弹框 FullscreenModal"],["modal-nested","嵌套弹框 NestedModal"],["modal-business","业务定制弹框 BusinessModal"],["modal-immersive","沉浸式预览弹框 ImmersiveModal"],["modal-mobile","移动端弹层 MobileOverlay"],["modal-lightweight","轻量浮层 Popover"]]},
     {group:"业务组件",items:[["statistics-filter","统计筛选 StatisticsFilter"],["dashboard-org-switch","看板组织切换 DashboardOrgSwitch"],["project-selector","项目选择器 ProjectSelector"]]}
   ],
   mobile:[
@@ -698,6 +699,13 @@ function renderPcComponentPreviewV2288(type){
       <p>标准 Table 提供单行和多行两种表头模式。单行表头固定 44px；使用 <code>table-multiline-header</code> 标识双行或多级表头，每层固定 40px，并通过 rowspan / colspan 表达分组关系。所有数据行统一 40px，支持列设置、分页、导出和固定表头。</p>
     `,
     "row-span-table":renderPcRowSpanTablePreviewV2609(),
+    "modal-standard":ModalGallery.renderPreview("standard"),
+    "modal-fullscreen":ModalGallery.renderPreview("fullscreen"),
+    "modal-nested":ModalGallery.renderPreview("nested"),
+    "modal-business":ModalGallery.renderPreview("business"),
+    "modal-immersive":ModalGallery.renderPreview("immersive"),
+    "modal-mobile":ModalGallery.renderPreview("mobile"),
+    "modal-lightweight":ModalGallery.renderPreview("lightweight"),
     "statistics-filter":`
       <div class="component-statistics-filter-demo">${StatisticsFilter.render({
         id:"component-library-statistics-filter",
@@ -1105,6 +1113,7 @@ function switchComponentLibraryPlatformV2288(platform){
 }
 
 function selectComponentLibraryItemV2288(active){
+  window.ModalGallery?.close?.();
   componentLibraryStateV2288.active=active;
   renderComponentLibraryPageV2288();
 }

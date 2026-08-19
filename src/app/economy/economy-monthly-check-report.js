@@ -152,9 +152,8 @@ function renderEconomyMonthlyCheckReport(){
 }
 
 function openEconomyMonthlyCheckReport(){
-  openModal(isEconomyMonthlyCheckInternational()?"国际版月度检验单":"月度检验单",renderEconomyMonthlyCheckReport(),`<button class="btn" onclick="closeModal()">关闭</button><button class="btn primary" onclick="showToast('月度检验单导出成功')"><span aria-hidden="true">⇩</span> 导出</button>`,"large");
-  modalBox.classList.add("economy-monthly-check-modal");
-  if(!modalBox.classList.contains("fullscreen"))toggleModalFullscreen();
+  FullscreenModal.open({title:isEconomyMonthlyCheckInternational()?"国际版月度检验单":"月度检验单",content:renderEconomyMonthlyCheckReport(),footer:`<button class="btn" onclick="FullscreenModal.close()">关闭</button><button class="btn primary" onclick="showToast('月度检验单导出成功')"><span aria-hidden="true">⇩</span> 导出</button>`,className:"economy-monthly-check-modal"});
+  EconomyI18n.refreshFullscreenChrome();
 }
 
 Object.assign(window,{openEconomyMonthlyCheckReport,scrollEconomyMonthlyCheckCompany});

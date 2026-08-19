@@ -109,9 +109,9 @@ function getProjectEconomyOverviewData(project){
     {name:"财务费用",unit:"万元"},
     {name:"预计税金成本（含所得税）",unit:"万元"},
     {name:"工程关键节点偏差",unit:"天"},
-    {name:"钢筋开累领用量",unit:"t"},
-    {name:"水泥开累领用量",unit:"t"},
-    {name:"商品混凝土开累领用量",unit:"m³"},
+    {name:"钢筋开累领用量",unit:"t",valueTone:"neutral"},
+    {name:"水泥开累领用量",unit:"t",valueTone:"neutral"},
+    {name:"商品混凝土开累领用量",unit:"m³",valueTone:"neutral"},
     {name:"业主已计量产值（不含税）",unit:"万元"},
     {name:"到期应收未收款",unit:"万元"},
     {name:"到期应收未收款账龄",unit:"天"}
@@ -172,7 +172,7 @@ function getProjectEconomyOverviewData(project){
       const waveScale=unit==="%"?.9:unit==="个"?.15:unit==="天"?.45:7.2;
       const series=getProjectEconomyTrendPeriods().map((period,i)=>({period,value:Number(Math.max(0,currentValue*wavePattern[i]+(((seed+index*3+i*5)%7)-3)*waveScale).toFixed(2))}));
       series[series.length-1].value=currentValue;
-      return {name,value:currentValue,threshold:Number(threshold.toFixed?.(2)??threshold),unit,color:index%4===0?"red":index%4===1?"orange":"blue",showInfo:!international,drilldown:definition.drilldown,series};
+      return {name,value:currentValue,threshold:Number(threshold.toFixed?.(2)??threshold),unit,color:definition.valueTone||(index%4===0?"red":index%4===1?"orange":"blue"),showInfo:!international,drilldown:definition.drilldown,series};
     })
   };
 }
@@ -224,7 +224,7 @@ function renderProjectEconomyTrendCard(item){
 }
 function renderProjectEconomySubcontractMeasurementDrill(){
   const rows=getProjectEconomySubcontractDrillRows();
-  const body=document.getElementById("modalBody");
+  const body=document.getElementById("projectEconomySubcontractDrillBody");
   if(!body)return;
   const money=value=>Number(value||0).toLocaleString("zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2});
   body.innerHTML=`<div class="send-drill-modal economy-warning-project-drill project-economy-subcontract-drill">
@@ -234,10 +234,20 @@ function renderProjectEconomySubcontractMeasurementDrill(){
 }
 function openProjectEconomySubcontractMeasurementDrill(){
   Object.assign(projectEconomySubcontractDrillState,{subcontractorName:"",creditCode:""});
-  openModal("分包产值计量率","",`<button class="btn" onclick="closeModal()">关闭</button>`,"large");
-  modalBox.classList.add("send-drill-modal-box","economy-warning-drill-modal","project-economy-subcontract-modal");
+  closeProjectEconomySubcontractMeasurementDrill();
+  const layer=document.createElement("div");
+  layer.id="projectEconomySubcontractDrillLayer";
+  layer.className="project-economy-nested-modal-layer";
+  layer.innerHTML=`<div class="project-economy-nested-modal-mask" onclick="closeProjectEconomySubcontractMeasurementDrill()"></div>
+    <section class="modal large send-drill-modal-box economy-warning-drill-modal project-economy-subcontract-modal nested-modal" role="dialog" aria-modal="true" aria-labelledby="projectEconomySubcontractDrillTitle">
+      <div class="modal-hd"><span id="projectEconomySubcontractDrillTitle">单个分包商最大产值计量</span><div class="modal-hd-actions"><span class="close" onclick="closeProjectEconomySubcontractMeasurementDrill()">×</span></div></div>
+      <div class="modal-bd" id="projectEconomySubcontractDrillBody"></div>
+      <div class="modal-ft"><button class="btn" onclick="closeProjectEconomySubcontractMeasurementDrill()">关闭</button></div>
+    </section>`;
+  document.body.appendChild(layer);
   renderProjectEconomySubcontractMeasurementDrill();
 }
+function closeProjectEconomySubcontractMeasurementDrill(){document.getElementById("projectEconomySubcontractDrillLayer")?.remove();}
 function queryProjectEconomySubcontractMeasurementDrill(){
   projectEconomySubcontractDrillState.subcontractorName=document.getElementById("projectEconomySubcontractName")?.value.trim()||"";
   projectEconomySubcontractDrillState.creditCode=document.getElementById("projectEconomySubcontractCredit")?.value.trim()||"";
