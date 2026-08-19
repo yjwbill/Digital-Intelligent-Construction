@@ -718,12 +718,11 @@ const businessMenus={
         name:"产值管理",
         open:false,
         children:[
-          {name:"产值预测分析报表"},
+          {name:"产值分析明细表"},
           {name:"目标设置"},
           {name:"产值申报"},
           {name:"实际产值上报"},
-          {name:"完工未结算管理"},
-          {name:"其他业态产值申报"}
+          {name:"完工未结算管理"}
         ]
       },
       {
@@ -2456,6 +2455,7 @@ function renderUnifiedTableCard(options){
     <section class="card table-card ${options.className || ""}">
       <div class="card-hd">
         <div class="card-title">${options.title || "列表"}</div>
+        ${options.titleExtra || ""}
         <div class="actions">
           ${options.beforeActions || ""}
           <button class="btn" onclick="${options.refreshAction || ""}">刷新</button>
