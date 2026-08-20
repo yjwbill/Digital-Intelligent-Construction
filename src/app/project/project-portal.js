@@ -2267,7 +2267,9 @@ const projectEquipmentDocumentItems=[
   {key:"dismantleQualification",label:"安拆工资质"},
   {key:"installationInspectionCertificate",label:"安装检测合格证"},
   {key:"acceptanceRecord",label:"验收记录"},
-  {key:"approvalForm",label:"报审表"}
+  {key:"approvalForm",label:"报审表"},
+  {key:"compliancePhoto",label:"合规照片"},
+  {key:"supervisionReport",label:"监理报验单"}
 ];
 const projectEquipmentPlanningRows=[
   {id:"eq-plan-001",projectName:"",source:"生产平台设备筹划",approvalStatus:"审核通过",deviceType:"塔吊",demandQuantity:2,usePart:"主体结构区 1#、2#楼",workPeriod:"2026-08 至 2026-12"},
@@ -2625,8 +2627,19 @@ function getProjectEquipmentDocumentFiles(documents,key){
   return getProjectEquipmentFiles(row.files,row.name||"");
 }
 
+function renderProjectEquipmentLabelHint(key){
+  if(key!=="compliancePhoto"&&key!=="supervisionReport")return "";
+  return `<span class="project-equipment-label-hint" aria-label="该附件由安全子平台录入"><span class="project-equipment-label-info" aria-hidden="true">I</span><span class="project-equipment-label-tooltip">该附件由安全子平台录入</span></span>`;
+}
+
+function renderProjectEquipmentDocumentLabel(item,required){
+  const hint=renderProjectEquipmentLabelHint(item.key);
+  return `${escapeAttr(item.label)}${hint} ${required?"<em>*</em>":"<small>非必填</small>"}`;
+}
+
 function getProjectEquipmentAttachmentGroups(row){
   return projectEquipmentDocumentItems.map(item=>({
+      key:item.key,
       label:item.label,
       type:"document",
       files:getProjectEquipmentDocumentFiles(row.documents,item.key)
@@ -2638,12 +2651,12 @@ function renderProjectEquipmentAttachmentStatus(row){
   const uploadedGroups=groups.filter(group=>group.files.length).length;
   const fileCount=groups.reduce((sum,group)=>sum+group.files.length,0);
   const documentCount=projectEquipmentDocumentItems.filter(item=>getProjectEquipmentDocumentFiles(row.documents,item.key).length).length;
-  return `<button type="button" class="project-equipment-attachment-status" onclick="openProjectEquipmentAttachmentModal('${escapeAttr(row.id)}')"><strong>${documentCount}/11</strong><span>${fileCount}个资料附件</span></button>`;
+  return `<button type="button" class="project-equipment-attachment-status" onclick="openProjectEquipmentAttachmentModal('${escapeAttr(row.id)}')"><strong>${documentCount}/${projectEquipmentDocumentItems.length}</strong><span>${fileCount}个资料附件</span></button>`;
 }
 
 function renderProjectEquipmentAttachmentGroup(group){
   return `<section class="project-equipment-attachment-group">
-    <header><strong>${escapeAttr(group.label)}</strong><span>${group.files.length?`${group.files.length}个附件`:"未上传"}</span></header>
+    <header><strong>${escapeAttr(group.label)}${renderProjectEquipmentLabelHint(group.key)}</strong><span>${group.files.length?`${group.files.length}个附件`:"未上传"}</span></header>
     <div class="project-equipment-attachment-files">
       ${group.files.map(file=>renderProjectEquipmentAttachmentFile(file,group)).join("")||`<div class="project-equipment-attachment-empty">未上传</div>`}
     </div>
@@ -2674,7 +2687,7 @@ function openProjectEquipmentAttachmentModal(registrationId){
       <div class="project-equipment-attachment-overview">
         <div><span>资料分组</span><strong>${groups.filter(group=>group.files.length).length}/${groups.length}</strong></div>
         <div><span>附件总数</span><strong>${totalFiles}</strong></div>
-        <div><span>资料清单</span><strong>${projectEquipmentDocumentItems.filter(item=>getProjectEquipmentDocumentFiles(row.documents,item.key).length).length}/11</strong></div>
+        <div><span>资料清单</span><strong>${projectEquipmentDocumentItems.filter(item=>getProjectEquipmentDocumentFiles(row.documents,item.key).length).length}/${projectEquipmentDocumentItems.length}</strong></div>
       </div>
       <div class="project-equipment-attachment-groups">
         ${groups.map(renderProjectEquipmentAttachmentGroup).join("")}
@@ -2903,7 +2916,7 @@ function renderProjectEquipmentDocumentUploadField(item,documents={},category="�
   const files=getProjectEquipmentFiles(documents?.[item.key]?.files,documents?.[item.key]?.name||"");
   const required=isProjectEquipmentDocumentRequired(item,category);
   return `<div class="project-equipment-document-item" data-document-key="${escapeAttr(item.key)}" data-general-required="${item.generalRequired?"1":"0"}">
-    <label>${escapeAttr(item.label)} ${required?"<em>*</em>":"<small>非必填</small>"}</label>
+    <label>${renderProjectEquipmentDocumentLabel(item,required)}</label>
     <div class="project-equipment-document-upload project-log-file-upload">
       <input id="projectEquipmentDocument-${escapeAttr(item.key)}" type="file" multiple hidden onchange="handleProjectEquipmentDocumentSelect('${escapeAttr(item.key)}',this)"/>
       <p>支持多附件上传</p>
@@ -3026,7 +3039,7 @@ function syncProjectEquipmentDocumentRequired(category=document.getElementById("
     const label=item.querySelector("label");
     if(!config||!label)return;
     const required=isProjectEquipmentDocumentRequired(config,category);
-    label.innerHTML=`${escapeAttr(config.label)} ${required?"<em>*</em>":"<small>非必填</small>"}`;
+    label.innerHTML=renderProjectEquipmentDocumentLabel(config,required);
   });
 }
 
