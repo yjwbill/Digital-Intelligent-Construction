@@ -285,7 +285,8 @@ const enterpriseMobileEconomyFilterState={
   region:"",
   sector:"",
   open:"",
-  draft:null
+  draft:null,
+  context:"board"
 };
 const enterpriseMobileHomeCards=[
   {title:"项目经济看板",art:"dashboard",image:"./src/assets/economy/project-total.svg"},
@@ -344,6 +345,7 @@ function renderEnterpriseMobileHomeCard(card){
 function openEnterpriseMobileHomeCard(art,edition){
   enterpriseMobileState.edition=edition==="international"?"international":"domestic";
   if(art==="dashboard")return renderEnterpriseMobileEconomyBoard();
+  if(art==="report")return renderEnterpriseMobileInspectionReport();
   const card=enterpriseMobileHomeCards.find(item=>item.art===art);
   showToast(`${enterpriseMobileState.edition==="international"?"国际版":"国内版"}${card?.title||"页面"}待接入`);
 }
@@ -361,6 +363,47 @@ function getEnterpriseMobileEconomyBaseRows(){
   return [];
 }
 
+const enterpriseMobileReportState={month:"2024-03",company:"",region:"",sector:""};
+function getEnterpriseMobileReportRows(){
+  return getEnterpriseMobileEconomyRows();
+}
+function renderEnterpriseMobileReportFilter(label,key,options){
+  return `<label class="enterprise-mobile-report-filter"><span>${label}</span><select onchange="setEnterpriseMobileReportFilter('${key}',this.value)"><option value="">${label}</option>${options.map(value=>`<option value="${escapeAttr(value)}" ${enterpriseMobileReportState[key]===value?"selected":""}>${value}</option>`).join("")}</select><i aria-hidden="true"></i></label>`;
+}
+function renderEnterpriseMobileReportCard(row,index){
+  const company=row.company||"市政集团";
+  const branch=row.branch||"环境分公司";
+  const region=row.region||row.city||"华东区域";
+  const type=row.projectType||"市政工程";
+  return `<article class="enterprise-mobile-report-card" onclick="showToast('正在打开${escapeAttr(row.projectName)}检验报告')">
+    <div class="enterprise-mobile-report-icon" aria-hidden="true"><i></i><b></b></div>
+    <div class="enterprise-mobile-report-main"><h2 title="${escapeAttr(row.projectName)}">${row.projectName}</h2>
+      <div class="enterprise-mobile-report-tags"><span class="company">${company}/${branch}</span><span class="type">${type}</span><span class="region">${region}</span></div>
+      <p>风险发展趋势分析：本项目当前经济风险“较大”<br>，程度有所减缓</p>
+    </div><i class="enterprise-mobile-report-arrow" aria-hidden="true"></i>
+  </article>`;
+}
+function renderEnterpriseMobileInspectionReport(){
+  const app=document.querySelector(".app");
+  if(!app)return;
+  enterpriseMobileEconomyFilterState.context="report";
+  const rows=getEnterpriseMobileReportRows().slice(0,10);
+  app.innerHTML=`<div class="mobile-workbench enterprise-mobile-page enterprise-mobile-report-page">
+    ${renderEnterpriseMobileHeader("项目月度检验报告","renderEnterpriseMobilePage('home')")}
+    <main class="enterprise-mobile-report-scroll">
+      ${renderEnterpriseMobileFilterBar()}
+      <section class="enterprise-mobile-report-list">${rows.length?rows.map(renderEnterpriseMobileReportCard).join(""):`<div class="enterprise-mobile-report-empty">暂无符合条件的项目</div>`}</section>
+      ${renderEnterpriseEconomyPickerOverlay()}
+    </main>
+  </div>`;
+  document.body.classList.add("mobile-mode","enterprise-mobile-mode");
+  document.body.classList.remove("entry-mode","component-library-mode");
+}
+function setEnterpriseMobileReportFilter(key,value){enterpriseMobileReportState[key]=value;renderEnterpriseMobileInspectionReport();}
+window.openEnterpriseMobileHomeCard=openEnterpriseMobileHomeCard;
+window.renderEnterpriseMobileInspectionReport=renderEnterpriseMobileInspectionReport;
+window.setEnterpriseMobileReportFilter=setEnterpriseMobileReportFilter;
+
 function getEnterpriseMobileEconomyRows(){
   const state=enterpriseMobileEconomyFilterState;
   return getEnterpriseMobileEconomyBaseRows().filter(row=>(!state.company||row.company===state.company)&&(!state.branch||row.branch===state.branch)&&(!state.region||row.region===state.region)&&(!state.sector||row.projectType===state.sector));
@@ -374,6 +417,10 @@ function formatEnterpriseEconomyMonth(value){
   const [year,month]=String(value||"").split("-");
   return year&&month?`${year.slice(-2)}年${Number(month)}月`:"选择年月";
 }
+function refreshEnterpriseEconomyFilterContext(){
+  if(enterpriseMobileEconomyFilterState.context==="report")return renderEnterpriseMobileInspectionReport();
+  return renderEnterpriseMobileEconomyBoard();
+}
 
 function openEnterpriseEconomyFilter(kind){
   const state=enterpriseMobileEconomyFilterState;
@@ -383,13 +430,13 @@ function openEnterpriseEconomyFilter(kind){
     :kind==="company"
       ?{company:state.company,branch:state.branch}
       :{value:kind==="region"?state.region:state.sector};
-  renderEnterpriseMobileEconomyBoard();
+  refreshEnterpriseEconomyFilterContext();
 }
 
 function closeEnterpriseEconomyFilter(){
   enterpriseMobileEconomyFilterState.open="";
   enterpriseMobileEconomyFilterState.draft=null;
-  renderEnterpriseMobileEconomyBoard();
+  refreshEnterpriseEconomyFilterContext();
 }
 
 function resetEnterpriseEconomyFilterDraft(){
@@ -397,7 +444,7 @@ function resetEnterpriseEconomyFilterDraft(){
   if(state.open==="month")state.draft={month:"2024-03",year:2024};
   else if(state.open==="company")state.draft={company:"",branch:""};
   else state.draft={value:""};
-  renderEnterpriseMobileEconomyBoard();
+  refreshEnterpriseEconomyFilterContext();
 }
 
 function confirmEnterpriseEconomyFilter(){
@@ -408,36 +455,36 @@ function confirmEnterpriseEconomyFilter(){
   else if(state.open==="sector")state.sector=state.draft.value;
   state.open="";
   state.draft=null;
-  renderEnterpriseMobileEconomyBoard();
+  refreshEnterpriseEconomyFilterContext();
 }
 
 function moveEnterpriseEconomyMonthYear(delta){
   const draft=enterpriseMobileEconomyFilterState.draft;
   draft.year=Math.min(2026,Math.max(2022,draft.year+(Number(delta)||0)));
-  renderEnterpriseMobileEconomyBoard();
+  refreshEnterpriseEconomyFilterContext();
 }
 
 function selectEnterpriseEconomyMonth(month){
   const draft=enterpriseMobileEconomyFilterState.draft;
   draft.month=`${draft.year}-${String(month).padStart(2,"0")}`;
-  renderEnterpriseMobileEconomyBoard();
+  refreshEnterpriseEconomyFilterContext();
 }
 
 function selectEnterpriseEconomyCompany(value){
   const draft=enterpriseMobileEconomyFilterState.draft;
   draft.company=decodeComponentPickerValueV2298(value);
   draft.branch="";
-  renderEnterpriseMobileEconomyBoard();
+  refreshEnterpriseEconomyFilterContext();
 }
 
 function selectEnterpriseEconomyBranch(value){
   enterpriseMobileEconomyFilterState.draft.branch=decodeComponentPickerValueV2298(value);
-  renderEnterpriseMobileEconomyBoard();
+  refreshEnterpriseEconomyFilterContext();
 }
 
 function selectEnterpriseEconomySimpleFilter(value){
   enterpriseMobileEconomyFilterState.draft.value=decodeComponentPickerValueV2298(value);
-  renderEnterpriseMobileEconomyBoard();
+  refreshEnterpriseEconomyFilterContext();
 }
 
 function getEnterpriseMobileRiskCounts(rows){
@@ -570,14 +617,60 @@ function renderEnterpriseEconomyProjectList(rows){
     </header>
     <div class="enterprise-economy-project-table">
       <div class="enterprise-economy-project-head"><span>序号</span><span>项目名称</span><span>合同<br>预警</span><span>潜亏<br>预警</span><span>拖欠款<br>预警</span><span>结算<br>预警</span></div>
-      ${list.map((row,index)=>`<div class="enterprise-economy-project-row"><span>${index+1}</span><strong>${row.projectName}</strong>${warningKeys.map(key=>renderEnterpriseRiskDot(row.warnings?.[key],row.overdue?.[key])).join("")}</div>`).join("")}
+      ${list.map((row,index)=>`<button type="button" class="enterprise-economy-project-row" onclick="openEnterpriseEconomyProjectDetail('${escapeAttr(row.sourceProjectId||row.id||row.projectName)}')"><span>${index+1}</span><strong>${row.projectName}</strong>${warningKeys.map(key=>renderEnterpriseRiskDot(row.warnings?.[key],row.overdue?.[key])).join("")}</button>`).join("")}
     </div>
   </section>`;
 }
 
+function getEnterpriseEconomyProjectDetailRow(identifier){
+  const rows=getEnterpriseMobileEconomyRows();
+  return rows.find(row=>String(row.sourceProjectId||row.id||row.projectName)===String(identifier))||rows[0];
+}
+function renderEnterpriseEconomyDetailRisk(row){
+  const risks=[
+    {label:"业主拖欠款预警",key:"arrears",items:[["账龄预警",1]]},
+    {label:"分包分供等合同预警",key:"subcontract",items:[["上报结算价预警",2],["结算周期预警",1]]}
+  ];
+  return risks.map(risk=>`<div class="enterprise-economy-detail-risk-group"><i class="${row.warnings?.[risk.key]||"blue"}"></i><strong>${risk.label}</strong><div>${risk.items.map(([item,count])=>`<span><img src="./src/assets/economy-warning/${count===2?"two-thunders.svg":"one-thunder.svg"}" alt="${count===2?"二颗雷":"一颗雷"}">${item}<time>2024-04-15</time></span>`).join("")}</div></div>`).join("");
+}
+function renderEnterpriseEconomyDetailMetric(title,value,unit="",danger=false){
+  return `<div class="enterprise-economy-detail-metric ${danger?"danger":""}"><span>${title}</span><strong>${value} <em>${unit}</em></strong></div>`;
+}
+function renderEnterpriseEconomyProjectDetail(row){
+  const project=row||{};
+  const name=project.projectName||"项目经济看板";
+  const company=project.company||"上海市政";
+  const branch=project.branch||"机顶分公司";
+  const region=project.region||project.city||"上海市嘉定区";
+  const type=project.projectType||"市政";
+  const warningLevel=project.warnings?.arrears||project.warnings?.subcontract||"red";
+  return `<div class="mobile-workbench enterprise-mobile-page enterprise-economy-detail-page">
+    ${renderEnterpriseMobileHeader("项目经济看板","renderEnterpriseMobileEconomyBoard()")}
+    <main class="enterprise-economy-detail-scroll">
+      <section class="enterprise-economy-detail-summary">
+        <h2>${name}</h2>
+        <div class="enterprise-economy-detail-risk-line"><strong>风险状态：</strong><i class="${warningLevel}"></i><button type="button" onclick="showToast('当前选择${formatEnterpriseEconomyMonth(enterpriseMobileEconomyFilterState.month)}')">${formatEnterpriseEconomyMonth(enterpriseMobileEconomyFilterState.month)}<span>▦</span></button></div>
+        <div class="enterprise-economy-detail-info"><p>所属公司：<b>${company}/${branch}</b></p><p>项目状态：<b>在建</b></p><p>项目区域：<b>${region}</b></p><p>项目板块：<b>${type}</b></p><p class="wide">项目工期：<b>2021-10-28~2026-11-14</b></p></div>
+        <div class="enterprise-economy-detail-metrics">${renderEnterpriseEconomyDetailMetric("开累产值","10,955.51","万元")}${renderEnterpriseEconomyDetailMetric("合同总额","10,955.51","万元")}${renderEnterpriseEconomyDetailMetric("产值完成率","78.91","%")}${renderEnterpriseEconomyDetailMetric("开累营收","10,955.51","万元")}${renderEnterpriseEconomyDetailMetric("目标利润率","78.91","%")}</div>
+      </section>
+      <section class="enterprise-economy-detail-card enterprise-economy-detail-warning"><header><img class="detail-section-icon warning" src="./src/assets/mobile-tab/economy-risk-status.svg" alt=""><h2>预警指标风险状态</h2><button onclick="showToast('检验报告待接入')">检验报告 ♡</button></header><div class="enterprise-economy-detail-risk-list">${renderEnterpriseEconomyDetailRisk(project)}</div><p class="enterprise-economy-detail-trend">风险发展趋势分析：本项目当前经济风险“较大”趋势基本没有改变</p></section>
+      <section class="enterprise-economy-detail-card enterprise-economy-detail-linked"><header><span class="detail-section-icon linked"></span><h2>预警关联项动态</h2></header><div class="enterprise-economy-detail-linked-grid">${renderEnterpriseEconomyDetailMetric("分包分供合同金额","5323.34","万元",true)}${renderEnterpriseEconomyDetailMetric("主体（主要）劳务合同个数","8 / 6","个",true)}${renderEnterpriseEconomyDetailMetric("专业分包合同匹配率","80.00","%",true)}${renderEnterpriseEconomyDetailMetric("存货","-5559.36","万元",true)}${renderEnterpriseEconomyDetailMetric("资金结余","993.22","万元")}${renderEnterpriseEconomyDetailMetric("分包单位产值计量率","98.24","%",true)}${renderEnterpriseEconomyDetailMetric("项目管理费使用率","45.70","%")}${renderEnterpriseEconomyDetailMetric("增值税税负","900.00","万元",true)}${renderEnterpriseEconomyDetailMetric("关键节点偏差","27","天")}${renderEnterpriseEconomyDetailMetric("结算价","未到完工阶段","")}</div></section>
+    </main>
+  </div>`;
+}
+function openEnterpriseEconomyProjectDetail(identifier){
+  const app=document.querySelector(".app");
+  const row=getEnterpriseEconomyProjectDetailRow(identifier);
+  if(!app||!row)return;
+  window.__digitalConstructionMode="enterprise-mobile-economy-detail";
+  app.innerHTML=renderEnterpriseEconomyProjectDetail(row);
+}
+window.openEnterpriseEconomyProjectDetail=openEnterpriseEconomyProjectDetail;
+
 function renderEnterpriseMobileEconomyBoard(){
   const app=document.querySelector(".app");
   if(!app)return;
+  enterpriseMobileEconomyFilterState.context="board";
   const rows=getEnterpriseMobileEconomyRows();
   window.__digitalConstructionMode="enterprise-mobile-economy-board";
   removeBottomFixedMenu();
@@ -598,15 +691,14 @@ function renderEnterpriseMobileEconomyBoard(){
 function renderEnterpriseMobileWarningItem(item){
   return `<article class="enterprise-mobile-warning-card">
     <div class="enterprise-mobile-warning-main">
-      <span class="enterprise-mobile-warning-icon" aria-hidden="true"></span>
+      <img class="enterprise-mobile-warning-icon" src="./src/assets/mobile-tab/warning-report.svg" alt="" aria-hidden="true">
       <div>
         <h2>项目月度检验单（${item.month}）</h2>
         <p>【隧道股份经济风险月度检验单(${item.month})】本月共8家子公司，${item.count}个项目参与经济风险评估,${item.risk}个项目...</p>
       </div>
-      <em>未读</em>
     </div>
     <footer>
-      <time>${item.time}</time>
+      <time>${String(item.time).slice(0,10)}</time>
       <button type="button" onclick="showToast('查看${item.month}月度检验单')">查看</button>
     </footer>
   </article>`;

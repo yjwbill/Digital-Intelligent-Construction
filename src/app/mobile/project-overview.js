@@ -137,8 +137,7 @@ function renderMobileProjectOverviewHeaderV2227(){
           <span class="mobile-battery"></span>
         </div>
       </div>
-      <div class="mobile-titlebar mobile-standard-titlebar">
-        <button class="mobile-version-back" onclick="renderMobileWorkbench()" aria-label="返回"></button>
+      <div class="mobile-titlebar mobile-standard-titlebar mobile-project-overview-titlebar">
         <h1>项目总览</h1>
         ${typeof renderMobileMiniProgramCapsuleV2297==="function"?renderMobileMiniProgramCapsuleV2297():""}
       </div>
