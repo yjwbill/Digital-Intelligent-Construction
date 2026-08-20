@@ -175,7 +175,7 @@ function renderMobileWorkbench(){
   window.__digitalConstructionMode="mobile";
   removeBottomFixedMenu();
   document.body.classList.add("mobile-mode");
-  document.body.classList.remove("entry-mode");
+  document.body.classList.remove("entry-mode","enterprise-mobile-mode");
   mobileWorkbenchV2256.appPage=0;
   mobileWorkbenchV2256.noticeType="message";
   app.innerHTML=`
@@ -1906,7 +1906,17 @@ function renderMobileMineMenuItemV2274(type,title,extra){
   `;
 }
 
-function renderMobileVersionHeaderV2275(title,backAction="renderMobileMineCenterV2274()"){
+let mobileMineReturnActionV2275="renderMobileMineCenterV2274()";
+
+function setMobileMineReturnActionV2275(action="renderMobileMineCenterV2274()"){
+  mobileMineReturnActionV2275=action;
+}
+
+function getMobileMineReturnActionV2275(){
+  return mobileMineReturnActionV2275;
+}
+
+function renderMobileVersionHeaderV2275(title,backAction=getMobileMineReturnActionV2275()){
   return `
     <header class="mobile-version-top">
       <div class="mobile-statusbar">
@@ -2042,11 +2052,12 @@ function renderMobileVersionCurrentCardV2275(){
 function renderMobileMineCenterV2274(){
   const app=document.querySelector(".app");
   if(!app)return;
+  setMobileMineReturnActionV2275("renderMobileMineCenterV2274()");
   const current=getMobileCurrentVersionV2276();
   window.__digitalConstructionMode="mobile";
   removeBottomFixedMenu();
   document.body.classList.add("mobile-mode");
-  document.body.classList.remove("entry-mode");
+  document.body.classList.remove("entry-mode","enterprise-mobile-mode");
   app.innerHTML=`
     <div class="mobile-workbench mobile-mine-page">
       <header class="mobile-top mobile-mine-top">
@@ -2145,7 +2156,7 @@ function renderMobileMineMenuItemV2274(type,title,extra){
   `;
 }
 
-function renderMobileFeedbackHeaderV2277(title,backAction="renderMobileMineCenterV2274()"){
+function renderMobileFeedbackHeaderV2277(title,backAction=getMobileMineReturnActionV2275()){
   return `
     <header class="mobile-feedback-top">
       <div class="mobile-statusbar">
@@ -2290,7 +2301,7 @@ function renderMobileFeedbackSuccessV2277(){
         </section>
       </main>
       <footer class="mobile-feedback-bottom">
-        <button onclick="renderMobileMineCenterV2274()">返回</button>
+        <button onclick="${getMobileMineReturnActionV2275()}">返回</button>
       </footer>
     </div>
   `;
@@ -2471,7 +2482,7 @@ function renderMobileManualHeaderV2279(){
         </div>
       </div>
       <div class="mobile-manual-titlebar">
-        <button class="mobile-version-back" onclick="renderMobileMineCenterV2274()" aria-label="返回"></button>
+        <button class="mobile-version-back" onclick="${getMobileMineReturnActionV2275()}" aria-label="返回"></button>
         <h1>操作手册</h1>
         <button class="mobile-manual-search" aria-label="搜索"></button>
       </div>

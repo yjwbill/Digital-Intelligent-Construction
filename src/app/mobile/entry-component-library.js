@@ -51,7 +51,7 @@ function renderMobileWorkbench(){
   window.__digitalConstructionMode="mobile";
   removeBottomFixedMenu();
   document.body.classList.add("mobile-mode");
-  document.body.classList.remove("entry-mode");
+  document.body.classList.remove("entry-mode","enterprise-mobile-mode");
   const appNames=["花名册","考勤流水","视频监控","花名册","考勤流水","花名册","考勤流水","视频监控","花名册","考勤流水"];
   app.innerHTML=`
     <div class="mobile-workbench">
@@ -151,7 +151,7 @@ function renderDigitalConstructionEntry(){
   if(!digitalConstructionPcShell)digitalConstructionPcShell=app.innerHTML;
   window.__digitalConstructionMode="entry";
   removeBottomFixedMenu();
-  document.body.classList.remove("mobile-mode","component-library-mode");
+  document.body.classList.remove("mobile-mode","component-library-mode","enterprise-mobile-mode");
   document.body.classList.add("entry-mode");
   app.innerHTML=`
     <main class="digital-entry">
@@ -168,22 +168,25 @@ function renderDigitalConstructionEntry(){
           <section class="entry-product-card construction">
             <header class="entry-product-header"><span class="entry-product-logo building" aria-hidden="true"></span><div><h2>数智施工</h2><p>一体化数字建造解决方案，赋能工程项目高效协同与智慧管理</p></div></header>
             <div class="entry-terminal-grid">
-              <button class="entry-terminal-card" onclick="enterDigitalConstructionPc()"><span class="entry-terminal-icon terminal-image pc" aria-hidden="true"></span><strong>PC端</strong><em>项目管理与数据运营</em><b>立即体验　→</b></button>
-              <button class="entry-terminal-card" onclick="enterDigitalConstructionMobile()"><span class="entry-terminal-icon terminal-image mobile" aria-hidden="true"></span><strong>移动端</strong><em>现场作业与移动协同</em><b>立即体验　→</b></button>
+              <button class="entry-terminal-card" onclick="enterDigitalConstructionPc()"><span class="entry-terminal-icon terminal-image pc" aria-hidden="true"></span><strong>桌面端</strong><em>项目管理与数据运营</em><b>立即体验　→</b></button>
+              <div class="entry-mobile-card-stack">
+                <button class="entry-terminal-card entry-terminal-mobile-card" onclick="enterDigitalConstructionMobileEnterprise()"><span class="entry-terminal-icon terminal-image mobile" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>移动端-企业管理</strong><em>股份统一门户入口</em></span><b>立即体验　→</b></button>
+                <button class="entry-terminal-card entry-terminal-mobile-card" onclick="enterDigitalConstructionMobileProject()"><span class="entry-terminal-icon terminal-image mobile" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>移动端-项目管理</strong><em>微信小程序入口</em></span><b>立即体验　→</b></button>
+              </div>
               <button class="entry-terminal-card" onclick="enterDigitalConstructionComponentLibrary()"><span class="entry-terminal-icon library" aria-hidden="true"></span><strong>组件库</strong><em>灵活组件与复用沉淀</em><b>立即体验　→</b></button>
             </div>
           </section>
           <section class="entry-product-card housing">
             <header class="entry-product-header"><span class="entry-product-logo government" aria-hidden="true"><img src="src/assets/zjw-logo.png" alt="住建委"></span><div><h2>住建委</h2><p>监管服务一体化，赋能城市治理</p></div></header>
             <div class="entry-terminal-grid">
-              <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委PC端')"><span class="entry-terminal-icon terminal-image pc" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>PC端</strong><em>监管协同与业务办理</em></span><b>立即体验　→</b></button>
+              <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委桌面端')"><span class="entry-terminal-icon terminal-image pc" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>桌面端</strong><em>监管协同与业务办理</em></span><b>立即体验　→</b></button>
               <button class="entry-terminal-card" onclick="enterZjwMobileDemo()"><span class="entry-terminal-icon terminal-image mobile" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>移动端</strong><em>移动审批与进度管理</em></span><b>立即体验　→</b></button>
               <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委大屏端')"><span class="entry-terminal-icon terminal-image screen" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>大屏端</strong><em>可视化综合分析展示</em></span><b>立即体验　→</b></button>
             </div>
           </section>
           <div class="entry-side-products">
             <section class="entry-compact-product tunnel"><header><span class="entry-product-logo tunnel" aria-hidden="true"><img src="src/assets/shareholder-dashboard/tunnel-shareholder-logo.png" alt="隧道股份 上海城建"></span><div><h2>股份大屏</h2><p>工程管理驾驶舱，助力智慧决策</p></div></header><button onclick="openDigitalConstructionExternalEntry('股份看板')"><span class="entry-terminal-icon terminal-image screen" aria-hidden="true"></span><span><strong>大屏端</strong><em>工程态势与实时监控</em></span><b>立即体验　→</b></button></section>
-            <section class="entry-compact-product environment"><header><span class="entry-product-logo entry-emoji-product" aria-hidden="true">🌿</span><div><h2>环境集团</h2><p>环境治理智慧平台，助力绿色发展与运营管理</p></div></header><button onclick="openDigitalConstructionExternalEntry('环境集团PC端')"><span class="entry-terminal-icon terminal-image pc" aria-hidden="true"></span><span><strong>PC端</strong><em>运营管理与数据看板</em></span><b>立即体验　→</b></button></section>
+            <section class="entry-compact-product environment"><header><span class="entry-product-logo entry-emoji-product" aria-hidden="true">🌿</span><div><h2>环境集团</h2><p>环境治理智慧平台，助力绿色发展与运营管理</p></div></header><button onclick="openDigitalConstructionExternalEntry('环境集团桌面端')"><span class="entry-terminal-icon terminal-image pc" aria-hidden="true"></span><span><strong>桌面端</strong><em>运营管理与数据看板</em></span><b>立即体验　→</b></button></section>
           </div>
         </div>
         <div class="digital-entry-values">
@@ -222,7 +225,7 @@ function enterZjwMobileDemo(){
   if(!app)return;
   window.__digitalConstructionMode="zjw-mobile";
   removeBottomFixedMenu();
-  document.body.classList.remove("mobile-mode","entry-mode","component-library-mode");
+  document.body.classList.remove("mobile-mode","entry-mode","component-library-mode","enterprise-mobile-mode");
   document.body.classList.add("zjw-demo-mode");
   app.innerHTML=`
     <main class="zjw-demo-host">
@@ -245,7 +248,7 @@ function enterDigitalConstructionPc(options={}){
   if(!app)return;
   const skipDefaultRender=!!options.skipDefaultRender;
   window.__digitalConstructionMode="pc";
-  document.body.classList.remove("mobile-mode","entry-mode","component-library-mode");
+  document.body.classList.remove("mobile-mode","entry-mode","component-library-mode","enterprise-mobile-mode");
   app.innerHTML=digitalConstructionPcShell;
   try{
     if(!skipDefaultRender){
@@ -264,6 +267,447 @@ function enterDigitalConstructionPc(options={}){
 
 function enterDigitalConstructionMobile(){
   renderMobileWorkbench();
+}
+
+function enterDigitalConstructionMobileEnterprise(){
+  renderEnterpriseMobilePage("home");
+}
+
+function enterDigitalConstructionMobileProject(){
+  renderMobileWorkbench();
+}
+
+const enterpriseMobileState={tab:"home",edition:"domestic"};
+const enterpriseMobileEconomyFilterState={
+  month:"2024-03",
+  company:"",
+  branch:"",
+  region:"",
+  sector:"",
+  open:"",
+  draft:null
+};
+const enterpriseMobileHomeCards=[
+  {title:"项目经济看板",art:"dashboard",image:"./src/assets/economy/project-total.svg"},
+  {title:"项目月度检验报告",art:"report",image:"./src/assets/economy/economy-month-picker-file.svg"},
+  {title:"检验单预警通知",art:"warning",image:"./src/assets/production-risk-warning.svg"}
+];
+const enterpriseMobileWarningItems=[
+  {month:"26年07月",count:355,risk:199,time:"2026-08-17 17:12"},
+  {month:"26年06月",count:343,risk:200,time:"2026-07-15 18:31"},
+  {month:"26年05月",count:336,risk:182,time:"2026-06-15 19:00"},
+  {month:"26年04月",count:325,risk:178,time:"2026-05-15 17:48"},
+  {month:"26年03月",count:318,risk:171,time:"2026-04-15 18:05"}
+];
+
+function renderEnterpriseMobileStatusbar(){
+  return `<div class="mobile-statusbar mobile-standard-statusbar">
+    <div class="mobile-time">14:04</div>
+    <div class="mobile-phone-icons" aria-hidden="true">
+      <span class="mobile-signal"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="mobile-wifi"></span>
+      <span class="mobile-battery"></span>
+    </div>
+  </div>`;
+}
+
+function renderEnterpriseMobileCapsule(){
+  return `<div class="mobile-capsule" aria-hidden="true">
+    <span class="mobile-dots"><i></i><i></i><i></i></span>
+    <span class="mobile-capsule-line"></span>
+    <span class="mobile-circle"></span>
+  </div>`;
+}
+
+function renderEnterpriseMobileHeader(title,backAction="renderDigitalConstructionEntry()"){
+  return `<header class="mobile-top enterprise-mobile-top">
+    ${renderEnterpriseMobileStatusbar()}
+    <div class="mobile-titlebar mobile-standard-titlebar enterprise-mobile-titlebar">
+      <button class="mobile-version-back" onclick="${backAction}" aria-label="返回"></button>
+      <h1>${title}</h1>
+      ${renderEnterpriseMobileCapsule()}
+    </div>
+  </header>`;
+}
+
+function renderEnterpriseMobileHomeCard(card){
+  return `<article class="enterprise-mobile-home-card ${card.art}">
+    <h2>${card.title}</h2>
+    <img src="${card.image}" alt="" aria-hidden="true">
+    <div class="enterprise-mobile-home-actions">
+      <button type="button" class="domestic" onclick="openEnterpriseMobileHomeCard('${card.art}','domestic')"><i aria-hidden="true"></i><span>国内版</span><b aria-hidden="true"></b></button>
+      <button type="button" class="international" onclick="openEnterpriseMobileHomeCard('${card.art}','international')"><i aria-hidden="true"></i><span>国际版</span><b aria-hidden="true"></b></button>
+    </div>
+  </article>`;
+}
+
+function openEnterpriseMobileHomeCard(art,edition){
+  enterpriseMobileState.edition=edition==="international"?"international":"domestic";
+  if(art==="dashboard")return renderEnterpriseMobileEconomyBoard();
+  const card=enterpriseMobileHomeCards.find(item=>item.art===art);
+  showToast(`${enterpriseMobileState.edition==="international"?"国际版":"国内版"}${card?.title||"页面"}待接入`);
+}
+
+function renderEnterpriseMobileHome(){
+  return `<main class="enterprise-mobile-scroll enterprise-mobile-home">
+    <section class="enterprise-mobile-card-list">
+      ${enterpriseMobileHomeCards.map(renderEnterpriseMobileHomeCard).join("")}
+    </section>
+  </main>`;
+}
+
+function getEnterpriseMobileEconomyBaseRows(){
+  if(typeof getEconomyDiagnosisProjects==="function")return getEconomyDiagnosisProjects().filter(project=>enterpriseMobileState.edition==="international"?project.company==="城建国际":project.company!=="城建国际");
+  return [];
+}
+
+function getEnterpriseMobileEconomyRows(){
+  const state=enterpriseMobileEconomyFilterState;
+  return getEnterpriseMobileEconomyBaseRows().filter(row=>(!state.company||row.company===state.company)&&(!state.branch||row.branch===state.branch)&&(!state.region||row.region===state.region)&&(!state.sector||row.projectType===state.sector));
+}
+
+function getEnterpriseEconomyUniqueOptions(key,rows=getEnterpriseMobileEconomyBaseRows()){
+  return [...new Set(rows.map(row=>row[key]).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),"zh-CN"));
+}
+
+function formatEnterpriseEconomyMonth(value){
+  const [year,month]=String(value||"").split("-");
+  return year&&month?`${year.slice(-2)}年${Number(month)}月`:"选择年月";
+}
+
+function openEnterpriseEconomyFilter(kind){
+  const state=enterpriseMobileEconomyFilterState;
+  state.open=kind;
+  state.draft=kind==="month"
+    ?{month:state.month,year:Number(state.month.slice(0,4))||2024}
+    :kind==="company"
+      ?{company:state.company,branch:state.branch}
+      :{value:kind==="region"?state.region:state.sector};
+  renderEnterpriseMobileEconomyBoard();
+}
+
+function closeEnterpriseEconomyFilter(){
+  enterpriseMobileEconomyFilterState.open="";
+  enterpriseMobileEconomyFilterState.draft=null;
+  renderEnterpriseMobileEconomyBoard();
+}
+
+function resetEnterpriseEconomyFilterDraft(){
+  const state=enterpriseMobileEconomyFilterState;
+  if(state.open==="month")state.draft={month:"2024-03",year:2024};
+  else if(state.open==="company")state.draft={company:"",branch:""};
+  else state.draft={value:""};
+  renderEnterpriseMobileEconomyBoard();
+}
+
+function confirmEnterpriseEconomyFilter(){
+  const state=enterpriseMobileEconomyFilterState;
+  if(state.open==="month")state.month=state.draft.month;
+  else if(state.open==="company")Object.assign(state,{company:state.draft.company,branch:state.draft.branch});
+  else if(state.open==="region")state.region=state.draft.value;
+  else if(state.open==="sector")state.sector=state.draft.value;
+  state.open="";
+  state.draft=null;
+  renderEnterpriseMobileEconomyBoard();
+}
+
+function moveEnterpriseEconomyMonthYear(delta){
+  const draft=enterpriseMobileEconomyFilterState.draft;
+  draft.year=Math.min(2026,Math.max(2022,draft.year+(Number(delta)||0)));
+  renderEnterpriseMobileEconomyBoard();
+}
+
+function selectEnterpriseEconomyMonth(month){
+  const draft=enterpriseMobileEconomyFilterState.draft;
+  draft.month=`${draft.year}-${String(month).padStart(2,"0")}`;
+  renderEnterpriseMobileEconomyBoard();
+}
+
+function selectEnterpriseEconomyCompany(value){
+  const draft=enterpriseMobileEconomyFilterState.draft;
+  draft.company=decodeComponentPickerValueV2298(value);
+  draft.branch="";
+  renderEnterpriseMobileEconomyBoard();
+}
+
+function selectEnterpriseEconomyBranch(value){
+  enterpriseMobileEconomyFilterState.draft.branch=decodeComponentPickerValueV2298(value);
+  renderEnterpriseMobileEconomyBoard();
+}
+
+function selectEnterpriseEconomySimpleFilter(value){
+  enterpriseMobileEconomyFilterState.draft.value=decodeComponentPickerValueV2298(value);
+  renderEnterpriseMobileEconomyBoard();
+}
+
+function getEnterpriseMobileRiskCounts(rows){
+  const counts={red:0,orange:0,yellow:0,blue:0,none:0};
+  rows.forEach(row=>{
+    const colors=[...new Set(Object.values(row.warnings||{}).filter(Boolean))];
+    if(!colors.length)counts.none++;
+    colors.forEach(color=>{if(counts[color]!=null)counts[color]++;});
+  });
+  return counts;
+}
+
+function renderEnterpriseMobileFilterBar(){
+  const state=enterpriseMobileEconomyFilterState;
+  const companyLabel=state.branch||state.company||"全部公司";
+  return `<section class="enterprise-economy-filterbar" aria-label="项目经济筛选">
+    <button type="button" class="${state.month!=="2024-03"?"selected":""}" onclick="openEnterpriseEconomyFilter('month')" aria-label="选择年月">${formatEnterpriseEconomyMonth(state.month)}<span class="enterprise-filter-calendar" aria-hidden="true"></span></button>
+    <button type="button" class="${state.company?"selected":""}" onclick="openEnterpriseEconomyFilter('company')" aria-label="选择公司" title="${companyLabel}"><span>${companyLabel}</span><span class="enterprise-filter-org" aria-hidden="true"></span></button>
+    <button type="button" class="${state.region?"selected":""}" onclick="openEnterpriseEconomyFilter('region')" aria-label="选择区域" title="${state.region||"全部区域"}"><span>${state.region||"全部区域"}</span><span class="enterprise-filter-region" aria-hidden="true"></span></button>
+    <button type="button" class="${state.sector?"selected":""}" onclick="openEnterpriseEconomyFilter('sector')" aria-label="选择板块" title="${state.sector||"全部板块"}"><span>${state.sector||"板块"}</span><span class="enterprise-filter-arrow" aria-hidden="true"></span></button>
+  </section>`;
+}
+
+function renderEnterpriseEconomyMonthPicker(){
+  const draft=enterpriseMobileEconomyFilterState.draft;
+  return `<div class="enterprise-economy-month-head"><button type="button" onclick="moveEnterpriseEconomyMonthYear(-1)" aria-label="上一年">‹</button><strong>${draft.year}年</strong><button type="button" onclick="moveEnterpriseEconomyMonthYear(1)" aria-label="下一年">›</button></div>
+    <div class="enterprise-economy-month-grid">${Array.from({length:12},(_,index)=>index+1).map(month=>{const value=`${draft.year}-${String(month).padStart(2,"0")}`;const disabled=value>"2026-08";return `<button type="button" class="${draft.month===value?"selected":""}" ${disabled?"disabled":""} onclick="selectEnterpriseEconomyMonth(${month})">${month}月</button>`;}).join("")}</div>`;
+}
+
+function renderEnterpriseEconomyCompanyPicker(){
+  const draft=enterpriseMobileEconomyFilterState.draft;
+  const rows=getEnterpriseMobileEconomyBaseRows();
+  const companies=getEnterpriseEconomyUniqueOptions("company",rows);
+  const branches=draft.company?getEnterpriseEconomyUniqueOptions("branch",rows.filter(row=>row.company===draft.company)):[];
+  return `<div class="mobile-picker-columns two enterprise-economy-org-columns">
+    <section class="mobile-picker-column">
+      <button type="button" class="mobile-picker-row ${draft.company?"":"active selected"}" onclick="selectEnterpriseEconomyCompany('')"><span>全部公司</span>${renderComponentPickerCheckV2298(!draft.company)}</button>
+      ${companies.map(company=>`<button type="button" class="mobile-picker-row ${draft.company===company?"active selected":""}" onclick="selectEnterpriseEconomyCompany('${encodeComponentPickerValueV2298(company)}')"><span>${company}</span>${renderComponentPickerCheckV2298(draft.company===company)}</button>`).join("")}
+    </section>
+    <section class="mobile-picker-column">
+      ${draft.company?`<button type="button" class="mobile-picker-row ${draft.branch?"":"active selected"}" onclick="selectEnterpriseEconomyBranch('')"><span>全部分公司</span>${renderComponentPickerCheckV2298(!draft.branch)}</button>${branches.map(branch=>`<button type="button" class="mobile-picker-row ${draft.branch===branch?"active selected":""}" onclick="selectEnterpriseEconomyBranch('${encodeComponentPickerValueV2298(branch)}')"><span>${branch}</span>${renderComponentPickerCheckV2298(draft.branch===branch)}</button>`).join("")}`:`<p class="enterprise-economy-picker-empty">选择公司后查看分公司</p>`}
+    </section>
+  </div>`;
+}
+
+function renderEnterpriseEconomySimplePicker(kind){
+  const draft=enterpriseMobileEconomyFilterState.draft;
+  const key=kind==="region"?"region":"projectType";
+  const allLabel=kind==="region"?"全部区域":"全部板块";
+  const options=getEnterpriseEconomyUniqueOptions(key);
+  return `<div class="mobile-picker-columns enterprise-economy-single-column"><section class="mobile-picker-column">
+    <button type="button" class="mobile-picker-row ${draft.value?"":"active selected"}" onclick="selectEnterpriseEconomySimpleFilter('')"><span>${allLabel}</span>${renderComponentPickerCheckV2298(!draft.value)}</button>
+    ${options.map(option=>`<button type="button" class="mobile-picker-row ${draft.value===option?"active selected":""}" onclick="selectEnterpriseEconomySimpleFilter('${encodeComponentPickerValueV2298(option)}')"><span>${option}</span>${renderComponentPickerCheckV2298(draft.value===option)}</button>`).join("")}
+  </section></div>`;
+}
+
+function renderEnterpriseEconomyPickerOverlay(){
+  const state=enterpriseMobileEconomyFilterState;
+  if(!state.open||!state.draft)return "";
+  const titles={month:"选择年月",company:"选择公司",region:"选择区域",sector:"选择板块"};
+  const summary=state.open==="month"?formatEnterpriseEconomyMonth(state.draft.month):state.open==="company"?(state.draft.branch||state.draft.company||"全部公司"):(state.draft.value||(state.open==="region"?"全部区域":"全部板块"));
+  const content=state.open==="month"?renderEnterpriseEconomyMonthPicker():state.open==="company"?renderEnterpriseEconomyCompanyPicker():renderEnterpriseEconomySimplePicker(state.open);
+  return `<div class="enterprise-economy-picker-overlay" onclick="closeEnterpriseEconomyFilter()">
+    <section class="enterprise-economy-picker-sheet mobile-picker-demo" role="dialog" aria-modal="true" aria-label="${titles[state.open]}" onclick="event.stopPropagation()">
+      <header class="mobile-picker-header"><strong>${titles[state.open]}</strong><button type="button" onclick="closeEnterpriseEconomyFilter()" aria-label="关闭">×</button></header>
+      <div class="mobile-picker-summary"><span>当前选择</span><b>${summary}</b></div>
+      ${content}
+      <footer class="mobile-picker-footer"><button type="button" onclick="resetEnterpriseEconomyFilterDraft()">重置</button><button type="button" class="primary" onclick="confirmEnterpriseEconomyFilter()">确定</button></footer>
+    </section>
+  </div>`;
+}
+
+function renderEnterpriseRiskDot(color,overdue=false){
+  if(!color)return `<span class="enterprise-risk-dot empty">-</span>`;
+  return `<span class="enterprise-risk-dot ${color} ${overdue?"overdue":""}"></span>`;
+}
+
+function renderEnterpriseEconomySummary(rows){
+  const counts=getEnterpriseMobileRiskCounts(rows);
+  const totalContract=rows.reduce((sum,row)=>sum+(Number(row.contractAmount)||0),0)/10000;
+  return `<section class="enterprise-economy-card enterprise-economy-summary">
+    <header>
+      <span class="enterprise-economy-section-icon" aria-hidden="true"></span>
+      <h2>项目经济预警总览</h2>
+      <button type="button" onclick="openEconomyMonthlyCheckReport?.()">月度检验单<span aria-hidden="true">♡</span></button>
+    </header>
+    <div class="enterprise-economy-summary-grid">
+      <div><span>项目总数</span><strong>${rows.length}<em>+1</em></strong></div>
+      <div><span>合同总金额（亿）</span><strong>${totalContract.toFixed(4)}</strong></div>
+    </div>
+    <p>各风险等级统计情况</p>
+    <div class="enterprise-economy-risk-total">
+      <span class="red"><i></i>${counts.red}</span>
+      <span class="orange"><i></i>${counts.orange}</span>
+      <span class="yellow"><i></i>${counts.yellow}</span>
+      <span class="blue"><i></i>${counts.blue}</span>
+    </div>
+  </section>`;
+}
+
+function renderEnterpriseEconomyRiskStats(rows){
+  const types=typeof economyWarningTypes!=="undefined"?economyWarningTypes:[];
+  return `<section class="enterprise-economy-card enterprise-economy-risk-stats">
+    <header>
+      <span class="enterprise-economy-warning-title-icon" aria-hidden="true"></span>
+      <h2>一级预警指标风险统计</h2>
+    </header>
+    <div class="enterprise-economy-risk-header">
+      <span>一级预警风险</span><i class="red"></i><i class="orange"></i><i class="yellow"></i><i class="blue"></i><i class="black"></i>
+    </div>
+    ${types.map(type=>{
+      const counts={red:0,orange:0,yellow:0,blue:0,none:0};
+      rows.forEach(row=>{
+        const color=row.warnings?.[type.key]||"none";
+        counts[color]=(counts[color]||0)+1;
+      });
+      const title=typeof getEconomyWarningDisplayName==="function"?getEconomyWarningDisplayName(type):type.name;
+      return `<div class="enterprise-economy-risk-row"><span>${title}</span><b class="red">${counts.red||0}</b><b class="orange">${counts.orange||"-"}</b><b class="yellow">${counts.yellow||"-"}</b><b class="blue">${counts.blue||"-"}</b><b>${counts.none||0}</b></div>`;
+    }).join("")}
+  </section>`;
+}
+
+function renderEnterpriseEconomyProjectList(rows){
+  const list=rows.slice(0,5);
+  const warningKeys=["subcontract","loss","arrears","settlement"];
+  return `<section class="enterprise-economy-card enterprise-economy-project-list">
+    <header>
+      <span class="enterprise-economy-section-icon" aria-hidden="true"></span>
+      <h2>项目列表</h2>
+    </header>
+    <div class="enterprise-economy-project-table">
+      <div class="enterprise-economy-project-head"><span>序号</span><span>项目名称</span><span>合同<br>预警</span><span>潜亏<br>预警</span><span>拖欠款<br>预警</span><span>结算<br>预警</span></div>
+      ${list.map((row,index)=>`<div class="enterprise-economy-project-row"><span>${index+1}</span><strong>${row.projectName}</strong>${warningKeys.map(key=>renderEnterpriseRiskDot(row.warnings?.[key],row.overdue?.[key])).join("")}</div>`).join("")}
+    </div>
+  </section>`;
+}
+
+function renderEnterpriseMobileEconomyBoard(){
+  const app=document.querySelector(".app");
+  if(!app)return;
+  const rows=getEnterpriseMobileEconomyRows();
+  window.__digitalConstructionMode="enterprise-mobile-economy-board";
+  removeBottomFixedMenu();
+  document.body.classList.add("mobile-mode","enterprise-mobile-mode");
+  document.body.classList.remove("entry-mode","component-library-mode");
+  app.innerHTML=`<div class="mobile-workbench enterprise-mobile-page enterprise-economy-board-page">
+    ${renderEnterpriseMobileHeader("项目经济看板","renderEnterpriseMobilePage('home')")}
+    <main class="enterprise-economy-board-scroll">
+      ${renderEnterpriseMobileFilterBar()}
+      ${renderEnterpriseEconomySummary(rows)}
+      ${renderEnterpriseEconomyRiskStats(rows)}
+      ${renderEnterpriseEconomyProjectList(rows)}
+    </main>
+    ${renderEnterpriseEconomyPickerOverlay()}
+  </div>`;
+}
+
+function renderEnterpriseMobileWarningItem(item){
+  return `<article class="enterprise-mobile-warning-card">
+    <div class="enterprise-mobile-warning-main">
+      <span class="enterprise-mobile-warning-icon" aria-hidden="true"></span>
+      <div>
+        <h2>项目月度检验单（${item.month}）</h2>
+        <p>【隧道股份经济风险月度检验单(${item.month})】本月共8家子公司，${item.count}个项目参与经济风险评估,${item.risk}个项目...</p>
+      </div>
+      <em>未读</em>
+    </div>
+    <footer>
+      <time>${item.time}</time>
+      <button type="button" onclick="showToast('查看${item.month}月度检验单')">查看</button>
+    </footer>
+  </article>`;
+}
+
+function renderEnterpriseMobileWarning(){
+  return `<main class="enterprise-mobile-scroll enterprise-mobile-warning">
+    <section class="enterprise-mobile-warning-list">
+      ${enterpriseMobileWarningItems.map(renderEnterpriseMobileWarningItem).join("")}
+    </section>
+  </main>`;
+}
+
+function openEnterpriseMobileSharedPage(type){
+  if(typeof setMobileMineReturnActionV2275==="function")setMobileMineReturnActionV2275("renderEnterpriseMobilePage('mine')");
+  const renderers={
+    version:typeof renderMobileVersionListV2275==="function"?renderMobileVersionListV2275:null,
+    manual:typeof renderMobileManualPageV2279==="function"?renderMobileManualPageV2279:null,
+    feedback:typeof renderMobileFeedbackFormV2277==="function"?renderMobileFeedbackFormV2277:null
+  };
+  if(!renderers[type])return showToast("功能待接入");
+  renderers[type]();
+  document.body.classList.add("enterprise-mobile-mode");
+}
+
+function renderEnterpriseMobileMineMenuItem(type,title,extra=""){
+  const action=["version","manual","feedback"].includes(type)?`openEnterpriseMobileSharedPage('${type}')`:"";
+  return `<button class="mobile-mine-menu-item enterprise-mobile-mine-menu-item" type="button" ${action?`onclick="${action}"`:""}>
+    <span class="mobile-mine-menu-icon ${type}" aria-hidden="true"></span>
+    <strong>${title}</strong>
+    <span class="mobile-mine-menu-extra">${extra}</span>
+    <i aria-hidden="true"></i>
+  </button>`;
+}
+
+function renderEnterpriseMobileMine(){
+  const version=typeof getMobileCurrentVersionV2276==="function"?getMobileCurrentVersionV2276().version:"1.12.8";
+  return `<main class="enterprise-mobile-scroll enterprise-mobile-mine mobile-mine-scroll">
+    <section class="mobile-mine-profile enterprise-mobile-profile mobile-card">
+      <div class="mobile-mine-avatar enterprise-mobile-avatar" aria-hidden="true">
+        <span class="avatar-head"></span>
+        <span class="avatar-neck"></span>
+        <span class="avatar-suit left"></span>
+        <span class="avatar-suit right"></span>
+        <span class="avatar-shirt"></span>
+        <span class="avatar-tie"></span>
+      </div>
+      <div class="mobile-mine-user enterprise-mobile-user">
+        <div class="mobile-mine-name-row">
+          <strong>楼力栋</strong>
+          <span>管理员</span>
+        </div>
+        <p>隧道股份</p>
+      </div>
+    </section>
+    <section class="mobile-mine-menu enterprise-mobile-mine-menu mobile-card">
+      ${renderEnterpriseMobileMineMenuItem("version","版本记录",`<span class="mobile-mine-current">当前</span><em>${version}正式版</em>`)}
+      ${renderEnterpriseMobileMineMenuItem("manual","操作手册")}
+      ${renderEnterpriseMobileMineMenuItem("feedback","意见反馈")}
+    </section>
+  </main>`;
+}
+
+function renderEnterpriseMobileContent(){
+  if(enterpriseMobileState.tab==="warning")return renderEnterpriseMobileWarning();
+  if(enterpriseMobileState.tab==="mine")return renderEnterpriseMobileMine();
+  return renderEnterpriseMobileHome();
+}
+
+function renderEnterpriseMobileTabbar(){
+  const tabs=[
+    {key:"home",label:"首页",icon:"workbench"},
+    {key:"warning",label:"预警",icon:"warning"},
+    {key:"mine",label:"我的",icon:"mine"}
+  ];
+  return `<nav class="mobile-tabbar enterprise-mobile-tabbar" aria-label="企业管理移动端底部导航">
+    ${tabs.map(tab=>`<button type="button" class="${enterpriseMobileState.tab===tab.key?"active":""}" onclick="renderEnterpriseMobilePage('${tab.key}')">
+      <span class="tab-svg">
+        <img class="tab-img inactive" src="./src/assets/mobile-tab/${tab.icon}.svg" alt="">
+        <img class="tab-img active-img" src="./src/assets/mobile-tab/${tab.icon}-active.svg" alt="">
+      </span>
+      <strong>${tab.label}</strong>
+    </button>`).join("")}
+  </nav>`;
+}
+
+function renderEnterpriseMobilePage(tab="home"){
+  const app=document.querySelector(".app");
+  if(!app)return;
+  enterpriseMobileState.tab=["home","warning","mine"].includes(tab)?tab:"home";
+  if(enterpriseMobileState.tab==="mine" && typeof setMobileMineReturnActionV2275==="function")setMobileMineReturnActionV2275("renderEnterpriseMobilePage('mine')");
+  window.__digitalConstructionMode="enterprise-mobile";
+  removeBottomFixedMenu();
+  document.body.classList.add("mobile-mode","enterprise-mobile-mode");
+  document.body.classList.remove("entry-mode","component-library-mode");
+  const title=enterpriseMobileState.tab==="home"?"首页":enterpriseMobileState.tab==="warning"?"预警":"我的";
+  app.innerHTML=`<div class="mobile-workbench enterprise-mobile-page">
+    ${renderEnterpriseMobileHeader(title)}
+    ${renderEnterpriseMobileContent()}
+    ${renderEnterpriseMobileTabbar()}
+  </div>`;
 }
 
 const componentLibraryStateV2288={
@@ -1078,14 +1522,14 @@ function renderComponentLibraryPageV2288(){
   if(!app)return;
   window.__digitalConstructionMode="component-library";
   removeBottomFixedMenu();
-  document.body.classList.remove("mobile-mode","entry-mode");
+  document.body.classList.remove("mobile-mode","entry-mode","enterprise-mobile-mode");
   document.body.classList.add("component-library-mode");
   app.innerHTML=`
     <main class="component-library-page">
       <header class="component-library-header">
         <button class="component-library-brand" onclick="renderDigitalConstructionEntry()"><span></span><strong>数智施工组件库</strong></button>
         <nav>
-          <button class="${componentLibraryStateV2288.platform==="pc"?"active":""}" onclick="switchComponentLibraryPlatformV2288('pc')">PC端</button>
+          <button class="${componentLibraryStateV2288.platform==="pc"?"active":""}" onclick="switchComponentLibraryPlatformV2288('pc')">桌面端</button>
           <button class="${componentLibraryStateV2288.platform==="mobile"?"active":""}" onclick="switchComponentLibraryPlatformV2288('mobile')">移动端</button>
         </nav>
         <button class="btn" onclick="renderDigitalConstructionEntry()">返回入口</button>
@@ -1094,7 +1538,7 @@ function renderComponentLibraryPageV2288(){
         <aside class="component-library-sidebar">${renderComponentLibrarySidebarV2288()}</aside>
         <section class="component-library-content">
           <div class="component-library-title">
-            <span>${componentLibraryStateV2288.platform==="pc"?"PC端基础组件":"移动端基础组件"}</span>
+            <span>${componentLibraryStateV2288.platform==="pc"?"桌面端基础组件":"移动端基础组件"}</span>
             <h2>${getComponentLibraryTitleV2288()}</h2>
             <p>参考 Element Plus 文档式目录结构，先建立基础组件、表单组件、反馈组件和数据展示组件的沉淀入口。</p>
           </div>
@@ -1127,6 +1571,11 @@ Object.assign(window,{
   renderDigitalConstructionEntry,
   enterDigitalConstructionPc,
   enterDigitalConstructionMobile,
+  enterDigitalConstructionMobileEnterprise,
+  enterDigitalConstructionMobileProject,
+  renderEnterpriseMobilePage,
+  renderEnterpriseMobileEconomyBoard,
+  openEnterpriseMobileSharedPage,
   enterDigitalConstructionComponentLibrary,
   switchComponentLibraryPlatformV2288,
   selectComponentLibraryItemV2288
