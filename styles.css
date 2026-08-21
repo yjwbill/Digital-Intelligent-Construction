@@ -12851,7 +12851,7 @@ body.mobile-mode .app{
   top:94px;
   bottom:0;
   overflow:auto;
-  padding:0 14px 26px;
+  padding:0 12px 26px;
 }
 .mobile-version-current-card{
   height:130px;
@@ -13566,7 +13566,7 @@ body.mobile-mode .app{
   top:106px;
   bottom:82px;
   overflow:auto;
-  padding:0 15px 20px;
+  padding:0 12px 20px;
 }
 .mobile-feedback-history-card{
   position:relative;
@@ -13859,11 +13859,11 @@ body.mobile-mode .app{
   top:86px;
   bottom:0;
   overflow:auto;
-  padding:0 10px 24px;
+  padding:0 12px 24px;
 }
 .mobile-manual-tip{
   height:90px;
-  margin:0 -10px 14px;
+  margin:0 -12px 14px;
   padding:16px 28px;
   display:grid;
   grid-template-columns:58px minmax(0,1fr) 18px;
@@ -14288,7 +14288,7 @@ body.mobile-mode .app{
   top:88px;
   bottom:0;
   overflow:auto;
-  padding:0 9px 18px;
+  padding:0 12px 18px;
 }
 .mobile-project-filter-area{
   position:relative;
@@ -15225,7 +15225,7 @@ body.mobile-mode .app{
   top:136px;
   bottom:0;
   overflow:auto;
-  padding:0 14px 28px;
+  padding:0 12px 28px;
   box-sizing:border-box;
   scroll-behavior:smooth;
 }
@@ -15671,7 +15671,7 @@ body.mobile-mode .mobile-titlebar.enterprise-mobile-titlebar{
   bottom:76px;
   left:0;
   overflow:auto;
-  padding:22px 20px 24px;
+  padding:22px 12px 24px;
   box-sizing:border-box;
   background:#fff;
 }
@@ -15680,7 +15680,7 @@ body.mobile-mode .mobile-titlebar.enterprise-mobile-titlebar{
   background:#f4f5f7;
 }
 .enterprise-mobile-home{
-  padding:18px 22px 24px;
+  padding:18px 12px 24px;
 }
 .enterprise-mobile-card-list{
   display:flex;
@@ -15690,7 +15690,7 @@ body.mobile-mode .mobile-titlebar.enterprise-mobile-titlebar{
 .enterprise-mobile-home-card{
   position:relative;
   box-sizing:border-box;
-  width:331px;
+  width:100%;
   height:126px;
   min-height:126px;
   max-width:100%;
@@ -15817,7 +15817,7 @@ body.mobile-mode .mobile-titlebar.enterprise-mobile-titlebar{
   bottom:0;
   left:0;
   overflow:auto;
-  padding:10px 11px 24px;
+  padding:10px 12px 24px;
   box-sizing:border-box;
   background:#f4f5f7;
 }
@@ -16246,7 +16246,7 @@ body.enterprise-mobile-mode .enterprise-mobile-mine-menu-item strong{
   bottom:0;
   left:0;
   overflow:auto;
-  padding:10px 11px 16px;
+  padding:10px 12px 16px;
   box-sizing:border-box;
   background:#e6e8ec;
 }
@@ -21630,17 +21630,17 @@ body.mobile-mode .mobile-tabbar:before{
   z-index:0 !important;
 }
 .enterprise-economy-detail-page{background:#e6e8ec}
-.enterprise-economy-detail-scroll{position:absolute;top:88px;right:0;bottom:0;left:0;overflow:auto;padding:10px 11px 16px;box-sizing:border-box;background:#e6e8ec}
+.enterprise-economy-detail-scroll{position:absolute;top:88px;right:0;bottom:0;left:0;overflow:auto;padding:10px 12px 16px;box-sizing:border-box;background:#e6e8ec}
 .enterprise-economy-detail-summary,.enterprise-economy-detail-card{margin-bottom:12px;border-radius:8px;background:#fff;box-shadow:0 4px 14px rgba(31,45,61,.04)}
 .enterprise-economy-detail-summary{padding:18px 18px 16px}
-.enterprise-economy-detail-summary h2{margin:0 0 20px;color:#20262f;font-size:17px;line-height:24px;font-weight:600}
+.enterprise-economy-detail-summary h2{margin:0 0 20px;color:#20262f;font-size:13px;line-height:20px;font-weight:600}
 .enterprise-economy-detail-risk-line{display:flex;align-items:center;gap:10px;margin-bottom:20px;color:#20252d;font-size:18px;font-style:italic;font-weight:800}
 .enterprise-economy-detail-risk-line i{width:36px;height:36px;border-radius:8px;background:#ff3b3f}.enterprise-economy-detail-risk-line i.orange{background:#ff7a00}.enterprise-economy-detail-risk-line i.yellow{background:#f3bf00}.enterprise-economy-detail-risk-line i.blue{background:#2789e8}
 .enterprise-economy-detail-risk-line button{display:flex;align-items:center;justify-content:space-between;margin-left:auto;width:145px;height:56px;padding:0 14px;border:2px solid #dedede;border-radius:28px;background:#fff;color:#20252d;font-size:18px}.enterprise-economy-detail-risk-line button span{color:#a9afb7;font-size:15px}
 .enterprise-economy-detail-info{display:grid;grid-template-columns:1fr 1fr;gap:15px 14px;color:#999;font-size:14px;line-height:22px}.enterprise-economy-detail-info p{margin:0}.enterprise-economy-detail-info p.wide{grid-column:1/-1}.enterprise-economy-detail-info b{color:#30343b;font-weight:400}
 .enterprise-economy-detail-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px 10px;margin-top:25px}.enterprise-economy-detail-metric span{display:block;color:#999;font-size:12px;line-height:20px}.enterprise-economy-detail-metric strong{display:block;margin-bottom:5px;color:#252a33;font-family:DIN,"Trebuchet MS",Arial,sans-serif;font-size:18px;line-height:24px;font-weight:600;white-space:nowrap}.enterprise-economy-detail-metric em{font-family:inherit;color:#999;font-size:11px;font-style:normal;font-weight:400}
 .enterprise-economy-detail-card{padding:18px 18px 16px}.enterprise-economy-detail-card header{display:flex;align-items:center;gap:9px;margin-bottom:20px;min-height:34px}.enterprise-economy-detail-card header h2{margin:0;color:#20262f;font-size:17px;line-height:24px;font-weight:600}.detail-section-icon{width:24px;height:24px;flex:0 0 24px;object-fit:contain}.detail-section-icon.linked{border-radius:0;background:url('./src/assets/mobile-tab/online-total-content.svg') center/contain no-repeat;box-shadow:none}.enterprise-economy-detail-card header button{margin-left:auto;height:32px;padding:0 12px;border:0;border-radius:5px;background:#2265f6;color:#fff;font-size:14px}
-.enterprise-economy-detail-risk-group{display:grid;grid-template-columns:12px minmax(0,1fr);gap:10px;margin-bottom:14px}.enterprise-economy-detail-risk-group>i{position:relative;width:20px;height:20px;margin-left:-4px;border-radius:5px;background:#FF0013;box-shadow:inset -5px 0 rgba(0,0,0,.12)}.enterprise-economy-detail-risk-group>i.orange{background:#FF9933}.enterprise-economy-detail-risk-group>i.yellow{background:#FFF44F}.enterprise-economy-detail-risk-group>i.blue{background:#4596E2}.enterprise-economy-detail-risk-group>strong{font-size:15px;line-height:22px}.enterprise-economy-detail-risk-group>div{grid-column:2;display:grid;gap:7px;color:#40454d;font-size:13px}.enterprise-economy-detail-risk-group span{display:flex;align-items:center;gap:7px}.enterprise-economy-detail-risk-group span img{display:block;width:auto;height:19px;max-width:34px;object-fit:contain}.enterprise-economy-detail-risk-group time{margin-left:auto;color:#999;font-size:12px}.enterprise-economy-detail-trend{margin:26px 0 0;color:#e60020;font-size:14px;line-height:24px;font-weight:800;font-style:italic}
+.enterprise-economy-detail-risk-group{display:grid;grid-template-columns:12px minmax(0,1fr);gap:10px;margin-bottom:14px}.enterprise-economy-detail-risk-group>i{position:relative;width:20px;height:20px;margin-left:-4px;border-radius:5px;background:#FF0013;box-shadow:inset -5px 0 rgba(0,0,0,.12)}.enterprise-economy-detail-risk-group>i.orange{background:#FF9933}.enterprise-economy-detail-risk-group>i.yellow{background:#FFF44F}.enterprise-economy-detail-risk-group>i.blue{background:#4596E2}.enterprise-economy-detail-risk-group>strong{font-size:14px;line-height:22px}.enterprise-economy-detail-risk-group>div{grid-column:2;display:grid;gap:7px;color:#40454d;font-size:13px}.enterprise-economy-detail-risk-group span{display:flex;align-items:center;gap:7px}.enterprise-economy-detail-risk-group span img{display:block;width:auto;height:19px;max-width:34px;object-fit:contain}.enterprise-economy-detail-risk-group time{margin-left:auto;color:#999;font-size:12px}.enterprise-economy-detail-trend{margin:26px 0 0;color:#e60020;font-size:14px;line-height:24px;font-weight:800;font-style:italic}
 .enterprise-economy-detail-linked-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.enterprise-economy-detail-linked-grid .enterprise-economy-detail-metric{min-height:88px;padding:15px 10px 12px;border-radius:8px;background:#fff;box-shadow:0 5px 14px rgba(31,45,61,.1);text-align:center}.enterprise-economy-detail-linked-grid .enterprise-economy-detail-metric:nth-child(-n+2){grid-column:1/-1}.enterprise-economy-detail-linked-grid .enterprise-economy-detail-metric span{font-size:15px;color:#333}.enterprise-economy-detail-linked-grid .enterprise-economy-detail-metric strong{margin-top:12px;font-size:21px}.enterprise-economy-detail-linked-grid .danger{border-bottom:5px solid #ff7a00}
 body.mobile-mode .mobile-tabbar{
   left:0 !important;

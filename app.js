@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.791-mobile-online-total-content";
+  const version="2.2.793-mobile-dynamic-side-padding";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/vendor/jszip.min.js",
