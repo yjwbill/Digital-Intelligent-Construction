@@ -4981,19 +4981,31 @@ function renderProjectWorkspacePage(){
   renderProjectPageShell("工作桌面","项目人员处理待办、审批与消息的统一入口。",`
     <section class="project-workbench-grid">
       <div class="card project-workbench-card">
-        <div class="card-hd"><div class="card-title">项目待办</div><button class="link" onclick="openTodoCenter()">全部</button></div>
+        <div class="card-hd"><div class="card-title">项目待办</div><button class="project-workbench-view-all" type="button" onclick="openProjectWorkbenchDetail('todo')">查看所有待办</button></div>
         ${projectTodoData.map(x=>`<div class="project-task-row"><span>${x.module1}</span><strong>${x.title}</strong><em>${x.status}</em></div>`).join("")}
       </div>
       <div class="card project-workbench-card">
-        <div class="card-hd"><div class="card-title">项目消息</div><button class="link" onclick="openMessageCenter()">全部</button></div>
+        <div class="card-hd"><div class="card-title">项目消息</div><button class="project-workbench-view-all" type="button" onclick="openProjectWorkbenchDetail('message')">查看所有消息</button></div>
         ${projectMessageData.map(x=>`<div class="project-task-row message"><span>${x.type}</span><strong>${x.title}</strong><em>${x.status}</em></div>`).join("")}
       </div>
       <div class="card project-workbench-card approval">
-        <div class="card-hd"><div class="card-title">待审批</div></div>
+        <div class="card-hd"><div class="card-title">待审批</div><button class="project-workbench-view-all" type="button" onclick="openProjectWorkbenchDetail('approval')">查看所有审批</button></div>
         ${["施工日志补录审批","进度计划调整审批","合同付款节点确认","安全整改闭环审批"].map((x,i)=>`<div class="project-task-row"><span>审批</span><strong>${x}</strong><em>${i<2?"待处理":"已提交"}</em></div>`).join("")}
       </div>
     </section>
   `);
+}
+
+function openProjectWorkbenchDetail(type){
+  if(type==="todo"){
+    openMessageTodoReachDetailPage();
+    return;
+  }
+  if(type==="approval"){
+    renderApprovalFlowDetailPage();
+    return;
+  }
+  openMessageSendDetailPage();
 }
 
 function renderProjectDetailField(label,value){

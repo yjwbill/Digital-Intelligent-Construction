@@ -674,7 +674,8 @@ const businessMenus={
         children:[
           {name:"模板管理"},
           {name:"发送批次明细"},
-          {name:"用户触达明细"}
+          {name:"消息发送明细"},
+          {name:"待办触达明细"}
         ]
       },
       {

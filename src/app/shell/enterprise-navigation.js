@@ -146,6 +146,24 @@ function toggleSideGroup(i){
   if(m)m.open=!m.open;
 }
 
+function renderBusinessChildPage(line,parent,name,renderer){
+  const applyTitle=()=>{
+    const child=parent?.children?.find(item=>item.name===name);
+    if(currentBusinessLine!==line||(child&&!child.active))return;
+    const title=listPage?.querySelector(".compact-title-row .module-title");
+    if(title)title.textContent=parent?.name?`${parent.name} / ${name}`:name;
+  };
+  const result=renderer();
+  if(result&&typeof result.then==="function"){
+    return result.then(value=>{
+      applyTitle();
+      return value;
+    });
+  }
+  applyTitle();
+  return result;
+}
+
 function switchBusinessLine(line){
   pcPortalState.mode="enterprise";
   currentBusinessLine=line;
@@ -196,6 +214,7 @@ function selectBusinessChildMenu(line,gi,ci,name){
 
   const menus=businessMenus[line]?.menus||[];
   const parent=menus[gi];
+  const renderChild=renderer=>renderBusinessChildPage(line,parent,name,renderer);
 
   menus.forEach((m,i)=>{
     if(m.children)m.open=i===gi;
@@ -208,50 +227,51 @@ function selectBusinessChildMenu(line,gi,ci,name){
 
   renderSideMenu(line);
 
-  if(line==="base"&&name==="组织管理")return renderOrgManagementPage();
-  if(line==="base"&&name==="岗位管理")return renderPostManagementPage();
-  if(line==="base"&&name==="角色管理")return renderRoleManagementPage();
-  if(line==="base"&&name==="项目资源授权")return renderProjectResourceAuthorizationPage();
-  if(line==="base"&&name==="模板管理")return renderMessageTemplatePage();
-  if(line==="base"&&name==="发送批次明细")return renderMessageSendRecordPage();
-  if(line==="base"&&name==="用户触达明细")return renderMessageRecordPage();
-  if(line==="base"&&name==="审批流配置")return renderApprovalFlowConfigPage();
-  if(line==="base"&&name==="审批流程明细")return renderApprovalFlowDetailPage();
+  if(line==="base"&&name==="组织管理")return renderChild(()=>renderOrgManagementPage());
+  if(line==="base"&&name==="岗位管理")return renderChild(()=>renderPostManagementPage());
+  if(line==="base"&&name==="角色管理")return renderChild(()=>renderRoleManagementPage());
+  if(line==="base"&&name==="项目资源授权")return renderChild(()=>renderProjectResourceAuthorizationPage());
+  if(line==="base"&&name==="模板管理")return renderChild(()=>renderMessageTemplatePage());
+  if(line==="base"&&name==="发送批次明细")return renderChild(()=>renderMessageSendRecordPage());
+  if(line==="base"&&name==="消息发送明细")return renderChild(()=>openMessageSendDetailPage());
+  if(line==="base"&&name==="待办触达明细")return renderChild(()=>openMessageTodoReachDetailPage());
+  if(line==="base"&&name==="审批流配置")return renderChild(()=>renderApprovalFlowConfigPage());
+  if(line==="base"&&name==="审批流程明细")return renderChild(()=>renderApprovalFlowDetailPage());
 
-  if(line==="safety"&&name==="劳务工花名册")return renderRosterPage();
-  if(line==="safety"&&name==="视频监控")return renderSafetyVideoMonitorPage();
-  if(line==="safety"&&name==="AI违规抓拍")return renderSafetyAiCapturePage();
-  if(line==="safety"&&(parent?.name==="安全评价"||parent?.name==="历史功能"))return renderSafetyEvaluationManagePage(name);
-  if(line==="operation"&&name==="生产项目列表")return renderOperationProductionProjectListPage();
-  if(line==="operation")return renderOperationProductionProjectReportPage();
-  if(line==="economy"&&parent?.name==="经济开项"&&name==="开项审批")return renderEconomyProjectInitiationPage();
-  if(line==="economy"&&parent?.name==="大屏看板"&&name==="经济总览")return renderEconomyDashboardPage("overview");
-  if(line==="economy"&&parent?.name==="大屏看板"&&name==="经济诊断")return renderEconomyDashboardPage("diagnosis");
+  if(line==="safety"&&name==="劳务工花名册")return renderChild(()=>renderRosterPage());
+  if(line==="safety"&&name==="视频监控")return renderChild(()=>renderSafetyVideoMonitorPage());
+  if(line==="safety"&&name==="AI违规抓拍")return renderChild(()=>renderSafetyAiCapturePage());
+  if(line==="safety"&&(parent?.name==="安全评价"||parent?.name==="历史功能"))return renderChild(()=>renderSafetyEvaluationManagePage(name));
+  if(line==="operation"&&name==="生产项目列表")return renderChild(()=>renderOperationProductionProjectListPage());
+  if(line==="operation")return renderChild(()=>renderOperationProductionProjectReportPage());
+  if(line==="economy"&&parent?.name==="经济开项"&&name==="开项审批")return renderChild(()=>renderEconomyProjectInitiationPage());
+  if(line==="economy"&&parent?.name==="大屏看板"&&name==="经济总览")return renderChild(()=>renderEconomyDashboardPage("overview"));
+  if(line==="economy"&&parent?.name==="大屏看板"&&name==="经济诊断")return renderChild(()=>renderEconomyDashboardPage("diagnosis"));
 
-  if(line==="safety")return renderSafetyPlaceholder(name);
+  if(line==="safety")return renderChild(()=>renderSafetyPlaceholder(name));
 
-  if(line==="production"&&parent?.name==="风险管理"&&(name==="风险管控清单"||name==="风险管理台账"))return renderRiskLedgerPage();
-  if(line==="production"&&parent?.name==="产值管理"&&name==="产值分析明细表")return renderOutputForecastAnalysisPage();
-  if(line==="production"&&parent?.name==="历史功能"&&name==="项目产值上报（废）")return renderActualOutputReportPage();
-  if(line==="production"&&parent?.name==="产值管理"&&name==="实际产值上报")return renderComprehensiveActualOutputReportPage();
-  if(line==="production"&&parent?.name==="产值管理"&&name==="完工未结算管理")return renderFinishedUnsettledOutputPage();
-  if(line==="production"&&parent?.name==="纳统管理"&&name==="纳统填报")return renderStatisticsFillingPage();
-  if(line==="production"&&parent?.name==="纳统管理"&&name==="单位维护")return renderStatisticsUnitMaintenancePage();
-  if(line==="production"&&parent?.name==="设备管理"&&name==="设备台账")return renderEnterpriseEquipmentLedgerPage();
+  if(line==="production"&&parent?.name==="风险管理"&&(name==="风险管控清单"||name==="风险管理台账"))return renderChild(()=>renderRiskLedgerPage());
+  if(line==="production"&&parent?.name==="产值管理"&&name==="产值分析明细表")return renderChild(()=>renderOutputForecastAnalysisPage());
+  if(line==="production"&&parent?.name==="历史功能"&&name==="项目产值上报（废）")return renderChild(()=>renderActualOutputReportPage());
+  if(line==="production"&&parent?.name==="产值管理"&&name==="实际产值上报")return renderChild(()=>renderComprehensiveActualOutputReportPage());
+  if(line==="production"&&parent?.name==="产值管理"&&name==="完工未结算管理")return renderChild(()=>renderFinishedUnsettledOutputPage());
+  if(line==="production"&&parent?.name==="纳统管理"&&name==="纳统填报")return renderChild(()=>renderStatisticsFillingPage());
+  if(line==="production"&&parent?.name==="纳统管理"&&name==="单位维护")return renderChild(()=>renderStatisticsUnitMaintenancePage());
+  if(line==="production"&&parent?.name==="设备管理"&&name==="设备台账")return renderChild(()=>renderEnterpriseEquipmentLedgerPage());
 
   if(line==="production"&&parent?.name==="供应商管理"&&name==="基础画像"){
-    return renderSupplierLedgerPage();
+    return renderChild(()=>renderSupplierLedgerPage());
   }
 
   if(line==="production"&&parent?.name==="供应商管理"&&name==="评分记录"){
-    return renderSupplierScoreRecordPage();
+    return renderChild(()=>renderSupplierScoreRecordPage());
   }
 
   if(line==="production"&&parent?.name==="供应商管理"&&name==="履约评价"){
-    return renderPerformanceEvaluationPage();
+    return renderChild(()=>renderPerformanceEvaluationPage());
   }
 
-  renderBusinessModulePage(line,name);
+  return renderChild(()=>renderBusinessModulePage(line,name));
 }
 
 function selectBusinessSingleMenu(line,i,name){

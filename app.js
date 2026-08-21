@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.793-mobile-dynamic-side-padding";
+  const version="2.2.798-unified-list-page-titles";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/vendor/jszip.min.js",
