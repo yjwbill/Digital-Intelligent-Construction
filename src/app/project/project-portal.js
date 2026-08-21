@@ -2362,6 +2362,13 @@ const projectEquipmentRegistrations=[
     actualExitDate:""
   }
 ];
+const enterpriseEquipmentRegionOptions=["长三角区域","大湾区域","中原区域","海南","境外区域"];
+const enterpriseEquipmentRegionAlias={
+  "华东区域":"长三角区域",
+  "华南区域":"大湾区域",
+  "华中区域":"中原区域",
+  "海外区域":"境外区域"
+};
 const projectEquipmentState={deviceType:"",registrationStatus:"",page:1,pageSize:50};
 const enterpriseEquipmentState={
   subCompany:"",
@@ -2418,14 +2425,21 @@ function renderProjectEquipmentOptions(options,value,placeholder="请选择"){
   return `<option value="">${placeholder}</option>${options.map(item=>`<option value="${escapeAttr(item)}" ${item===value?"selected":""}>${escapeAttr(item)}</option>`).join("")}`;
 }
 
+function normalizeEnterpriseEquipmentRegion(region){
+  const value=String(region||"").trim();
+  if(!value)return "";
+  return enterpriseEquipmentRegionAlias[value]||value;
+}
+
 function getEnterpriseEquipmentRows(includeStat=true){
   const s=enterpriseEquipmentState;
   const includes=(row,key,value)=>!value||String(row[key]||"").includes(value);
   const equals=(row,key,value)=>!value||String(row[key]||"")===value;
   return projectEquipmentRegistrations.filter(row=>{
+    const normalizedRegion=normalizeEnterpriseEquipmentRegion(row.region);
     const matched=(
     equals(row,"subCompany",s.subCompany)&&equals(row,"branchCompany",s.branchCompany)
-    &&equals(row,"region",s.region)&&includes(row,"provinceCity",s.provinceCity)
+    &&(!s.region||normalizedRegion===s.region)&&includes(row,"provinceCity",s.provinceCity)
     &&includes(row,"deviceName",s.deviceName)&&equals(row,"deviceType",s.deviceType)
     &&equals(row,"planEntryDate",s.planEntryDate)
     &&equals(row,"planExitDate",s.planExitDate)&&equals(row,"actualEntryDate",s.actualEntryDate)
@@ -2444,7 +2458,8 @@ function getEnterpriseEquipmentRows(includeStat=true){
 }
 
 function getEnterpriseEquipmentOptions(key){
-  return [...new Set(projectEquipmentRegistrations.map(row=>row[key]).filter(Boolean))];
+  const values=projectEquipmentRegistrations.map(row=>key==="region"?normalizeEnterpriseEquipmentRegion(row[key]):row[key]).filter(Boolean);
+  return [...new Set(values)];
 }
 
 function renderEnterpriseEquipmentSelect(id,label,key,options=getEnterpriseEquipmentOptions(key)){
@@ -2459,7 +2474,7 @@ function renderEnterpriseEquipmentFilters(){
   const fields=[
     renderEnterpriseEquipmentSelect("enterpriseEquipmentSubCompany","子公司","subCompany"),
     renderEnterpriseEquipmentSelect("enterpriseEquipmentBranchCompany","分公司","branchCompany"),
-    renderEnterpriseEquipmentSelect("enterpriseEquipmentRegion","所属区域","region"),
+    renderEnterpriseEquipmentSelect("enterpriseEquipmentRegion","所属区域","region",enterpriseEquipmentRegionOptions),
     renderEnterpriseEquipmentInput("enterpriseEquipmentProvinceCity","所在省市","provinceCity"),
     renderEnterpriseEquipmentInput("enterpriseEquipmentDeviceName","设备名称","deviceName"),
     renderEnterpriseEquipmentSelect("enterpriseEquipmentType","设备类型","deviceType",projectEquipmentTypes),
@@ -2523,29 +2538,8 @@ function renderProjectEquipmentManagementPage(){
         <div><span>筹划需求数量</span><strong>${plans.reduce((sum,row)=>sum+Number(row.demandQuantity||0),0)}</strong></div>
         <div><span>已登记设备</span><strong>${projectEquipmentRegistrations.length}</strong></div>
       </div>
-      <div class="project-equipment-table-wrap">
-        <table class="project-equipment-table">
-          <thead><tr><th>序号</th><th>设备类型</th><th>需求数量</th><th>拟使用部位</th><th>工作周期</th><th>登记进度</th><th>登记状态</th><th>操作</th></tr></thead>
-          <tbody>
-            ${plans.map((plan,index)=>{
-              const count=getProjectEquipmentRegistrationCount(plan.id);
-              const status=getProjectEquipmentPlanStatus(plan);
-              return `<tr>
-                <td>${index+1}</td>
-                <td>${escapeAttr(plan.deviceType)}</td>
-                <td>${plan.demandQuantity}</td>
-                <td title="${escapeAttr(plan.usePart)}">${escapeAttr(plan.usePart)}</td>
-                <td>${escapeAttr(plan.workPeriod)}</td>
-                <td>${count}/${plan.demandQuantity}</td>
-                <td>${tag(status,status==="已登记"?"green":status==="部分登记"?"orange":"gray")}</td>
-                <td><button class="btn primary mini" type="button" onclick="openProjectEquipmentRegistrationModal('${escapeAttr(plan.id)}')">设备信息登记</button></td>
-              </tr>`;
-            }).join("")||`<tr><td colspan="8" class="project-equipment-empty">暂无设备筹划数据</td></tr>`}
-          </tbody>
-        </table>
-      </div>
     </section>
-    ${renderProjectEquipmentLedgerSection()}
+    ${renderProjectEquipmentMergedLedgerSection(plans)}
   `);
 }
 
@@ -2568,6 +2562,77 @@ function renderEnterpriseEquipmentLedgerPage(){
   `);
 }
 
+function getProjectEquipmentMergedRows(plans=getProjectEquipmentFilteredPlans()){
+  return plans.flatMap((plan,planIndex)=>{
+    const demand=Math.max(1,Number(plan.demandQuantity)||1);
+    const registrations=getProjectEquipmentRegisteredRows(plan.id);
+    const status=getProjectEquipmentPlanStatus(plan);
+    return Array.from({length:demand},(_,slotIndex)=>{
+      const registration=registrations[slotIndex]||null;
+      return {
+        planId:plan.id,
+        planIndex:planIndex+1,
+        slotIndex:slotIndex+1,
+        deviceType:plan.deviceType,
+        demandQuantity:plan.demandQuantity,
+        usePart:plan.usePart,
+        workPeriod:plan.workPeriod,
+        registrationProgress:`${registrations.length}/${plan.demandQuantity}`,
+        planStatus:status,
+        registration
+      };
+    });
+  });
+}
+
+function renderProjectEquipmentMergedValue(row,key){
+  const registration=row.registration;
+  if(!registration)return "-";
+  return escapeAttr(registration[key]||"-");
+}
+
+function renderProjectEquipmentMergedAttachment(row){
+  return row.registration?renderProjectEquipmentAttachmentStatus(row.registration):`<span class="project-equipment-action-status">未登记</span>`;
+}
+
+function renderProjectEquipmentMergedActions(row){
+  if(row.registration)return renderProjectEquipmentLedgerActions(row.registration);
+  return `<div class="project-equipment-actions"><button class="btn primary mini" type="button" onclick="openProjectEquipmentRegistrationModal('${escapeAttr(row.planId)}')">设备信息登记</button></div>`;
+}
+
+function renderProjectEquipmentMergedLedgerSection(plans=getProjectEquipmentFilteredPlans()){
+  const rows=getProjectEquipmentMergedRows(plans);
+  const span="planId";
+  const columns=[
+    {key:"planIndex",title:"序号",width:70,align:"center",rowSpan:span},
+    {key:"deviceType",title:"设备类型",width:120,align:"center",rowSpan:span,render:row=>escapeAttr(row.deviceType)},
+    {key:"demandQuantity",title:"需求数量",width:90,align:"center",rowSpan:span,render:row=>escapeAttr(row.demandQuantity)},
+    {key:"usePart",title:"拟使用部位",width:180,rowSpan:span,render:row=>`<span title="${escapeAttr(row.usePart)}">${escapeAttr(row.usePart)}</span>`},
+    {key:"workPeriod",title:"工作周期",width:150,align:"center",rowSpan:span,render:row=>escapeAttr(row.workPeriod)},
+    {key:"registrationProgress",title:"登记进度",width:100,align:"center",rowSpan:span,render:row=>escapeAttr(row.registrationProgress)},
+    {key:"planStatus",title:"登记状态",width:110,align:"center",rowSpan:span,render:row=>tag(row.planStatus,row.planStatus==="已登记"?"green":row.planStatus==="部分登记"?"orange":"gray")},
+    {key:"slotIndex",title:"拆分序号",width:90,align:"center",render:row=>row.slotIndex},
+    {key:"category",title:"设备分类",width:110,align:"center",render:row=>renderProjectEquipmentMergedValue(row,"category")},
+    {key:"deviceName",title:"设备名称",width:140,render:row=>renderProjectEquipmentMergedValue(row,"deviceName")},
+    {key:"model",title:"规格型号",width:120,render:row=>renderProjectEquipmentMergedValue(row,"model")},
+    {key:"deviceNo",title:"设备编号",width:130,render:row=>renderProjectEquipmentMergedValue(row,"deviceNo")},
+    {key:"brand",title:"设备品牌",width:110,render:row=>renderProjectEquipmentMergedValue(row,"brand")},
+    {key:"property",title:"设备产权",width:100,align:"center",render:row=>renderProjectEquipmentMergedValue(row,"property")},
+    {key:"planEntryDate",title:"计划进场日期",width:130,align:"center",render:row=>renderProjectEquipmentMergedValue(row,"planEntryDate")},
+    {key:"planExitDate",title:"计划退场日期",width:130,align:"center",render:row=>renderProjectEquipmentMergedValue(row,"planExitDate")},
+    {key:"actualEntryDate",title:"实际进场日期",width:130,align:"center",render:row=>row.registration?escapeAttr(row.registration.actualEntryDate||"-"):"-"},
+    {key:"actualExitDate",title:"实际退场日期",width:130,align:"center",render:row=>row.registration?escapeAttr(row.registration.actualExitDate||"-"):"-"},
+    {key:"attachments",title:"附件上传情况",width:150,align:"center",render:row=>renderProjectEquipmentMergedAttachment(row)},
+    {key:"operation",title:"操作",width:190,align:"center",render:row=>renderProjectEquipmentMergedActions(row)}
+  ];
+  return `<section class="card project-equipment-ledger project-equipment-merged-ledger">
+    <div class="project-equipment-toolbar compact"><h3>设备筹划及设备信息台账</h3><p>按筹划需求数量拆分设备明细行，筹划字段纵向合并展示。</p></div>
+    ${window.RowSpanTable?.render
+      ? RowSpanTable.render({data:rows,columns,className:"project-equipment-rowspan-table"})
+      : `<div class="project-equipment-empty">纵跨行组件加载中，请稍后刷新</div>`}
+  </section>`;
+}
+
 function renderProjectEquipmentLedgerSection(options={}){
   const showEnterpriseColumns=!!options.showEnterpriseColumns;
   const showActions=options.showActions!==false;
@@ -2582,7 +2647,7 @@ function renderProjectEquipmentLedgerSection(options={}){
         <thead><tr><th>序号</th>${showEnterpriseColumns?"<th>子公司</th><th>分公司</th><th>所属区域</th><th>所在省市</th><th>项目名称</th><th>项目经理</th><th>建设单位</th>":""}<th>设备类型</th><th>设备分类</th><th>设备名称</th><th>规格型号</th><th>设备编号</th><th>设备品牌</th><th>国别</th><th>能源方式</th><th>额定功率(KW)</th><th>出厂日期</th><th>设备产权</th><th>计划进场日期</th><th>计划退场日期</th><th>实际进场日期</th><th>实际退场日期</th><th>设备图片</th><th>铭牌图片</th><th>附件上传情况</th>${showActions?"<th>操作</th>":""}</tr></thead>
         <tbody>${rows.map((row,index)=>`<tr>
           <td>${index+1}</td>
-          ${showEnterpriseColumns?`<td>${escapeAttr(row.subCompany||"-")}</td><td>${escapeAttr(row.branchCompany||"-")}</td><td>${escapeAttr(row.region||"-")}</td><td>${escapeAttr(row.provinceCity||"-")}</td><td title="${escapeAttr(row.projectName||pcPortalState.currentProject)}">${escapeAttr(row.projectName||pcPortalState.currentProject)}</td><td>${escapeAttr(row.projectManager||"-")}</td><td title="${escapeAttr(row.builder||"-")}">${escapeAttr(row.builder||"-")}</td>`:""}
+          ${showEnterpriseColumns?`<td>${escapeAttr(row.subCompany||"-")}</td><td>${escapeAttr(row.branchCompany||"-")}</td><td>${escapeAttr(normalizeEnterpriseEquipmentRegion(row.region)||"-")}</td><td>${escapeAttr(row.provinceCity||"-")}</td><td title="${escapeAttr(row.projectName||pcPortalState.currentProject)}">${escapeAttr(row.projectName||pcPortalState.currentProject)}</td><td>${escapeAttr(row.projectManager||"-")}</td><td title="${escapeAttr(row.builder||"-")}">${escapeAttr(row.builder||"-")}</td>`:""}
           <td>${escapeAttr(row.deviceType)}</td>
           <td>${escapeAttr(row.category)}</td>
           <td>${escapeAttr(row.deviceName||"-")}</td>
@@ -3262,7 +3327,7 @@ function saveProjectEquipmentRegistration(planId,registrationId=""){
     projectName:previousRegistration?.projectName||projectContext.projectName||pcPortalState.currentProject,
     subCompany:previousRegistration?.subCompany||projectContext.subCompany||"",
     branchCompany:previousRegistration?.branchCompany||projectContext.branchCompany||"",
-    region:previousRegistration?.region||projectContext.region||"",
+    region:normalizeEnterpriseEquipmentRegion(previousRegistration?.region||projectContext.region||""),
     provinceCity:previousRegistration?.provinceCity||projectContext.provinceCity||"",
     projectManager:previousRegistration?.projectManager||projectContext.projectManager||"",
     builder:previousRegistration?.builder||projectContext.builder||"",

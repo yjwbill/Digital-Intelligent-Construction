@@ -1,6 +1,23 @@
 const productionDashboardTemplatePath="src/app/production/dashboard-projects.html";
 let productionDashboardTemplatePromise=null;
 let productionDashboardRenderToken=0;
+const constructionProjectRegionOptions=["长三角区域","大湾区域","中原区域","海南","境外区域"];
+const constructionProjectRegionAlias={
+  "华东区域":"长三角区域",
+  "浙江区域":"长三角区域",
+  "上海区域":"长三角区域",
+  "华南区域":"大湾区域",
+  "大湾区":"大湾区域",
+  "华中区域":"中原区域",
+  "华北区域":"中原区域",
+  "西南区域":"中原区域",
+  "海外区域":"境外区域"
+};
+
+function normalizeConstructionProjectRegion(region){
+  const value=String(region||"").trim();
+  return constructionProjectRegionAlias[value] || value;
+}
 
 function getProductionDashboardTemplatesFromDocument(){
   const templates=new Map();
@@ -347,7 +364,7 @@ function createConstructionProject(x,i){
   const planEnd=`${endMonth}-20`;
   return {
     id:i,projectName:x[0],projectCode:x[1],subCompany:x[2],branchCompany:x[3],projectStatus:status,projectManager:x[5],
-    managerPhone:["13688886666","13812345678","13955558888"][i%3],region:x[6],provinceCity:x[7]+"/"+x[8],projectType:x[9],
+    managerPhone:["13688886666","13812345678","13955558888"][i%3],region:normalizeConstructionProjectRegion(x[6]),provinceCity:x[7]+"/"+x[8],projectType:x[9],
     implementationMode:x[10],controlLevel:x[11],integratedManagement:x[12],orderProjectNo:x[13],productionProjectNo:x[14],
     generalContractor:x[15],builder:x[16],contractProjectManager:x[17],productionBizType:x[18],keyCustomer:x[19],
     constructionPermit:x[20],projectCost:cost,approvalDate:x[22],contractStartMonth:x[23],contractEndMonth:x[24],
@@ -380,7 +397,7 @@ function createConstructionProjectFromCsv(row,index){
   const projectCost=Number(projectCostYuan||0)/10000;
   const accumulated=Number(accumulatedOutput||0);
   return {
-    id:1000+index,projectName,projectCode,subCompany,branchCompany,projectStatus,projectManager,managerPhone:"",region,provinceCity,projectType,
+    id:1000+index,projectName,projectCode,subCompany,branchCompany,projectStatus,projectManager,managerPhone:"",region:normalizeConstructionProjectRegion(region),provinceCity,projectType,
     implementationMode:"",controlLevel,integratedManagement,orderProjectNo,productionProjectNo,generalContractor:totalContractor,builder,
     contractProjectManager:"",productionBizType,keyCustomer,constructionPermit,projectCost,approvalDate,contractStartMonth:planStart.slice(0,7),
     contractEndMonth:planEnd.slice(0,7),totalContractor,detailAddress,accumulatedOutput:accumulated,
@@ -398,6 +415,9 @@ constructionProjectCsvSeed.map((row,index)=>createConstructionProjectFromCsv(row
   if(!exists){constructionProjectData.push(project);constructionProjectCsvSeedAdded=true;}
 });
 if(constructionProjectCsvSeedAdded&&typeof persistMasterData==="function")persistMasterData("projects",constructionProjectData);
+constructionProjectData.forEach(project=>{
+  project.region=normalizeConstructionProjectRegion(project.region);
+});
 let constructionProjectCurrentList=[...constructionProjectData];
 let constructionProjectBaseFilteredList=[...constructionProjectData];
 let constructionProjectActiveStat=null;
@@ -438,7 +458,7 @@ tableColumnDefinitions.constructionProject=[
   {key:"projectCost",title:"项目造价",width:120,align:"right",render:r=>`${moneyWan(r.projectCost)}万`},
   {key:"projectManager",title:"项目经理",width:170,render:r=>`${r.projectManager} | ${maskPhone(r.managerPhone)} <span class="link" onclick="showToast('查看手机号权限')">👁️</span>`},
   {key:"provinceCity",title:"所在省市",width:130,render:r=>r.provinceCity},
-  {key:"region",title:"所属区域",width:120,render:r=>r.region},
+  {key:"region",title:"所属区域",width:120,render:r=>normalizeConstructionProjectRegion(r.region)},
   {key:"detailAddress",title:"详细地址",width:240,render:r=>`<span class="text-ellipsis" title="${r.detailAddress}">${r.detailAddress}</span>`},
   {key:"builder",title:"建设单位",width:220,render:r=>`<span class="text-ellipsis" title="${r.builder}">${r.builder}</span>`},
   {key:"accumulatedOutput",title:"开累完成产值",width:130,align:"right",render:r=>moneyWan(r.accumulatedOutput)},
@@ -521,7 +541,7 @@ function renderConstructionProjectFilterFields(collapsed=false){
     ${renderConstructionProjectSelect("cpBranchCompany","分公司",cpUnique("branchCompany"))}
     ${renderConstructionProjectSelect("cpProjectStatus","项目状态",projectStatusOptions)}
     ${renderConstructionProjectInput("cpProjectManager","项目经理","模糊搜索")}
-    ${renderConstructionProjectSelect("cpRegion","所属区域",["长三角区域","大湾区域","中原区域","海南","境外区域"])}
+    ${renderConstructionProjectSelect("cpRegion","所属区域",constructionProjectRegionOptions)}
     ${renderConstructionProjectInput("cpProvinceCity","所在省市","模糊搜索")}
   `;
   if(collapsed)return basicRows;
@@ -626,7 +646,7 @@ function applyConstructionProjectFilter(update=true){
     (!f.branchCompany||p.branchCompany===f.branchCompany)&&
     (!f.projectStatus||p.projectStatus===f.projectStatus)&&
     projectIncludes(p.projectManager,f.projectManager)&&
-    (!f.region||p.region===f.region)&&
+    (!f.region||normalizeConstructionProjectRegion(p.region)===f.region)&&
     projectIncludes(p.provinceCity,f.provinceCity)&&
     (!f.projectType||p.projectType===f.projectType)&&
     (!f.implementationMode||p.implementationMode===f.implementationMode)&&
