@@ -1027,7 +1027,7 @@ function openApprovalCenter(){
 
 function renderApprovalCenter(){
   detailPage.innerHTML=`<div class="message-page approval-center-page">
-    <div class="message-hero"><div><div class="message-hero-title">审批中心</div><div class="message-hero-sub">统一处理待审批事项，集中查看我发起及已办理的审批记录</div></div></div>
+    <div class="message-hero"><div><div class="message-hero-title">审批中心</div><div class="message-hero-sub">统一处理待审批事项，集中查看我发起及已办理的审批记录</div></div><button class="message-hero-view-all" type="button" onclick="renderApprovalFlowDetailPage()">查看所有审批</button></div>
     <div class="message-page-hd approval-center-hd">${renderApprovalCenterTabs()}<div class="message-search-box approval-center-search"><input id="approvalCenterSearch" value="${escapeAttr(approvalCenterState.search)}" placeholder="输入审批内容、审批人姓名、审批对象名称搜索" title="支持搜索审批内容、审批发起人、审批人、审批对象" onkeydown="if(event.key==='Enter')searchApprovalCenter()"/><span onclick="searchApprovalCenter()">⌕</span></div></div>
     <div class="approval-center-body">${renderApprovalCategoryTree()}<main class="approval-center-main">${renderApprovalCenterTable()}</main></div>
   </div>`;
@@ -1060,7 +1060,7 @@ function renderTodoCenter(){
         <div>
           <div class="message-hero-title">待办中心</div>
           <div class="message-hero-sub">统一查看待办理事项，支持状态筛选、组织聚合与业务模块过滤</div>
-        </div>
+        </div><button class="message-hero-view-all" type="button" onclick="openMessageTodoReachDetailPage()">查看所有待办</button>
       </div>
       <div class="message-page-hd todo-page-hd">
         ${renderTodoToolbar()}
@@ -1090,7 +1090,7 @@ function renderMessageCenter(){
         <div>
           <div class="message-hero-title">消息中心</div>
           <div class="message-hero-sub">统一查看消息通知、通知公告与预警通知，支持组织聚合与业务模块过滤</div>
-        </div>
+        </div><button class="message-hero-view-all" type="button" onclick="openMessageSendDetailPage()">查看所有消息</button>
       </div>
       <div class="message-page-hd">
         ${renderMessageTypeTabs()}

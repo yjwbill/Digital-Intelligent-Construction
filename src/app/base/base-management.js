@@ -1937,7 +1937,7 @@ function renderMessageSendBatchTitleRow(){
   const activeTab=messageAdminState.sendTab==="todo"?"todo":"message";
   return `
     <div class="compact-title-row output-forecast-title-row message-record-title-row">
-      <div class="module-title">发送批次明细</div>
+      <div class="module-title">消息&待办管理 / 发送批次明细</div>
       <div class="screen-tabs output-forecast-tabs message-record-tabs">
         <button class="${activeTab==="message"?"active":""}" onclick="setMessageSendBatchTab('message')">消息发送批次</button>
         <button class="${activeTab==="todo"?"active":""}" onclick="setMessageSendBatchTab('todo')">待办触达批次</button>
@@ -2277,13 +2277,10 @@ function setMessageRecordTab(tab){
 
 function renderMessageRecordTitleRow(){
   const activeTab=messageAdminState.recordTab==="todo"?"todo":"message";
+  const title=activeTab==="todo"?"待办触达明细":"消息发送明细";
   return `
     <div class="compact-title-row output-forecast-title-row message-record-title-row">
-      <div class="module-title">用户触达明细</div>
-      <div class="screen-tabs output-forecast-tabs message-record-tabs">
-        <button class="${activeTab==="message"?"active":""}" onclick="setMessageRecordTab('message')">消息发送明细</button>
-        <button class="${activeTab==="todo"?"active":""}" onclick="setMessageRecordTab('todo')">待办触达明细</button>
-      </div>
+      <div class="module-title">消息&待办管理 / ${title}</div>
     </div>
   `;
 }
@@ -2364,6 +2361,16 @@ function renderMessageTodoReachPage(){
     if(trigger)openMessageTodoReminderDrilldown(trigger.dataset.todoReminderId);
   });
   setTimeout(()=>refreshTemplateTreeStates("msgTodoBizTreeFilter"),0);
+}
+
+function openMessageSendDetailPage(){
+  messageAdminState.recordTab="message";
+  renderMessageRecordPage();
+}
+
+function openMessageTodoReachDetailPage(){
+  messageAdminState.recordTab="todo";
+  renderMessageRecordPage();
 }
 
 function renderMessageRecordPage(){
