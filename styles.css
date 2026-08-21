@@ -21522,6 +21522,43 @@ body.enterprise-mobile-mode .enterprise-mobile-mine-menu-item strong{
 .project-equipment-label-hint:hover .project-equipment-label-tooltip{
   display:block;
 }
+.project-equipment-merged-ledger .row-span-table .table-wrap{
+  border-radius:0 0 6px 6px;
+}
+.project-equipment-merged-ledger .row-span-table table{
+  min-width:2380px;
+}
+.project-equipment-merged-ledger .row-span-table td{
+  height:52px;
+}
+.project-equipment-merged-ledger .row-span-table .row-span-cell{
+  background:#fbfcff;
+}
+.project-equipment-merged-ledger .project-equipment-attachment-status{
+  width:120px;
+  min-width:0;
+  margin:0 auto;
+}
+.project-equipment-merged-ledger .project-equipment-actions{
+  justify-content:center;
+}
+.project-equipment-merged-ledger .row-span-table th:last-child,
+.project-equipment-merged-ledger .row-span-table td:last-child{
+  position:sticky;
+  right:0;
+  z-index:3;
+  box-shadow:-6px 0 12px rgba(29,33,41,.08);
+}
+.project-equipment-merged-ledger .row-span-table th:last-child{
+  z-index:5;
+  background:#f7f8fa;
+}
+.project-equipment-merged-ledger .row-span-table td:last-child{
+  background:#fff;
+}
+.project-equipment-merged-ledger .row-span-table tbody tr:hover td:last-child{
+  background:#f7faff;
+}
 .project-equipment-document-upload{display:grid;align-items:start;gap:10px;}
 .project-equipment-document-upload-btn{width:112px;height:34px;}
 .project-equipment-document-preview{grid-template-columns:1fr;}
