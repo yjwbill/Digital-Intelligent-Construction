@@ -1,0 +1,248 @@
+/**
+ * 数智施工 Design Token v0.1.0
+ * 状态：Draft / 待 UI 评审
+ *
+ * 使用规则：
+ * 1. stable 区可供新组件使用；candidate 区均带 ❓，UI 确认前不得作为新页面标准。
+ * 2. 本文件当前只声明变量，不覆盖历史 --primary / --text 等变量，不改变现有页面视觉。
+ * 3. 业务状态色与通用反馈色必须分开使用。
+ */
+
+:root {
+  /* ---------- Foundation / Color ---------- */
+  --dsc-color-blue-50: #eef3ff;
+  --dsc-color-blue-100: #e8f3ff;
+  --dsc-color-blue-500: #165dff;
+  --dsc-color-gray-0: #ffffff;
+  --dsc-color-gray-50: #fafbfc;
+  --dsc-color-gray-100: #f7f8fa;
+  --dsc-color-gray-200: #f5f7fa;
+  --dsc-color-gray-300: #e5e6eb;
+  --dsc-color-gray-400: #c9cdd4;
+  --dsc-color-gray-500: #86909c;
+  --dsc-color-gray-600: #4e5969;
+  --dsc-color-gray-900: #1d2129;
+  --dsc-color-green-500: #00b42a;
+  --dsc-color-orange-500: #ff7d00;
+  --dsc-color-red-500: #f53f3f;
+
+  /* ---------- Semantic / Color ---------- */
+  --dsc-color-primary: var(--dsc-color-blue-500);
+  --dsc-color-primary-hover: #4080ff;
+  --dsc-color-primary-active: #0e42d2;
+  --dsc-color-primary-bg: var(--dsc-color-blue-100);
+  --dsc-color-bg-page: var(--dsc-color-gray-200);
+  --dsc-color-bg-container: var(--dsc-color-gray-0);
+  --dsc-color-bg-elevated: var(--dsc-color-gray-0);
+  --dsc-color-fill-light: var(--dsc-color-gray-100);
+  --dsc-color-text-primary: var(--dsc-color-gray-900);
+  --dsc-color-text-secondary: var(--dsc-color-gray-600);
+  --dsc-color-text-tertiary: var(--dsc-color-gray-500);
+  --dsc-color-text-disabled: var(--dsc-color-gray-400);
+  --dsc-color-border: var(--dsc-color-gray-300);
+  --dsc-color-border-strong: var(--dsc-color-gray-400);
+  --dsc-color-success: var(--dsc-color-green-500);
+  --dsc-color-warning: var(--dsc-color-orange-500);
+  --dsc-color-danger: var(--dsc-color-red-500);
+
+  /* ---------- Business Status / Economy Risk ---------- */
+  --dsc-risk-economy-red: #ff0013;
+  --dsc-risk-economy-orange: #ff9933;
+  --dsc-risk-economy-yellow: #fff44f;
+  --dsc-risk-economy-blue: #4596e2;
+  /* ❓ 旧版预警色：待确认后删除，或映射到正式业务色 */
+  --dsc-candidate-risk-red-legacy: #f5222d;
+  --dsc-candidate-risk-orange-legacy-1: #ff8a00;
+  --dsc-candidate-risk-orange-legacy-2: #ff8a1f;
+  --dsc-candidate-risk-yellow-legacy-1: #f5d90a;
+  --dsc-candidate-risk-yellow-legacy-2: #f7ba1e;
+  --dsc-candidate-risk-blue-legacy: #3491fa;
+
+  /* ---------- Business Status / Safety & Workflow ---------- */
+  /* ❓ 安全风险三级色尚未发现唯一平台规范，暂按语义占位 */
+  --dsc-candidate-risk-safety-critical: #f53f3f;
+  --dsc-candidate-risk-safety-high: #ff7d00;
+  --dsc-candidate-risk-safety-controlled: #00b42a;
+  /* ❓ 流程状态色需要与数据字典逐项确认 */
+  --dsc-candidate-workflow-pending: #ff7d00;
+  --dsc-candidate-workflow-processing: #165dff;
+  --dsc-candidate-workflow-completed: #00b42a;
+  --dsc-candidate-workflow-rejected: #f53f3f;
+  /* 趋势色独立于状态色，防止“上升红”与“危险红”混用 */
+  --dsc-trend-up: #f53f3f;
+  --dsc-trend-down: #00b42a;
+  --dsc-trend-flat: #86909c;
+
+  /* ---------- Typography ---------- */
+  --dsc-font-family-sans: "Source Han Sans CN", "思源黑体 CN", "Microsoft YaHei", sans-serif;
+  --dsc-font-family-number: "DIN Black", "D-DIN", Arial, sans-serif;
+  --dsc-font-size-12: 12px;
+  --dsc-font-size-14: 14px;
+  --dsc-font-size-16: 16px;
+  --dsc-font-size-18: 18px;
+  --dsc-font-size-20: 20px;
+  --dsc-font-size-24: 24px;
+  --dsc-font-size-28: 28px;
+  --dsc-font-size-32: 32px;
+  --dsc-line-height-16: 16px;
+  --dsc-line-height-20: 20px;
+  --dsc-line-height-22: 22px;
+  --dsc-line-height-24: 24px;
+  --dsc-line-height-28: 28px;
+  --dsc-line-height-32: 32px;
+  --dsc-font-weight-regular: 400;
+  --dsc-font-weight-medium: 500;
+  --dsc-font-weight-semibold: 600;
+  --dsc-font-weight-bold: 700;
+  --dsc-font-weight-heavy: 800;
+  --dsc-font-weight-black: 900;
+  /* ❓ 历史字号候选：UI 确认是否全部归并 */
+  --dsc-candidate-font-size-10: 10px;
+  --dsc-candidate-font-size-11: 11px;
+  --dsc-candidate-font-size-13: 13px;
+  --dsc-candidate-font-size-15: 15px;
+  --dsc-candidate-font-size-17: 17px;
+  --dsc-candidate-font-size-22: 22px;
+
+  /* ---------- Spacing / strict 4px grid ---------- */
+  --dsc-space-0: 0;
+  --dsc-space-1: 4px;
+  --dsc-space-2: 8px;
+  --dsc-space-3: 12px;
+  --dsc-space-4: 16px;
+  --dsc-space-5: 20px;
+  --dsc-space-6: 24px;
+  --dsc-space-7: 28px;
+  --dsc-space-8: 32px;
+  --dsc-space-10: 40px;
+  --dsc-space-12: 48px;
+  --dsc-space-16: 64px;
+  /* ❓ 高频非 4px 历史间距，暂存用于迁移追踪，不建议新代码使用 */
+  --dsc-candidate-space-2: 2px;
+  --dsc-candidate-space-3: 3px;
+  --dsc-candidate-space-5: 5px;
+  --dsc-candidate-space-6: 6px;
+  --dsc-candidate-space-7: 7px;
+  --dsc-candidate-space-9: 9px;
+  --dsc-candidate-space-10: 10px;
+  --dsc-candidate-space-14: 14px;
+  --dsc-candidate-space-18: 18px;
+  --dsc-candidate-space-22: 22px;
+
+  /* ---------- Radius ---------- */
+  --dsc-radius-none: 0;
+  --dsc-radius-xs: 2px;
+  --dsc-radius-sm: 4px;
+  --dsc-radius-md: 8px;
+  --dsc-radius-lg: 12px;
+  --dsc-radius-xl: 16px;
+  --dsc-radius-2xl: 24px;
+  --dsc-radius-pill: 999px;
+  --dsc-radius-circle: 50%;
+  /* ❓ 现有组件同时使用 3/5/6/7/10/14/18px */
+  --dsc-candidate-radius-3: 3px;
+  --dsc-candidate-radius-5: 5px;
+  --dsc-candidate-radius-6: 6px;
+  --dsc-candidate-radius-7: 7px;
+  --dsc-candidate-radius-10: 10px;
+  --dsc-candidate-radius-14: 14px;
+  --dsc-candidate-radius-18: 18px;
+
+  /* ---------- Elevation ---------- */
+  --dsc-shadow-1: 0 2px 8px rgba(29, 33, 41, 0.08);
+  --dsc-shadow-2: 0 4px 12px rgba(29, 33, 41, 0.08);
+  --dsc-shadow-3: 0 8px 24px rgba(29, 33, 41, 0.12);
+  --dsc-shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.18);
+
+  /* ---------- Component / Control ---------- */
+  --dsc-control-height-compact: 28px;
+  --dsc-control-height-small: 32px;
+  /* ❓ 默认控件高度：现有基础组件为 30px，BaseSelect 为 36px */
+  --dsc-candidate-control-height-legacy: 30px;
+  --dsc-candidate-control-height-default-36: 36px;
+  --dsc-candidate-control-height-default-40: 40px;
+  --dsc-control-height-large: 48px;
+  --dsc-control-padding-inline-small: 8px;
+  --dsc-control-padding-inline-default: 12px;
+  --dsc-control-padding-inline-large: 16px;
+  --dsc-control-radius: var(--dsc-radius-sm);
+
+  /* ---------- Component / Card ---------- */
+  --dsc-card-bg: var(--dsc-color-bg-container);
+  --dsc-card-border: 1px solid var(--dsc-color-border);
+  --dsc-card-radius: var(--dsc-radius-md);
+  --dsc-card-radius-emphasis: var(--dsc-radius-lg);
+  /* Card圆角已确认：普通Card为8px，强调容器/Modal为12px。 */
+  /* ❓ Card padding 待确认标准密度 */
+  --dsc-candidate-card-padding-16: 16px;
+  --dsc-candidate-card-padding-20: 20px;
+  --dsc-candidate-card-padding-24: 24px;
+  --dsc-card-shadow: var(--dsc-shadow-1);
+
+  /* ---------- Component / Table ---------- */
+  --dsc-table-font-size: 14px;
+  --dsc-table-font-size-compact: 12px;
+  --dsc-table-header-bg: var(--dsc-color-gray-50);
+  --dsc-table-header-color: var(--dsc-color-text-secondary);
+  --dsc-table-row-hover-bg: #fafcff;
+  --dsc-table-header-height: 44px;
+  --dsc-table-header-height-multiline: 40px;
+  --dsc-table-row-height: 40px;
+  --dsc-table-cell-padding-inline: 12px;
+
+  /* ---------- Component / Modal & Drawer ---------- */
+  --dsc-modal-width-sm: 480px;
+  --dsc-modal-width-md: 640px;
+  --dsc-modal-width-lg: 800px;
+  --dsc-modal-width-xl: 1120px;
+  --dsc-modal-viewport-gutter: 24px;
+  --dsc-modal-radius: var(--dsc-radius-lg);
+  --dsc-modal-header-height: 56px;
+  --dsc-modal-footer-height: 56px;
+  --dsc-modal-body-padding: 24px;
+  /* ❓ 现有默认/large 均接近 75vw × 75vh，是否保留比例尺寸待确认 */
+  --dsc-candidate-modal-width-fluid: 75vw;
+  --dsc-candidate-modal-height-fluid: 75vh;
+  --dsc-drawer-width-sm: 320px;
+  --dsc-drawer-width-md: 400px;
+  --dsc-drawer-width-lg: 480px;
+  --dsc-drawer-width-xl: 640px;
+
+  /* ---------- Chart ---------- */
+  --dsc-chart-color-1: #165dff;
+  --dsc-chart-color-2: #00b42a;
+  --dsc-chart-color-3: #ff7d00;
+  --dsc-chart-color-4: #f53f3f;
+  --dsc-chart-color-5: #722ed1;
+  --dsc-chart-color-6: #14c9c9;
+  --dsc-chart-axis-color: #c9cdd4;
+  --dsc-chart-axis-label-color: #4e5969;
+  --dsc-chart-grid-color: rgba(201, 205, 212, 0.5);
+  --dsc-chart-tooltip-bg: rgba(29, 33, 41, 0.92);
+  --dsc-chart-tooltip-color: #ffffff;
+  --dsc-chart-legend-font-size: 12px;
+  --dsc-chart-axis-font-size: 12px;
+  --dsc-chart-value-font-size: 12px;
+  --dsc-chart-axis-line-width: 1px;
+  --dsc-chart-grid-line-width: 0.5px;
+  --dsc-chart-line-width: 1px;
+  --dsc-chart-reference-line-width: 1px;
+  --dsc-chart-bar-width-compact: 18px;
+  --dsc-chart-bar-width-standard: 28px;
+  /* ❓ 图例标记尺寸在现有图表中不统一 */
+  --dsc-candidate-chart-symbol-size-6: 6px;
+  --dsc-candidate-chart-legend-marker-12: 12px;
+}
+
+/* 深色大屏主题：只映射语义，不改变业务预警色 */
+[data-dsc-theme="dashboard-dark"] {
+  --dsc-color-bg-page: #020b16;
+  --dsc-color-bg-container: rgba(8, 28, 45, 0.82);
+  --dsc-color-text-primary: rgba(255, 255, 255, 0.95);
+  --dsc-color-text-secondary: rgba(255, 255, 255, 0.72);
+  --dsc-color-text-tertiary: rgba(255, 255, 255, 0.52);
+  --dsc-color-border: rgba(74, 165, 255, 0.28);
+  --dsc-chart-axis-color: rgba(120, 188, 255, 0.42);
+  --dsc-chart-axis-label-color: rgba(255, 255, 255, 0.72);
+  --dsc-chart-grid-color: rgba(98, 162, 219, 0.2);
+}

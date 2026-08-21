@@ -247,6 +247,10 @@ function selectBusinessChildMenu(line,gi,ci,name){
   if(line==="economy"&&parent?.name==="经济开项"&&name==="开项审批")return renderChild(()=>renderEconomyProjectInitiationPage());
   if(line==="economy"&&parent?.name==="大屏看板"&&name==="经济总览")return renderChild(()=>renderEconomyDashboardPage("overview"));
   if(line==="economy"&&parent?.name==="大屏看板"&&name==="经济诊断")return renderChild(()=>renderEconomyDashboardPage("diagnosis"));
+  if(line==="economy"&&parent?.name==="经济诊断"&&name==="诊断任务")return renderChild(()=>renderEconomyDiagnosisTaskPageRoute());
+  if(line==="economy"&&parent?.name==="经济诊断"&&name==="诊断结果")return renderChild(()=>renderEconomyDiagnosisResultPage());
+  if(line==="economy"&&parent?.name==="经济预警"&&name==="规则设置")return renderChild(()=>renderEconomyWarningRuleSettingsPage());
+  if(line==="economy"&&parent?.name==="经济预警"&&name==="预警通知")return renderChild(()=>renderEconomyWarningNoticePage());
 
   if(line==="safety")return renderChild(()=>renderSafetyPlaceholder(name));
 

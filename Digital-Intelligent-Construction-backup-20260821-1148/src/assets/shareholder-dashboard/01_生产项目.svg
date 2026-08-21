@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+
+<defs>
+  <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#8EDBFF"/>
+    <stop offset="45%" stop-color="#2D93FF"/>
+    <stop offset="100%" stop-color="#1557D5"/>
+  </linearGradient>
+  <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#8DFFF7"/>
+    <stop offset="50%" stop-color="#18D4D1"/>
+    <stop offset="100%" stop-color="#0788B8"/>
+  </linearGradient>
+  <linearGradient id="green" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#84FFD6"/>
+    <stop offset="55%" stop-color="#22D3A6"/>
+    <stop offset="100%" stop-color="#079A83"/>
+  </linearGradient>
+  <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#FFD878"/>
+    <stop offset="55%" stop-color="#FF9B2F"/>
+    <stop offset="100%" stop-color="#F05B20"/>
+  </linearGradient>
+  <linearGradient id="red" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#FF9A8D"/>
+    <stop offset="55%" stop-color="#FF5647"/>
+    <stop offset="100%" stop-color="#D92727"/>
+  </linearGradient>
+</defs>
+
+
+<g fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M20 18v-4.5A4.5 4.5 0 0 1 24.5 9h15A4.5 4.5 0 0 1 44 13.5V18" stroke="url(#blue)" stroke-width="3.2"/>
+  <rect x="10" y="18" width="44" height="33" rx="6" fill="url(#blue)" opacity=".92"/>
+  <path d="M10 30h44" stroke="#BDEBFF" stroke-width="2.5" opacity=".9"/>
+  <rect x="28" y="27" width="8" height="7" rx="2" fill="#DDF7FF"/>
+  <path d="M18 51v4M46 51v4" stroke="#4CA7FF" stroke-width="3"/>
+</g>
+
+</svg>

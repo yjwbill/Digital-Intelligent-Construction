@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>生产-产值看板</title>
+<base href="../../../">
+<link rel="stylesheet" href="./styles.css?v=2.2.355-safety-model-pending-publish">
+<link rel="stylesheet" href="./src/components/base-select/base-select.css">
+</head>
+<body>
+<script src="./src/app/shell/app-shell.js?v=2.2.355-safety-model-pending-publish"></script>
+
+<template data-production-dashboard-template="value">
+  <div class="safety-screen-page production-value-dashboard">
+    <div data-production-slot="header"></div>
+    <div class="safety-screen-body production-value-body">
+      <div class="production-value-org-tabs" data-production-slot="org-tabs"></div>
+      <section class="production-value-top-strip" data-production-slot="top"></section>
+      <section class="production-value-layout">
+        <div class="production-value-left">
+          <section class="production-value-panel main-output">
+            <div class="production-value-panel-hd"><h2>施工类产值</h2></div>
+            <div class="production-value-main-summary" data-production-slot="main-summary"></div>
+            <div class="production-value-main-matrix" data-production-slot="main-matrix"></div>
+          </section>
+        </div>
+        <div class="production-value-right" data-production-slot="right"></div>
+      </section>
+      <section class="production-value-bottom-grid" data-production-slot="bottom"></section>
+    </div>
+  </div>
+</template>
+
+<script src="./organization-data.js?v=2.2.355-safety-model-pending-publish"></script>
+<script src="./master-data.js?v=2.2.355-safety-model-pending-publish"></script>
+<script src="./src/app/production/dashboard-value.js?v=2.2.355-safety-model-pending-publish"></script>
+<script src="./app.js?v=2.2.355-safety-model-pending-publish"></script>
+<script src="./src/app/shell/mobile-overview-preview.js?v=2.2.355-safety-model-pending-publish"></script>
+</body>
+</html>

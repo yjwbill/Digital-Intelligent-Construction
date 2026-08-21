@@ -868,6 +868,15 @@ const businessMenus={
           {name:"经济诊断",active:true}
         ]
       },
+      {
+        icon:"🗓️",
+        name:"经济诊断",
+        open:true,
+        children:[
+          {name:"诊断任务",active:false},
+          {name:"诊断结果",active:false}
+        ]
+      },
       {icon:"📑",name:"合同管理",active:false},
       {
         icon:"📋",
@@ -875,6 +884,16 @@ const businessMenus={
         open:true,
         children:[
           {name:"开项审批",active:true}
+        ]
+      }
+      ,{
+        icon:"⚠️",
+        name:"经济预警",
+        open:true,
+        children:[
+          {name:"规则设置",active:true},
+          {name:"预警记录"},
+          {name:"预警通知",active:false}
         ]
       }
     ]
@@ -1317,6 +1336,9 @@ const messageAdminState={
   recordRead:"",
   recordClick:"",
   recordKeyword:"",
+  recordOrgAggregate:false,
+  recordOrgId:orgTreeData.id,
+  recordOrgKeyword:"",
   recordTab:"message",
   todoBiz:"",
   todoBizList:[],
@@ -1326,7 +1348,10 @@ const messageAdminState={
   todoRead:"",
   todoClick:"",
   todoHandle:"",
-  todoOverdue:""
+  todoOverdue:"",
+  todoOrgAggregate:false,
+  todoOrgId:orgTreeData.id,
+  todoOrgKeyword:""
 };
 
 const messageSendDrillState={
@@ -2480,4 +2505,18 @@ function renderUnifiedTableCard(options){
     </section>
   `;
 }
+
+/* StandardList is the page-level shell for enterprise list screens. */
+const StandardList={
+  render(options={}){
+    const variant=options.variant==="split"?"split":"table";
+    const customClass=String(options.className||"").trim();
+    const title=options.titleHtml||"";
+    if(variant==="split"){
+      return `<section class="standard-list standard-list-split ${customClass}">${title}<div class="standard-list-split-body"><aside class="standard-list-side">${options.sideHtml||""}</aside><main class="standard-list-main">${options.mainHtml||""}</main></div></section>`;
+    }
+    return `<section class="standard-list standard-list-table ${customClass}">${title}${options.queryHtml||""}${options.contentHtml||""}</section>`;
+  }
+};
+window.StandardList=StandardList;
 

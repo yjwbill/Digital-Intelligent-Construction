@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>首页-施工日志</title>
+<base href="../../../">
+<link rel="stylesheet" href="./styles.css?v=2.2.575-construction-log-multi-image-upload">
+<link rel="stylesheet" href="./src/components/base-select/base-select.css">
+</head>
+<body>
+<script src="./src/app/shell/app-shell.js?v=2.2.355-safety-model-pending-publish"></script>
+
+<template data-enterprise-construction-log-template>
+  <div class="compact-title-row">
+    <div class="module-title">施工日志</div>
+  </div>
+
+  <div data-enterprise-log-query></div>
+  <div data-enterprise-log-stats></div>
+
+  <section class="card table-card construction-project-table-card monthly-fill-table-card enterprise-construction-log-table-card">
+    <div class="card-hd">
+      <div class="card-title enterprise-log-table-title">
+        <span>施工日志上报明细</span>
+        <div class="enterprise-log-month-switch" aria-label="施工日志上报月份">
+          <button type="button" title="上一个月" aria-label="上一个月" data-enterprise-log-month-prev>&#8249;</button>
+          <strong data-enterprise-log-month-label></strong>
+          <button type="button" title="下一个月" aria-label="下一个月" data-enterprise-log-month-next>&#8250;</button>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" type="button" data-enterprise-log-refresh>刷新</button>
+        <button class="column-setting-icon-btn" type="button" title="列设置" data-enterprise-log-column-setting>⚙</button>
+      </div>
+    </div>
+
+    <div class="table-wrap roster-table-wrap">
+      <table id="enterpriseConstructionLogTable" class="monthly-fill-group-table">
+        <thead id="enterpriseConstructionLogThead"></thead>
+        <tbody id="enterpriseConstructionLogTbody"></tbody>
+      </table>
+    </div>
+
+    <div class="pagination">
+      <span id="enterpriseConstructionLogTotalText"></span>
+      <span id="enterpriseConstructionLogPageText"></span>
+    </div>
+  </section>
+</template>
+
+<script src="./organization-data.js?v=2.2.355-safety-model-pending-publish"></script>
+<script src="./master-data.js?v=2.2.355-safety-model-pending-publish"></script>
+<script src="./src/vendor/jszip.min.js?v=2.2.575-construction-log-multi-image-upload"></script>
+<script src="./src/app/shared/construction-log-word-export.js?v=2.2.575-construction-log-multi-image-upload"></script>
+<script>
+window.__APP_INITIAL_ROUTE__ = {
+  "mode": "enterprise",
+  "line": "home",
+  "menu": "施工日志"
+};
+</script>
+<script src="./app.js?v=2.2.575-construction-log-multi-image-upload"></script>
+<script src="./src/app/shell/mobile-overview-preview.js?v=2.2.355-safety-model-pending-publish"></script>
+</body>
+</html>

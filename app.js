@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.798-unified-list-page-titles";
+  const version="2.2.815-economy-warning-notice";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/vendor/jszip.min.js",
@@ -45,6 +45,8 @@
     "src/app/economy/economy-analysis-report.js",
     "src/app/economy/economy-monthly-check-report.js",
     "src/app/economy/dashboard.js",
+    "src/app/economy/economy-warning-rule-settings.js",
+    "src/app/economy/economy-warning-notice.js",
     "src/app/mobile/project-overview.js",
     "src/app/core/99-initial-route.js"
   ];

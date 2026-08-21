@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>生产-供应商管理</title>
+<base href="../../../">
+<link rel="stylesheet" href="./styles.css?v=2.2.355-safety-model-pending-publish">
+<link rel="stylesheet" href="./src/components/base-select/base-select.css">
+</head>
+<body>
+<script src="./src/app/shell/app-shell.js?v=2.2.355-safety-model-pending-publish"></script>
+
+<template data-supplier-template="ledger">
+  <div class="compact-title-row"><div class="module-title">供应商基础画像</div></div>
+  <section class="card unified-query-card">
+    <div class="card-hd">
+      <div class="card-title">查询条件</div>
+      <div class="actions">
+        <button class="btn" type="button" data-supplier-ledger-reset>重置</button>
+        <button class="btn primary" type="button" data-supplier-ledger-query>查询</button>
+      </div>
+    </div>
+    <div class="card-bd">
+      <div class="search-grid">
+        <div class="form-item"><label>分包商名称</label><input id="supplierNameFilter" class="input" placeholder="请输入分包商名称"/></div>
+        <div class="form-item"><label>承建分包工程名称</label><input id="supplierProjectFilter" class="input" placeholder="请输入承建分包工程名称"/></div>
+      </div>
+    </div>
+  </section>
+  <section class="card table-card">
+    <div class="card-hd">
+      <div class="card-title">供应商台账</div>
+      <div class="actions">
+        <button class="btn" type="button" data-supplier-ledger-refresh>刷新</button>
+        <button class="btn primary" type="button" data-supplier-ledger-export>导出</button>
+        <button class="column-setting-icon-btn" type="button" title="列设置" data-supplier-ledger-columns>⚙</button>
+      </div>
+    </div>
+    <div class="table-wrap roster-table-wrap">
+      <table id="supplierLedgerTable"><thead><tr id="supplierLedgerThead"></tr></thead><tbody id="supplierLedgerTbody"></tbody></table>
+    </div>
+    <div class="pagination"><span id="supplierTotalText">共 0 条</span><span>第 1 / 1 页　每页 10 条</span></div>
+  </section>
+</template>
+
+<template data-supplier-template="score">
+  <div class="compact-title-row"><div class="module-title">供应商评分记录</div></div>
+  <section class="card unified-query-card">
+    <div class="card-hd">
+      <div class="card-title">查询条件</div>
+      <div class="actions">
+        <button class="btn" type="button" data-supplier-score-reset>重置</button>
+        <button class="btn primary" type="button" data-supplier-score-query>查询</button>
+      </div>
+    </div>
+    <div class="card-bd">
+      <div class="search-grid">
+        <div class="form-item"><label>评价年份</label><select id="scoreYearFilter" class="select"><option selected>2026</option><option>2025</option><option>2024</option><option>2023</option></select></div>
+        <div class="form-item"><label>供应商名称</label><input id="scoreSupplierNameFilter" class="input" placeholder="请输入供应商名称"/></div>
+        <div class="form-item"><label>供应商分类</label><select id="scoreCategoryFilter" class="select"><option value="">全部</option><option>设备租赁</option><option>设备采购</option><option>材料采购</option><option>劳务分包</option><option>专业分包</option></select></div>
+        <div class="form-item"><label>采购商名称</label><input id="scorePurchaserNameFilter" class="input" placeholder="请输入采购商名称"/></div>
+      </div>
+    </div>
+  </section>
+  <section class="card table-card">
+    <div class="card-hd">
+      <div class="card-title">评分记录清单</div>
+      <div class="actions">
+        <button class="btn" type="button" data-supplier-score-refresh>刷新</button>
+        <button class="btn primary" type="button" data-supplier-score-export>导出</button>
+        <button class="column-setting-icon-btn" type="button" title="列设置" data-supplier-score-columns>⚙</button>
+      </div>
+    </div>
+    <div class="table-wrap roster-table-wrap">
+      <table id="supplierScoreTable"><thead><tr id="supplierScoreThead"></tr></thead><tbody id="supplierScoreTbody"></tbody></table>
+    </div>
+    <div class="pagination"><span id="supplierScoreTotalText">共 0 条</span><span>第 1 / 1 页　每页 10 条</span></div>
+  </section>
+</template>
+
+<template data-supplier-template="performance">
+  <div class="compact-title-row"><div class="module-title">履约评价</div></div>
+  <section class="card unified-query-card">
+    <div class="card-hd">
+      <div class="card-title">查询条件</div>
+      <div class="actions">
+        <button class="btn" type="button" data-performance-reset>重置</button>
+        <button class="btn primary" type="button" data-performance-query>查询</button>
+      </div>
+    </div>
+    <div class="card-bd">
+      <div class="search-grid">
+        <div class="form-item"><label>集团下属子公司</label><select id="perfSubCompanyFilter" class="select" data-performance-sub-company><option value="">全部</option></select></div>
+        <div class="form-item"><label>项目主管单位</label><input id="perfUnitFilter" class="input" placeholder="请输入项目主管单位"/></div>
+        <div class="form-item"><label>项目名称</label><input id="perfProjectFilter" class="input" placeholder="请输入项目名称"/></div>
+        <div class="form-item"><label>项目联合管理方</label><input id="perfJointFilter" class="input" placeholder="请输入项目联合管理方"/></div>
+        <div class="form-item"><label>项目经理</label><input id="perfManagerFilter" class="input" placeholder="请输入项目经理"/></div>
+      </div>
+    </div>
+  </section>
+  <section class="card table-card">
+    <div class="card-hd">
+      <div class="card-title">履约评价列表</div>
+      <div class="actions">
+        <button class="btn primary" type="button" data-performance-create>发起评价</button>
+        <button class="btn" type="button" data-performance-refresh>刷新</button>
+        <button class="btn primary" type="button" data-performance-export>导出</button>
+        <button class="column-setting-icon-btn" type="button" title="列设置" data-performance-columns>⚙</button>
+      </div>
+    </div>
+    <div class="table-wrap roster-table-wrap">
+      <table id="performanceTable"><thead><tr id="performanceThead"></tr></thead><tbody id="performanceTbody"></tbody></table>
+    </div>
+    <div class="pagination"><span id="performanceTotalText">共 0 条</span><span>第 1 / 1 页　每页 10 条</span></div>
+  </section>
+</template>
+
+<script src="./organization-data.js?v=2.2.355-safety-model-pending-publish"></script>
+<script src="./master-data.js?v=2.2.355-safety-model-pending-publish"></script>
+<script>
+window.__APP_INITIAL_ROUTE__ = {
+  "mode": "enterprise",
+  "line": "production",
+  "group": "供应商管理",
+  "child": "基础画像"
+};
+</script>
+<script src="./app.js?v=2.2.355-safety-model-pending-publish"></script>
+<script src="./src/app/shell/mobile-overview-preview.js?v=2.2.355-safety-model-pending-publish"></script>
+</body>
+</html>

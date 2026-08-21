@@ -278,8 +278,9 @@ function enterDigitalConstructionMobileProject(){
 }
 
 const enterpriseMobileState={tab:"home",edition:"domestic"};
+const enterpriseMobileEconomyLatestMonth="2026-08";
 const enterpriseMobileEconomyFilterState={
-  month:"2024-03",
+  month:enterpriseMobileEconomyLatestMonth,
   company:"",
   branch:"",
   region:"",
@@ -288,6 +289,7 @@ const enterpriseMobileEconomyFilterState={
   draft:null,
   context:"board"
 };
+const enterpriseMobileEconomyDetailState={identifier:""};
 const enterpriseMobileHomeCards=[
   {title:"项目经济看板",art:"dashboard",image:"./src/assets/economy/project-total.svg"},
   {title:"项目月度检验报告",art:"report",image:"./src/assets/economy/economy-month-picker-file.svg"},
@@ -342,9 +344,16 @@ function renderEnterpriseMobileHomeCard(card){
   </article>`;
 }
 
+function getEnterpriseEconomyBoardTitle(){
+  return `项目经济看板-${enterpriseMobileState.edition==="international"?"国际版":"国内版"}`;
+}
+
 function openEnterpriseMobileHomeCard(art,edition){
   enterpriseMobileState.edition=edition==="international"?"international":"domestic";
-  if(art==="dashboard")return renderEnterpriseMobileEconomyBoard();
+  if(art==="dashboard"){
+    Object.assign(enterpriseMobileEconomyFilterState,{month:enterpriseMobileEconomyLatestMonth,company:"",branch:"",region:"",sector:"",open:"",draft:null,context:"board"});
+    return renderEnterpriseMobileEconomyBoard();
+  }
   if(art==="report")return renderEnterpriseMobileInspectionReport();
   const card=enterpriseMobileHomeCards.find(item=>item.art===art);
   showToast(`${enterpriseMobileState.edition==="international"?"国际版":"国内版"}${card?.title||"页面"}待接入`);
@@ -419,6 +428,7 @@ function formatEnterpriseEconomyMonth(value){
 }
 function refreshEnterpriseEconomyFilterContext(){
   if(enterpriseMobileEconomyFilterState.context==="report")return renderEnterpriseMobileInspectionReport();
+  if(enterpriseMobileEconomyFilterState.context==="detail")return renderEnterpriseEconomyProjectDetailPage();
   return renderEnterpriseMobileEconomyBoard();
 }
 
@@ -426,7 +436,7 @@ function openEnterpriseEconomyFilter(kind){
   const state=enterpriseMobileEconomyFilterState;
   state.open=kind;
   state.draft=kind==="month"
-    ?{month:state.month,year:Number(state.month.slice(0,4))||2024}
+    ?{month:state.month,year:Number(state.month.slice(0,4))||Number(enterpriseMobileEconomyLatestMonth.slice(0,4))}
     :kind==="company"
       ?{company:state.company,branch:state.branch}
       :{value:kind==="region"?state.region:state.sector};
@@ -441,7 +451,7 @@ function closeEnterpriseEconomyFilter(){
 
 function resetEnterpriseEconomyFilterDraft(){
   const state=enterpriseMobileEconomyFilterState;
-  if(state.open==="month")state.draft={month:"2024-03",year:2024};
+  if(state.open==="month")state.draft={month:enterpriseMobileEconomyLatestMonth,year:Number(enterpriseMobileEconomyLatestMonth.slice(0,4))};
   else if(state.open==="company")state.draft={company:"",branch:""};
   else state.draft={value:""};
   refreshEnterpriseEconomyFilterContext();
@@ -499,19 +509,40 @@ function getEnterpriseMobileRiskCounts(rows){
 
 function renderEnterpriseMobileFilterBar(){
   const state=enterpriseMobileEconomyFilterState;
-  const companyLabel=state.branch||state.company||"全部公司";
+  const companyLabel=state.branch||state.company||"隧道股份";
   return `<section class="enterprise-economy-filterbar" aria-label="项目经济筛选">
-    <button type="button" class="${state.month!=="2024-03"?"selected":""}" onclick="openEnterpriseEconomyFilter('month')" aria-label="选择年月">${formatEnterpriseEconomyMonth(state.month)}<span class="enterprise-filter-calendar" aria-hidden="true"></span></button>
+    <button type="button" class="${state.month!==enterpriseMobileEconomyLatestMonth?"selected":""}" onclick="openEnterpriseEconomyFilter('month')" aria-label="选择年月">${formatEnterpriseEconomyMonth(state.month)}<span class="enterprise-filter-calendar" aria-hidden="true"></span></button>
     <button type="button" class="${state.company?"selected":""}" onclick="openEnterpriseEconomyFilter('company')" aria-label="选择公司" title="${companyLabel}"><span>${companyLabel}</span><span class="enterprise-filter-org" aria-hidden="true"></span></button>
     <button type="button" class="${state.region?"selected":""}" onclick="openEnterpriseEconomyFilter('region')" aria-label="选择区域" title="${state.region||"全部区域"}"><span>${state.region||"全部区域"}</span><span class="enterprise-filter-region" aria-hidden="true"></span></button>
-    <button type="button" class="${state.sector?"selected":""}" onclick="openEnterpriseEconomyFilter('sector')" aria-label="选择板块" title="${state.sector||"全部板块"}"><span>${state.sector||"板块"}</span><span class="enterprise-filter-arrow" aria-hidden="true"></span></button>
+    <button type="button" class="${state.sector?"selected":""}" onclick="openEnterpriseEconomyFilter('sector')" aria-label="选择板块" title="${state.sector||"全部板块"}"><span>${state.sector||"全部板块"}</span><span class="enterprise-filter-arrow" aria-hidden="true"></span></button>
   </section>`;
+}
+
+function renderMobileMonthPicker(options={}){
+  const value=String(options.value||"");
+  const year=Number(options.year)||Number(value.slice(0,4))||new Date().getFullYear();
+  const min=String(options.min||"2022-01");
+  const max=String(options.max||"2026-12");
+  const previousDisabled=year<=Number(min.slice(0,4));
+  const nextDisabled=year>=Number(max.slice(0,4));
+  const onYearChange=options.onYearChange||"";
+  const onSelect=options.onSelect||"";
+  return `<div class="mobile-month-picker" aria-label="年月选择器">
+    <div class="mobile-month-picker-head"><button type="button" ${previousDisabled?"disabled":""} onclick="${onYearChange}(-1)" aria-label="上一年">‹</button><strong>${year}年</strong><button type="button" ${nextDisabled?"disabled":""} onclick="${onYearChange}(1)" aria-label="下一年">›</button></div>
+    <div class="mobile-month-picker-grid">${Array.from({length:12},(_,index)=>index+1).map(month=>{const monthValue=`${year}-${String(month).padStart(2,"0")}`;const disabled=monthValue<min||monthValue>max;return `<button type="button" class="${value===monthValue?"selected":""}" ${disabled?"disabled":""} onclick="${onSelect}(${month})">${month}月</button>`;}).join("")}</div>
+  </div>`;
 }
 
 function renderEnterpriseEconomyMonthPicker(){
   const draft=enterpriseMobileEconomyFilterState.draft;
-  return `<div class="enterprise-economy-month-head"><button type="button" onclick="moveEnterpriseEconomyMonthYear(-1)" aria-label="上一年">‹</button><strong>${draft.year}年</strong><button type="button" onclick="moveEnterpriseEconomyMonthYear(1)" aria-label="下一年">›</button></div>
-    <div class="enterprise-economy-month-grid">${Array.from({length:12},(_,index)=>index+1).map(month=>{const value=`${draft.year}-${String(month).padStart(2,"0")}`;const disabled=value>"2026-08";return `<button type="button" class="${draft.month===value?"selected":""}" ${disabled?"disabled":""} onclick="selectEnterpriseEconomyMonth(${month})">${month}月</button>`;}).join("")}</div>`;
+  return renderMobileMonthPicker({
+    value:draft.month,
+    year:draft.year,
+    min:"2022-01",
+    max:enterpriseMobileEconomyLatestMonth,
+    onYearChange:"moveEnterpriseEconomyMonthYear",
+    onSelect:"selectEnterpriseEconomyMonth"
+  });
 }
 
 function renderEnterpriseEconomyCompanyPicker(){
@@ -545,7 +576,7 @@ function renderEnterpriseEconomyPickerOverlay(){
   const state=enterpriseMobileEconomyFilterState;
   if(!state.open||!state.draft)return "";
   const titles={month:"选择年月",company:"选择公司",region:"选择区域",sector:"选择板块"};
-  const summary=state.open==="month"?formatEnterpriseEconomyMonth(state.draft.month):state.open==="company"?(state.draft.branch||state.draft.company||"全部公司"):(state.draft.value||(state.open==="region"?"全部区域":"全部板块"));
+  const summary=state.open==="month"?formatEnterpriseEconomyMonth(state.draft.month):state.open==="company"?(state.draft.branch||state.draft.company||"隧道股份"):(state.draft.value||(state.open==="region"?"全部区域":"全部板块"));
   const content=state.open==="month"?renderEnterpriseEconomyMonthPicker():state.open==="company"?renderEnterpriseEconomyCompanyPicker():renderEnterpriseEconomySimplePicker(state.open);
   return `<div class="enterprise-economy-picker-overlay" onclick="closeEnterpriseEconomyFilter()">
     <section class="enterprise-economy-picker-sheet mobile-picker-demo" role="dialog" aria-modal="true" aria-label="${titles[state.open]}" onclick="event.stopPropagation()">
@@ -569,7 +600,7 @@ function renderEnterpriseEconomySummary(rows){
     <header>
       <span class="enterprise-economy-section-icon" aria-hidden="true"></span>
       <h2>项目经济预警总览</h2>
-      <button type="button" onclick="openEconomyMonthlyCheckReport?.()">月度检验单<span aria-hidden="true">♡</span></button>
+      <button type="button" onclick="openEnterpriseEconomyMonthlyCheckReport()">月度检验单<span aria-hidden="true">♡</span></button>
     </header>
     <div class="enterprise-economy-summary-grid">
       <div><span>项目总数</span><strong>${rows.length}<em>+1</em></strong></div>
@@ -585,8 +616,31 @@ function renderEnterpriseEconomySummary(rows){
   </section>`;
 }
 
+function getEnterpriseEconomyWarningTypes(){
+  return typeof economyWarningTypes!=="undefined"?economyWarningTypes:[];
+}
+
+function getEnterpriseEconomyWarningName(type){
+  return typeof getEconomyWarningDisplayName==="function"?getEconomyWarningDisplayName(type,false,enterpriseMobileState.edition):type.name;
+}
+
+function getEnterpriseEconomyWarningColumnLabel(type){
+  const fullName=getEnterpriseEconomyWarningName(type);
+  const international=enterpriseMobileState.edition==="international";
+  const lines=international
+    ?{subcontract:["目标","成本","预警"],loss:["目标","利润率","预警"],settlement:["结算","预警"],arrears:["拖欠款","预警"]}
+    :{subcontract:["合同","预警"],loss:["潜亏","预警"],settlement:["结算","预警"],arrears:["拖欠款","预警"]};
+  const parts=lines[type.key]||[fullName];
+  return `<span class="${parts.length>2?"compact-three-lines":""}" title="${escapeAttr(fullName)}" aria-label="${escapeAttr(fullName)}">${parts.join("<br>")}</span>`;
+}
+
+function openEnterpriseEconomyMonthlyCheckReport(){
+  if(typeof economyDashboardState!=="undefined")Object.assign(economyDashboardState,{edition:enterpriseMobileState.edition,month:enterpriseMobileEconomyFilterState.month});
+  if(typeof openEconomyMonthlyCheckReport==="function")openEconomyMonthlyCheckReport();
+}
+
 function renderEnterpriseEconomyRiskStats(rows){
-  const types=typeof economyWarningTypes!=="undefined"?economyWarningTypes:[];
+  const types=getEnterpriseEconomyWarningTypes();
   return `<section class="enterprise-economy-card enterprise-economy-risk-stats">
     <header>
       <span class="enterprise-economy-warning-title-icon" aria-hidden="true"></span>
@@ -601,7 +655,7 @@ function renderEnterpriseEconomyRiskStats(rows){
         const color=row.warnings?.[type.key]||"none";
         counts[color]=(counts[color]||0)+1;
       });
-      const title=typeof getEconomyWarningDisplayName==="function"?getEconomyWarningDisplayName(type):type.name;
+      const title=getEnterpriseEconomyWarningName(type);
       return `<div class="enterprise-economy-risk-row"><span>${title}</span><b class="red">${counts.red||0}</b><b class="orange">${counts.orange||"-"}</b><b class="yellow">${counts.yellow||"-"}</b><b class="blue">${counts.blue||"-"}</b><b>${counts.none||0}</b></div>`;
     }).join("")}
   </section>`;
@@ -609,15 +663,15 @@ function renderEnterpriseEconomyRiskStats(rows){
 
 function renderEnterpriseEconomyProjectList(rows){
   const list=rows.slice(0,5);
-  const warningKeys=["subcontract","loss","arrears","settlement"];
+  const types=getEnterpriseEconomyWarningTypes();
   return `<section class="enterprise-economy-card enterprise-economy-project-list">
     <header>
       <span class="enterprise-economy-section-icon" aria-hidden="true"></span>
       <h2>项目列表</h2>
     </header>
     <div class="enterprise-economy-project-table">
-      <div class="enterprise-economy-project-head"><span>序号</span><span>项目名称</span><span>合同<br>预警</span><span>潜亏<br>预警</span><span>拖欠款<br>预警</span><span>结算<br>预警</span></div>
-      ${list.map((row,index)=>`<button type="button" class="enterprise-economy-project-row" onclick="openEnterpriseEconomyProjectDetail('${escapeAttr(row.sourceProjectId||row.id||row.projectName)}')"><span>${index+1}</span><strong>${row.projectName}</strong>${warningKeys.map(key=>renderEnterpriseRiskDot(row.warnings?.[key],row.overdue?.[key])).join("")}</button>`).join("")}
+      <div class="enterprise-economy-project-head ${enterpriseMobileState.edition}"><span>序号</span><span>项目名称</span>${types.map(getEnterpriseEconomyWarningColumnLabel).join("")}</div>
+      ${list.map((row,index)=>`<button type="button" class="enterprise-economy-project-row" onclick="openEnterpriseEconomyProjectDetail('${escapeAttr(row.sourceProjectId||row.id||row.projectName)}')"><span>${index+1}</span><strong>${row.projectName}</strong>${types.map(type=>renderEnterpriseRiskDot(row.warnings?.[type.key],row.overdue?.[type.key])).join("")}</button>`).join("")}
     </div>
   </section>`;
 }
@@ -627,9 +681,11 @@ function getEnterpriseEconomyProjectDetailRow(identifier){
   return rows.find(row=>String(row.sourceProjectId||row.id||row.projectName)===String(identifier))||rows[0];
 }
 function renderEnterpriseEconomyDetailRisk(row){
+  const types=Object.fromEntries(getEnterpriseEconomyWarningTypes().map(type=>[type.key,type]));
+  const international=enterpriseMobileState.edition==="international";
   const risks=[
-    {label:"业主拖欠款预警",key:"arrears",items:[["账龄预警",1]]},
-    {label:"分包分供等合同预警",key:"subcontract",items:[["上报结算价预警",2],["结算周期预警",1]]}
+    {label:getEnterpriseEconomyWarningName(types.arrears),key:"arrears",items:international?[[getProjectEconomyInternationalWarningName("GJ-04-09"),1]]:[["账龄预警",1]]},
+    {label:getEnterpriseEconomyWarningName(types.subcontract),key:"subcontract",items:international?[[getProjectEconomyInternationalWarningName("GJ-01-01"),2]]:[["上报结算价预警",2],["结算周期预警",1]]}
   ];
   return risks.map(risk=>`<div class="enterprise-economy-detail-risk-group"><i class="${row.warnings?.[risk.key]||"blue"}"></i><strong>${risk.label}</strong><div>${risk.items.map(([item,count])=>`<span><img src="./src/assets/economy-warning/${count===2?"two-thunders.svg":"one-thunder.svg"}" alt="${count===2?"二颗雷":"一颗雷"}">${item}<time>2024-04-15</time></span>`).join("")}</div></div>`).join("");
 }
@@ -645,25 +701,33 @@ function renderEnterpriseEconomyProjectDetail(row){
   const type=project.projectType||"市政";
   const warningLevel=project.warnings?.arrears||project.warnings?.subcontract||"red";
   return `<div class="mobile-workbench enterprise-mobile-page enterprise-economy-detail-page">
-    ${renderEnterpriseMobileHeader("项目经济看板","renderEnterpriseMobileEconomyBoard()")}
+    ${renderEnterpriseMobileHeader(getEnterpriseEconomyBoardTitle(),"renderEnterpriseMobileEconomyBoard()")}
     <main class="enterprise-economy-detail-scroll">
       <section class="enterprise-economy-detail-summary">
         <h2>${name}</h2>
-        <div class="enterprise-economy-detail-risk-line"><strong>风险状态：</strong><i class="${warningLevel}"></i><button type="button" onclick="showToast('当前选择${formatEnterpriseEconomyMonth(enterpriseMobileEconomyFilterState.month)}')">${formatEnterpriseEconomyMonth(enterpriseMobileEconomyFilterState.month)}<span>▦</span></button></div>
+        <div class="enterprise-economy-detail-risk-line"><strong>风险状态：</strong><i class="${warningLevel}"></i><button type="button" onclick="openEnterpriseEconomyFilter('month')" aria-label="选择年月">${formatEnterpriseEconomyMonth(enterpriseMobileEconomyFilterState.month)}<span class="enterprise-filter-calendar" aria-hidden="true"></span></button></div>
         <div class="enterprise-economy-detail-info"><p>所属公司：<b>${company}/${branch}</b></p><p>项目状态：<b>在建</b></p><p>项目区域：<b>${region}</b></p><p>项目板块：<b>${type}</b></p><p class="wide">项目工期：<b>2021-10-28~2026-11-14</b></p></div>
         <div class="enterprise-economy-detail-metrics">${renderEnterpriseEconomyDetailMetric("开累产值","10,955.51","万元")}${renderEnterpriseEconomyDetailMetric("合同总额","10,955.51","万元")}${renderEnterpriseEconomyDetailMetric("产值完成率","78.91","%")}${renderEnterpriseEconomyDetailMetric("开累营收","10,955.51","万元")}${renderEnterpriseEconomyDetailMetric("目标利润率","78.91","%")}</div>
       </section>
       <section class="enterprise-economy-detail-card enterprise-economy-detail-warning"><header><img class="detail-section-icon warning" src="./src/assets/mobile-tab/economy-risk-status.svg" alt=""><h2>预警指标风险状态</h2><button onclick="showToast('检验报告待接入')">检验报告 ♡</button></header><div class="enterprise-economy-detail-risk-list">${renderEnterpriseEconomyDetailRisk(project)}</div><p class="enterprise-economy-detail-trend">风险发展趋势分析：本项目当前经济风险“较大”趋势基本没有改变</p></section>
       <section class="enterprise-economy-detail-card enterprise-economy-detail-linked"><header><span class="detail-section-icon linked"></span><h2>预警关联项动态</h2></header><div class="enterprise-economy-detail-linked-grid">${renderEnterpriseEconomyDetailMetric("分包分供合同金额","5323.34","万元",true)}${renderEnterpriseEconomyDetailMetric("主体（主要）劳务合同个数","8 / 6","个",true)}${renderEnterpriseEconomyDetailMetric("专业分包合同匹配率","80.00","%",true)}${renderEnterpriseEconomyDetailMetric("存货","-5559.36","万元",true)}${renderEnterpriseEconomyDetailMetric("资金结余","993.22","万元")}${renderEnterpriseEconomyDetailMetric("分包单位产值计量率","98.24","%",true)}${renderEnterpriseEconomyDetailMetric("项目管理费使用率","45.70","%")}${renderEnterpriseEconomyDetailMetric("增值税税负","900.00","万元",true)}${renderEnterpriseEconomyDetailMetric("关键节点偏差","27","天")}${renderEnterpriseEconomyDetailMetric("结算价","未到完工阶段","")}</div></section>
     </main>
+    ${renderEnterpriseEconomyPickerOverlay()}
   </div>`;
 }
-function openEnterpriseEconomyProjectDetail(identifier){
+function renderEnterpriseEconomyProjectDetailPage(){
   const app=document.querySelector(".app");
-  const row=getEnterpriseEconomyProjectDetailRow(identifier);
+  const row=getEnterpriseEconomyProjectDetailRow(enterpriseMobileEconomyDetailState.identifier);
   if(!app||!row)return;
+  enterpriseMobileEconomyFilterState.context="detail";
   window.__digitalConstructionMode="enterprise-mobile-economy-detail";
   app.innerHTML=renderEnterpriseEconomyProjectDetail(row);
+  document.body.classList.add("mobile-mode","enterprise-mobile-mode");
+  document.body.classList.remove("entry-mode","component-library-mode");
+}
+function openEnterpriseEconomyProjectDetail(identifier){
+  enterpriseMobileEconomyDetailState.identifier=String(identifier||"");
+  renderEnterpriseEconomyProjectDetailPage();
 }
 window.openEnterpriseEconomyProjectDetail=openEnterpriseEconomyProjectDetail;
 
@@ -677,7 +741,7 @@ function renderEnterpriseMobileEconomyBoard(){
   document.body.classList.add("mobile-mode","enterprise-mobile-mode");
   document.body.classList.remove("entry-mode","component-library-mode");
   app.innerHTML=`<div class="mobile-workbench enterprise-mobile-page enterprise-economy-board-page">
-    ${renderEnterpriseMobileHeader("项目经济看板","renderEnterpriseMobilePage('home')")}
+    ${renderEnterpriseMobileHeader(getEnterpriseEconomyBoardTitle(),"renderEnterpriseMobilePage('home')")}
     <main class="enterprise-economy-board-scroll">
       ${renderEnterpriseMobileFilterBar()}
       ${renderEnterpriseEconomySummary(rows)}
@@ -824,6 +888,7 @@ const componentLibraryMonthPickerState={
 };
 
 const componentMobilePickerStateV2298={
+  month:{value:"2026-06",year:2026},
   orgSingle:{company:"",branches:[]},
   orgMultiple:{company:"",branches:[]},
   areaSingle:{province:"福建",city:"福州市",districts:["鼓楼区"],provinces:[],cities:[]},
@@ -891,12 +956,12 @@ const componentLibraryMenusV2288={
     {group:"设计规范",items:[["design-token","设计变量 Design Token"]]},
     {group:"基础组件",items:[["button","按钮 Button"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"],["month","年月选择器 MonthPicker"]]},
     {group:"表单组件",items:[["input","输入框 Input"],["select","选择器 Select"]]},
-    {group:"数据展示",items:[["tag","标签 Tag"],["table","表格 Table"],["row-span-table","纵跨行组件 RowSpanTable"]]},
+    {group:"数据展示",items:[["tag","标签 Tag"],["table","表格 Table"],["standard-list","标准列表 StandardList"],["row-span-table","纵跨行组件 RowSpanTable"]]},
     {group:"弹层组件",items:[["modal-standard","基础标准弹框 Modal"],["modal-fullscreen","全屏弹框 FullscreenModal"],["modal-nested","嵌套弹框 NestedModal"],["modal-business","业务定制弹框 BusinessModal"],["modal-immersive","沉浸式预览弹框 ImmersiveModal"],["modal-mobile","移动端弹层 MobileOverlay"],["modal-lightweight","轻量浮层 Popover"]]},
     {group:"业务组件",items:[["statistics-filter","统计筛选 StatisticsFilter"],["dashboard-org-switch","看板组织切换 DashboardOrgSwitch"],["project-selector","项目选择器 ProjectSelector"]]}
   ],
   mobile:[
-    {group:"基础组件",items:[["button","按钮 Button"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"]]},
+    {group:"基础组件",items:[["button","按钮 Button"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"],["mobile-month","年月选择器 MobileMonthPicker"]]},
     {group:"组织选择器 OrganizationPicker",items:[["org-single-picker","组织选择器-单选 OrgSinglePicker"],["org-multiple-picker","组织选择器-多选 OrgMultiplePicker"]]},
     {group:"省市区选择器 AreaPicker",items:[["area-single-picker","省市区选择器-单选 AreaSinglePicker"],["area-multiple-picker","省市区选择器-多选 AreaMultiplePicker"]]},
     {group:"反馈组件",items:[["toast","轻提示 Toast"],["sheet","底部面板 ActionSheet"]]},
@@ -1234,6 +1299,7 @@ function renderPcComponentPreviewV2288(type){
       </div>
       <p>标准 Table 提供单行和多行两种表头模式。单行表头固定 44px；使用 <code>table-multiline-header</code> 标识双行或多级表头，每层固定 40px，并通过 rowspan / colspan 表达分组关系。所有数据行统一 40px，支持列设置、分页、导出和固定表头。</p>
     `,
+    "standard-list":renderStandardListPreviewV2300(),
     "row-span-table":renderPcRowSpanTablePreviewV2609(),
     "modal-standard":ModalGallery.renderPreview("standard"),
     "modal-fullscreen":ModalGallery.renderPreview("fullscreen"),
@@ -1262,6 +1328,12 @@ function renderPcComponentPreviewV2288(type){
     "project-selector":ProjectSelector.renderLibraryPreview()
   };
   return demos[type] || demos.button;
+}
+
+function renderStandardListPreviewV2300(){
+  const query=renderUnifiedQueryCard(`<div class="form-item"><label>项目名称</label><input class="input" placeholder="请输入项目名称"></div><div class="form-item"><label>项目状态</label><select class="select"><option>全部</option><option>在建</option></select></div>`,{queryFn:"showToast('标准列表查询')",resetFn:"showToast('标准列表已重置')",canCollapse:false});
+  const table=`<section class="card table-card component-standard-list-demo-table"><div class="card-hd"><div class="card-title">表格列表</div><div class="actions"><button class="btn">刷新</button><button class="btn primary">导出</button></div></div><div class="table-wrap roster-table-wrap"><table><thead><tr><th>序号</th><th>项目名称</th><th>所属组织</th><th>状态</th></tr></thead><tbody><tr><td>1</td><td>机场联络线工程</td><td>上海隧道 / 轨交分公司</td><td>${tag("在建","green")}</td></tr><tr><td>2</td><td>大外环西段项目</td><td>市政集团 / 第一建筑</td><td>${tag("停工","orange")}</td></tr></tbody></table></div></section>`;
+  return `<div class="standard-list-preview"><section><h4>类型一：标准列表</h4>${StandardList.render({variant:"table",queryHtml:query,contentHtml:table})}</section><section><h4>类型二：左侧内容 + 列表</h4>${StandardList.render({variant:"split",sideHtml:`<div class="component-standard-list-side-demo"><strong>组织树</strong><button class="active">隧道股份</button><button>上海隧道</button><button>市政集团</button></div>`,mainHtml:`${query}${table}`})}</section><p>StandardList 统一页面标题、查询区、表格卡片和分页布局；table 适用于完整列表，split 适用于左侧组织树、分类或选项的列表页面。</p></div>`;
 }
 
 function renderDesignTokenPreviewV01(){
@@ -1482,6 +1554,28 @@ function renderComponentPickerCheckV2298(selected){
   return `<i class="mobile-picker-check ${selected?"checked":""}"></i>`;
 }
 
+function moveComponentMobileMonthYear(delta){
+  const state=componentMobilePickerStateV2298.month;
+  state.year=Math.min(2026,Math.max(2022,state.year+(Number(delta)||0)));
+  refreshComponentLibraryPreviewV2300();
+}
+
+function selectComponentMobileMonth(month){
+  const state=componentMobilePickerStateV2298.month;
+  state.value=`${state.year}-${String(month).padStart(2,"0")}`;
+  refreshComponentLibraryPreviewV2300();
+}
+
+function renderMobileMonthPickerPreview(){
+  const state=componentMobilePickerStateV2298.month;
+  return `<div class="mobile-picker-demo">
+    <header class="mobile-picker-header"><strong>年月选择器</strong></header>
+    <div class="mobile-picker-summary"><span>当前选择</span><b>${formatEnterpriseEconomyMonth(state.value)}</b></div>
+    ${renderMobileMonthPicker({value:state.value,year:state.year,min:"2022-01",max:"2026-08",onYearChange:"moveComponentMobileMonthYear",onSelect:"selectComponentMobileMonth"})}
+    <footer class="mobile-picker-footer"><button type="button" onclick="componentMobilePickerStateV2298.month={value:'2026-06',year:2026};refreshComponentLibraryPreviewV2300()">重置</button><button type="button" class="primary" onclick="showToast('已选择：${formatEnterpriseEconomyMonth(state.value)}')">确定</button></footer>
+  </div>`;
+}
+
 function renderMobileOrgPickerPreviewV2298(mode,title){
   ensureComponentOrgPickerStateV2298(mode);
   const state=getComponentOrgPickerStateV2298(mode);
@@ -1594,12 +1688,13 @@ function renderMobileComponentPreviewV2288(type){
     card:`
       <div class="mobile-component-card"><strong>上海示范区线工程</strong><span>项目状态：在建</span><em>今日待办 2 条，消息 4 条</em></div>
     `,
+    "mobile-month":renderMobileMonthPickerPreview(),
     "org-single-picker":renderMobileOrgPickerPreviewV2298("single","组织选择器-单选"),
     "org-multiple-picker":renderMobileOrgPickerPreviewV2298("multi","组织选择器-多选"),
     "area-single-picker":renderMobileAreaPickerPreviewV2298("single","省市区选择器-单选"),
     "area-multiple-picker":renderMobileAreaPickerPreviewV2298("multi","省市区选择器-多选")
   };
-  const pickerTypes=["org-single-picker","org-multiple-picker","area-single-picker","area-multiple-picker"];
+  const pickerTypes=["mobile-month","org-single-picker","org-multiple-picker","area-single-picker","area-multiple-picker"];
   return `
     <div class="component-phone-frame ${pickerTypes.includes(type)?"picker-phone":""}">
       <div class="component-phone-top"></div>

@@ -429,6 +429,58 @@ function renderProjectRange(startId,endId,type="text",placeholderA="起始",plac
   return `<div class="date-range ep-date-range project-range"><input id="${startId}" class="input" type="${type}" placeholder="${placeholderA}"/><span>至</span><input id="${endId}" class="input" type="${type}" placeholder="${placeholderB}"/></div>`;
 }
 
+function getConstructionProjectProgressRecord(project){
+  const today=typeof getProjectLogTodayValue==="function"?getProjectLogTodayValue():"";
+  const customRows=typeof projectLogCustomRows!=="undefined"
+    ?projectLogCustomRows.filter(row=>row.projectName===project.projectName&&row.date===today&&!globalThis.projectLogDeletedKeys?.has(`${project.projectName}|${today}`))
+    :[];
+  if(customRows.length){
+    return typeof mergeProjectLogDateGroup==="function"?mergeProjectLogDateGroup(customRows):customRows[0];
+  }
+
+  const reportDate=typeof constructionLogDataRange!=="undefined"?constructionLogDataRange.end:"2026-07-13";
+  const monthValue=reportDate.slice(0,7);
+  const day=Number(reportDate.slice(8,10));
+  if(typeof getEnterpriseConstructionLogDayStateForMonth!=="function"||typeof getEnterpriseConstructionLogReportRecord!=="function")return null;
+  if(getEnterpriseConstructionLogDayStateForMonth(project,day,monthValue)!=="reported")return null;
+  return getEnterpriseConstructionLogReportRecord(project,day,monthValue);
+}
+
+function getConstructionProjectProgressText(project){
+  const record=getConstructionProjectProgressRecord(project);
+  if(!record)return "--";
+  const parts=[];
+  const hasOnline=record.hasOnline===true||record.mode==="online"||record.mode==="merged";
+  const hasFile=record.hasFile===true||record.mode==="file"||record.mode==="merged";
+
+  if(hasOnline){
+    const onlineRecord=record.onlineRecord||record;
+    const detail=typeof getProjectLogReadonlyOnlineDetail==="function"?getProjectLogReadonlyOnlineDetail(onlineRecord):onlineRecord;
+    const onlineParts=(Array.isArray(detail?.today)?detail.today:[]).map(item=>{
+      const area=String(item.area||onlineRecord.workArea||"").trim();
+      const progress=String(item.progress||"").trim();
+      return [area,progress].filter(Boolean).join("+");
+    }).filter(Boolean);
+    parts.push(...onlineParts);
+  }
+
+  if(hasFile){
+    const fileRecord=record.fileRecord||record;
+    const entries=Array.isArray(fileRecord.fileEntries)?fileRecord.fileEntries:[];
+    const descriptions=entries.map(entry=>String(entry.remark||entry.summary||"").trim()).filter(Boolean);
+    if(descriptions.length)parts.push(...descriptions);
+    else if(fileRecord.summary)parts.push(String(fileRecord.summary).trim());
+  }
+
+  return parts.filter(Boolean).join("；")||"--";
+}
+
+function renderConstructionProjectProgress(project){
+  const text=getConstructionProjectProgressText(project);
+  const safeText=escapeAttr(text);
+  return `<span class="text-ellipsis" title="${safeText}">${safeText}</span>`;
+}
+
 tableColumnDefinitions.constructionProject=[
   {key:"index",title:"序号",width:70,align:"center",render:(r,i)=>(constructionProjectCurrentPage-1)*constructionProjectPageSize+i+1},
   {key:"projectName",title:"项目名称",width:240,render:r=>`<button type="button" class="link project-name-link text-ellipsis" title="${r.projectName}" data-construction-project-detail="${r.id}">${r.projectName}</button>`},
@@ -441,6 +493,7 @@ tableColumnDefinitions.constructionProject=[
   {key:"region",title:"所属区域",width:120,render:r=>r.region},
   {key:"detailAddress",title:"详细地址",width:240,render:r=>`<span class="text-ellipsis" title="${r.detailAddress}">${r.detailAddress}</span>`},
   {key:"builder",title:"建设单位",width:220,render:r=>`<span class="text-ellipsis" title="${r.builder}">${r.builder}</span>`},
+  {key:"projectProgress",title:"项目进展情况",width:150,render:r=>renderConstructionProjectProgress(r)},
   {key:"accumulatedOutput",title:"开累完成产值",width:130,align:"right",render:r=>moneyWan(r.accumulatedOutput)},
   {key:"remainingWorkload",title:"剩余工作量",width:120,align:"right",render:r=>moneyWan(r.remainingWorkload)},
   {key:"yearPlanOutput",title:"当年计划完成产值",width:150,align:"right",render:r=>moneyWan(r.yearPlanOutput)},

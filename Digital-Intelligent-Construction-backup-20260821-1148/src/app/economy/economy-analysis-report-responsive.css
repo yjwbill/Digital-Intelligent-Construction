@@ -1,0 +1,6 @@
+.modal-mask:has(.economy-report-modal.fullscreen){padding:0}
+
+@media(max-width:1400px){
+  .eco-report-stage{width:calc(100% - 70px)}
+  .eco-report-slide{width:100%;height:100%;zoom:.8}
+}

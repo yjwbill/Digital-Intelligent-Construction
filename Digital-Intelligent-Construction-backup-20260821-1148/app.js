@@ -1,0 +1,55 @@
+(function(){
+  const version="2.2.799-message-detail-org-aggregation";
+  const scripts=[
+    "src/app/core/00-data-and-utils.js",
+    "src/vendor/jszip.min.js",
+    "src/app/shared/construction-log-word-export.js",
+    "src/components/statistics-filter/statistics-filter.js",
+    "src/components/month-picker/month-picker.js",
+    "src/components/row-span-table/row-span-table.js",
+    "src/components/modal-gallery/modal-gallery.js",
+    "src/components/fullscreen-modal/fullscreen-modal.js",
+    "src/components/economy-i18n/economy-i18n.js",
+    "src/components/dashboard-org-switch/dashboard-org-switch.js",
+    "src/components/project-selector/project-selector.js",
+    "src/app/project/economy-overview.js",
+    "src/app/project/economy-basic-info.js",
+    "src/app/project/project-portal.js",
+    "src/app/project/safety-management-personnel.js",
+    "src/app/shell/enterprise-navigation.js",
+    "src/app/safety/labor-video-roster.js",
+    "src/app/production/supplier-performance.js",
+    "src/app/base/base-management.js",
+    "src/app/safety/evaluation-dashboard.js",
+    "src/app/production/dashboard-statistics-data.js",
+    "src/app/production/dashboard.js",
+    "src/app/production/shareholder-dashboard.js",
+    "src/app/production/statistics-filling.js",
+    "src/app/production/statistics-unit-maintenance.js",
+    "src/app/production/dashboard-projects.js",
+    "src/app/home/construction-log.js",
+    "src/app/production/output-management.js",
+    "src/app/shared/worker-detail.js",
+    "src/app/production/risk-management.js",
+    "src/app/shared/message-todo-center.js",
+    "src/app/base/message-project-picker.js",
+    "src/app/base/message-project-person-picker.js",
+    "src/app/mobile/entry-component-library.js",
+    "src/app/mobile/workbench.js",
+    "src/app/base/data-dictionary.js",
+    "src/app/mobile/polish-monthly-output.js",
+    "src/app/operation/production-project-report.js",
+    "src/app/operation/production-project-list.js",
+    "src/app/operation/interface-sync-exceptions.js",
+    "src/app/economy/project-initiation.js",
+    "src/app/economy/economy-analysis-report.js",
+    "src/app/economy/economy-monthly-check-report.js",
+    "src/app/economy/dashboard.js",
+    "src/app/mobile/project-overview.js",
+    "src/app/core/99-initial-route.js"
+  ];
+  window.__APP_SCRIPT_CHUNKS__=scripts.slice();
+  scripts.forEach(function(src){
+    document.write('<script src="/'+src+'?v='+version+'"><\/script>');
+  });
+})();

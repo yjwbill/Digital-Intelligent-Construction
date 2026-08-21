@@ -6965,6 +6965,86 @@ body:has(.economy-command-screen),
 .economy-command-head-actions .economy-command-month-picker .SafetyMonthPicker__grid button.disabled:hover{border-color:rgba(63,91,107,.35);color:#536d7b;background:rgba(8,25,35,.62)}
 @media(max-width:1400px){.economy-screen-header{height:auto;min-height:96px;grid-template-columns:auto minmax(0,1fr);align-content:center}.economy-edition-tabs{justify-self:start}.economy-screen-header .economy-dashboard-filters{grid-column:1/-1;grid-template-columns:160px 160px 120px 160px max-content max-content;width:max-content;min-width:0;padding:4px 0;justify-self:end}.economy-screen-header .economy-dashboard-filters.international{grid-template-columns:160px 160px 160px max-content max-content auto;width:max-content;min-width:0}.economy-diagnosis-metrics{grid-template-columns:repeat(6,minmax(160px,1fr));gap:6px;padding:8px}.economy-diagnosis-metric{gap:8px;padding:0 4px}.economy-warning-card-grid{grid-template-columns:repeat(2,1fr)}}
 
+/* Monthly economy diagnosis task list. */
+.economy-diagnosis-task-shell{background:#f1f3f6!important;min-height:100%;display:flex;flex-direction:column}
+.economy-diagnosis-task-header{height:54px;flex:0 0 54px;display:flex;align-items:center;padding:0 18px;background:#fff;border-bottom:1px solid #e5e6eb;box-sizing:border-box}
+.economy-diagnosis-task-header .screen-brand{display:flex;align-items:center;gap:10px;color:#1d2129;font-size:16px}
+.economy-diagnosis-task-header .screen-logo{display:grid;place-items:center;width:28px;height:28px;border-radius:5px;color:#fff;background:#1677ff;font-size:15px;font-weight:700}
+.economy-diagnosis-task-header-title{margin-left:34px;padding-left:34px;border-left:1px solid #e5e6eb;color:#1d2129;font-size:18px;font-weight:600;line-height:28px}
+.economy-diagnosis-task-page{flex:1;min-height:0;padding:10px 12px 14px;box-sizing:border-box;overflow:auto}
+.economy-diagnosis-task-query{display:flex;align-items:center;gap:28px;min-height:74px;padding:0 14px;background:#fff;border-bottom:7px solid #f1f3f6;box-sizing:border-box}
+.economy-diagnosis-task-field{display:flex;align-items:center;gap:12px;min-width:290px}
+.economy-diagnosis-task-field label{color:#1d2129;font-size:16px;font-weight:500;white-space:nowrap}
+.economy-diagnosis-task-field .select{width:230px;height:34px;color:#86909c;background:#fff;border-color:#c9cdd4;border-radius:5px}
+.economy-diagnosis-task-query>.btn{height:34px;min-width:88px;border-radius:4px;font-size:14px}
+.economy-diagnosis-task-content{background:#fff;min-height:calc(100% - 74px);padding:10px 8px 0;box-sizing:border-box}
+.economy-diagnosis-task-toolbar{height:46px;display:flex;align-items:flex-start}
+.economy-diagnosis-task-toolbar .btn{height:34px;min-width:80px;border-radius:4px;font-size:14px}
+.economy-diagnosis-task-table-wrap{max-height:calc(100vh - 250px);overflow:auto;border:1px solid #e5e6eb}
+.economy-diagnosis-task-table{width:100%;min-width:1360px;border-collapse:collapse;table-layout:fixed;color:#4e5969;font-size:16px}
+.economy-diagnosis-task-table th,.economy-diagnosis-task-table td{height:60px;padding:8px 10px;border-right:1px solid #e5e6eb;border-bottom:1px solid #e5e6eb;text-align:center;vertical-align:middle;box-sizing:border-box;white-space:nowrap}
+.economy-diagnosis-task-table th{height:60px;background:#f7f8fa;color:#0e3768;font-weight:700;line-height:21px;white-space:normal}
+.economy-diagnosis-task-table th:nth-child(1),.economy-diagnosis-task-table td:nth-child(1){width:80px}.economy-diagnosis-task-table th:nth-child(2),.economy-diagnosis-task-table td:nth-child(2){width:90px}.economy-diagnosis-task-table th:nth-child(3),.economy-diagnosis-task-table td:nth-child(3){width:150px}.economy-diagnosis-task-table th:nth-child(4),.economy-diagnosis-task-table td:nth-child(4){width:185px}.economy-diagnosis-task-table th:nth-child(5),.economy-diagnosis-task-table td:nth-child(5){width:205px}.economy-diagnosis-task-table th:nth-child(6),.economy-diagnosis-task-table td:nth-child(6){width:215px}.economy-diagnosis-task-table th:nth-child(7),.economy-diagnosis-task-table td:nth-child(7){width:155px}.economy-diagnosis-task-table th:nth-child(8),.economy-diagnosis-task-table td:nth-child(8){width:155px}.economy-diagnosis-task-table th:nth-child(9),.economy-diagnosis-task-table td:nth-child(9){width:180px}.economy-diagnosis-task-table th:nth-child(10),.economy-diagnosis-task-table td:nth-child(10){width:225px}.economy-diagnosis-task-table th:nth-child(11),.economy-diagnosis-task-table td:nth-child(11){width:160px;border-right:0}
+.economy-diagnosis-task-table tbody tr:hover td{background:#f7fbff}.economy-diagnosis-task-table .check{width:80px;padding:0}.economy-diagnosis-task-table input[type="checkbox"]{width:20px;height:20px;accent-color:#1677ff}
+.economy-diagnosis-task-table .actions{display:flex;justify-content:center;align-items:center;gap:15px}.economy-diagnosis-task-table .link{padding:0;border:0;background:transparent;color:#1677ff;font:inherit;cursor:pointer}.economy-diagnosis-task-table .link.disabled,.economy-diagnosis-task-table .link:disabled{color:#c9cdd4;cursor:not-allowed}
+.economy-diagnosis-task-status{display:inline-block;color:#4e5969}.economy-diagnosis-task-status.success{color:#1d2129}.economy-diagnosis-task-status.pending{color:#4e5969}
+.economy-diagnosis-task-pagination{display:flex;align-items:center;justify-content:space-between;height:68px;padding:0 10px;color:#4e5969;font-size:16px}.economy-diagnosis-task-pagination>div{display:flex;align-items:center;gap:8px}.economy-diagnosis-task-pagination b{display:grid;place-items:center;width:36px;height:36px;border-radius:4px;color:#fff;background:#165dff;font-weight:500}.economy-diagnosis-task-pagination .pager-btn{width:36px;height:36px;border:0;border-radius:4px;background:#f2f3f5;color:#86909c;font-size:23px;line-height:1;cursor:pointer}.economy-diagnosis-task-pagination .pager-btn:disabled{opacity:.45;cursor:not-allowed}
+.economy-diagnosis-task-form{display:grid;grid-template-columns:1fr 1fr;gap:18px 22px;padding:6px}.economy-diagnosis-task-form .form-item{display:flex;flex-direction:column;gap:8px}.economy-diagnosis-task-form label{color:#4e5969;font-size:13px}.economy-diagnosis-task-form .input,.economy-diagnosis-task-form .select{width:100%;box-sizing:border-box}.economy-diagnosis-task-form .form-item:last-child{grid-column:1/-1}.economy-diagnosis-task-form textarea{resize:vertical;min-height:70px;padding:8px 10px}
+.economy-diagnosis-task-picker{display:flex;flex-direction:column;gap:10px;min-height:0}.economy-diagnosis-task-picker-query{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 24px;padding:2px 0 8px}.economy-diagnosis-task-picker-query .form-item{display:grid;grid-template-columns:96px minmax(0,1fr);align-items:center;gap:10px;min-width:0}.economy-diagnosis-task-picker-query .form-item label{color:#1d2129;font-size:14px;font-weight:500;white-space:nowrap}.economy-diagnosis-task-picker-query .input,.economy-diagnosis-task-picker-query .select{width:100%;height:34px;box-sizing:border-box}.economy-diagnosis-task-picker-query-actions{display:flex;align-items:center;gap:8px;grid-column:3;grid-row:2}.economy-diagnosis-task-picker-query-actions .btn{height:34px;min-width:74px}.economy-diagnosis-task-picker-summary{display:flex;align-items:center;gap:10px;min-height:46px;padding:0 12px;background:#f7faff;color:#1d2129;white-space:nowrap;overflow:auto}.economy-diagnosis-task-picker-summary>strong{padding-left:10px;border-left:5px solid #1677ff;font-size:16px}.economy-diagnosis-task-picker-summary>.tag{height:24px;line-height:22px}.economy-diagnosis-task-picker-summary>div{display:flex;align-items:center;gap:24px;margin-left:auto;color:#4e5969;font-size:13px}.economy-diagnosis-task-picker-summary b{color:#004b99;font-size:16px}.economy-diagnosis-task-picker-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.economy-diagnosis-task-picker-actions .btn{height:34px;padding:0 14px}.economy-diagnosis-task-picker-actions .btn.success{border-color:#22a06b;background:#22a06b;color:#fff}.economy-diagnosis-task-picker-table{height:calc(100vh - 450px);min-height:280px;overflow:auto;border:1px solid #e5e6eb}.economy-diagnosis-task-picker-table table{width:100%;min-width:1240px;table-layout:fixed;font-size:14px}.economy-diagnosis-task-picker-table th{height:44px!important;text-align:center;white-space:normal;line-height:18px}.economy-diagnosis-task-picker-table td{height:40px!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.economy-diagnosis-task-picker-table th:nth-child(1),.economy-diagnosis-task-picker-table td:nth-child(1){width:48px;text-align:center}.economy-diagnosis-task-picker-table th:nth-child(2),.economy-diagnosis-task-picker-table td:nth-child(2){width:58px;text-align:center}.economy-diagnosis-task-picker-table th:nth-child(3),.economy-diagnosis-task-picker-table td:nth-child(3){width:120px;text-align:center}.economy-diagnosis-task-picker-table th:nth-child(4),.economy-diagnosis-task-picker-table td:nth-child(4){width:90px;text-align:center}.economy-diagnosis-task-picker-table th:nth-child(5),.economy-diagnosis-task-picker-table td:nth-child(5){width:135px}.economy-diagnosis-task-picker-table th:nth-child(6),.economy-diagnosis-task-picker-table td:nth-child(6){width:300px}.economy-diagnosis-task-picker-table th:nth-child(7),.economy-diagnosis-task-picker-table td:nth-child(7){width:180px}.economy-diagnosis-task-picker-table th:nth-child(8),.economy-diagnosis-task-picker-table td:nth-child(8){width:150px}.economy-diagnosis-task-picker-table th:nth-child(9),.economy-diagnosis-task-picker-table td:nth-child(9){width:110px;text-align:center}.economy-diagnosis-task-picker-table .check{padding:0;text-align:center}.economy-diagnosis-task-picker-table input[type="checkbox"]{width:15px;height:15px;accent-color:#1677ff}.economy-diagnosis-need-indicator{display:inline-block;margin-right:8px;color:#c9cdd4;font-size:18px;line-height:1;vertical-align:-1px}.economy-diagnosis-need-indicator.active{color:#24527e}.economy-diagnosis-task-picker-table td b{color:#165dff;font-weight:600}
+.economy-diagnosis-result-page{display:flex;flex:1;min-height:0;flex-direction:column;gap:12px;padding:12px;background:#f2f3f5;box-sizing:border-box;overflow:hidden}.economy-diagnosis-result-page>.unified-query-card{flex:0 0 auto;margin:0}.economy-diagnosis-result-page>.unified-query-card .search-grid{grid-template-columns:repeat(4,minmax(160px,1fr))!important}.economy-diagnosis-result-table-card{margin:0;min-height:0;flex:1}.economy-diagnosis-result-table-card>.table-wrap{flex:1;min-height:0}.economy-diagnosis-result-table-card table{min-width:1380px;table-layout:fixed}.economy-diagnosis-result-table-card th,.economy-diagnosis-result-table-card td{font-size:13px;text-align:center}.economy-diagnosis-result-table-card th{height:44px!important;white-space:normal;line-height:18px}.economy-diagnosis-result-table-card td{height:40px!important}.economy-diagnosis-result-table-card th:nth-child(1),.economy-diagnosis-result-table-card td:nth-child(1){width:54px}.economy-diagnosis-result-table-card th:nth-child(2),.economy-diagnosis-result-table-card td:nth-child(2){width:150px}.economy-diagnosis-result-table-card th:nth-child(3),.economy-diagnosis-result-table-card td:nth-child(3){width:90px}.economy-diagnosis-result-table-card th:nth-child(4),.economy-diagnosis-result-table-card td:nth-child(4){width:78px}.economy-diagnosis-result-table-card th:nth-child(5),.economy-diagnosis-result-table-card td:nth-child(5){width:260px;text-align:left}.economy-diagnosis-result-table-card th:nth-child(6),.economy-diagnosis-result-table-card td:nth-child(6){width:110px}.economy-diagnosis-result-table-card th:nth-child(7),.economy-diagnosis-result-table-card td:nth-child(7){width:90px}.economy-diagnosis-result-table-card th:nth-child(8),.economy-diagnosis-result-table-card td:nth-child(8){width:90px}.economy-diagnosis-result-table-card th:nth-child(9),.economy-diagnosis-result-table-card td:nth-child(9){width:90px}.economy-diagnosis-result-table-card th:nth-child(10),.economy-diagnosis-result-table-card td:nth-child(10){width:150px}.economy-diagnosis-result-table-card th:nth-child(11),.economy-diagnosis-result-table-card td:nth-child(11){width:90px}.economy-diagnosis-result-table-card th:nth-child(12),.economy-diagnosis-result-table-card td:nth-child(12){width:128px}.economy-diagnosis-result-table-card .actions{display:flex;align-items:center;justify-content:center;gap:10px;white-space:nowrap}.economy-diagnosis-result-table-card .link{padding:0;border:0;background:transparent;color:var(--primary);font-size:13px;cursor:pointer}
+@media(max-width:1200px){.economy-diagnosis-task-query{gap:12px;flex-wrap:wrap;padding:12px;align-content:center}.economy-diagnosis-task-field{min-width:250px}.economy-diagnosis-task-field .select{width:180px}.economy-diagnosis-task-content{min-height:600px}}
+
+/* Economy diagnosis tasks use the same list-page frame as other enterprise lists. */
+#listPage>.economy-diagnosis-task-page-shell{display:flex;flex:1;min-height:0;padding:12px;background:#f2f3f5;box-sizing:border-box;overflow:hidden}
+.economy-diagnosis-task-page-shell>.economy-diagnosis-task-page{display:flex;flex:1;min-height:0;flex-direction:column;gap:12px;padding:0;overflow:hidden;box-sizing:border-box}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-query{display:block;min-height:0;padding:0;border:0;background:transparent}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-query .card-hd{min-height:42px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-search{grid-template-columns:repeat(3,minmax(180px,1fr))!important}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table-card{display:flex;flex:1;min-height:0;margin:0;overflow:hidden}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table-card>.card-hd{min-height:48px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table-card>.table-wrap{flex:1;min-height:0;max-height:none;border:0}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table{min-width:1360px;font-size:14px;table-layout:fixed}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th{height:44px!important;font-size:14px;line-height:18px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td{height:40px!important;padding:8px 10px;font-size:14px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table .check{width:52px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table input[type="checkbox"]{width:15px;height:15px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table .actions{font-size:14px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table-card>.pagination{min-height:48px;height:48px;padding:0 14px;font-size:13px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table-card>.pagination .pager{display:flex;align-items:center;gap:8px;margin-left:auto}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table-card>.pagination .pager .btn{height:28px;min-width:56px;padding:0 10px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table-card>.pagination .pager b{min-width:84px;color:#4e5969;text-align:center;font-size:13px}
+@media(max-width:900px){#listPage>.economy-diagnosis-task-page-shell{padding:8px}.economy-diagnosis-task-page-shell .economy-diagnosis-task-search{grid-template-columns:1fr!important}}
+
+/* Keep the monthly task table readable while fitting a standard desktop viewport. */
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table{min-width:1180px;font-size:13px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th,
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td{padding:7px 6px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(1),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(1){width:48px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(2),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(2){width:58px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(3),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(3){width:92px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(4),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(4){width:112px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(5),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(5){width:130px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(6),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(6){width:120px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(7),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(7){width:82px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(8),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(8){width:82px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(9),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(9){width:112px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(10),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(10){width:150px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(11),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(11){width:112px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table .actions{gap:8px;white-space:nowrap}
+/* The version column is intentionally compact so all task fields remain visible together. */
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(1),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(1){width:45px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(2),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(2){width:55px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(3),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(3){width:85px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(4),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(4){width:75px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(5),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(5){width:105px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(6),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(6){width:120px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(7),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(7){width:110px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(8),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(8){width:80px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(9),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(9){width:80px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(10),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(10){width:105px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(11),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(11){width:145px}
+.economy-diagnosis-task-page-shell .economy-diagnosis-task-table th:nth-child(12),.economy-diagnosis-task-page-shell .economy-diagnosis-task-table td:nth-child(12){width:110px}
+
 /* 企业管理 / 经济 / 经济开项 / 开项审批 */
 .economy-init-page{
   display:grid;
@@ -15684,6 +15764,7 @@ body.mobile-mode .mobile-titlebar.enterprise-mobile-titlebar{
 }
 .enterprise-mobile-home{
   padding:18px 12px 24px;
+  background:#f5f6f8;
 }
 .enterprise-mobile-card-list{
   display:flex;
@@ -15698,43 +15779,50 @@ body.mobile-mode .mobile-titlebar.enterprise-mobile-titlebar{
   min-height:126px;
   max-width:100%;
   overflow:hidden;
-  border:0;
+  border:1px solid rgba(120,166,226,.2);
   border-radius:10px;
   padding:18px 14px 12px;
   opacity:1;
-  background:linear-gradient(270deg,#edf5fe 0%,#e5f0fb 100%);
-  box-shadow:none;
+  background:linear-gradient(115deg,#f3f8ff 0%,#e7f1fc 100%);
+  box-shadow:0 5px 14px rgba(43,88,145,.07);
+}
+.enterprise-mobile-home-card.report{
+  background:linear-gradient(115deg,#f5f9ff 0%,#e9f3ff 100%);
+}
+.enterprise-mobile-home-card.warning{
+  border-color:rgba(239,146,146,.2);
+  background:linear-gradient(115deg,#fffafa 0%,#fbeff0 100%);
 }
 .enterprise-mobile-home-card h2{
   position:relative;
   z-index:2;
   width:calc(100% - 68px);
   margin:0;
-  color:#20242c;
+  color:#173052;
   font-size:20px;
   line-height:28px;
-  font-weight:600;
+  font-weight:700;
   white-space:nowrap;
 }
 .enterprise-mobile-home-card img{
   position:absolute;
   z-index:1;
-  right:12px;
-  top:10px;
-  width:58px;
-  height:58px;
+  right:10px;
+  top:7px;
+  width:66px;
+  height:66px;
   object-fit:contain;
-  opacity:.86;
+  opacity:.9;
 }
 .enterprise-mobile-home-card.report img{
-  right:10px;
-  width:62px;
-  height:62px;
+  right:8px;
+  width:70px;
+  height:70px;
 }
 .enterprise-mobile-home-card.warning img{
-  right:9px;
-  width:64px;
-  height:64px;
+  right:7px;
+  width:72px;
+  height:72px;
 }
 .enterprise-mobile-home-actions{
   position:absolute;
@@ -15744,32 +15832,52 @@ body.mobile-mode .mobile-titlebar.enterprise-mobile-titlebar{
   z-index:2;
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:10px;
+  gap:12px;
 }
 .enterprise-mobile-home-actions button{
+  position:relative;
+  overflow:hidden;
   display:flex;
   align-items:center;
   justify-content:center;
   gap:8px;
-  height:38px;
+  height:42px;
   min-width:0;
   padding:0 10px;
-  border:1px solid currentColor;
+  border:0;
   border-radius:8px;
-  background:rgba(255,255,255,.72);
+  background:#fff;
+  color:#fff;
   font-family:"Source Han Sans CN","思源黑体","Microsoft YaHei",Arial,sans-serif;
   font-size:15px;
   line-height:20px;
-  font-weight:400;
+  font-weight:600;
+  box-shadow:0 6px 12px rgba(28,91,190,.2);
+  transition:transform .15s ease,box-shadow .15s ease,filter .15s ease;
   cursor:pointer;
 }
-.enterprise-mobile-home-actions button.domestic{color:#3478f6}
-.enterprise-mobile-home-actions button.international{color:#08aeb5}
+.enterprise-mobile-home-actions button:before{
+  content:"";
+  position:absolute;
+  top:0;
+  right:0;
+  left:0;
+  height:1px;
+  background:rgba(255,255,255,.5);
+}
+.enterprise-mobile-home-actions button.domestic{
+  background:linear-gradient(135deg,#3989ff 0%,#1462ea 100%);
+  box-shadow:0 6px 13px rgba(28,104,234,.25);
+}
+.enterprise-mobile-home-actions button.international{
+  background:linear-gradient(135deg,#28c7ad 0%,#079c8a 100%);
+  box-shadow:0 6px 13px rgba(4,148,129,.23);
+}
 .enterprise-mobile-home-actions button>i{
   position:relative;
-  flex:0 0 16px;
-  width:16px;
-  height:16px;
+  flex:0 0 18px;
+  width:18px;
+  height:18px;
   border:1.5px solid currentColor;
   border-radius:50%;
   box-sizing:border-box;
@@ -15804,13 +15912,18 @@ body.mobile-mode .mobile-titlebar.enterprise-mobile-titlebar{
   flex:0 0 7px;
   width:7px;
   height:7px;
-  border-top:1.5px solid currentColor;
-  border-right:1.5px solid currentColor;
+  border-top:2px solid currentColor;
+  border-right:2px solid currentColor;
   transform:rotate(45deg);
 }
 .enterprise-mobile-home-actions button:active{
-  background:#fff;
-  transform:scale(.98);
+  filter:brightness(.96);
+  transform:translateY(1px) scale(.99);
+  box-shadow:0 3px 7px rgba(28,91,190,.18);
+}
+.enterprise-mobile-home-actions button:focus-visible{
+  outline:2px solid rgba(22,93,224,.35);
+  outline-offset:2px;
 }
 .enterprise-mobile-report-page{background:#f4f5f7}
 .enterprise-mobile-report-scroll{
@@ -16255,8 +16368,8 @@ body.enterprise-mobile-mode .enterprise-mobile-mine-menu-item strong{
 }
 .enterprise-economy-filterbar{
   display:grid;
-  grid-template-columns:1.05fr 1.18fr 1.18fr .85fr;
-  gap:10px;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:6px;
   margin:0 0 13px;
 }
 .enterprise-economy-filterbar button{
@@ -16267,12 +16380,13 @@ body.enterprise-mobile-mode .enterprise-mobile-mine-menu-item strong{
   justify-content:center;
   gap:6px;
   border:0;
-  border-radius:18px;
+  border-radius:8px;
   background:#fff;
   color:#1f2329;
   font-size:14px;
   line-height:20px;
-  font-weight:800;
+  font-weight:700;
+  font-family:"Source Han Sans SC","Microsoft YaHei",Arial,sans-serif;
   white-space:nowrap;
 }
 .enterprise-economy-filterbar button.selected{
@@ -16507,6 +16621,8 @@ body.enterprise-mobile-mode .enterprise-mobile-mine-menu-item strong{
 }
 .enterprise-economy-risk-row span{
   min-width:0;
+  font-size:14px;
+  font-weight:400;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
@@ -16541,8 +16657,15 @@ body.enterprise-mobile-mode .enterprise-mobile-mine-menu-item strong{
   line-height:16px;
   border-bottom:1px solid #e1e4e8;
 }
+.enterprise-economy-project-head.international{
+  min-height:54px;
+}
 .enterprise-economy-project-head span{
   text-align:center;
+}
+.enterprise-economy-project-head .compact-three-lines{
+  font-size:12px;
+  line-height:14px;
 }
 .enterprise-economy-project-head span:nth-child(2){
   text-align:left;
@@ -16569,8 +16692,8 @@ body.enterprise-mobile-mode .enterprise-mobile-mine-menu-item strong{
   min-width:0;
   padding-right:8px;
   font-family:"Source Han Sans CN","思源黑体","Microsoft YaHei",Arial,sans-serif;
-  font-size:12px;
-  font-weight:normal;
+  font-size:14px;
+  font-weight:400;
   line-height:20px;
   letter-spacing:0;
   display:flex;
@@ -16642,6 +16765,15 @@ body.enterprise-mobile-mode .enterprise-mobile-mine-menu-item strong{
 .enterprise-economy-single-column .mobile-picker-column{
   background:#fff;
 }
+.enterprise-economy-picker-sheet .mobile-picker-row{
+  font-family:"Source Han Sans SC","Microsoft YaHei",Arial,sans-serif;
+  font-size:14px;
+  font-weight:500;
+}
+.enterprise-economy-picker-sheet .mobile-picker-row.active,
+.enterprise-economy-picker-sheet .mobile-picker-row.selected{
+  font-weight:600;
+}
 .enterprise-economy-picker-empty{
   margin:0;
   padding:28px 12px;
@@ -16650,7 +16782,13 @@ body.enterprise-mobile-mode .enterprise-mobile-mine-menu-item strong{
   line-height:20px;
   text-align:center;
 }
-.enterprise-economy-month-head{
+.mobile-month-picker{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+.mobile-month-picker-head{
   height:52px;
   flex:0 0 52px;
   display:grid;
@@ -16659,23 +16797,26 @@ body.enterprise-mobile-mode .enterprise-mobile-mine-menu-item strong{
   margin:0 16px;
   border-bottom:1px solid #edf0f5;
 }
-.enterprise-economy-month-head button{
+.mobile-month-picker-head button{
   width:36px;
   height:36px;
   justify-self:center;
   border:0;
-  border-radius:6px;
+  border-radius:8px;
   background:transparent;
   color:#4e5969;
   font-size:26px;
 }
-.enterprise-economy-month-head strong{
+.mobile-month-picker-head button:disabled{
+  color:#c9cdd4;
+}
+.mobile-month-picker-head strong{
   color:#1d2129;
   font-size:16px;
-  font-weight:800;
+  font-weight:600;
   text-align:center;
 }
-.enterprise-economy-month-grid{
+.mobile-month-picker-grid{
   flex:1;
   min-height:0;
   display:grid;
@@ -16685,22 +16826,23 @@ body.enterprise-mobile-mode .enterprise-mobile-mine-menu-item strong{
   padding:16px;
   overflow:auto;
 }
-.enterprise-economy-month-grid button{
+.mobile-month-picker-grid button{
   height:42px;
   border:1px solid #e5e9f0;
   border-radius:8px;
   background:#fff;
   color:#4e5969;
   font-size:14px;
-  font-weight:600;
+  font-weight:500;
+  font-family:"Source Han Sans SC","Microsoft YaHei",Arial,sans-serif;
 }
-.enterprise-economy-month-grid button.selected{
+.mobile-month-picker-grid button.selected{
   border-color:#165dff;
   background:#e8f3ff;
   color:#165dff;
-  font-weight:800;
+  font-weight:600;
 }
-.enterprise-economy-month-grid button:disabled{
+.mobile-month-picker-grid button:disabled{
   border-color:#f0f1f3;
   background:#f7f8fa;
   color:#c9cdd4;
@@ -21642,7 +21784,8 @@ body.mobile-mode .mobile-tabbar:before{
 .enterprise-economy-detail-summary h2{margin:0 0 20px;color:#20262f;font-size:13px;line-height:20px;font-weight:600}
 .enterprise-economy-detail-risk-line{display:flex;align-items:center;gap:10px;margin-bottom:20px;color:#20252d;font-size:18px;font-style:italic;font-weight:800}
 .enterprise-economy-detail-risk-line i{width:36px;height:36px;border-radius:8px;background:#ff3b3f}.enterprise-economy-detail-risk-line i.orange{background:#ff7a00}.enterprise-economy-detail-risk-line i.yellow{background:#f3bf00}.enterprise-economy-detail-risk-line i.blue{background:#2789e8}
-.enterprise-economy-detail-risk-line button{display:flex;align-items:center;justify-content:space-between;margin-left:auto;width:145px;height:56px;padding:0 14px;border:2px solid #dedede;border-radius:28px;background:#fff;color:#20252d;font-size:18px}.enterprise-economy-detail-risk-line button span{color:#a9afb7;font-size:15px}
+.enterprise-economy-detail-risk-line button{display:flex;align-items:center;justify-content:center;gap:7px;margin-left:auto;min-width:112px;height:36px;padding:0 10px;border:1px solid #e5e9f0;border-radius:8px;background:#fff;color:#20252d;font-family:"Source Han Sans SC","Microsoft YaHei",Arial,sans-serif;font-size:14px;font-weight:600;line-height:20px}.enterprise-economy-detail-risk-line button .enterprise-filter-calendar{width:14px;height:14px;flex:0 0 14px;color:#a5a7ad;font-size:inherit}
+
 .enterprise-economy-detail-info{display:grid;grid-template-columns:1fr 1fr;gap:15px 14px;color:#999;font-size:14px;line-height:22px}.enterprise-economy-detail-info p{margin:0}.enterprise-economy-detail-info p.wide{grid-column:1/-1}.enterprise-economy-detail-info b{color:#30343b;font-weight:400}
 .enterprise-economy-detail-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px 10px;margin-top:25px}.enterprise-economy-detail-metric span{display:block;color:#999;font-size:12px;line-height:20px}.enterprise-economy-detail-metric strong{display:block;margin-bottom:5px;color:#252a33;font-family:DIN,"Trebuchet MS",Arial,sans-serif;font-size:18px;line-height:24px;font-weight:600;white-space:nowrap}.enterprise-economy-detail-metric em{font-family:inherit;color:#999;font-size:11px;font-style:normal;font-weight:400}
 .enterprise-economy-detail-card{padding:18px 18px 16px}.enterprise-economy-detail-card header{display:flex;align-items:center;gap:9px;margin-bottom:20px;min-height:34px}.enterprise-economy-detail-card header h2{margin:0;color:#20262f;font-size:17px;line-height:24px;font-weight:600}.detail-section-icon{width:24px;height:24px;flex:0 0 24px;object-fit:contain}.detail-section-icon.linked{border-radius:0;background:url('./src/assets/mobile-tab/online-total-content.svg') center/contain no-repeat;box-shadow:none}.enterprise-economy-detail-card header button{margin-left:auto;height:32px;padding:0 12px;border:0;border-radius:5px;background:#2265f6;color:#fff;font-size:14px}
@@ -21828,6 +21971,88 @@ body.mobile-mode .mobile-tabbar .tab-create.active span:after{
 .message-project-selector>.unified-query-card .search-grid{grid-template-columns:repeat(4,minmax(0,1fr)) !important}
 .message-project-picker-table-card{flex:1;min-height:0;margin:0;display:flex;flex-direction:column;overflow:hidden}
 .message-project-picker-table-card>.table-wrap{flex:1;min-height:0}
+
+/* 经济预警规则设置 */
+.economy-warning-rule-page{height:100%;min-height:0;display:flex;flex-direction:column;gap:16px;padding:16px 20px 22px;box-sizing:border-box;background:#f0f2f5;color:#1d2129;overflow:auto}
+.economy-warning-rule-tabs{height:58px;display:flex;align-items:stretch;padding:0 14px;background:#fff;border-bottom:1px solid #e5e6eb;box-sizing:border-box}
+.economy-warning-rule-tabs button{position:relative;height:58px;margin-right:28px;padding:0 10px;border:0;background:transparent;color:#4e5969;font-size:16px;cursor:pointer}
+.economy-warning-rule-tabs button.active{color:#165dff;font-weight:600}
+.economy-warning-rule-tabs button.active:after{content:"";position:absolute;right:0;bottom:-1px;left:0;height:3px;background:#165dff}
+.economy-warning-rule-tabs b{display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:28px;margin-left:10px;padding:0 10px;box-sizing:border-box;border-radius:16px;background:#ff9933;color:#fff;font-size:16px;font-weight:500;line-height:28px}
+.economy-warning-rule-tabs button:nth-child(2) b{background:#f53f3f}
+.economy-warning-rule-layout{display:grid;grid-template-columns:346px minmax(0,1fr);gap:22px;min-height:0;flex:1}
+.economy-warning-rule-categories,.economy-warning-rule-content{min-height:0;border-radius:8px;background:#fff;box-shadow:0 1px 2px rgba(31,35,41,.02)}
+.economy-warning-rule-categories{overflow:hidden}
+.economy-warning-rule-category-title{height:80px;display:flex;align-items:center;gap:12px;padding:0 30px;border-bottom:1px solid #f0f1f3;box-sizing:border-box}
+.economy-warning-rule-category-title i{display:block;width:8px;height:30px;border-radius:4px;background:#2f72ee}
+.economy-warning-rule-category-title strong{font-size:18px;font-weight:600;color:#1d2129}
+.economy-warning-rule-category-list{padding:0 0 20px}
+.economy-warning-rule-category-list button{display:block;width:100%;height:66px;padding:0 22px;border:0;border-right:8px solid transparent;background:#fff;color:#1d2129;text-align:left;font-size:17px;cursor:pointer}
+.economy-warning-rule-category-list button:hover{background:#f5f8ff}
+.economy-warning-rule-category-list button.active{border-right-color:#2f72ee;background:linear-gradient(90deg,#f0f5ff 0%,#d7e5ff 100%);font-weight:500}
+.economy-warning-rule-content{padding:48px 48px 30px;overflow:auto;box-sizing:border-box}
+.economy-warning-rule-add{height:48px;padding:0 22px;border:0;border-radius:5px;background:#2f9fe8;color:#fff;font-size:16px;font-weight:600;cursor:pointer}
+.economy-warning-rule-add:hover{background:#258dd4}
+.economy-rule-table-wrap{margin-top:8px;border:1px solid #e5e6eb;overflow:auto}
+.economy-rule-table{width:100%;min-width:1120px;border-collapse:collapse;table-layout:fixed;color:#4e5969;font-size:15px}
+.economy-rule-table th,.economy-rule-table td{height:58px;padding:0 14px;border-right:1px solid #e5e6eb;border-bottom:1px solid #e5e6eb;box-sizing:border-box;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
+.economy-rule-table th{height:58px;background:#f7f8fa;color:#1d2129;font-size:16px;font-weight:600;text-align:center}
+.economy-rule-table th:first-child,.economy-rule-table td:first-child,.economy-rule-table th:nth-child(2),.economy-rule-table td:nth-child(2),.economy-rule-table th:nth-child(6),.economy-rule-table td:nth-child(6),.economy-rule-table th:last-child,.economy-rule-table td:last-child{text-align:center}
+.economy-rule-table tr:last-child td{border-bottom:0}
+.economy-rule-table th:last-child,.economy-rule-table td:last-child{border-right:0}
+.economy-rule-table input[type="checkbox"]{width:22px;height:22px;accent-color:#2f72ee;vertical-align:middle}
+.economy-rule-table .rule-code{color:#2f82ed;font-size:16px}.economy-rule-table .rule-copy{font-size:14px;color:#2f82ed}
+.economy-rule-table .rule-remark{font-size:15px;color:#4e5969}
+.economy-rule-switch{position:relative;width:58px;height:30px;padding:0;border:0;border-radius:16px;background:#c9cdd4;cursor:pointer;vertical-align:middle}
+.economy-rule-switch i{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15);transition:left .16s ease}
+.economy-rule-switch.on{background:#16c96b}.economy-rule-switch.on i{left:31px}
+.rule-actions{white-space:nowrap}.rule-actions button{padding:0 7px;border:0;background:transparent;color:#2f82ed;font:inherit;cursor:pointer}.rule-actions button:hover{text-decoration:underline}
+.economy-rule-empty{display:flex;align-items:center;justify-content:center;min-height:260px;margin-top:8px;border:1px solid #e5e6eb;color:#86909c;font-size:15px}
+.economy-rule-modal-form{display:grid;grid-template-columns:1fr 1fr;gap:16px 20px}.economy-rule-modal-form label{display:flex;flex-direction:column;gap:6px;color:#4e5969;font-size:14px}.economy-rule-modal-form label:last-child{grid-column:1 / -1}.economy-rule-modal-form textarea{height:88px;padding:8px 10px;resize:vertical}
+@media(max-width:1100px){.economy-warning-rule-layout{grid-template-columns:270px minmax(0,1fr)}.economy-warning-rule-content{padding:30px 22px}.economy-warning-rule-category-list button{font-size:15px}}
+
+/* 规则设置沿用标准列表页骨架 */
+.economy-warning-rule-page{gap:10px;padding:10px 14px 14px;background:var(--bg);font-size:14px}
+.economy-warning-rule-tabs{height:44px;padding:0 10px}
+.economy-warning-rule-tabs button{height:44px;margin-right:18px;padding:0 6px;font-size:14px}
+.economy-warning-rule-tabs b{height:24px;min-width:40px;margin-left:8px;font-size:14px;line-height:24px}
+.economy-warning-rule-layout{gap:10px}
+.economy-warning-rule-categories{margin:0;box-shadow:var(--shadow);overflow:hidden}
+.economy-warning-rule-category-title{height:44px;gap:8px;padding:9px 14px}
+.economy-warning-rule-category-title i{width:4px;height:18px;border-radius:2px}
+.economy-warning-rule-category-title strong{font-size:15px;font-weight:700}
+.economy-warning-rule-category-list{padding:0 0 10px}
+.economy-warning-rule-category-list button{height:40px;padding:8px 14px;border-right-width:4px;font-size:14px}
+.economy-warning-rule-content{display:flex;flex-direction:column;min-height:0;margin:0;padding:0;overflow:hidden;box-shadow:var(--shadow)}
+.economy-warning-rule-toolbar{justify-content:flex-start;min-height:38px;padding:9px 14px;box-sizing:border-box}
+.economy-warning-rule-toolbar .economy-warning-rule-add{margin:0}
+.economy-warning-rule-content>.table-wrap{flex:1;min-height:0;padding:0;box-sizing:border-box}
+.economy-warning-rule-content .economy-rule-table-wrap{height:100%;min-height:0;margin:0;border:0;box-sizing:border-box}
+.economy-warning-rule-content>.pagination{flex:0 0 auto;margin:0}
+.economy-warning-rule-content .economy-rule-empty{height:100%;min-height:260px;margin:0;border:0;box-sizing:border-box}
+.economy-warning-rule-add{height:30px;padding:0 12px;border-radius:4px;background:var(--primary);font-size:14px;font-weight:400}
+.economy-warning-rule-add:hover{background:var(--primary);opacity:.9}
+.economy-rule-table{min-width:100%;font-size:14px}
+.economy-rule-table th,.economy-rule-table td{height:var(--dsc-table-row-height,40px);padding:8px 10px;font-size:14px}
+.economy-rule-table th{height:var(--dsc-table-header-height,44px)!important;background:#FAFBFC;color:var(--sub);font-size:14px;font-weight:600}
+.economy-rule-table input[type="checkbox"]{width:15px;height:15px}
+.economy-rule-table .rule-code,.economy-rule-table .rule-remark{font-size:14px}
+.economy-rule-table .rule-code{color:var(--primary)}
+.economy-rule-table .rule-copy{font-size:12px;color:var(--primary)}
+.rule-actions button{font-size:14px}
+.economy-warning-maintenance-page{height:100%;min-height:0;display:flex;flex-direction:column;gap:8px;padding:8px;background:var(--bg);overflow:auto;color:var(--text)}
+.economy-maintenance-head{min-height:42px;margin:0;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;flex:0 0 auto}
+.economy-maintenance-title{display:flex;align-items:center;gap:10px;font-size:18px}.economy-maintenance-title strong{font-size:18px}.economy-maintenance-back{width:28px;height:30px;padding:0;border:0;background:transparent;color:var(--text);font-size:25px;line-height:30px}
+.economy-maintenance-basic,.economy-maintenance-detail{margin:0;padding:14px;flex:0 0 auto}.economy-maintenance-detail{min-height:560px;overflow:hidden}
+.economy-maintenance-section-title{display:flex;align-items:center;gap:10px;margin:0 0 18px;font-size:18px;font-weight:600;line-height:22px}.economy-maintenance-section-title:before{content:"";width:5px;height:28px;border-radius:3px;background:var(--primary)}
+.economy-maintenance-basic-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:34px}.economy-maintenance-basic-grid label{display:flex;flex-direction:column;gap:8px;color:var(--text);font-size:14px}.economy-maintenance-basic-grid label em,.economy-maintenance-trigger-form em{color:var(--danger);font-style:normal;margin-left:4px}.economy-maintenance-basic-grid .input{height:36px}.economy-maintenance-basic-grid textarea{height:74px;padding:8px 10px;resize:none}
+.economy-maintenance-prerequisite{display:flex;min-height:160px}.economy-maintenance-ribbon{width:72px;display:flex;align-items:center;justify-content:center;background:var(--primary);color:#fff;font-size:16px;font-weight:600;line-height:28px;text-align:center;clip-path:polygon(0 0,100% 0,100% 82%,50% 100%,0 82%)}.economy-maintenance-prerequisite-fields{display:flex;flex-direction:column;gap:12px;padding:0 0 0 28px}.economy-maintenance-field{display:grid;grid-template-columns:150px 150px 326px;align-items:start;gap:8px;color:#86909c;font-size:14px;line-height:36px}.economy-maintenance-field .select{height:36px}.economy-maintenance-select{min-width:0}.economy-maintenance-select .base-multi-select__control{min-height:36px}.economy-maintenance-select .base-multi-select__tags{max-height:108px;overflow:hidden}.economy-maintenance-select .base-multi-select__tag{background:#f1f2f4;color:#86909c}.economy-maintenance-select .base-multi-select__tag-remove{color:#a8abb2}.economy-maintenance-add-detail{margin:8px 0 12px 102px;padding:0;border:0;background:transparent;color:var(--primary);font-size:14px;font-weight:600}
+.economy-maintenance-rule-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(420px,.9fr);gap:22px;padding-left:102px}.economy-maintenance-condition-panel,.economy-maintenance-trigger-panel{min-width:0;background:#f7f8fa}.economy-maintenance-panel-head{height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:#e5e5e5;color:var(--text)}.economy-maintenance-panel-head strong{font-size:15px}.economy-maintenance-panel-head button{border:0;background:transparent;color:var(--primary);font-size:14px}.economy-maintenance-condition-rows{padding:20px 14px}.economy-maintenance-condition-row{display:grid;grid-template-columns:minmax(180px,1.4fr) 130px 140px 36px 36px;gap:8px;align-items:center;margin-bottom:12px}.economy-maintenance-condition-row .select,.economy-maintenance-condition-row .input{height:36px}.economy-maintenance-circle-btn,.economy-maintenance-delete-btn{width:30px;height:30px;border-radius:50%;border:1px solid #d9dfe8;background:#fff;color:#86909c;font-size:18px}.economy-maintenance-delete-btn{border:0;background:#ff5964;color:#fff;font-size:14px}.economy-maintenance-delete-detail{width:32px;height:32px;border-radius:50%;background:#ff5964!important;color:#fff!important;font-size:14px!important}.economy-maintenance-trigger-form{padding:20px 18px}.economy-maintenance-trigger-form label{display:flex;align-items:center;gap:10px;min-height:42px;color:var(--text);font-size:14px;white-space:nowrap}.economy-maintenance-trigger-form label .input:not(.compact),.economy-maintenance-trigger-form label>.select:not(.compact){flex:1;min-width:0}.economy-maintenance-trigger-form .compact{width:100px;flex:0 0 100px}.economy-maintenance-radio{display:inline-flex;align-items:center;gap:5px;color:var(--sub);font-weight:600}.economy-maintenance-trigger-form b{font-weight:400;color:var(--text)}
+@media(max-width:1200px){.economy-maintenance-basic-grid{gap:16px}.economy-maintenance-rule-grid{grid-template-columns:1fr;padding-left:0}.economy-maintenance-add-detail{margin-left:0}.economy-maintenance-field{grid-template-columns:130px 130px minmax(220px,326px)}}
+.economy-warning-notice-page{height:100%;min-height:0;display:flex;flex-direction:column;gap:8px;padding:8px;background:var(--bg);overflow:hidden}
+.economy-warning-notice-query{flex:0 0 auto;margin:0}.economy-warning-notice-query .card-bd{padding:12px 14px}.economy-warning-notice-search{grid-template-columns:repeat(4,minmax(160px,1fr));gap:10px 24px}.economy-warning-notice-query-actions{display:flex;align-items:end;gap:8px}.economy-warning-notice-query-actions .btn{min-width:74px}
+.economy-warning-notice-table-card{flex:1;min-height:0;margin:0}.economy-warning-notice-table-card>.card-hd{min-height:48px}.economy-warning-notice-table-card>.card-hd .actions{width:100%}.economy-warning-notice-table-card table{min-width:1850px;table-layout:fixed}.economy-warning-notice-table-card th,.economy-warning-notice-table-card td{font-size:14px}.economy-warning-notice-table-card th{height:44px!important}.economy-warning-notice-table-card td{height:40px!important}.economy-warning-notice-ellipsis{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.economy-warning-notice-actions{display:flex;align-items:center;justify-content:center;gap:14px}.economy-warning-notice-actions .link{border:0;background:transparent;padding:0;color:var(--primary);font-size:14px}.economy-warning-notice-actions .danger-link{color:var(--primary)}.economy-warning-notice-table-card .tag{min-width:78px;justify-content:center}
+@media(max-width:1100px){.economy-warning-notice-search{grid-template-columns:repeat(2,minmax(160px,1fr));gap:10px 14px}}
 .message-project-picker .base-multi-select__control{cursor:pointer}
 .message-project-picker-modal .modal-ft{align-items:center;justify-content:flex-start;padding-left:14px;padding-right:20px}
 .project-selector-footer-count{display:inline-flex;align-items:center;height:32px;color:var(--muted)}
@@ -23004,7 +23229,7 @@ body.mobile-mode .mobile-tabbar .tab-create.active span:after{
 .approval-center-tabs button.active{color:#165DFF;}
 .approval-center-tabs button.active:after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;border-radius:3px 3px 0 0;background:#165DFF;}
 .approval-center-search{width:300px;flex-shrink:0;}
-.approval-center-body{flex:1;min-height:0;display:grid;grid-template-columns:268px minmax(0,1fr);gap:12px;padding:12px 14px 14px;background:#F2F3F5;overflow:hidden;}
+.approval-center-body{flex:1;min-height:0;display:grid;grid-template-columns:268px minmax(0,1fr);gap:12px;padding:12px 14px 14px 0;background:#F2F3F5;overflow:hidden;}
 .approval-category-panel{min-height:0;display:flex;flex-direction:column;border:1px solid #E5E6EB;background:#fff;overflow:hidden;}
 .approval-category-title{height:42px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-bottom:1px solid #E5E6EB;background:#F7F8FA;}
 .approval-category-title strong{font-size:14px;color:#1D2129;}
@@ -23972,6 +24197,9 @@ body.entry-mode .digital-entry-divider{height:6px;margin:0 auto 14px;opacity:.72
   font-size:13px;
   line-height:36px;
 }
+
+/* StandardList page shells: table-only and split-list variants. */
+.standard-list{display:flex;flex:1;min-height:0;flex-direction:column;box-sizing:border-box}.standard-list-table{gap:12px;padding:12px;background:#f2f3f5;overflow:hidden}.standard-list-table>.compact-title-row{flex:0 0 auto;margin:0}.standard-list-table>.unified-query-card{flex:0 0 auto;margin:0}.standard-list-table>.table-card{flex:1;min-height:0;margin:0}.standard-list-split{gap:12px;padding:12px;background:#f2f3f5;overflow:hidden}.standard-list-split-body{display:flex;flex:1;min-height:0;gap:12px}.standard-list-side{width:240px;flex:0 0 240px;min-height:0}.standard-list-main{display:flex;flex:1;min-width:0;min-height:0;flex-direction:column;gap:12px}.standard-list-main>.unified-query-card{flex:0 0 auto;margin:0}.standard-list-main>.table-card{flex:1;min-height:0;margin:0}.standard-list-preview{display:flex;flex-direction:column;gap:20px}.standard-list-preview>section{padding:16px;border:1px solid #e5e6eb;background:#f7f8fa}.standard-list-preview h4{margin:0 0 10px;color:#1d2129;font-size:15px}.standard-list-preview .standard-list{min-height:460px;padding:0}.standard-list-preview .standard-list-split{min-height:460px}.component-standard-list-demo-table{min-height:0}.component-standard-list-side-demo{display:flex;flex-direction:column;gap:4px;height:100%;padding:12px;background:#fff;border:1px solid #e5e6eb}.component-standard-list-side-demo strong{padding-bottom:10px;color:#1d2129}.component-standard-list-side-demo button{padding:9px 10px;border:0;background:transparent;color:#4e5969;text-align:left;cursor:pointer}.component-standard-list-side-demo button.active{color:#165dff;background:#e8f3ff}
 
 /* 移动端内容背景统一为轻灰，头部与业务看板保留各自背景。 */
 body.mobile-mode{

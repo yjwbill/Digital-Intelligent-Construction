@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "1.0.0",
+  "entity": "organization",
+  "tableSuggestion": "organization",
+  "primaryKey": "id",
+  "fields": [
+    { "name": "id", "type": "string", "required": true, "description": "稳定主键，建议后端落库为 varchar" },
+    { "name": "orgCode", "type": "string", "required": true, "description": "组织编码，业务唯一" },
+    { "name": "orgName", "type": "string", "required": true, "description": "组织名称" },
+    { "name": "orgType", "type": "string", "required": true, "description": "GROUP/SUB_COMPANY/BRANCH" },
+    { "name": "parentId", "type": "string", "required": false, "description": "上级组织主键" },
+    { "name": "parentCode", "type": "string", "required": false, "description": "上级组织编码" },
+    { "name": "level", "type": "number", "required": true, "description": "组织层级" },
+    { "name": "sortNo", "type": "number", "required": true, "description": "排序号" },
+    { "name": "status", "type": "string", "required": true, "description": "ENABLED/DISABLED" },
+    { "name": "leaderUserId", "type": "string", "required": false, "description": "负责人用户 ID" },
+    { "name": "createdAt", "type": "datetime", "required": true, "description": "创建时间" },
+    { "name": "updatedAt", "type": "datetime", "required": true, "description": "更新时间" }
+  ]
+}
