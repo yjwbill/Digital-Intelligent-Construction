@@ -513,32 +513,13 @@ const operationInfraReportData=[
   }
 ];
 
-const operationPhoneRevealMap={};
-
-function renderOperationPhone(r){
-  const key=r.productionProjectNo || r.projectName;
-  const visible=operationPhoneRevealMap[key]&&operationPhoneRevealMap[key]>Date.now();
-  const phone=visible?(r.fullContactPhone||r.contactPhone):r.contactPhone;
-  return `
-    <span>${phone||"-"}</span>
-    ${r.fullContactPhone?`<button class="link" title="查看完整手机号" onclick="revealOperationPhone('${escapeAttr(key)}')">👁️</button>`:""}
-  `;
-}
-
-function revealOperationPhone(key){
-  operationPhoneRevealMap[key]=Date.now()+3000;
-  renderOperationLeaseTable();
-  setTimeout(()=>renderOperationLeaseTable(),3000);
-}
-
 tableColumnDefinitions.operationLeaseProject=[
   {key:"index",title:"序号",width:70,align:"center",render:(r,i)=>i+1},
   {key:"projectName",title:"生产项目名称",width:220,render:r=>`<a class="link" onclick="openOperationLeaseDetail('${escapeAttr(r.productionProjectNo)}')">${r.projectName}</a>`},
   {key:"subProjectNo",title:"子公司项目编号",width:170,render:r=>r.subProjectNo||"-"},
   {key:"createMode",title:"创建模式",width:110,align:"center",render:r=>tag(r.createMode||"-",r.createMode==="集成"?"blue":"orange")},
   {key:"projectCostYuan",title:"项目造价（元）",width:140,align:"right",render:r=>r.projectCostYuan||r.totalInvestment||"-"},
-  {key:"executiveProjectManager",title:"常务项目经理",width:120,align:"center",render:r=>r.executiveProjectManager||r.projectManager||"-"},
-  {key:"contactPhone",title:"联系方式",width:140,align:"center",render:r=>renderOperationPhone(r)},
+  {key:"executiveProjectManager",title:"常务项目经理",width:210,align:"center",render:r=>renderProjectManagerContact(r.executiveProjectManager||r.projectManager,r.fullContactPhone||r.contactPhone,{key:`operation-lease-${r.productionProjectNo||r.projectName}`})},
   {key:"managementUnit",title:"子公司管理单位",width:210,render:r=>r.managementUnit||"-"},
   {key:"bidPriceYuan",title:"中标价（元）",width:140,align:"right",render:r=>r.bidPriceYuan||"-"},
   {key:"projectBizType",title:"项目业态",width:140,align:"center",render:r=>r.projectBizType||operationLeaseReportState.bizType||"-"},
@@ -581,8 +562,7 @@ tableColumnDefinitions.operationInfraProject=[
   {key:"subProjectNo",title:"子公司项目编号",width:170,render:r=>r.subProjectNo||"-"},
   {key:"createMode",title:"创建模式",width:110,align:"center",render:r=>tag(r.createMode||"-",r.createMode==="集成"?"blue":"orange")},
   {key:"projectCostYuan",title:"项目造价（元）",width:150,align:"right",render:r=>r.projectCostYuan||"-"},
-  {key:"executiveProjectManager",title:"常务项目经理",width:120,align:"center",render:r=>r.executiveProjectManager||"-"},
-  {key:"contactPhone",title:"联系方式",width:140,align:"center",render:r=>renderOperationPhone(r)},
+  {key:"executiveProjectManager",title:"常务项目经理",width:210,align:"center",render:r=>renderProjectManagerContact(r.executiveProjectManager,r.fullContactPhone||r.contactPhone,{key:`operation-infra-${r.productionProjectNo||r.projectName}`})},
   {key:"managementUnit",title:"子公司管理单位",width:210,render:r=>r.managementUnit||"-"},
   {key:"bidPriceYuan",title:"中标价（元）",width:150,align:"right",render:r=>r.bidPriceYuan||"-"},
   {key:"projectBizType",title:"项目业态",width:140,align:"center",render:r=>r.projectBizType||"-"},

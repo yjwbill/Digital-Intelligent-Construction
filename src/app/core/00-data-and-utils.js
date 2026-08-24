@@ -10,16 +10,54 @@ window.__APP_VERSION__={
   desc:APP_CODE_VERSION_DESC
 };
 
-let organizationMasterData=(window.EMMasterData?.ensure("organizations",(window.__ORGANIZATION_MASTER_DATA__ || []).map(item=>({
+const organizationEnglishNameDefaults=Object.freeze({
+  "上海隧道":"STEC",
+  "城建设计":"SUCDRI",
+  "城建设计集团":"SUCDRI",
+  "城建国际":"SUCIE",
+  "运营集团":"SUOG",
+  "城市运营集团":"SUOG",
+  "城建置业":"SUCGFC",
+  "市政集团":"SUCGM",
+  "城建物资":"SHMGC",
+  "上海路桥":"SRBG",
+  "城建投资":"SUCGTZ"
+});
+function getOrganizationEnglishNameDefault(name){
+  return organizationEnglishNameDefaults[String(name||"").trim()] || "";
+}
+function resolveOrganizationEnglishName(item){
+  if(Object.prototype.hasOwnProperty.call(item||{},"englishName"))return String(item.englishName||"").trim();
+  if(Object.prototype.hasOwnProperty.call(item||{},"english_name"))return String(item.english_name||"").trim();
+  return getOrganizationEnglishNameDefault(item?.name);
+}
+
+const organizationSeedData=(window.__ORGANIZATION_MASTER_DATA__ || []).map(item=>({
   code:item.code,
   name:item.name,
+  englishName:resolveOrganizationEnglishName(item),
   level:Number(item.level),
   parentCode:item.parent_code || ""
-}))) || []).map(item=>({
+}));
+const storedOrganizationData=window.EMMasterData?.ensure("organizations",organizationSeedData) || [];
+let organizationMasterData=storedOrganizationData.map(item=>({
   code:item.code,
   name:item.name,
+  englishName:resolveOrganizationEnglishName(item),
   level:Number(item.level),
   parentCode:item.parentCode || item.parent_code || ""
+}));
+const organizationEnglishNameMigrationRequired=storedOrganizationData.some((item,index)=>
+  !Object.prototype.hasOwnProperty.call(item,"englishName") ||
+  String(item.englishName||"").trim()!==organizationMasterData[index].englishName
+);
+if(organizationEnglishNameMigrationRequired)window.EMMasterData?.set("organizations",organizationMasterData);
+window.__ORGANIZATION_MASTER_DATA__=organizationMasterData.map(item=>({
+  code:item.code,
+  name:item.name,
+  english_name:item.englishName || "",
+  level:String(item.level),
+  parent_code:item.parentCode || ""
 }));
 
 function persistMasterData(entity,data){
@@ -70,6 +108,7 @@ function buildOrgTreeDataFromOrganizationMaster(){
     nodeMap.set(item.code,{
       id:`org-${item.code}`,
       name:item.name,
+      englishName:item.englishName || "",
       shortName:item.name,
       type:getOrganizationLevelName(item.level),
       level:item.level,
@@ -89,6 +128,7 @@ function buildOrgTreeDataFromOrganizationMaster(){
   return nodeMap.get(getOrganizationRoot().code) || {
     id:"org-G001",
     name:"隧道股份",
+    englishName:"",
     shortName:"隧道股份",
     type:"股份",
     level:1,
@@ -645,6 +685,43 @@ const versionHistory=[
 }
 ];
 
+const businessMenuEmojiRules=[
+  [/数据字典|数据配置|源数据|数据管理/,"🗄️"],
+  [/组织|单位维护/,"🏢"],
+  [/岗位|人员|花名册|白名单/,"👤"],
+  [/角色|授权|权限/,"🛡️"],
+  [/模板/,"🧩"],
+  [/消息|发送/,"💬"],
+  [/待办|触达/,"📨"],
+  [/审批|评价任务|诊断任务/,"✅"],
+  [/规则|指标|模型|目标设置|配置/,"📐"],
+  [/预警|风险|事故|违规|延期|整改/,"⚠️"],
+  [/报表|分析|诊断|结果|明细|记录|列表|一览/,"📊"],
+  [/项目|工程|开项|纳管/,"🏗️"],
+  [/进度|里程碑|节点|工期/,"📅"],
+  [/产值|填报|申报|上报|计量/,"📈"],
+  [/建筑垃圾|低碳|垃圾/,"🌱"],
+  [/材料|出入库/,"📦"],
+  [/资源计划|筹划/,"📋"],
+  [/劳务|劳动力/,"👷"],
+  [/技术|方案/,"🧪"],
+  [/合同|结算|履约/,"📑"],
+  [/质量|创奖|巡检/,"🏅"],
+  [/设备|工牌|台账/,"🧰"],
+  [/供应商|画像|评分/,"🏭"],
+  [/视频|监控|抓拍/,"🎥"],
+  [/大屏|总览|看板/,"📺"],
+  [/历史|废|禁/,"🕘"]
+];
+
+// 二级菜单图标规范：显式 icon 优先，新增菜单未配置时按业务名称自动匹配。
+function getBusinessMenuEmoji(itemOrName){
+  const item=typeof itemOrName==="object"&&itemOrName?itemOrName:null;
+  if(item?.icon)return item.icon;
+  const name=String(item?.name??itemOrName??"").trim();
+  return businessMenuEmojiRules.find(([pattern])=>pattern.test(name))?.[1] || "📋";
+}
+
 const businessMenus={
   home:{
     title:"首页",
@@ -864,20 +941,12 @@ const businessMenus={
         name:"大屏看板",
         open:true,
         children:[
-          {name:"经济总览",active:false},
-          {name:"经济诊断",active:true}
+          {name:"经济总览国内版",active:false},
+          {name:"经济总览国际版",active:false},
+          {name:"经济诊断国内版",active:true},
+          {name:"经济诊断国际版",active:false}
         ]
       },
-      {
-        icon:"🗓️",
-        name:"经济诊断",
-        open:true,
-        children:[
-          {name:"诊断任务",active:false},
-          {name:"诊断结果",active:false}
-        ]
-      },
-      {icon:"📑",name:"合同管理",active:false},
       {
         icon:"📋",
         name:"经济开项",
@@ -885,17 +954,35 @@ const businessMenus={
         children:[
           {name:"开项审批",active:true}
         ]
-      }
-      ,{
+      },
+      {
+        icon:"🗂️",
+        name:"经济纳管",
+        open:true,
+        children:[
+          {name:"纳管项目",active:false}
+        ]
+      },
+      {
+        icon:"🗓️",
+        name:"经济诊断",
+        open:true,
+        children:[
+          {name:"规则设置",active:false},
+          {name:"诊断任务",active:false},
+          {name:"诊断结果",active:false}
+        ]
+      },
+      {
         icon:"⚠️",
         name:"经济预警",
         open:true,
         children:[
-          {name:"规则设置",active:true},
           {name:"预警记录"},
           {name:"预警通知",active:false}
         ]
-      }
+      },
+      {icon:"📑",name:"合同管理",active:false}
     ]
   },
   operation:{
@@ -931,7 +1018,7 @@ function getUnifiedOrgTreeIcon(level=1,type="organization"){
 function unifiedOrgTreeMatches(node,keyword){
   const normalized=String(keyword||"").trim().toLowerCase();
   if(!normalized)return true;
-  const own=[node?.name,node?.shortName,node?.code].some(value=>String(value||"").toLowerCase().includes(normalized));
+  const own=[node?.name,node?.englishName,node?.shortName,node?.code].some(value=>String(value||"").toLowerCase().includes(normalized));
   return own || (node?.children||[]).some(child=>unifiedOrgTreeMatches(child,normalized));
 }
 
@@ -1544,7 +1631,7 @@ const tableColumnDefinitions={
     {key:"projectName",title:"项目名称",width:280,align:"left",render:row=>row.projectName},
     {key:"company",title:"子公司",width:160,align:"center",render:row=>row.company},
     {key:"branch",title:"分公司",width:160,align:"center",render:row=>row.branch},
-    {key:"manager",title:"项目经理",width:120,align:"center",render:row=>row.manager},
+    {key:"manager",title:"项目经理",width:190,align:"center",render:row=>renderProjectManagerContact(row.manager,row.managerPhone,{key:`safety-monthly-${row.id||row.projectName}`})},
     {key:"status",title:"项目状态",width:120,align:"center",render:row=>renderSafetyEvalMonthlyProjectStatusTag(row.status)},
     {key:"realNameOpened",title:"是否已开通",group:"实名系统开通",width:120,align:"center",render:row=>tag(row.realNameOpen.opened,row.realNameOpen.opened==="是"?"green":"red")},
     {key:"realNameOpenDays",title:"开通天数",group:"实名系统开通",width:120,align:"center",render:row=>row.realNameOpen.openDays},
@@ -2044,9 +2131,9 @@ const tableColumnDefinitions={
     {
       key:"projectManager",
       title:"项目经理",
-      width:120,
+      width:190,
       align:"left",
-      render:x=>x.projectManager
+      render:x=>renderProjectManagerContact(x.projectManager,x.managerPhone,{key:`performance-project-${x.id||x.projectName}`})
     },
     {
       key:"contractPrice",
@@ -2417,6 +2504,76 @@ function escapeAttr(value){
     .replace(/>/g,"&gt;");
 }
 
+const projectManagerContactRegistry=new Map();
+const projectManagerContactTimers=new Map();
+
+function standardProjectManagerMaskPhone(phone){
+  const value=String(phone||"").trim();
+  if(!value)return "--";
+  if(/[＊*]/.test(value))return value;
+  const digits=value.replace(/\D/g,"");
+  if(digits.length<7)return value;
+  return `${digits.slice(0,3)}****${digits.slice(-4)}`;
+}
+
+function getProjectManagerContactKey(baseKey,name,phone){
+  const source=`${name}|${phone}`;
+  let hash=0;
+  for(let index=0;index<source.length;index++)hash=((hash<<5)-hash+source.charCodeAt(index))|0;
+  return `${baseKey}-${hash>>>0}`;
+}
+
+function renderProjectManagerContact(name,phone,options={}){
+  let managerName=String(name||"-").trim()||"-";
+  let rawPhone=String(phone||"").trim();
+  if(!rawPhone&&managerName.includes("|")){
+    const parts=managerName.split("|").map(item=>item.trim());
+    managerName=parts.shift()||"-";
+    rawPhone=parts.join(" | ");
+  }
+  const hasFullPhone=rawPhone!==""&&!/[＊*]/.test(rawPhone)&&rawPhone.replace(/\D/g,"").length>=7;
+  const maskedPhone=rawPhone?standardProjectManagerMaskPhone(rawPhone):"--";
+  const baseKey=String(options.key||managerName);
+  const key=getProjectManagerContactKey(baseKey,managerName,rawPhone||"empty");
+  const encodedKey=encodeURIComponent(key);
+  const revealUntil=projectManagerContactRegistry.get(key)?.revealUntil||0;
+  const visible=hasFullPhone&&revealUntil>Date.now();
+  projectManagerContactRegistry.set(key,{phone:rawPhone,maskedPhone,hasFullPhone,revealUntil});
+  return `<span class="project-manager-contact" data-project-manager-contact-key="${escapeAttr(key)}"><span class="project-manager-contact__name">${escapeAttr(managerName)}</span><span class="project-manager-contact__separator">|</span><span class="project-manager-contact__phone">${escapeAttr(visible?rawPhone:maskedPhone)}</span>${hasFullPhone?`<button type="button" class="project-manager-contact__reveal" title="${visible?"手机号将在 3 秒后自动隐藏":"查看完整手机号"}" aria-label="查看${escapeAttr(managerName)}的完整手机号" onclick="revealProjectManagerContact('${escapeAttr(encodedKey)}')">👁️</button>`:""}</span>`;
+}
+
+function updateProjectManagerContactElements(key,visible){
+  const record=projectManagerContactRegistry.get(key);
+  if(!record)return;
+  document.querySelectorAll("[data-project-manager-contact-key]").forEach(element=>{
+    if(element.dataset.projectManagerContactKey!==key)return;
+    const phone=element.querySelector(".project-manager-contact__phone");
+    const button=element.querySelector(".project-manager-contact__reveal");
+    if(phone)phone.textContent=visible?record.phone:record.maskedPhone;
+    if(button)button.title=visible?"手机号将在 3 秒后自动隐藏":"查看完整手机号";
+  });
+}
+
+function revealProjectManagerContact(encodedKey){
+  const key=decodeURIComponent(String(encodedKey||""));
+  const record=projectManagerContactRegistry.get(key);
+  if(!record?.hasFullPhone)return;
+  const currentTimer=projectManagerContactTimers.get(key);
+  if(currentTimer)clearTimeout(currentTimer);
+  record.revealUntil=Date.now()+3000;
+  updateProjectManagerContactElements(key,true);
+  const timer=setTimeout(()=>{
+    record.revealUntil=0;
+    updateProjectManagerContactElements(key,false);
+    projectManagerContactTimers.delete(key);
+  },3000);
+  projectManagerContactTimers.set(key,timer);
+}
+
+window.standardProjectManagerMaskPhone=standardProjectManagerMaskPhone;
+window.renderProjectManagerContact=renderProjectManagerContact;
+window.revealProjectManagerContact=revealProjectManagerContact;
+
 function showFloatingInfoTip(el){
   const text=el?.dataset?.tip;
   if(!text)return;
@@ -2513,7 +2670,7 @@ const StandardList={
     const customClass=String(options.className||"").trim();
     const title=options.titleHtml||"";
     if(variant==="split"){
-      return `<section class="standard-list standard-list-split ${customClass}">${title}<div class="standard-list-split-body"><aside class="standard-list-side">${options.sideHtml||""}</aside><main class="standard-list-main">${options.mainHtml||""}</main></div></section>`;
+      return `<section class="standard-list standard-list-split ${customClass}">${title}${options.splitTopHtml?`<div class="standard-list-split-top">${options.splitTopHtml}</div>`:""}<div class="standard-list-split-body"><aside class="standard-list-side">${options.sideHtml||""}</aside><main class="standard-list-main">${options.mainHtml||""}</main></div></section>`;
     }
     return `<section class="standard-list standard-list-table ${customClass}">${title}${options.queryHtml||""}${options.contentHtml||""}</section>`;
   }

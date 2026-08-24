@@ -1,5 +1,5 @@
-/* 经济管理 / 经济预警 / 规则设置 */
-const economyWarningRuleState={tab:"primary",primaryKey:"contract",secondaryKey:"steelpipe"};
+/* 经济管理 / 经济诊断 / 规则设置 */
+const economyWarningRuleState={edition:"domestic",tab:"primary",primaryKey:"contract",secondaryKey:"steelpipe"};
 const economyWarningPrimaryRules=[
   {key:"contract",name:"分包分供等合同预警",rules:[
     {id:"ContractWarning_1",name:"合同个数预警",type:"分包分供等合同预警",remark:"合同个数-劳务*1 or 合同个数-专业*1=黄",enabled:true},
@@ -30,10 +30,28 @@ const economyWarningSecondaryRules=[
   {key:"reported-settlement",name:"上报结算价预警",parent:"总包结算预警",rules:[]},
   {key:"loss-margin",name:"目标利润率预警",parent:"潜亏预警",rules:[]}
 ];
+const economyWarningInternationalPrimaryRules=[
+  {key:"target-cost",name:"目标成本预警",rules:[{id:"INT_TargetCost_1",name:"目标成本偏差预警",type:"目标成本预警",remark:"实际成本超过目标成本阈值时触发",enabled:true}]},
+  {key:"target-profit",name:"目标利润率预警",rules:[{id:"INT_TargetProfit_1",name:"目标利润率负向偏差",type:"目标利润率预警",remark:"实际利润率低于目标利润率阈值时触发",enabled:true}]},
+  {key:"settlement",name:"结算预警",rules:[{id:"INT_Settlement_1",name:"结算进度异常",type:"结算预警",remark:"结算进度超过约定周期时触发",enabled:true}]},
+  {key:"arrears",name:"拖欠款预警",rules:[{id:"INT_Arrears_1",name:"应收款逾期预警",type:"拖欠款预警",remark:"应收款超过合同约定账期时触发",enabled:true}]}
+];
+const economyWarningInternationalSecondaryRules=[
+  {key:"cost-amount",name:"目标成本金额预警",parent:"目标成本预警",rules:[{id:"INT_001",name:"目标成本金额预警",type:"目标成本金额预警",remark:"成本清单项目实际签署总额及发生费用超过目标成本控制标准",enabled:true}]},
+  {key:"funds",name:"资金预警",parent:"目标利润率预警",rules:[{id:"INT_002",name:"资金预警",type:"资金预警",remark:"当期资金结余小于0时触发；非JV项目连续三个月触发，JV项目当月触发",enabled:true}]},
+  {key:"subcontract-output",name:"分包合同产值计量预警",parent:"目标利润率预警",rules:[{id:"INT_003",name:"分包合同产值计量预警",type:"分包合同产值计量预警",remark:"单个专业或劳务分包产值计量超过对应实际签署合同额，或全部专业及劳务计量总和超过合同总额控制标准",enabled:true}]},
+  {key:"material-overuse",name:"主材超领预警（钢材、砼、水泥）",parent:"目标利润率预警",rules:[{id:"INT_004",name:"主材超领预警（钢材、砼、水泥）",type:"主材超领预警",remark:"钢筋、混凝土、水泥累计领用量超过节点进度理论用量，或累计领用总量超过合同控制标准",enabled:true}]},
+  {key:"schedule-abnormal",name:"工期异常预警",parent:"目标利润率预警",rules:[{id:"INT_005",name:"工期异常预警",type:"工期异常预警",remark:"工程关键节点偏差达到3个月；投资类（含类投资）项目偏差达到1个月",enabled:true}]},
+  {key:"settlement-amount",name:"结算金额预警",parent:"结算预警",rules:[{id:"INT_006",name:"结算金额预警",type:"结算金额预警",remark:"项目完工后实际签证额低于项目预计实际总成本与利润率折算后的应有收入，且低于业主已计量产值",enabled:true}]},
+  {key:"settlement-cycle",name:"结算周期预警",parent:"结算预警",rules:[{id:"INT_007",name:"结算周期预警",type:"结算周期预警",remark:"对外结算初稿上报日期超过项目完工日期加9个月，或项目内部结算完成时间超过业主出具结算书日期加6个月",enabled:true}]},
+  {key:"arrears-amount",name:"拖欠款金额预警",parent:"拖欠款预警",rules:[{id:"INT_008",name:"拖欠款金额预警",type:"拖欠款金额预警",remark:"到期应收未收款金额大于0时触发",enabled:true}]},
+  {key:"arrears-aging",name:"拖欠款账龄预警",parent:"拖欠款预警",rules:[{id:"INT_009",name:"拖欠款账龄预警",type:"拖欠款账龄预警",remark:"非投资类项目到期应收未收款账龄达到3个月，投资类（含类投资）项目达到1个月",enabled:true}]}
+];
 function escapeEconomyRuleText(value){
   return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#39;"}[char]));
 }
 function getEconomyWarningRuleGroups(){
+  if(economyWarningRuleState.edition==="international")return economyWarningRuleState.tab==="primary"?economyWarningInternationalPrimaryRules:economyWarningInternationalSecondaryRules;
   return economyWarningRuleState.tab==="primary"?economyWarningPrimaryRules:economyWarningSecondaryRules;
 }
 function getSelectedEconomyWarningRuleGroup(){
@@ -41,12 +59,23 @@ function getSelectedEconomyWarningRuleGroup(){
   return getEconomyWarningRuleGroups().find(item=>item.key===key)||getEconomyWarningRuleGroups()[0];
 }
 function getEconomyWarningRuleTotal(tab){
-  const groups=tab==="primary"?economyWarningPrimaryRules:economyWarningSecondaryRules;
-  return groups.reduce((total,item)=>total+item.rules.length,0)+(tab==="primary"?31:71);
+  const international=economyWarningRuleState.edition==="international";
+  const groups=international?(tab==="primary"?economyWarningInternationalPrimaryRules:economyWarningInternationalSecondaryRules):(tab==="primary"?economyWarningPrimaryRules:economyWarningSecondaryRules);
+  return groups.reduce((total,item)=>total+item.rules.length,0)+(international?0:(tab==="primary"?31:71));
 }
 function setEconomyWarningRuleTab(tab){
   economyWarningRuleState.tab=tab==="secondary"?"secondary":"primary";
   renderEconomyWarningRuleSettingsPage();
+}
+function setEconomyWarningRuleEdition(edition){
+  economyWarningRuleState.edition=edition==="international"?"international":"domestic";
+  economyWarningRuleState.primaryKey=economyWarningRuleState.edition==="international"?"target-cost":"contract";
+  economyWarningRuleState.secondaryKey=economyWarningRuleState.edition==="international"?"cost-deviation":"steelpipe";
+  renderEconomyWarningRuleSettingsPage();
+}
+function renderEconomyWarningRuleEditionTabs(){
+  const edition=economyWarningRuleState.edition;
+  return `<div class="screen-tabs production-screen-tabs economy-edition-tabs economy-rule-edition-tabs" role="tablist" aria-label="规则适用版本"><button type="button" role="tab" aria-selected="${edition==="domestic"}" class="${edition==="domestic"?"active":""}" onclick="setEconomyWarningRuleEdition('domestic')">国内版</button><button type="button" role="tab" aria-selected="${edition==="international"}" class="${edition==="international"?"active":""}" onclick="setEconomyWarningRuleEdition('international')">国际版</button></div>`;
 }
 function selectEconomyWarningRuleGroup(key){
   if(economyWarningRuleState.tab==="primary")economyWarningRuleState.primaryKey=key;
@@ -81,7 +110,8 @@ const economyMaintenanceState={ruleId:"",conditionRows:[
   ["总包含合同含税价（元）","大于","0"]
 ]};
 function getEconomyMaintenanceRule(ruleId){
-  return economyWarningSecondaryRules.flatMap(group=>group.rules).find(rule=>rule.id===ruleId)||economyWarningSecondaryRules[0].rules[0];
+  const groups=economyWarningRuleState.edition==="international"?economyWarningInternationalSecondaryRules:economyWarningSecondaryRules;
+  return groups.flatMap(group=>group.rules).find(rule=>rule.id===ruleId)||groups[0]?.rules[0];
 }
 function renderEconomyMaintenanceTokenSelect(id,labels){
   return `<div class="economy-maintenance-select">${renderMessageRouteMultiSelect(id,labels,labels,{placeholder:"请选择"})}</div>`;
@@ -137,7 +167,8 @@ function renderEconomyWarningRuleSettingsPage(){
   const isPrimary=economyWarningRuleState.tab==="primary";
   const groups=getEconomyWarningRuleGroups();
   const selected=getSelectedEconomyWarningRuleGroup();
-  const sideHtml=`<aside class="card economy-warning-rule-categories"><div class="economy-warning-rule-category-title"><i></i><strong>${isPrimary?"一级预警类型":"二级预警类型"}</strong></div><div class="economy-warning-rule-category-list">${groups.map(item=>`<button class="${item.key===selected?.key?"active":""}" onclick="selectEconomyWarningRuleGroup('${item.key}')">${escapeEconomyRuleText(item.name)}</button>`).join("")}</div></aside>`;
-  const mainHtml=`<div class="economy-warning-rule-tabs"><button class="${isPrimary?"active":""}" onclick="setEconomyWarningRuleTab('primary')">一级指标预警 <b>${getEconomyWarningRuleTotal("primary")}</b></button><button class="${!isPrimary?"active":""}" onclick="setEconomyWarningRuleTab('secondary')">二级指标预警 <b>${getEconomyWarningRuleTotal("secondary")}</b></button></div><section class="card table-card economy-warning-rule-content"><div class="card-hd economy-warning-rule-toolbar"><button class="btn primary economy-warning-rule-add" onclick="openEconomyWarningRuleEditor('create')">新建${isPrimary?"一级指标":"二级指标"}</button></div><div class="table-wrap roster-table-wrap">${renderEconomyWarningRuleTable(selected)}</div><div class="pagination"><span>共 ${selected?.rules.length||0} 条记录</span><span>第 1 / 1 页　每页 50 条</span></div></section>`;
-  listPage.innerHTML=StandardList.render({variant:"split",className:"economy-warning-rule-page",titleHtml:`<div class="compact-title-row"><div class="module-title">经济预警 / 规则设置</div></div>`,sideHtml,mainHtml});
+  const sideHtml=`<section class="org-tree-panel economy-warning-rule-categories"><div class="org-tree-hd"><div class="card-title">${isPrimary?"一级预警类型":"二级预警类型"}</div></div><div class="org-tree-body economy-warning-rule-category-list">${groups.map(item=>`<button type="button" class="org-tree-node ${item.key===selected?.key?"active":""}" onclick="selectEconomyWarningRuleGroup('${item.key}')"><span class="org-node-left"><span class="org-node-icon">📁</span><span class="org-node-name">${escapeEconomyRuleText(item.name)}</span></span></button>`).join("")}</div></section>`;
+  const ruleTabs=`<div class="economy-management-tabs economy-warning-rule-level-tabs" role="tablist" aria-label="预警指标层级"><button role="tab" aria-selected="${isPrimary}" class="${isPrimary?"active":""}" onclick="setEconomyWarningRuleTab('primary')">一级指标预警 <b>${getEconomyWarningRuleTotal("primary")}</b></button><button role="tab" aria-selected="${!isPrimary}" class="${!isPrimary?"active":""}" onclick="setEconomyWarningRuleTab('secondary')">二级指标预警 <b>${getEconomyWarningRuleTotal("secondary")}</b></button></div>`;
+  const mainHtml=`<section class="card table-card economy-warning-rule-content"><div class="card-hd economy-warning-rule-toolbar"><button class="btn primary economy-warning-rule-add" onclick="openEconomyWarningRuleEditor('create')">新建${isPrimary?"一级指标":"二级指标"}</button></div><div class="table-wrap roster-table-wrap">${renderEconomyWarningRuleTable(selected)}</div><div class="pagination"><span>共 ${selected?.rules.length||0} 条记录</span><span>第 1 / 1 页　每页 50 条</span></div></section>`;
+  listPage.innerHTML=StandardList.render({variant:"split",className:"economy-warning-rule-page",titleHtml:`<div class="compact-title-row economy-rule-title-row"><div class="module-title">经济诊断 / 规则设置</div>${renderEconomyWarningRuleEditionTabs()}</div>`,splitTopHtml:ruleTabs,sideHtml,mainHtml});
 }

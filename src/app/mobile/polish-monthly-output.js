@@ -511,7 +511,7 @@ function renderMobileMonthlyOutputAttachmentsV2292(){
             <strong>${file.name}</strong>
             <span>${file.size}</span>
           </div>
-          <button type="button" onclick="removeMobileMonthlyOutputAttachmentV2292(${index})" aria-label="删除附件">×</button>
+          <button type="button" onclick="removeMobileMonthlyOutputAttachmentV2292(${index})" aria-label="删除附件" title="删除附件">${renderTDesignIcon("close",{size:16})}</button>
         </div>
       `).join("")}
     </div>

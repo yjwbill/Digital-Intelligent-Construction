@@ -1,7 +1,8 @@
 (function(){
-  const version="2.2.815-economy-warning-notice";
+  const version="2.2.872-economy-rule-layout-fix";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
+    "src/components/tdesign-icon/tdesign-icon.js",
     "src/vendor/jszip.min.js",
     "src/app/shared/construction-log-word-export.js",
     "src/components/statistics-filter/statistics-filter.js",
@@ -42,6 +43,7 @@
     "src/app/operation/production-project-list.js",
     "src/app/operation/interface-sync-exceptions.js",
     "src/app/economy/project-initiation.js",
+    "src/app/economy/economy-management.js",
     "src/app/economy/economy-analysis-report.js",
     "src/app/economy/economy-monthly-check-report.js",
     "src/app/economy/dashboard.js",

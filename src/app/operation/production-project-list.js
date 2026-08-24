@@ -63,7 +63,6 @@
     createStatus:index%4===0?"待立项":index%4===2?"未完成":"已立项",
     linkedCount:index%6===0?0:1
   }));
-  const revealedContacts=new Set();
   let current=[...operationProductionProjectListData];
   const input=(id,label,placeholder,value="")=>`<div class="form-item"><label>${label}</label><input class="input" id="${id}" value="${escapeAttr(value)}" placeholder="${placeholder}"/></div>`;
   const select=(id,label,values,value="")=>`<div class="form-item"><label>${label}</label><select class="select" id="${id}"><option value="">全部</option>${values.map(item=>`<option value="${item}" ${item===value?"selected":""}>${item}</option>`).join("")}</select></div>`;
@@ -78,8 +77,7 @@
     {key:"productionProjectNo",title:"生产项目编号",width:170,align:"center",render:row=>row.productionProjectNo},
     {key:"subProjectNo",title:"子公司项目编号",width:160,align:"center",render:row=>row.subProjectNo},
     {key:"createMode",title:"创建模式",width:100,align:"center",render:row=>tag(row.createMode,row.createMode==="集成"?"green":"orange")},
-    {key:"projectManager",title:"项目经理",width:110,align:"center",render:row=>row.projectManager},
-    {key:"contact",title:"联系方式",width:155,align:"center",render:row=>`<span>${revealedContacts.has(row.id)?row.fullContact:row.contact}</span><button type="button" class="operation-contact-eye" title="${revealedContacts.has(row.id)?"隐藏联系方式":"查看联系方式"}" onclick="toggleOperationProductionProjectContact(${row.id})">👁️</button>`},
+    {key:"projectManager",title:"项目经理",width:190,align:"center",render:row=>renderProjectManagerContact(row.projectManager,row.fullContact||row.contact,{key:`operation-production-${row.id}`})},
     {key:"managementUnit",title:"子公司管理单位",width:190,render:row=>`<span class="text-ellipsis" title="${escapeAttr(row.managementUnit)}">${row.managementUnit}</span>`},
     {key:"bidAmount",title:"中标价(元)",width:140,align:"right",render:row=>row.bidAmount},
     {key:"projectCost",title:"项目造价(元)",width:140,align:"right",render:row=>row.projectCost},
@@ -124,12 +122,11 @@
   window.resetOperationProductionProjectList=reset;
   window.setOperationProductionProjectListStat=setStat;
   window.renderOperationProductionProjectListTable=renderTable;
-  window.toggleOperationProductionProjectContact=id=>{const key=Number(id);revealedContacts.has(key)?revealedContacts.delete(key):revealedContacts.add(key);renderTable();};
   window.changeOperationProductionProjectListPage=direction=>{const pages=Math.max(1,Math.ceil(current.length/state.pageSize));state.page=Math.min(pages,Math.max(1,state.page+Number(direction)));renderPage();};
   window.changeOperationProductionProjectListPageSize=size=>{state.pageSize=Number(size)||50;state.page=1;renderPage();};
   window.refreshOperationProductionProjectList=()=>{query();showToast("生产项目列表已刷新");};
   window.exportOperationProductionProjectList=()=>showToast(`已导出生产项目列表（${current.length}条）`);
-  window.showOperationProductionProjectDetail=id=>{const row=operationProductionProjectListData.find(item=>item.id===Number(id));if(!row)return;openModal("生产项目详情",`<div class="detail-info-grid">${Object.entries({生产项目名称:row.projectName,生产项目编号:row.productionProjectNo,子公司项目编号:row.subProjectNo,创建模式:row.createMode,项目经理:row.projectManager,管理单位:row.managementUnit,项目业态:row.businessType,生产立项日期:row.productionDate,报账推送状态:row.reportStatus,关联订单项目:row.relatedOrderProject,关联施工项目:row.linkedConstructionProject||"-"}).map(([label,value])=>`<span>${label}：<b>${value}</b></span>`).join("")}</div>`,`<button class="btn" onclick="closeModal()">关闭</button>`,"large");};
+  window.showOperationProductionProjectDetail=id=>{const row=operationProductionProjectListData.find(item=>item.id===Number(id));if(!row)return;openModal("生产项目详情",`<div class="detail-info-grid">${Object.entries({生产项目名称:row.projectName,生产项目编号:row.productionProjectNo,子公司项目编号:row.subProjectNo,创建模式:row.createMode,项目经理:row.projectManager,联系方式:standardProjectManagerMaskPhone(row.fullContact||row.contact),管理单位:row.managementUnit,项目业态:row.businessType,生产立项日期:row.productionDate,报账推送状态:row.reportStatus,关联订单项目:row.relatedOrderProject,关联施工项目:row.linkedConstructionProject||"-"}).map(([label,value])=>`<span>${label}：<b>${value}</b></span>`).join("")}</div>`,`<button class="btn" onclick="closeModal()">关闭</button>`,"large");};
   window.editOperationProductionProject=id=>showToast(`进入生产项目编辑：${id}`);
 
   function readOrderPickerFilters(){return {name:document.getElementById("orderPickerName")?.value.trim()||"",no:document.getElementById("orderPickerNo")?.value.trim()||"",company:document.getElementById("orderPickerCompany")?.value.trim()||"",customer:document.getElementById("orderPickerCustomer")?.value.trim()||"",unit:document.getElementById("orderPickerUnit")?.value.trim()||""};}

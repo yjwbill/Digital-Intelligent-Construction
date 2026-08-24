@@ -2057,7 +2057,7 @@ function renderProductionEmergingYearPicker(){
   const years=Array.from({length:10},(_,index)=>state.panelStart+index);
   return `<div class="production-emerging-year-picker" onclick="event.stopPropagation()">
     <button type="button" class="production-emerging-year-input ${state.open?"active":""}" onclick="toggleProductionEmergingYearPicker(event)">
-      <span class="production-emerging-year-calendar">▣</span><span>${state.selected}年</span><i>⌄</i>
+      ${renderTDesignIcon("calendar",{size:16,className:"production-emerging-year-calendar"})}<span>${state.selected}年</span>${renderTDesignIcon("chevron-down",{size:16,className:"production-emerging-year-arrow"})}
     </button>
     <div class="production-emerging-year-panel ${state.open?"open":""}">
       <div class="production-emerging-year-panel-head">

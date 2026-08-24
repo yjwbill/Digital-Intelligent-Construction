@@ -45,7 +45,7 @@ function activateEconomyDashboardMenu(){
   const first=businessMenus.economy?.menus?.find(item=>item.name==="大屏看板");
   if(first){
     first.open=true;
-    first.children?.forEach(child=>child.active=child.name==="经济诊断");
+    first.children?.forEach(child=>child.active=child.name==="经济诊断国内版");
   }
   collapseInactiveGroups("economy");
 }
@@ -107,7 +107,8 @@ function renderSideMenu(line){
             <div class="menu-children">
               ${item.children.map((c,j)=>`
                 <div class="menu-child-item ${c.active?"active":""}" onclick="selectBusinessChildMenu('${line}',${i},${j},'${c.name}')">
-                  ${c.name}
+                  <span class="menu-child-icon" aria-hidden="true">${getBusinessMenuEmoji(c)}</span>
+                  <span class="menu-child-label">${c.name}</span>
                 </div>
               `).join("")}
             </div>
@@ -188,7 +189,7 @@ if(line==="home"){
 }else if(line==="economy"){
   activateEconomyDashboardMenu();
   renderSideMenu(line);
-  renderEconomyDashboardPage("diagnosis");
+  renderEconomyDiagnosisEdition("domestic");
   showToast("已切换到经济条线");
 }else if(line==="base"){
   activateBaseOrgMenu();
@@ -245,11 +246,14 @@ function selectBusinessChildMenu(line,gi,ci,name){
   if(line==="operation"&&name==="生产项目列表")return renderChild(()=>renderOperationProductionProjectListPage());
   if(line==="operation")return renderChild(()=>renderOperationProductionProjectReportPage());
   if(line==="economy"&&parent?.name==="经济开项"&&name==="开项审批")return renderChild(()=>renderEconomyProjectInitiationPage());
-  if(line==="economy"&&parent?.name==="大屏看板"&&name==="经济总览")return renderChild(()=>renderEconomyDashboardPage("overview"));
-  if(line==="economy"&&parent?.name==="大屏看板"&&name==="经济诊断")return renderChild(()=>renderEconomyDashboardPage("diagnosis"));
+  if(line==="economy"&&parent?.name==="经济纳管"&&name==="纳管项目")return renderChild(()=>renderEconomyManagementPage());
+  if(line==="economy"&&parent?.name==="大屏看板"&&name==="经济总览国内版")return renderChild(()=>renderEconomyOverviewEdition("domestic"));
+  if(line==="economy"&&parent?.name==="大屏看板"&&name==="经济总览国际版")return renderChild(()=>renderEconomyOverviewEdition("international"));
+  if(line==="economy"&&parent?.name==="大屏看板"&&name==="经济诊断国内版")return renderChild(()=>renderEconomyDiagnosisEdition("domestic"));
+  if(line==="economy"&&parent?.name==="大屏看板"&&name==="经济诊断国际版")return renderChild(()=>renderEconomyDiagnosisEdition("international"));
   if(line==="economy"&&parent?.name==="经济诊断"&&name==="诊断任务")return renderChild(()=>renderEconomyDiagnosisTaskPageRoute());
   if(line==="economy"&&parent?.name==="经济诊断"&&name==="诊断结果")return renderChild(()=>renderEconomyDiagnosisResultPage());
-  if(line==="economy"&&parent?.name==="经济预警"&&name==="规则设置")return renderChild(()=>renderEconomyWarningRuleSettingsPage());
+  if(line==="economy"&&parent?.name==="经济诊断"&&name==="规则设置")return renderChild(()=>renderEconomyWarningRuleSettingsPage());
   if(line==="economy"&&parent?.name==="经济预警"&&name==="预警通知")return renderChild(()=>renderEconomyWarningNoticePage());
 
   if(line==="safety")return renderChild(()=>renderSafetyPlaceholder(name));
@@ -294,7 +298,7 @@ function selectBusinessSingleMenu(line,i,name){
   if(line==="home"&&name==="施工日志")return renderEnterpriseConstructionLogPage();
   if(line==="safety"&&i===0)return renderSafetyOnlineDashboardPage();
   if(line==="production"&&name==="大屏看板")return renderProductionDashboardByKey(window.__APP_PRODUCTION_DASHBOARD_ROUTE_KEY__ || "overview");
-  if(line==="economy"&&name==="大屏看板")return renderEconomyDashboardPage("diagnosis");
+  if(line==="economy"&&name==="大屏看板")return renderEconomyDiagnosisEdition("domestic");
   if(line==="production"&&name==="施工项目一览")return renderConstructionProjectPage();
   if(line==="operation"&&name==="接口同步异常记录")return renderInterfaceSyncExceptionPage();
 

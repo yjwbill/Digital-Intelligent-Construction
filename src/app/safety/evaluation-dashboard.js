@@ -3318,7 +3318,7 @@ function renderSafetyEvalCurrentTaskProjectChooser(){
             <th style="width:100px;text-align:center">项目状态</th>
             <th style="width:112px">子公司</th>
             <th style="width:144px">分公司</th>
-            <th style="width:147px">项目经理</th>
+            <th style="width:190px">项目经理</th>
             <th style="width:120px;text-align:center">安全纳管状态</th>
             <th style="width:150px">项目编号</th>
           </tr>
@@ -3332,7 +3332,7 @@ function renderSafetyEvalCurrentTaskProjectChooser(){
               <td style="text-align:center">${tag(item.status,item.status==="在建"?"green":"gray")}</td>
               <td>${item.company}</td>
               <td>${item.branch}</td>
-              <td>${item.manager} | ${maskPhone(item.managerPhone)} <button type="button" class="link" title="查看完整手机号" onclick="showToast('查看手机号权限')">👁️</button></td>
+              <td>${renderProjectManagerContact(item.manager,item.managerPhone,{key:`safety-evaluation-picker-${item.id}`})}</td>
               <td style="text-align:center">${tag(item.managedStatus,item.managedStatus==="已纳管"?"green":item.managedStatus==="暂停纳管"?"orange":"gray")}</td>
               <td>${item.projectNo}</td>
             </tr>
@@ -3468,7 +3468,7 @@ function openSafetyEvalCurrentTaskDetail(id,viewMode="detail"){
     <div class="detail-group"><div class="detail-group-header"><div class="detail-group-title">任务基础信息</div></div><div class="detail-group-body"><div class="info-grid">
       <div class="info-item"><div class="info-label">任务名称</div><strong>${row.taskName}</strong></div><div class="info-item"><div class="info-label">任务期数</div><strong>${row.taskPeriod}</strong></div><div class="info-item"><div class="info-label">执行方式</div><strong>${row.executeMode}</strong></div>${row.executeMode==="自动"?`<div class="info-item"><div class="info-label">执行时间</div><strong>${row.scheduledTime||"-"}</strong></div>`:""}
     </div><div style="margin-top:16px"><div class="info-label">任务描述</div><div style="margin-top:6px;line-height:1.7;color:var(--text)">${row.taskDescription||"-"}</div></div></div></div>
-    <div class="detail-group"><div class="detail-group-header" style="justify-content:flex-start"><div class="detail-group-title">选择评价项目</div>${renderSafetyEvalCurrentTaskSelectionHint(row.projectCount,row.branchCount,row.companyCount,false)}</div><div class="detail-group-body"><div class="table-wrap roster-table-wrap" style="max-height:320px;overflow:auto"><table style="min-width:1300px"><thead><tr><th style="width:70px;text-align:center">序号</th><th style="width:320px">项目名称</th><th style="width:100px;text-align:center">项目状态</th><th style="width:140px">子公司</th><th style="width:160px">分公司</th><th style="width:147px">项目经理</th><th style="width:120px;text-align:center">安全纳管状态</th><th style="width:150px">项目编号</th></tr></thead><tbody>${projects.map((item,index)=>`<tr><td style="text-align:center">${index+1}</td><td>${item.projectName}</td><td style="text-align:center">${tag(item.status,item.status==="在建"?"green":"gray")}</td><td>${item.company}</td><td>${item.branch}</td><td>${item.manager} | ${maskPhone(item.managerPhone)} <button type="button" class="link" title="查看完整手机号" onclick="showToast('查看手机号权限')">👁️</button></td><td style="text-align:center">${tag(item.managedStatus,item.managedStatus==="已纳管"?"green":item.managedStatus==="暂停纳管"?"orange":"gray")}</td><td>${item.projectNo}</td></tr>`).join("")}</tbody></table></div></div></div>
+    <div class="detail-group"><div class="detail-group-header" style="justify-content:flex-start"><div class="detail-group-title">选择评价项目</div>${renderSafetyEvalCurrentTaskSelectionHint(row.projectCount,row.branchCount,row.companyCount,false)}</div><div class="detail-group-body"><div class="table-wrap roster-table-wrap" style="max-height:320px;overflow:auto"><table style="min-width:1300px"><thead><tr><th style="width:70px;text-align:center">序号</th><th style="width:320px">项目名称</th><th style="width:100px;text-align:center">项目状态</th><th style="width:140px">子公司</th><th style="width:160px">分公司</th><th style="width:190px">项目经理</th><th style="width:120px;text-align:center">安全纳管状态</th><th style="width:150px">项目编号</th></tr></thead><tbody>${projects.map((item,index)=>`<tr><td style="text-align:center">${index+1}</td><td>${item.projectName}</td><td style="text-align:center">${tag(item.status,item.status==="在建"?"green":"gray")}</td><td>${item.company}</td><td>${item.branch}</td><td>${renderProjectManagerContact(item.manager,item.managerPhone,{key:`safety-evaluation-task-${row.id}-${item.id}`})}</td><td style="text-align:center">${tag(item.managedStatus,item.managedStatus==="已纳管"?"green":item.managedStatus==="暂停纳管"?"orange":"gray")}</td><td>${item.projectNo}</td></tr>`).join("")}</tbody></table></div></div></div>
   `,`<button class="btn primary" onclick="closeModal()">关闭</button>`,"large");
 }
 
@@ -3969,7 +3969,7 @@ function renderSafetyXiaoAnDialog(){
   if(!safetyXiaoAnDialogOpen)return "";
   return `
     <div class="safety-xiaoan-dialog" id="safetyXiaoAnDialog">
-      <button class="safety-xiaoan-close" title="关闭" onclick="closeSafetyXiaoAnDialog(event)">×</button>
+      <button class="safety-xiaoan-close" title="关闭" aria-label="关闭" onclick="closeSafetyXiaoAnDialog(event)">${renderTDesignIcon("close",{size:18})}</button>
       <div class="safety-xiaoan-dialog-head"></div>
       <div class="safety-xiaoan-message">
         <h3>${safetyXiaoAnReport[0]}</h3>
@@ -4142,9 +4142,9 @@ function renderSafetyMonthPicker(pickerId="safetyEvaluationMonth"){
   return `
     <div class="SafetyMonthPicker" data-picker-id="${pickerId}" onclick="event.stopPropagation()">
       <button type="button" class="SafetyMonthPicker__input ${state.open?"active":""}" id="${pickerId}Input" onclick="toggleSafetyMonthPicker('${pickerId}',event)">
-        <img class="SafetyMonthPicker__calendar" src="./src/components/month-picker/calendar.svg" alt="" aria-hidden="true"/>
+        ${renderTDesignIcon("calendar",{size:16,className:"SafetyMonthPicker__calendar"})}
         <span class="SafetyMonthPicker__value" id="${pickerId}Label">${formatSafetyMonthLabel(state.selectedMonth)}</span>
-        <img class="SafetyMonthPicker__arrow" src="./src/components/month-picker/chevron-down.svg" alt="" aria-hidden="true"/>
+        ${renderTDesignIcon("chevron-down",{size:16,className:"SafetyMonthPicker__arrow"})}
       </button>
       <div class="SafetyMonthPicker__panel ${state.open?"open":""}" id="${pickerId}Panel"></div>
     </div>
@@ -4881,7 +4881,7 @@ function renderSafetyEvaluationTable(){
   const isAllPageSelected=pageIds.length>0&&pageIds.every(id=>isSafetyEvalRowSelected(id));
   const scoreSort=safetyEvaluationFilterState.scoreSort;
   const sortMark=scoreSort==="asc"?"↑":scoreSort==="desc"?"↓":"↕";
-  const riskFilter=safetyEvaluationFilterState.riskLevel?`<span class="safety-eval-active-filter">风险等级：${safetyEvaluationFilterState.riskLevel}<button onclick="setSafetyEvalRiskFilter('${safetyEvaluationFilterState.riskLevel}')">×</button></span>`:"";
+  const riskFilter=safetyEvaluationFilterState.riskLevel?`<span class="safety-eval-active-filter">风险等级：${safetyEvaluationFilterState.riskLevel}<button aria-label="移除风险等级筛选" title="移除筛选" onclick="setSafetyEvalRiskFilter('${safetyEvaluationFilterState.riskLevel}')">${renderTDesignIcon("close",{size:12})}</button></span>`:"";
   return `
     <section class="safety-eval-table-card">
       <div class="safety-eval-table-toolbar">
@@ -4908,7 +4908,7 @@ function renderSafetyEvaluationTable(){
           <tbody>
             ${pageRows.map((row,index)=>`
               <tr>
-                <td class="center col-select"><input type="checkbox" ${isSafetyEvalRowSelected(row[0])?"checked":""} onchange="toggleSafetyEvalRowSelect('${escapeAttr(row[0])}',this.checked)"/></td><td class="center col-index">${index+1}</td><td class="project-name col-project"><a class="link" onclick="openSafetyEvaluationDetail('${escapeAttr(row[0])}')">${row[1]}</a></td><td class="center">${row[2]}</td><td class="center">${row[3]}</td><td class="center">${row[4]}</td>
+                <td class="center col-select"><input type="checkbox" ${isSafetyEvalRowSelected(row[0])?"checked":""} onchange="toggleSafetyEvalRowSelect('${escapeAttr(row[0])}',this.checked)"/></td><td class="center col-index">${index+1}</td><td class="project-name col-project"><a class="link" onclick="openSafetyEvaluationDetail('${escapeAttr(row[0])}')">${row[1]}</a></td><td class="center">${row[2]}</td><td class="center">${row[3]}</td><td class="center">${renderProjectManagerContact(row[4],"",{key:`safety-evaluation-dashboard-${row[0]}`})}</td>
                 <td class="center"><span class="dot ${row[5]==="竣工"?"blue":"green"}"></span>${row[5]}</td><td class="center">${row[6]}</td>
                 <td class="center">${tag(row[7],row[7]==="风险可控"?"green":row[7]==="风险较高"?"orange":"red")}</td>
                 <td>${row[8]}</td><td>${row[9]}</td><td>${row[10]}</td><td>${row[11]}</td><td>${row[12]}</td>
@@ -5047,7 +5047,7 @@ tableColumnDefinitions.safetyStaffShortage=[
   {key:"project",title:"项目名称",width:260,align:"left",render:row=>row.project},
   {key:"sub",title:"子公司",width:120,align:"center",render:row=>row.sub},
   {key:"branch",title:"分公司",width:140,align:"center",render:row=>row.branch},
-  {key:"manager",title:"项目经理",width:110,align:"center",render:row=>row.manager},
+  {key:"manager",title:"项目经理",width:190,align:"center",render:row=>renderProjectManagerContact(row.manager,row.managerPhone,{key:`safety-evaluation-result-${row.id||row.projectNo||row.projectName}`})},
   {key:"status",title:"项目状态",width:100,align:"center",render:row=>tag(row.status,row.status==="在建"?"green":row.status==="待建"?"orange":"blue")},
   {key:"cost",title:"项目造价",width:140,align:"right",render:row=>row.cost},
   {key:"actual",title:"已配置安全岗人数",width:150,align:"right",render:row=>row.actual},

@@ -45,8 +45,8 @@ function renderMessageProjectPickerControl(id,selectedIds=[]){
     <div class="base-multi-select__tags">
       ${first?`<span class="base-multi-select__tag message-route-selection-tag" title="${escapeTplAttr(first.projectName)}"><span class="base-multi-select__tag-text">${first.projectName}</span></span>${selected.length>1?`<span class="base-multi-select__tag message-route-selection-tag message-route-count-tag">+${selected.length-1}</span>`:""}`:'<span class="message-person-picker__placeholder">请选择项目</span>'}
     </div>
-    <button class="message-route-multi-select__clear" type="button" title="清空已选项目" ${selected.length?"":"hidden"} onclick="clearMessageProjectPicker(event,'${id}')">×</button>
-    <span class="base-multi-select__arrow" aria-hidden="true">⌄</span>
+    <button class="message-route-multi-select__clear" type="button" title="清空已选项目" aria-label="清空已选项目" ${selected.length?"":"hidden"} onclick="clearMessageProjectPicker(event,'${id}')">${renderTDesignIcon("close",{size:14})}</button>
+    <span class="base-multi-select__arrow" aria-hidden="true"></span>
   </div>`;
 }
 
@@ -132,7 +132,7 @@ tableColumnDefinitions.messageReceiverProjectPicker=[
   {key:"subCompany",title:"子公司",width:120,render:row=>row.subCompany||"--"},
   {key:"branchCompany",title:"分公司",width:150,render:row=>row.branchCompany||"--"},
   {key:"projectCost",title:"项目造价",width:130,align:"right",render:row=>`${typeof moneyWan==="function"?moneyWan(row.projectCost):row.projectCost}万`},
-  {key:"projectManager",title:"项目经理",width:110,render:row=>row.projectManager||"--"},
+  {key:"projectManager",title:"项目经理",width:190,render:row=>renderProjectManagerContact(row.projectManager,row.managerPhone,{key:`message-project-picker-${row.id}`})},
   {key:"provinceCity",title:"省市区",width:160,render:row=>row.provinceCity||"--"},
   {key:"region",title:"所属区域",width:120,render:row=>row.region||"--"},
   {key:"builder",title:"建设单位",width:220,render:row=>`<span class="text-ellipsis" title="${escapeTplAttr(row.builder||'--')}">${row.builder||"--"}</span>`},

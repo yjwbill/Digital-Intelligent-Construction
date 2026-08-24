@@ -1,0 +1,53 @@
+.td-icon{
+  --td-icon-size:1em;
+  display:inline-flex;
+  width:var(--td-icon-size);
+  height:var(--td-icon-size);
+  flex:0 0 var(--td-icon-size);
+  background-color:currentColor;
+  -webkit-mask-image:var(--td-icon-url);
+  mask-image:var(--td-icon-url);
+  -webkit-mask-repeat:no-repeat;
+  mask-repeat:no-repeat;
+  -webkit-mask-position:center;
+  mask-position:center;
+  -webkit-mask-size:var(--td-icon-glyph-size,contain);
+  mask-size:var(--td-icon-glyph-size,contain);
+  vertical-align:-.125em;
+}
+
+.td-icon--chevron-down{--td-icon-url:url("../../assets/tdesign-icons/chevron-down.svg?v=0.4.6-corrected");--td-icon-size:16px;--td-icon-glyph-size:75%}
+.td-icon--chevron-up{--td-icon-url:url("../../assets/tdesign-icons/chevron-up.svg?v=0.4.6-corrected");--td-icon-size:16px;--td-icon-glyph-size:75%}
+.td-icon--chevron-left{--td-icon-url:url("../../assets/tdesign-icons/chevron-left.svg?v=0.4.6-corrected");--td-icon-size:16px;--td-icon-glyph-size:75%}
+.td-icon--chevron-right{--td-icon-url:url("../../assets/tdesign-icons/chevron-right.svg?v=0.4.6-corrected");--td-icon-size:16px;--td-icon-glyph-size:75%}
+.td-icon--close{--td-icon-url:url("../../assets/tdesign-icons/close.svg?v=0.4.6-corrected");--td-icon-size:18px;--td-icon-glyph-size:78%}
+.td-icon--calendar{--td-icon-url:url("../../assets/tdesign-icons/calendar.svg?v=0.4.6-corrected");--td-icon-glyph-size:87.5%}
+.td-icon--search{--td-icon-url:url("../../assets/tdesign-icons/search.svg?v=0.4.6-corrected")}
+.td-icon--filter{--td-icon-url:url("../../assets/tdesign-icons/filter.svg?v=0.4.6-corrected")}
+.td-icon--add{--td-icon-url:url("../../assets/tdesign-icons/add.svg?v=0.4.6-corrected")}
+.td-icon--delete{--td-icon-url:url("../../assets/tdesign-icons/delete.svg?v=0.4.6-corrected")}
+.td-icon--edit{--td-icon-url:url("../../assets/tdesign-icons/edit.svg?v=0.4.6-corrected")}
+.td-icon--refresh{--td-icon-url:url("../../assets/tdesign-icons/refresh.svg?v=0.4.6-corrected")}
+.td-icon--download{--td-icon-url:url("../../assets/tdesign-icons/download.svg?v=0.4.6-corrected")}
+.td-icon--upload{--td-icon-url:url("../../assets/tdesign-icons/upload.svg?v=0.4.6-corrected")}
+.td-icon--more{--td-icon-url:url("../../assets/tdesign-icons/more.svg?v=0.4.6-corrected")}
+.td-icon--setting{--td-icon-url:url("../../assets/tdesign-icons/setting.svg?v=0.4.6-corrected")}
+
+.td-icon-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:inherit;
+}
+
+.tdesign-icon-preview{display:flex;flex-direction:column;gap:18px}
+.tdesign-icon-preview-grid{display:grid;grid-template-columns:repeat(8,minmax(80px,1fr));gap:10px}
+.tdesign-icon-preview-grid>div{display:flex;min-height:72px;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:1px solid #e5e6eb;border-radius:8px;background:#fff;color:#4e5969}
+.tdesign-icon-preview-grid>div .td-icon{color:#1d2129;font-size:24px}
+.tdesign-icon-preview-grid>div span:last-child{font-size:12px}
+.tdesign-icon-preview-standard{display:flex;align-items:center;gap:18px;padding:14px;border:1px solid #e5e6eb;border-radius:8px;background:#f7f8fa;color:#4e5969}
+.tdesign-icon-preview-standard .td-icon{color:#1d2129}
+@media(max-width:1100px){.tdesign-icon-preview-grid{grid-template-columns:repeat(4,minmax(80px,1fr))}}

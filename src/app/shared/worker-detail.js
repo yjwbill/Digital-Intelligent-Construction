@@ -606,7 +606,7 @@ function renderHazardTypeCascader(){
     <div class="hazard-cascader single" id="hazardTypeCascader">
       <div class="hazard-cascader-control" onclick="toggleHazardTypePanel(event)" onmousedown="keepHazardCascaderOpen(event)">
         <input id="hazardTypeDisplay" readonly placeholder="请选择隐患类型" value="">
-        <span class="hazard-cascader-arrow">⌄</span>
+        ${renderTDesignIcon("chevron-down",{size:16,className:"hazard-cascader-arrow"})}
       </div>
       <input type="hidden" id="hazardType" value="">
       <div class="hazard-cascader-panel" id="hazardTypePanel" onclick="keepHazardCascaderOpen(event)" onmousedown="keepHazardCascaderOpen(event)">
@@ -938,7 +938,7 @@ function openNestedModal(title,html,footerHtml){
       <div class="modal-hd">
         <span>${title}</span>
         <div class="modal-hd-actions">
-          <span class="close" onclick="closeNestedModal(this)">×</span>
+          <span class="close" role="button" aria-label="关闭" title="关闭" onclick="closeNestedModal(this)">${renderTDesignIcon("close",{size:18})}</span>
         </div>
       </div>
       <div class="modal-bd">${html}</div>
@@ -1158,6 +1158,9 @@ function openSupplierScoreDetail(id){
 }
 
 function openModal(title,html,footerHtml,modalSize){
+  modalBox.querySelector(".economy-fullscreen-language-host")?.remove();
+  delete modalTitle.dataset.zhTitle;
+  delete modalFooter.dataset.zhHtml;
   modalTitle.innerText=title;
   modalBody.innerHTML=html;
   modalFooter.innerHTML=footerHtml || `
@@ -1181,6 +1184,9 @@ function openModal(title,html,footerHtml,modalSize){
 function closeModal(){
   modalMask.style.display="none";
   modalBox.className="modal";
+  modalBox.querySelector(".economy-fullscreen-language-host")?.remove();
+  delete modalTitle.dataset.zhTitle;
+  delete modalFooter.dataset.zhHtml;
 
   const btn=document.getElementById("modalFullscreenBtn");
   if(btn){

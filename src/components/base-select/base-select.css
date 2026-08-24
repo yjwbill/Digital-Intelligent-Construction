@@ -90,6 +90,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  background: currentColor;
+  -webkit-mask: url("../../assets/tdesign-icons/chevron-down.svg?v=0.4.6-corrected") center/12px 12px no-repeat;
+  mask: url("../../assets/tdesign-icons/chevron-down.svg?v=0.4.6-corrected") center/12px 12px no-repeat;
   transition: transform .15s ease;
 }
 

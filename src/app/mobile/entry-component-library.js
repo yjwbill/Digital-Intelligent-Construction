@@ -580,7 +580,7 @@ function renderEnterpriseEconomyPickerOverlay(){
   const content=state.open==="month"?renderEnterpriseEconomyMonthPicker():state.open==="company"?renderEnterpriseEconomyCompanyPicker():renderEnterpriseEconomySimplePicker(state.open);
   return `<div class="enterprise-economy-picker-overlay" onclick="closeEnterpriseEconomyFilter()">
     <section class="enterprise-economy-picker-sheet mobile-picker-demo" role="dialog" aria-modal="true" aria-label="${titles[state.open]}" onclick="event.stopPropagation()">
-      <header class="mobile-picker-header"><strong>${titles[state.open]}</strong><button type="button" onclick="closeEnterpriseEconomyFilter()" aria-label="关闭">×</button></header>
+      <header class="mobile-picker-header"><strong>${titles[state.open]}</strong><button type="button" onclick="closeEnterpriseEconomyFilter()" aria-label="关闭">${renderTDesignIcon("close",{size:18})}</button></header>
       <div class="mobile-picker-summary"><span>当前选择</span><b>${summary}</b></div>
       ${content}
       <footer class="mobile-picker-footer"><button type="button" onclick="resetEnterpriseEconomyFilterDraft()">重置</button><button type="button" class="primary" onclick="confirmEnterpriseEconomyFilter()">确定</button></footer>
@@ -954,9 +954,9 @@ const componentChinaAreaDataV2298={
 const componentLibraryMenusV2288={
   pc:[
     {group:"设计规范",items:[["design-token","设计变量 Design Token"]]},
-    {group:"基础组件",items:[["button","按钮 Button"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"],["month","年月选择器 MonthPicker"]]},
+    {group:"基础组件",items:[["button","按钮 Button"],["icon","图标 Icon"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"],["month","年月选择器 MonthPicker"]]},
     {group:"表单组件",items:[["input","输入框 Input"],["select","选择器 Select"]]},
-    {group:"数据展示",items:[["tag","标签 Tag"],["table","表格 Table"],["standard-list","标准列表 StandardList"],["row-span-table","纵跨行组件 RowSpanTable"]]},
+    {group:"数据展示",items:[["tag","标签 Tag"],["table","表格 Table"],["standard-list","标准列表 StandardList"],["project-manager-contact","项目经理联系方式 ProjectManagerContact"],["row-span-table","纵跨行组件 RowSpanTable"]]},
     {group:"弹层组件",items:[["modal-standard","基础标准弹框 Modal"],["modal-fullscreen","全屏弹框 FullscreenModal"],["modal-nested","嵌套弹框 NestedModal"],["modal-business","业务定制弹框 BusinessModal"],["modal-immersive","沉浸式预览弹框 ImmersiveModal"],["modal-mobile","移动端弹层 MobileOverlay"],["modal-lightweight","轻量浮层 Popover"]]},
     {group:"业务组件",items:[["statistics-filter","统计筛选 StatisticsFilter"],["dashboard-org-switch","看板组织切换 DashboardOrgSwitch"],["project-selector","项目选择器 ProjectSelector"]]}
   ],
@@ -1133,7 +1133,7 @@ function renderComponentDateInputV2297(which,label,placeholder){
       <button class="component-date-input ${state.size} ${state.open===which?"active":""}" type="button" onclick="openComponentDatePickerV2297('${which}')">
         <i aria-hidden="true"></i>
         <strong>${value || "请选择日期"}</strong>
-        ${value?`<em onclick="event.stopPropagation();clearComponentDatePickerV2297('${which}')">×</em>`:`<b></b>`}
+        ${value?`<em role="button" aria-label="清空日期" title="清空日期" onclick="event.stopPropagation();clearComponentDatePickerV2297('${which}')">${renderTDesignIcon("close",{size:14})}</em>`:`<b></b>`}
       </button>
     </div>
   `;
@@ -1264,6 +1264,19 @@ function renderPcComponentPreviewV2288(type){
       </div>
       <p>用于页面主操作、次操作和危险操作。PC 端按钮高度建议 32px，列表工具栏按钮保持紧凑。</p>
     `,
+    icon:`
+      <div class="tdesign-icon-preview">
+        <div class="tdesign-icon-preview-grid">
+          ${[["chevron-down","下拉"],["close","关闭"],["search","搜索"],["filter","筛选"],["add","新增"],["edit","编辑"],["delete","删除"],["refresh","刷新"],["calendar","日期"],["download","下载"],["upload","上传"],["setting","设置"],["more","更多"],["user","用户"],["home","首页"],["check","完成"]].map(([name,label])=>`<div>${renderTDesignIcon(name,{size:24,label})}<span>${label}</span></div>`).join("")}
+        </div>
+        <div class="tdesign-icon-preview-standard">
+          ${renderTDesignIcon("chevron-down",{size:16,label:"下拉箭头"})}
+          ${renderTDesignIcon("close",{size:18,label:"关闭"})}
+          <span>标准尺寸：控件图标 16px，弹框关闭图标 18px，图标按钮按语义提供 tooltip 和 aria-label。</span>
+        </div>
+      </div>
+      <p>操作图标统一来自本地 <code>tdesign-icons-svg@0.4.6</code> 资产库。业务模板使用 <code>renderTDesignIcon(name, options)</code>，禁止重新手绘下拉、关闭、搜索、增删改等通用图标。</p>
+    `,
     radio:`
       <div class="component-demo-row" role="radiogroup" aria-label="接入方式">
         <label class="component-radio"><input type="radio" name="component-radio-basic" value="manual" checked> 手动</label>
@@ -1300,6 +1313,13 @@ function renderPcComponentPreviewV2288(type){
       <p>标准 Table 提供单行和多行两种表头模式。单行表头固定 44px；使用 <code>table-multiline-header</code> 标识双行或多级表头，每层固定 40px，并通过 rowspan / colspan 表达分组关系。所有数据行统一 40px，支持列设置、分页、导出和固定表头。</p>
     `,
     "standard-list":renderStandardListPreviewV2300(),
+    "project-manager-contact":`
+      <div class="component-demo-row">
+        ${renderProjectManagerContact("张建军","13812345678",{key:"component-library-manager-full"})}
+        ${renderProjectManagerContact("王明","",{key:"component-library-manager-empty"})}
+      </div>
+      <p>项目列表和项目选择弹框统一使用 <code>项目经理</code> 单列，展示“姓名 | 脱敏手机号”。存在完整手机号时显示查看按钮，点击后仅展示 3 秒；无手机号时展示“姓名 | --”且不显示按钮。编辑表单和基础信息详情仍将项目经理与联系方式分字段展示。</p>
+    `,
     "row-span-table":renderPcRowSpanTablePreviewV2609(),
     "modal-standard":ModalGallery.renderPreview("standard"),
     "modal-fullscreen":ModalGallery.renderPreview("fullscreen"),

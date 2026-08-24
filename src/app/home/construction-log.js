@@ -213,7 +213,7 @@ function refreshEnterpriseConstructionLogColumns(){
       align:"center",
       render:row=>renderEnterpriseConstructionLogDayCell(row,index+1)
     })),
-    {key:"projectManager",title:"项目经理",width:190,align:"center",render:row=>`${row.projectManager} | ${maskPhone(row.managerPhone||"18000005555")} <button type="button" class="link" title="查看完整手机号" onclick="showToast('查看手机号权限')">👁️</button>`},
+    {key:"projectManager",title:"项目经理",width:190,align:"center",render:row=>renderProjectManagerContact(row.projectManager,row.managerPhone,{key:`enterprise-log-${row.id}`})},
     {key:"controlLevel",title:"管控等级",width:150,align:"center",render:row=>row.controlLevel},
     {key:"builder",title:"建设单位",width:220,align:"left",render:row=>row.builder},
     {key:"keyCustomer",title:"重点客户",width:130,align:"center",render:row=>row.keyCustomer||"无"},

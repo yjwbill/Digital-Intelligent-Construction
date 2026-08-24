@@ -158,7 +158,7 @@ tableColumnDefinitions.riskLedger=[
   {key:"riskType",title:"风险类型",width:130,render:r=>r.riskType},
   {key:"riskName",title:"风险名称",width:150,render:r=>r.riskName},
   {key:"riskLevel",title:"风险等级",width:100,align:"center",render:r=>tag(r.riskLevel,r.riskLevel==="I级"?"red":r.riskLevel==="II级"?"orange":"blue")},
-  {key:"projectManager",title:"项目经理",width:170,render:r=>r.projectManager},
+  {key:"projectManager",title:"项目经理",width:190,render:r=>renderProjectManagerContact(r.projectManager,r.managerPhone,{key:`risk-project-${r.id}`})},
   {key:"major",title:"是否年度风险",width:120,align:"center",render:r=>r.major},
   {key:"accepted",title:"是否特殊/危大验收",width:150,align:"center",render:r=>r.accepted},
   {key:"planStart",title:"计划开始日期",width:130,align:"center",render:r=>r.planStart||"-"},

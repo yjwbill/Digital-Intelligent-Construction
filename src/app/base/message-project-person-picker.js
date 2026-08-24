@@ -47,7 +47,7 @@ function renderMessageProjectPersonPickerControl(id,selectedIds=[]){
   const selected=getMessageProjectPersonRows().filter(row=>ids.has(row.pickerId));
   return `<div class="base-multi-select__control" tabindex="0" role="combobox" aria-haspopup="dialog" onclick="openMessageProjectPersonPicker('${id}')">
     <div class="base-multi-select__tags">${selected[0]?`<span class="base-multi-select__tag message-route-selection-tag" title="${escapeTplAttr(selected[0].name)}"><span class="base-multi-select__tag-text">${selected[0].name}</span></span>${selected.length>1?`<span class="base-multi-select__tag message-route-selection-tag message-route-count-tag">+${selected.length-1}</span>`:""}`:'<span class="message-person-picker__placeholder">请选择项目管理人员</span>'}</div>
-    <button class="message-route-multi-select__clear" type="button" title="清空已选人员" ${selected.length?"":"hidden"} onclick="clearMessageProjectPersonPicker(event,'${id}')">×</button><span class="base-multi-select__arrow">⌄</span>
+    <button class="message-route-multi-select__clear" type="button" title="清空已选人员" ${selected.length?"":"hidden"} onclick="clearMessageProjectPersonPicker(event,'${id}')">${renderTDesignIcon("close",{size:14})}</button><span class="base-multi-select__arrow" aria-hidden="true"></span>
   </div>`;
 }
 

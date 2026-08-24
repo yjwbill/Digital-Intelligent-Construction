@@ -2222,7 +2222,7 @@ function renderMobileFeedbackImagesV2277(){
     <div class="mobile-feedback-images">
       ${imgs.map((name,index)=>`
         <div class="mobile-feedback-thumb ${name==="doc"?"doc":"photo"}">
-          <button type="button" onclick="removeMobileFeedbackImageV2277(${index})">×</button>
+          <button type="button" aria-label="删除图片" title="删除图片" onclick="removeMobileFeedbackImageV2277(${index})">${renderTDesignIcon("close",{size:16})}</button>
         </div>
       `).join("")}
       ${imgs.length<3?`

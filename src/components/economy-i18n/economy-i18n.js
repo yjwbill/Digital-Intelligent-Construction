@@ -13,14 +13,124 @@
   phrases.set("重置","Reset");
   phrases.set("上一页","Previous");
   phrases.set("下一页","Next");
+  phrases.set("项目经济指标总览","Project Economic KPI Overview");
+  phrases.set("项目经济指标全球分布地图","Global Project Economic KPI Map");
+  phrases.set("当前主题为","Current Metric");
+  phrases.set("数据范围","Data Scope");
+  phrases.set("所属组织","Organization");
+  phrases.set("集团重点客户","Key Group Client");
+  phrases.set("JV项目个数","JV Project Count");
+  phrases.set("JV项目分析","JV Project Analysis");
+  phrases.set("JV项目适用","JV Only");
+  phrases.set("合作主体","Party");
+  phrases.set("分成比例","Share");
+  phrases.set("投入资金","Capital");
+  phrases.set("管理人员数量","Staff");
+  phrases.set("项目类型分析","Project Type Analysis");
+  phrases.set("个数|比例","Count | Share");
+  phrases.set("类型","Type");
+  phrases.set("风险预警分布","Risk Warning Distribution");
+  phrases.set("经济风险项目（红色/橙色/黄色/蓝色风险）","Economic Risk Projects (Red/Orange/Yellow/Blue)");
+  phrases.set("风险警示","Risk Alert");
+  phrases.set("国家/地区","Country/Region");
+  phrases.set("纳管项目数","Managed");
+  phrases.set("报警数","Alerts");
+  phrases.set("主要原因分析","Key Cause Analysis");
+  phrases.set("报警比例最高的六个二级预警","Top Six Secondary Warnings by Alert Rate");
+  phrases.set("中国上海","Shanghai, China");
+  phrases.set("香港分公司","Hong Kong Branch");
+  phrases.set("澳门分公司","Macao Branch");
+  phrases.set("优泰地下工程分公司","UTEC Underground Engineering Branch");
+  phrases.set("汇臻建设分公司","Huizhen Construction Branch");
+  phrases.set("印度基础设施分公司","India Infrastructure Branch");
+  phrases.set("缅甸分公司","Myanmar Branch");
+  phrases.set("越南办事处","Vietnam Office");
+  phrases.set("马来西亚分公司","Malaysia Branch");
+  phrases.set("香港","Hong Kong");
+  phrases.set("澳门","Macao");
+  phrases.set("新加坡","Singapore");
+  phrases.set("市政-大隧道","Municipal - Major Tunnel");
+  phrases.set("市政-非大隧道","Municipal - General");
+  phrases.set("地下工程","Underground Works");
+  phrases.set("排水环保","Drainage & Environment");
+  phrases.set("目标成本额度预警（cost清单额度预警）","Target Cost Limit Warning (Cost BOQ Limit Warning)");
+  phrases.set("资金预警","Fund Warning");
+  phrases.set("分包合同产值计量预警","Subcontract Output Measurement Warning");
+  phrases.set("主材超领预警（钢材、砼、水泥）","Excess Main Material Requisition Warning (Steel, Concrete, Cement)");
+  phrases.set("工期异常预警","Schedule Exception Warning");
+  phrases.set("结算金额预警","Settlement Amount Warning");
+  phrases.set("万元","CNY 10k");
+  phrases.set("人","people");
+  phrases.set("说明"," Details");
+  phrases.set("子公司切换","Subsidiary Switch");
+  phrases.set("子公司/分公司（项管部）","Subsidiary/Branch (Project Management Unit)");
+  phrases.set("结算预警","Settlement Warning");
+  phrases.set("拖欠款预警","Arrears Warning");
+  phrases.set("P0（本期）","P0 (Current)");
+  phrases.set("10条/页","10 / page");
+  phrases.set("20条/页","20 / page");
+  phrases.set("50条/页","50 / page");
+  phrases.set("暂无项目数据","No project data");
+  phrases.set("湾区金融中心项目（11标段）","Greater Bay Area Financial Center Project (Contract 11)");
+  phrases.set("湾区金融中心项目（19标段）","Greater Bay Area Financial Center Project (Contract 19)");
+  phrases.set("湾区金融中心项目（27标段）","Greater Bay Area Financial Center Project (Contract 27)");
+  phrases.set("湾区金融中心项目（35标段）","Greater Bay Area Financial Center Project (Contract 35)");
+  phrases.set("湾区金融中心项目","Greater Bay Area Financial Center Project");
+  phrases.set("粉岭北新发展区余下阶段－地盘平整和基础设施工程（西）","Fanling North NDA Remaining Phase - Site Formation and Infrastructure Works (West)");
+  phrases.set("澳门逸园跑狗场原址土地市民运动公园建造工程 – 第一区","Macao Civic Sports Park at Former Yat Yuen Canidrome Site - Zone 1");
+  phrases.set("大潭山隧道及其连接线设计连建造工程 - 隧道及南连接线","Taipa Grande Tunnel and Connecting Roads - Tunnel and Southern Connection");
+  phrases.set("黄大仙雨水排放系统改善工程","Wong Tai Sin Stormwater Drainage System Improvement Works");
+  phrases.set("轻轨东线南段设计连建造工程","LRT East Line Southern Section Design and Construction");
+  phrases.set("新加坡地铁C991项目","Singapore MRT C991 Project");
+  phrases.set("新加坡跨岛线二期CR203项目","Singapore Cross Island Line Phase 2 CR203 Project");
+  phrases.set("新加坡樟宜机场T5新建项目之T2连通结构工程标段","Singapore Changi Airport T5 - T2 Connection Structure Works");
+  phrases.set("新加坡地铁跨岛线 CR202标","Singapore MRT Cross Island Line Contract CR202");
+  phrases.set("新加坡南北交通廊道N109A 项目","Singapore North-South Corridor N109A Project");
+  phrases.set("新加坡地铁跨岛线一期CR102项目","Singapore MRT Cross Island Line Phase 1 CR102 Project");
+  phrases.set("上海隧道工程股份有限公司香港分公司","Shanghai Tunnel Engineering Co., Ltd. Hong Kong Branch");
+  phrases.set("上海隧道工程股份有限公司澳门分公司","Shanghai Tunnel Engineering Co., Ltd. Macao Branch");
+  phrases.set("优泰地下工程私人有限公司","UTEC Pte. Ltd.");
+  phrases.set("上海隧道工程股份（新加坡）有限公司","STEC (Singapore) Pte. Ltd.");
+  phrases.delete("人");
   const ordered=[...phrases.entries()].sort((a,b)=>b[0].length-a[0].length);
   const state={language:"zh"};
+  const translatedModalSelector=".economy-report-modal,.economy-monthly-check-modal,.economy-project-overview-modal";
   function isEnglish(){return state.language==="en";}
   function translateText(value){if(!isEnglish()||!value)return value;let result=value;for(const [zh,en] of ordered)result=result.split(zh).join(en);return result;}
-  function apply(root){if(!root||!isEnglish()||global.economyDashboardState?.edition!=="international")return;const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);nodes.forEach(node=>{if(!node.parentElement?.closest("script,style"))node.nodeValue=translateText(node.nodeValue);});root.querySelectorAll("[placeholder],[title],[aria-label]").forEach(node=>["placeholder","title","aria-label"].forEach(attr=>{if(node.hasAttribute(attr))node.setAttribute(attr,translateText(node.getAttribute(attr)));}));}
+  function isInternationalDisplayRoot(root){
+    if(!root||global.economyDashboardState?.edition!=="international")return false;
+    const element=root.nodeType===Node.ELEMENT_NODE?root:root.parentElement;
+    if(!element)return false;
+    return Boolean(
+      element.matches?.(".economy-dashboard-page") ||
+      element.closest?.(translatedModalSelector) ||
+      element.querySelector?.(".economy-dashboard-page")
+    );
+  }
+  function apply(root){if(!isEnglish()||!isInternationalDisplayRoot(root))return;const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);nodes.forEach(node=>{if(!node.parentElement?.closest("script,style"))node.nodeValue=translateText(node.nodeValue);});root.querySelectorAll("[placeholder],[title],[aria-label],[alt]").forEach(node=>["placeholder","title","aria-label","alt"].forEach(attr=>{if(node.hasAttribute(attr))node.setAttribute(attr,translateText(node.getAttribute(attr)));}));}
   function renderSwitch(){if(global.economyDashboardState?.edition!=="international")return "";return `<div class="economy-language-switch" role="group" aria-label="Language"><button type="button" class="${state.language==="zh"?"active":""}" onclick="setEconomyLanguage('zh')">中文</button><button type="button" class="${state.language==="en"?"active":""}" onclick="setEconomyLanguage('en')">EN</button></div>`;}
-  function setLanguage(language){state.language=language==="en"?"en":"zh";if(document.querySelector(".economy-report-modal")){refreshEconomyAnalysisReport();refreshFullscreenChrome();return;}if(document.querySelector(".economy-monthly-check-modal")){modalBody.innerHTML=renderEconomyMonthlyCheckReport();apply(modalBody);refreshFullscreenChrome();return;}if(document.querySelector(".economy-project-overview-modal")){const embed=document.getElementById("economyProjectOverviewEmbed");if(embed&&global.__economyProjectOverviewEmbedProject)embed.innerHTML=renderProjectEconomyOverviewContent(global.__economyProjectOverviewEmbedProject);apply(modalBody);refreshFullscreenChrome();return;}renderEconomyDashboardPage(global.economyDashboardState?.tab||"diagnosis");}
-  function refreshFullscreenChrome(){const box=document.getElementById("modalBox");if(!box)return;const title=document.getElementById("modalTitle");if(title?.dataset.zhTitle)title.innerText=title.dataset.zhTitle;const footer=document.getElementById("modalFooter");if(footer?.dataset.zhHtml)footer.innerHTML=footer.dataset.zhHtml;let host=box.querySelector(".economy-fullscreen-language-host");if(!host){host=document.createElement("div");host.className="economy-fullscreen-language-host";box.querySelector(".modal-hd-actions")?.prepend(host);}host.innerHTML=renderSwitch();apply(box);}
+  function setLanguage(language){if(global.economyDashboardState?.edition!=="international")return;state.language=language==="en"?"en":"zh";if(document.querySelector(".economy-report-modal")){refreshEconomyAnalysisReport();refreshFullscreenChrome();return;}if(document.querySelector(".economy-monthly-check-modal")){modalBody.innerHTML=renderEconomyMonthlyCheckReport();apply(modalBody);refreshFullscreenChrome();return;}if(document.querySelector(".economy-project-overview-modal")){const embed=document.getElementById("economyProjectOverviewEmbed");if(embed&&global.__economyProjectOverviewEmbedProject)embed.innerHTML=renderProjectEconomyOverviewContent(global.__economyProjectOverviewEmbedProject);apply(modalBody);refreshFullscreenChrome();return;}renderEconomyDashboardPage(global.economyDashboardState?.tab||"diagnosis");}
+  function refreshFullscreenChrome(){
+    const box=document.getElementById("modalBox");
+    if(!box)return;
+    const existingHost=box.querySelector(".economy-fullscreen-language-host");
+    if(global.economyDashboardState?.edition!=="international"||!box.matches(translatedModalSelector)){
+      existingHost?.remove();
+      return;
+    }
+    const title=document.getElementById("modalTitle");
+    if(title?.dataset.zhTitle)title.innerText=title.dataset.zhTitle;
+    const footer=document.getElementById("modalFooter");
+    if(footer?.dataset.zhHtml)footer.innerHTML=footer.dataset.zhHtml;
+    let host=existingHost;
+    if(!host){
+      host=document.createElement("div");
+      host.className="economy-fullscreen-language-host";
+      box.querySelector(".modal-hd-actions")?.prepend(host);
+    }
+    host.innerHTML=renderSwitch();
+    apply(box);
+  }
   global.EconomyI18n={state,isEnglish,translateText,apply,renderSwitch,refreshFullscreenChrome};
   global.setEconomyLanguage=setLanguage;
 })(window);

@@ -528,7 +528,6 @@ const actualOutputManagerPhoneMap={
   "王晨":"15745679999",
   "陈启航":"15756789999"
 };
-const actualOutputManagerPhoneRevealMap={};
 
 const actualOutputReportRows=[
   ["上海隧道","轨交分公司","上海示范区线工程 SFQSG-15 标","在建","赵菁","已上报",12865.000012,12136.792464,"周敏","2026-07-03"],
@@ -567,7 +566,7 @@ tableColumnDefinitions.actualOutputReport=[
   {key:"projectStatus",title:"项目状态",width:110,align:"center",render:row=>tag(row.projectStatus,row.projectStatus==="在建"?"green":"red")},
   {key:"company",title:"子公司",width:140,align:"center",render:row=>row.company},
   {key:"branch",title:"分公司",width:150,align:"center",render:row=>row.branch},
-  {key:"projectManager",title:"项目经理",width:190,align:"center",render:row=>renderActualOutputManager(row)},
+  {key:"projectManager",title:"项目经理",width:190,align:"center",render:row=>renderProjectManagerContact(row.projectManager,row.managerPhone,{key:`actual-output-${row.id}`})},
   {key:"outputMonth",title:"产值月份",width:120,align:"center",render:row=>row.outputMonth},
   {key:"reportStatus",title:"上报情况",width:120,align:"center",render:row=>renderActualOutputStatusTag(row.reportStatus)},
   {key:"monthlyOutputTaxIncluded",title:"本月完成产值（含税）（万元）",width:220,align:"right",render:row=>row.reportStatus==="未上报"?"-":formatActualOutputAmount(row.monthlyOutputTaxIncluded)},
@@ -579,18 +578,6 @@ tableColumnDefinitions.actualOutputReport=[
 
 function formatActualOutputAmount(value){
   return Number(value||0).toLocaleString("zh-CN",{minimumFractionDigits:6,maximumFractionDigits:6});
-}
-
-function renderActualOutputManager(row){
-  const revealUntil=actualOutputManagerPhoneRevealMap[row.id] || 0;
-  const phone=Date.now()<revealUntil?row.managerPhone:maskPhone(row.managerPhone);
-  return `${row.projectManager} | ${phone} <button class="link" title="查看完整手机号" onclick="revealActualOutputManagerPhone(${row.id})">👁️</button>`;
-}
-
-function revealActualOutputManagerPhone(id){
-  actualOutputManagerPhoneRevealMap[id]=Date.now()+3000;
-  renderActualOutputReportTable();
-  setTimeout(()=>renderActualOutputReportTable(),3000);
 }
 
 function renderActualOutputStatusTag(status){
@@ -1805,7 +1792,7 @@ function renderComprehensiveActualOutputProjectAttachment(project,formMode){
     <div class="comprehensive-project-attachment-cell">
       ${formMode?`<div class="comprehensive-project-attachment-action"><button type="button" class="btn mini" onclick="openComprehensiveActualOutputProjectAttachmentPicker('${escapeAttr(key)}')">上传</button><em data-comprehensive-attachment-required="${escapeAttr(key)}">${required?"*":""}</em></div>`:""}
       <div class="comprehensive-project-attachment-files">
-        ${files.length?files.map((file,index)=>`<span class="comprehensive-project-attachment-file" title="${escapeAttr(file)}"><b>📄 ${escapeAttr(file)}</b>${formMode?`<button type="button" class="comprehensive-project-attachment-delete" title="删除附件" aria-label="删除附件" onclick="removeComprehensiveActualOutputProjectAttachment('${escapeAttr(key)}',${index})">×</button>`:""}</span>`).join(""):`<i data-comprehensive-attachment-empty="${escapeAttr(key)}">${formMode?"未上传":"暂无附件"}</i>`}
+        ${files.length?files.map((file,index)=>`<span class="comprehensive-project-attachment-file" title="${escapeAttr(file)}"><b>📄 ${escapeAttr(file)}</b>${formMode?`<button type="button" class="comprehensive-project-attachment-delete" title="删除附件" aria-label="删除附件" onclick="removeComprehensiveActualOutputProjectAttachment('${escapeAttr(key)}',${index})">${renderTDesignIcon("close",{size:14})}</button>`:""}</span>`).join(""):`<i data-comprehensive-attachment-empty="${escapeAttr(key)}">${formMode?"未上传":"暂无附件"}</i>`}
       </div>
     </div>
   `;
@@ -1842,7 +1829,7 @@ function renderComprehensiveActualOutputDetailBody(row){
         <table class="comprehensive-actual-output-project-table">
           <colgroup><col class="col-index"><col class="col-project-name"><col class="col-project-status"><col class="col-manager"><col class="col-output"><col class="col-output"><col class="col-output"><col class="col-output"><col class="col-attachment"></colgroup>
           <thead><tr><th>序号</th><th>项目名称</th><th>项目状态</th><th>项目经理</th><th>年度计划产值（万元）</th><th>本月实际完成产值（万元）</th><th>年度累计完成产值（万元）</th><th>剩余合同产值（万元）</th><th>相关附件</th></tr></thead>
-          <tbody>${rows.map((project,index)=>`<tr><td>${index+1}</td><td class="project-name" title="${escapeAttr(project.projectName)}">${project.projectName}</td><td>${tag(project.projectStatus||"在建",project.projectStatus==="停工"?"red":project.projectStatus==="待建"?"orange":"green")}</td><td>${project.projectManager||"-"} | ${maskPhone(project.managerPhone||"18000005555")} <span class="link" onclick="showToast('查看手机号权限')">👁️</span></td><td data-comprehensive-annual-plan="${escapeAttr(project.id)}">${renderComprehensiveActualOutputProjectAmountCell(project,"annualPlan",formMode)}</td><td>${renderComprehensiveActualOutputProjectAmountCell(project,"current",formMode)}</td><td data-comprehensive-annual-cumulative="${escapeAttr(project.id)}">${formatActualOutputAmount(project.annualCumulative)}</td><td data-comprehensive-remaining="${escapeAttr(project.id)}">${renderComprehensiveActualOutputProjectAmountCell(project,"remaining",formMode)}</td><td>${renderComprehensiveActualOutputProjectAttachment(project,formMode)}</td></tr>`).join("")}</tbody>
+          <tbody>${rows.map((project,index)=>`<tr><td>${index+1}</td><td class="project-name" title="${escapeAttr(project.projectName)}">${project.projectName}</td><td>${tag(project.projectStatus||"在建",project.projectStatus==="停工"?"red":project.projectStatus==="待建"?"orange":"green")}</td><td>${renderProjectManagerContact(project.projectManager,project.managerPhone,{key:`comprehensive-output-${row.id}-${project.id}`})}</td><td data-comprehensive-annual-plan="${escapeAttr(project.id)}">${renderComprehensiveActualOutputProjectAmountCell(project,"annualPlan",formMode)}</td><td>${renderComprehensiveActualOutputProjectAmountCell(project,"current",formMode)}</td><td data-comprehensive-annual-cumulative="${escapeAttr(project.id)}">${formatActualOutputAmount(project.annualCumulative)}</td><td data-comprehensive-remaining="${escapeAttr(project.id)}">${renderComprehensiveActualOutputProjectAmountCell(project,"remaining",formMode)}</td><td>${renderComprehensiveActualOutputProjectAttachment(project,formMode)}</td></tr>`).join("")}</tbody>
           <tfoot><tr><td colspan="4">共 ${rows.length} 条</td><td data-industry-total="annualPlan">${formatActualOutputAmount(groupTotals.annualPlan)}</td><td data-industry-total="current">${formatActualOutputAmount(groupTotals.current)}</td><td data-industry-total="annualCumulative">${formatActualOutputAmount(groupTotals.annualCumulative)}</td><td data-industry-total="remaining">${formatActualOutputAmount(groupTotals.remaining)}</td><td></td></tr></tfoot>
         </table>
       </div>`}
@@ -2415,7 +2402,7 @@ tableColumnDefinitions.finishedUnsettledOutput=[
   {key:"company",title:"子公司",width:130,align:"center",render:row=>row.company},
   {key:"branch",title:"分公司",width:160,align:"center",render:row=>row.branch},
   {key:"projectStatus",title:"项目状态",width:110,align:"center",render:row=>row.projectStatus},
-  {key:"projectManager",title:"项目经理",width:110,align:"center",render:row=>row.projectManager},
+  {key:"projectManager",title:"项目经理",width:190,align:"center",render:row=>renderProjectManagerContact(row.projectManager,row.managerPhone,{key:`finished-unsettled-${row.id}`})},
   {key:"outputMonth",title:"上报月份",width:120,align:"center",render:row=>row.outputMonth},
   {key:"reportStatus",title:"上报情况",width:130,align:"center",render:row=>renderActualOutputStatusTag(row.reportStatus)},
   {key:"annualPlan",title:"年度计划产值（万元）",width:170,align:"right",render:row=>row.reportStatus==="未上报"?"-":formatActualOutputAmount(row.annualPlan)},

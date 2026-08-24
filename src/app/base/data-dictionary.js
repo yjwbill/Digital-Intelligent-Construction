@@ -98,7 +98,7 @@ function ensureBaseDataDictionaryMenuV2284(){
   const base=businessMenus.base;
   if(!base || base.menus.some(item=>item.name==="数据配置"))return;
   base.menus.push({
-    icon:"▦",
+    icon:"🗄️",
     name:"数据配置",
     open:false,
     children:[{name:"数据字典"}]

@@ -36,7 +36,7 @@
         <div class="org-current">
           <span class="org-label">组织</span>
           <span id="currentOrgName">隧道股份</span>
-          <img class="org-arrow" src="./src/assets/common/chevron-down.svg" alt="" aria-hidden="true"/>
+          <span class="org-arrow td-icon td-icon--chevron-down" aria-hidden="true"></span>
         </div>
         <div class="org-dropdown">
           <div class="org-dropdown-title">切换组织</div>
@@ -96,7 +96,7 @@
         <div class="user-profile">
           <div class="user-avatar">王</div>
           <span class="user-name">王安全</span>
-          <span class="user-arrow">⌄</span>
+          <span class="user-arrow td-icon td-icon--chevron-down" aria-hidden="true"></span>
         </div>
         <div class="user-dropdown">
           <div class="user-dropdown-head">
@@ -132,7 +132,7 @@
      <span id="modalTitle">弹窗</span>
       <div class="modal-hd-actions">
       <button class="modal-icon-btn" id="modalFullscreenBtn" title="全屏" onclick="toggleModalFullscreen(event)">⛶</button>
-    <span class="close" onclick="closeModal()">×</span>
+    <span class="close" role="button" tabindex="0" aria-label="关闭" title="关闭" onclick="closeModal()"><span class="td-icon td-icon--close" aria-hidden="true"></span></span>
   </div>
 </div>
 

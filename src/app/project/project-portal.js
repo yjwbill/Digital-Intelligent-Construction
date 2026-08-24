@@ -317,7 +317,8 @@ function renderProjectSideMenu(line){
             <div class="menu-children">
               ${item.children.map((child,j)=>`
                 <div class="menu-child-item ${child.active?"active":""}" onclick="selectProjectChildMenu('${line}',${i},${j},'${child.name}')">
-                  ${child.name}
+                  <span class="menu-child-icon" aria-hidden="true">${getBusinessMenuEmoji(child)}</span>
+                  <span class="menu-child-label">${child.name}</span>
                 </div>
               `).join("")}
             </div>
@@ -1227,7 +1228,7 @@ function renderProjectLogWorkImageItem(image,index){
   const url=image?.url||"";
   return `<div class="project-log-work-image-item" data-image-name="${escapeAttr(name)}" data-image-url="${escapeAttr(url)}">
     <button type="button" class="project-log-work-image-view" onclick="openProjectLogWorkImagePreview('${escapeAttr(url)}','${escapeAttr(name)}')"><img src="${url}" alt="${escapeAttr(name)}"/></button>
-    <button type="button" class="project-log-work-image-remove" title="删除图片" aria-label="删除图片" onclick="removeProjectLogWorkImage(this)">×</button>
+    <button type="button" class="project-log-work-image-remove" title="删除图片" aria-label="删除图片" onclick="removeProjectLogWorkImage(this)">${renderTDesignIcon("close",{size:14})}</button>
   </div>`;
 }
 
@@ -1755,7 +1756,7 @@ function renderProjectLogPhotoItem(photo,index){
   return `
     <div class="project-log-photo-item">
       <img src="${photo.url}" alt="${escapeAttr(photo.name)}"/>
-      <button type="button" onclick="removeProjectLogPhoto(${index})">×</button>
+      <button type="button" aria-label="删除图片" title="删除图片" onclick="removeProjectLogPhoto(${index})">${renderTDesignIcon("close",{size:14})}</button>
     </div>
   `;
 }
@@ -1790,7 +1791,7 @@ function renderProjectLogFileItem(file,index,rowIndex=0){
         <strong>${escapeAttr(file.name || "施工日志文件")}</strong>
         <span>${file.sizeText || "-"}</span>
       </button>
-      <button type="button" onclick="removeProjectLogFile(${index},${rowIndex})">×</button>
+      <button type="button" aria-label="删除附件" title="删除附件" onclick="removeProjectLogFile(${index},${rowIndex})">${renderTDesignIcon("close",{size:14})}</button>
     </div>
   `;
 }
@@ -2647,7 +2648,7 @@ function renderProjectEquipmentLedgerSection(options={}){
         <thead><tr><th>序号</th>${showEnterpriseColumns?"<th>子公司</th><th>分公司</th><th>所属区域</th><th>所在省市</th><th>项目名称</th><th>项目经理</th><th>建设单位</th>":""}<th>设备类型</th><th>设备分类</th><th>设备名称</th><th>规格型号</th><th>设备编号</th><th>设备品牌</th><th>国别</th><th>能源方式</th><th>额定功率(KW)</th><th>出厂日期</th><th>设备产权</th><th>计划进场日期</th><th>计划退场日期</th><th>实际进场日期</th><th>实际退场日期</th><th>设备图片</th><th>铭牌图片</th><th>附件上传情况</th>${showActions?"<th>操作</th>":""}</tr></thead>
         <tbody>${rows.map((row,index)=>`<tr>
           <td>${index+1}</td>
-          ${showEnterpriseColumns?`<td>${escapeAttr(row.subCompany||"-")}</td><td>${escapeAttr(row.branchCompany||"-")}</td><td>${escapeAttr(normalizeEnterpriseEquipmentRegion(row.region)||"-")}</td><td>${escapeAttr(row.provinceCity||"-")}</td><td title="${escapeAttr(row.projectName||pcPortalState.currentProject)}">${escapeAttr(row.projectName||pcPortalState.currentProject)}</td><td>${escapeAttr(row.projectManager||"-")}</td><td title="${escapeAttr(row.builder||"-")}">${escapeAttr(row.builder||"-")}</td>`:""}
+          ${showEnterpriseColumns?`<td>${escapeAttr(row.subCompany||"-")}</td><td>${escapeAttr(row.branchCompany||"-")}</td><td>${escapeAttr(normalizeEnterpriseEquipmentRegion(row.region)||"-")}</td><td>${escapeAttr(row.provinceCity||"-")}</td><td title="${escapeAttr(row.projectName||pcPortalState.currentProject)}">${escapeAttr(row.projectName||pcPortalState.currentProject)}</td><td>${renderProjectManagerContact(row.projectManager,row.managerPhone,{key:`enterprise-equipment-${row.id||row.deviceNo}`})}</td><td title="${escapeAttr(row.builder||"-")}">${escapeAttr(row.builder||"-")}</td>`:""}
           <td>${escapeAttr(row.deviceType)}</td>
           <td>${escapeAttr(row.category)}</td>
           <td>${escapeAttr(row.deviceName||"-")}</td>
@@ -3005,7 +3006,7 @@ function renderProjectEquipmentDocumentFileItem(key,file,index,label="附件"){
       <strong title="${escapeAttr(name)}">${escapeAttr(name)}</strong>
       <span>${escapeAttr(file?.sizeText||"附件")}</span>
     </button>
-    <button type="button" onclick="removeProjectEquipmentDocumentFile('${escapeAttr(key)}',${index})">×</button>
+    <button type="button" aria-label="删除附件" title="删除附件" onclick="removeProjectEquipmentDocumentFile('${escapeAttr(key)}',${index})">${renderTDesignIcon("close",{size:14})}</button>
   </div>`;
 }
 
@@ -5017,7 +5018,7 @@ function renderProjectDetailSection(title,body,extraClass=""){
     <section class="project-detail-section ${extraClass}">
       <div class="project-detail-section-title">
         <h3>${title}</h3>
-        <span>⌄</span>
+        ${renderTDesignIcon("chevron-down",{size:16,className:"project-detail-section-arrow"})}
       </div>
       ${body}
     </section>
@@ -5091,7 +5092,8 @@ function renderProjectDetailPage(){
             ["计划工期（天）",`${project?.planDuration||0}天`],
             ["实际开工日期",project?.actualStart||"-"],
             ["实际完工日期",project?.actualEnd||"-"],
-            ["项目经理",`${project?.projectManager||"-"} | ${maskPhone(project?.managerPhone)}`]
+            ["项目经理",project?.projectManager||"-"],
+            ["联系方式",maskPhone(project?.managerPhone)||"-"]
           ].map(item=>renderProjectDetailField(item[0],item[1])).join("")}
         </div>
         <div class="project-detail-summary">
@@ -5144,7 +5146,8 @@ function renderProjectDetailPage(){
             ["勘察单位","上海市建设工程监理咨询有限公司"],
             ["子公司分管领导","张三 | 18090809992"],
             ["分公司分管领导","万三 | 13690809111"],
-            ["项目经理",`${project?.projectManager||"-"} | ${maskPhone(project?.managerPhone)}`]
+            ["项目经理",project?.projectManager||"-"],
+            ["联系方式",maskPhone(project?.managerPhone)||"-"]
           ].map(item=>renderProjectDetailField(item[0],item[1])).join("")}
         </div>
       `)}

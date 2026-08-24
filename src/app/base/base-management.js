@@ -30,11 +30,12 @@ function persistOrganizationTree(){
   organizationMasterData=flattenOrgTree().map(item=>({
     code:item.code,
     name:item.name,
+    englishName:item.englishName || "",
     level:Number(item.level),
     parentCode:item.parentCode || ""
   }));
   window.__ORGANIZATION_MASTER_DATA__=organizationMasterData.map(item=>({
-    code:item.code,name:item.name,level:String(item.level),parent_code:item.parentCode
+    code:item.code,name:item.name,english_name:item.englishName || "",level:String(item.level),parent_code:item.parentCode
   }));
   persistMasterData("organizations",organizationMasterData);
 }
@@ -144,6 +145,7 @@ function getSelectedRoleIdsFromModal(){
 
 /* ---------- 组织树渲染 ---------- */
 let organizationManagementOrgKeyword="";
+let organizationManagementTreeDepth="branch";
 function captureScrollPositions(selectors=[]){
   const states=[];
   const seen=new Set();
@@ -188,6 +190,8 @@ function renderOrgTreeNodes(node=orgTreeData,level=1){
   if(!unifiedOrgTreeMatches(node,organizationManagementOrgKeyword))return "";
   const isActive=node.id===currentOrgId;
   const hasChildren=node.children && node.children.length;
+  const maxVisibleLevel=organizationManagementTreeDepth==="company"?2:3;
+  const showChildren=Boolean(organizationManagementOrgKeyword.trim()) || level<maxVisibleLevel;
 
   return `
     <div class="org-tree-node org-level-indent-${Math.min(level,5)} ${isActive?"active":""}" onclick="selectOrgNode('${node.id}')">
@@ -205,8 +209,15 @@ function renderOrgTreeNodes(node=orgTreeData,level=1){
       </div>
     </div>
 
-    ${(node.children || []).map(child=>renderOrgTreeNodes(child,level+1)).join("")}
+    ${showChildren?(node.children || []).map(child=>renderOrgTreeNodes(child,level+1)).join(""):""}
   `;
+}
+
+function setOrganizationManagementTreeDepth(depth){
+  const nextDepth=depth==="company"?"company":"branch";
+  if(nextDepth===organizationManagementTreeDepth)return;
+  organizationManagementTreeDepth=nextDepth;
+  renderOrgManagementPagePreservingScroll();
 }
 
 function filterOrganizationManagementTree(keyword){
@@ -239,7 +250,13 @@ function renderOrgManagementPage(){
           </div>
         </div>
 
-        <div class="unified-org-tree-search"><input class="input" value="${escapeAttr(organizationManagementOrgKeyword)}" placeholder="请输入组织名称" oninput="filterOrganizationManagementTree(this.value)"/></div>
+        <div class="unified-org-tree-search">
+          <input class="input" value="${escapeAttr(organizationManagementOrgKeyword)}" placeholder="请输入组织名称" oninput="filterOrganizationManagementTree(this.value)"/>
+          <div class="org-tree-depth-actions" role="group" aria-label="组织树展示层级">
+            <button type="button" class="org-tree-depth-btn ${organizationManagementTreeDepth==="company"?"active":""}" title="按子公司展示" aria-label="按子公司展示" aria-pressed="${organizationManagementTreeDepth==="company"}" onclick="setOrganizationManagementTreeDepth('company')">${renderTDesignIcon("view-organization",{size:16})}</button>
+            <button type="button" class="org-tree-depth-btn ${organizationManagementTreeDepth==="branch"?"active":""}" title="按分公司展示" aria-label="按分公司展示" aria-pressed="${organizationManagementTreeDepth==="branch"}" onclick="setOrganizationManagementTreeDepth('branch')">${renderTDesignIcon("tree-list",{size:16})}</button>
+          </div>
+        </div>
 
         <div class="org-tree-body" id="orgTreeBody">
           ${renderOrgTreeNodes()}
@@ -252,6 +269,7 @@ function renderOrgManagementPage(){
             <div class="card-title">${current.name}</div>
             <div style="font-size:12px;color:var(--muted);margin-top:2px">
               类型：${current.type || "-"}
+              · 英文名：${current.englishName || "-"}
               ${current.areaTag?` · 区域标签：${current.areaTag}`:""}
               · 组织编号：${current.code || "-"}
               · MDM编号：${current.mdmCode || "-"}
@@ -447,6 +465,11 @@ function openOrgAddModal(parentId){
         </div>
 
         <div class="form-item">
+          <label>英文名</label>
+          <input id="orgFormEnglishName" class="input" placeholder="请输入组织英文名或英文简称"/>
+        </div>
+
+        <div class="form-item">
           <label>组织编号 <span style="color:var(--danger)">*</span></label>
           <input id="orgFormCode" class="input" placeholder="请输入组织编号"/>
         </div>
@@ -486,6 +509,7 @@ function saveOrgAdd(parentId){
   const type=document.getElementById("orgFormType").value;
   const areaTag=document.getElementById("orgFormAreaTag")?.value || "";
   const shortName=document.getElementById("orgFormShortName").value.trim();
+  const englishName=document.getElementById("orgFormEnglishName").value.trim() || getOrganizationEnglishNameDefault(name);
   const code=document.getElementById("orgFormCode").value.trim();
   const mdmCode=document.getElementById("orgFormMdmCode").value.trim();
   const remark=document.getElementById("orgFormRemark").value.trim();
@@ -514,6 +538,7 @@ function saveOrgAdd(parentId){
   const newOrg={
     id:"org-"+Date.now(),
     name,
+    englishName,
     shortName,
     type,
     areaTag:type==="区域组织"?areaTag:"",
@@ -541,6 +566,7 @@ function openOrgEditModal(id){
     <div class="form-grid-2">
       <div class="form-item"><label>组织名称 <span style="color:var(--danger)">*</span></label><input id="orgEditName" class="input" value="${org.name}"/></div>
       <div class="form-item"><label>组织简称</label><input id="orgEditShortName" class="input" value="${org.shortName || ""}"/></div>
+      <div class="form-item"><label>英文名</label><input id="orgEditEnglishName" class="input" value="${escapeAttr(org.englishName || "")}" placeholder="请输入组织英文名或英文简称"/></div>
       <div class="form-item"><label>组织类型</label><input class="input" value="${org.type || "-"}" disabled/></div>
       <div class="form-item"><label>组织编号</label><input class="input" value="${org.code || "-"}" disabled/></div>
       <div class="form-item"><label>MDM组织编号</label><input id="orgEditMdmCode" class="input" value="${org.mdmCode || ""}"/></div>
@@ -556,6 +582,7 @@ function saveOrgEdit(id){
   if(!name)return showToast("请输入组织名称");
   org.name=name;
   org.shortName=document.getElementById("orgEditShortName").value.trim();
+  org.englishName=document.getElementById("orgEditEnglishName").value.trim();
   org.mdmCode=document.getElementById("orgEditMdmCode").value.trim();
   org.remark=document.getElementById("orgEditRemark").value.trim();
   persistOrganizationTree();
@@ -2882,7 +2909,7 @@ function renderTemplateCheckTreeSelect(id,tree,placeholder,selected=[]){
   const selectedText=selected.length?selected.join("、"):placeholder;
   const rows=renderTplTreeNodes(tree,id,selected,1,"checkable");
   return `<div class="template-tree-select checkable el-like-tree-select" id="${id}" data-placeholder="${placeholder}">
-    <div class="tpl-tree-control" onclick="toggleTemplateTreeDropdown('${id}')"><span class="tpl-tree-value">${selectedText}</span><i>⌄</i></div>
+    <div class="tpl-tree-control" onclick="toggleTemplateTreeDropdown('${id}')"><span class="tpl-tree-value">${selectedText}</span>${renderTDesignIcon("chevron-down",{size:16,className:"tpl-tree-control-arrow"})}</div>
     <div class="tpl-tree-dropdown" onclick="event.stopPropagation()"><div class="tpl-tree-search-row"><span>请选择</span></div>${rows}</div>
   </div>`;
 }
@@ -2895,7 +2922,7 @@ function renderMessageRouteMultiSelectTags(id,selected=[]){
   const safeTitle=escapeTplAttr(first.path || first.label);
   return `<span class="base-multi-select__tag message-route-selection-tag" data-value="${safeValue}" title="${safeTitle}">
     <span class="base-multi-select__tag-text">${safeLabel}</span>
-    <button class="base-multi-select__tag-remove" type="button" title="移除${safeLabel}" aria-label="移除${safeLabel}" data-value="${safeValue}" onclick="removeMessageRouteMultiTag(event,'${id}',this.dataset.value)">×</button>
+    <button class="base-multi-select__tag-remove" type="button" title="移除${safeLabel}" aria-label="移除${safeLabel}" data-value="${safeValue}" onclick="removeMessageRouteMultiTag(event,'${id}',this.dataset.value)">${renderTDesignIcon("close",{size:12})}</button>
   </span>${selected.length>1?`<span class="base-multi-select__tag message-route-selection-tag message-route-count-tag">+${selected.length-1}</span>`:""}`;
 }
 
@@ -2917,8 +2944,8 @@ function renderMessageRouteMultiSelect(id,options=[],selected=[],config={}){
         ${renderMessageRouteMultiSelectTags(id,selectedOptions)}
         <input class="base-multi-select__input" value="" placeholder="${selectedOptions.length?"":escapeTplAttr(placeholder)}" aria-label="${escapeTplAttr(searchLabel)}" onclick="event.stopPropagation();openMessageRouteMultiSelect('${id}')" oninput="filterMessageRouteMultiSelect('${id}',this.value)" onkeydown="handleMessageRouteMultiKey(event,'${id}')"/>
       </div>
-      <button class="message-route-multi-select__clear" type="button" title="清空已选" aria-label="清空已选" ${selectedOptions.length?"":"hidden"} onclick="clearMessageRouteMultiSelect(event,'${id}')">×</button>
-      <span class="base-multi-select__arrow" aria-hidden="true">⌄</span>
+      <button class="message-route-multi-select__clear" type="button" title="清空已选" aria-label="清空已选" ${selectedOptions.length?"":"hidden"} onclick="clearMessageRouteMultiSelect(event,'${id}')">${renderTDesignIcon("close",{size:14})}</button>
+      <span class="base-multi-select__arrow" aria-hidden="true"></span>
     </div>
     <div class="base-multi-select__dropdown" role="listbox" aria-multiselectable="true" style="display:none" onclick="event.stopPropagation()">
       <button type="button" class="base-multi-select__option message-route-select-all ${allSelected?"is-selected":""} ${partlySelected?"is-indeterminate":""}" role="option" aria-selected="${allSelected}" onclick="toggleAllMessageRouteOptions('${id}')">
@@ -3036,8 +3063,8 @@ function renderMessageOrganizationTreeMultiSelect(id,selected=[]){
         ${renderMessageRouteMultiSelectTags(id,selectedOptions)}
         <input class="base-multi-select__input" value="" placeholder="${selectedOptions.length?"":"请选择组织"}" aria-label="搜索组织" onclick="event.stopPropagation();openMessageRouteMultiSelect('${id}')" oninput="filterMessageRouteMultiSelect('${id}',this.value)" onkeydown="handleMessageRouteMultiKey(event,'${id}')"/>
       </div>
-      <button class="message-route-multi-select__clear" type="button" title="清空已选组织" aria-label="清空已选组织" ${selectedOptions.length?"":"hidden"} onclick="clearMessageRouteMultiSelect(event,'${id}')">×</button>
-      <span class="base-multi-select__arrow" aria-hidden="true">⌄</span>
+      <button class="message-route-multi-select__clear" type="button" title="清空已选组织" aria-label="清空已选组织" ${selectedOptions.length?"":"hidden"} onclick="clearMessageRouteMultiSelect(event,'${id}')">${renderTDesignIcon("close",{size:14})}</button>
+      <span class="base-multi-select__arrow" aria-hidden="true"></span>
     </div>
     <div class="base-multi-select__dropdown message-route-tree-dropdown" role="tree" aria-multiselectable="true" style="display:none" onclick="event.stopPropagation()">
       ${renderMessageOrganizationRouteNodes(id,tree,selectedSet,indeterminateSet)}
@@ -3362,7 +3389,7 @@ function renderMessagePersonPickerTags(id,users=[]){
   const safeTitle=escapeTplAttr(`${getMessagePersonOrgPath(first.orgId)} / ${first.name}`);
   return `<span class="base-multi-select__tag message-route-selection-tag" data-value="${safeId}" title="${safeTitle}">
     <span class="base-multi-select__tag-text">${safeName}</span>
-    <button class="base-multi-select__tag-remove" type="button" title="移除${safeName}" aria-label="移除${safeName}" data-value="${safeId}" onclick="removeMessagePersonPickerTag(event,'${id}',this.dataset.value)">×</button>
+    <button class="base-multi-select__tag-remove" type="button" title="移除${safeName}" aria-label="移除${safeName}" data-value="${safeId}" onclick="removeMessagePersonPickerTag(event,'${id}',this.dataset.value)">${renderTDesignIcon("close",{size:12})}</button>
   </span>${users.length>1?`<span class="base-multi-select__tag message-route-selection-tag message-route-count-tag">+${users.length-1}</span>`:""}`;
 }
 
@@ -3374,8 +3401,8 @@ function renderMessagePersonPickerControl(id,selectedIds=[]){
       ${renderMessagePersonPickerTags(id,users)}
       ${users.length?"":`<span class="message-person-picker__placeholder">请选择人员</span>`}
     </div>
-    <button class="message-route-multi-select__clear" type="button" title="清空已选人员" aria-label="清空已选人员" ${users.length?"":"hidden"} onclick="clearMessagePersonPicker(event,'${id}')">×</button>
-    <span class="base-multi-select__arrow" aria-hidden="true">⌄</span>
+    <button class="message-route-multi-select__clear" type="button" title="清空已选人员" aria-label="清空已选人员" ${users.length?"":"hidden"} onclick="clearMessagePersonPicker(event,'${id}')">${renderTDesignIcon("close",{size:14})}</button>
+    <span class="base-multi-select__arrow" aria-hidden="true"></span>
   </div>`;
 }
 
@@ -3729,7 +3756,7 @@ function renderTemplateJumpTreeSelect(){
   ];
   const rows=renderTplTreeNodes(tree,"msgTplJumpTree",[],1,"single");
   return `<div class="template-tree-select single el-like-tree-select" id="msgTplJumpTree" data-placeholder="请选择跳转页面">
-    <div class="tpl-tree-control" onclick="toggleTemplateTreeDropdown('msgTplJumpTree')"><span class="tpl-tree-value">请选择跳转页面</span><i>⌄</i></div>
+    <div class="tpl-tree-control" onclick="toggleTemplateTreeDropdown('msgTplJumpTree')"><span class="tpl-tree-value">请选择跳转页面</span>${renderTDesignIcon("chevron-down",{size:16,className:"tpl-tree-control-arrow"})}</div>
     <div class="tpl-tree-dropdown" onclick="event.stopPropagation()"><div class="tpl-tree-search-row"><span>请选择跳转页面</span></div>${rows}</div>
   </div>`;
 }

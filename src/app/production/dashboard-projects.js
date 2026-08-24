@@ -176,7 +176,7 @@ function renderDemoBaseSelect(id,options,value,placeholder,disabled=false,keywor
     <div id="${id}" class="base-select demo-base-select ${disabled?"is-disabled":""}" data-value="${value||""}">
       <div class="base-select__control" tabindex="${disabled?-1:0}" role="combobox" aria-expanded="false" aria-disabled="${disabled}" onclick="toggleDemoSelect('${id}')">
         <input class="base-select__input" value="${keyword || selected?.label || ""}" placeholder="${selected?.label || placeholder}" ${disabled?"disabled":""} oninput="filterDemoSelect('${id}',this.value)" onkeydown="handleDemoSelectKey(event,'${id}')"/>
-        <span class="base-select__arrow">⌄</span>
+        <span class="base-select__arrow" aria-hidden="true"></span>
       </div>
       <div class="base-select__dropdown" role="listbox" style="display:none">
         ${list.map((option,index)=>`
@@ -198,12 +198,12 @@ function renderDemoBaseMultiSelect(id,options,values,placeholder,keyword=""){
           ${selected.map(option=>`
             <span class="base-multi-select__tag">
               <span class="base-multi-select__tag-text">${option.label}</span>
-              <button class="base-multi-select__tag-remove" type="button" onclick="removeDemoMultiTag(event,'${option.value}')">×</button>
+              <button class="base-multi-select__tag-remove" type="button" aria-label="移除${option.label}" title="移除${option.label}" onclick="removeDemoMultiTag(event,'${option.value}')">${renderTDesignIcon("close",{size:12})}</button>
             </span>
           `).join("")}
           <input class="base-multi-select__input" value="${keyword||""}" placeholder="${selected.length?"":placeholder}" oninput="filterDemoMultiSelect(this.value)" onkeydown="handleDemoMultiKey(event)"/>
         </div>
-        <span class="base-multi-select__arrow">⌄</span>
+        <span class="base-multi-select__arrow" aria-hidden="true"></span>
       </div>
       <div class="base-multi-select__dropdown" role="listbox" aria-multiselectable="true" style="display:none">
         <div class="base-multi-select__actions">
@@ -508,7 +508,7 @@ tableColumnDefinitions.constructionProject=[
   {key:"subCompany",title:"子公司",width:120,render:r=>r.subCompany},
   {key:"branchCompany",title:"分公司",width:120,render:r=>r.branchCompany},
   {key:"projectCost",title:"项目造价",width:120,align:"right",render:r=>`${moneyWan(r.projectCost)}万`},
-  {key:"projectManager",title:"项目经理",width:170,render:r=>`${r.projectManager} | ${maskPhone(r.managerPhone)} <span class="link" onclick="showToast('查看手机号权限')">👁️</span>`},
+  {key:"projectManager",title:"项目经理",width:190,render:r=>renderProjectManagerContact(r.projectManager,r.managerPhone,{key:`construction-project-${r.id}`})},
   {key:"provinceCity",title:"所在省市",width:130,render:r=>r.provinceCity},
   {key:"region",title:"所属区域",width:120,render:r=>normalizeConstructionProjectRegion(r.region)},
   {key:"detailAddress",title:"详细地址",width:240,render:r=>`<span class="text-ellipsis" title="${r.detailAddress}">${r.detailAddress}</span>`},
