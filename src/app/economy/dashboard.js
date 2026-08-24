@@ -237,6 +237,7 @@ function renderEconomyDiagnosisEdition(edition){
 function setEconomyDashboardEdition(edition){renderEconomyDiagnosisEdition(edition);}
 function renderEconomyOverviewEdition(edition){
   economyDashboardState.edition=edition==="international"?"international":"domestic";
+  economyCommandState.kpi=economyDashboardState.edition==="international"?"revenueOutputVariance":"profit";
   economyDashboardState.page=1;
   Object.assign(economyDashboardOrgState,{company:"",branch:""});
   renderEconomyDashboardPage("overview");
@@ -437,7 +438,7 @@ function renderEconomyDiagnosisTable(list){
 }
 function changeEconomyDiagnosisPage(delta){economyDashboardState.page+=Number(delta)||0;renderEconomyDashboardPage("diagnosis");}
 function changeEconomyDiagnosisPageSize(value){economyDashboardState.pageSize=Number(value)||50;economyDashboardState.page=1;renderEconomyDashboardPage("diagnosis");}
-const economyCommandState={month:"2025-03",monthPanelOpen:false,monthPanelYear:2025,organization:"",client:"",projectType:"",headquarters:"",region:"",kpi:"managementFee",trendMode:"company"};
+const economyCommandState={month:"2025-03",monthPanelOpen:false,monthPanelYear:2025,organization:"",client:"",projectType:"",headquarters:"",region:"",kpi:"profit",trendMode:"company"};
 const economyCommandKpis=[
   {key:"profit",label:"目标利润率(含税)",value:"5.12",unit:"%",average:5.12,values:[38.12,30.48,18.62,9.82,16.35,13.46,5.76]},
   {key:"inventory",label:"项目存货率",value:"12.56",unit:"%",average:12.56,values:[41.26,35.88,20.16,12.52,19.84,15.72,8.66]},
@@ -488,8 +489,8 @@ function renderEconomyCommandSelect(key,label,options){return `<label class="eco
 function renderEconomyCommandSectionTitle(title,extra=""){return `<div class="economy-command-section-title"><strong>${title}</strong>${extra}</div>`;}
 function renderEconomyCommandTrendTabs(){return `<div class="economy-command-trend-tabs" role="tablist" aria-label="统计维度"><button type="button" role="tab" class="${economyCommandState.trendMode==="trend"?"active":""}" aria-selected="${economyCommandState.trendMode==="trend"}" onclick="setEconomyCommandTrendMode('trend')">按趋势</button><button type="button" role="tab" class="${economyCommandState.trendMode==="company"?"active":""}" aria-selected="${economyCommandState.trendMode==="company"}" onclick="setEconomyCommandTrendMode('company')">按公司</button></div>`;}
 function getEconomyCommandKpiList(){return economyDashboardState.edition==="international"?economyCommandInternationalKpis:economyCommandKpis;}
-function getEconomyCommandKpi(){const list=getEconomyCommandKpiList();return list.find(item=>item.key===economyCommandState.kpi)||list[list.length-1];}
-function renderEconomyCommandKpis(){return `<div class="economy-command-kpis">${getEconomyCommandKpiList().map(item=>`<button type="button" class="economy-command-kpi ${item.key===economyCommandState.kpi?"active":""}" aria-pressed="${item.key===economyCommandState.kpi}" onclick="setEconomyCommandKpi('${item.key}')"><span>${item.label}<i title="${item.label}说明">i</i></span><strong>${item.value}<em>${item.unit}</em></strong></button>`).join("")}</div>`;}
+function getEconomyCommandKpi(){const list=getEconomyCommandKpiList();return list.find(item=>item.key===economyCommandState.kpi)||list[0];}
+function renderEconomyCommandKpis(){const activeKpi=getEconomyCommandKpi();return `<div class="economy-command-kpis">${getEconomyCommandKpiList().map(item=>`<button type="button" class="economy-command-kpi ${item.key===activeKpi.key?"active":""}" aria-pressed="${item.key===activeKpi.key}" onclick="setEconomyCommandKpi('${item.key}')"><span>${item.label}<i title="${item.label}说明">i</i></span><strong>${item.value}<em>${item.unit}</em></strong></button>`).join("")}</div>`;}
 const economyCommandMarketAreaPositions={
   CSJ:{left:85,top:64,factor:1.08},
   DW:{left:79,top:83,factor:.96},
@@ -614,7 +615,7 @@ function renderEconomyOverview(){
   const jvAnalysis=international&&activeKpi.key==="jvProjectCount";
   const selectOptions={organization:international?["城建国际","新加坡分公司"]:["隧道股份","上海隧道","市政集团","上海路桥"],client:["申铁","久事集团","上海机场"],projectType:["轨道交通","市政工程","公路工程"],headquarters:["华东总部","华南总部","西南总部"],region:["华东区域","华南区域","西南区域"]};
   const metricAssetVersion="2.2.683";
-  const metrics=[["纳管项目","195","941.14",`./src/assets/economy/economy-metric-managed.svg?v=${metricAssetVersion}`],["在建项目","188","888.64",`./src/assets/economy/economy-metric-under-construction.svg?v=${metricAssetVersion}`],["完工待结算项目","8","49.4",`./src/assets/economy/economy-metric-pending-settlement.svg?v=${metricAssetVersion}`],["已结算未销项项目","1","1.99",`./src/assets/economy/economy-metric-settled-unclosed.svg?v=${metricAssetVersion}`]];
+  const metrics=[["经济纳管项目","195","941.14",`./src/assets/economy/economy-metric-managed.svg?v=${metricAssetVersion}`],["在建项目","188","888.64",`./src/assets/economy/economy-metric-under-construction.svg?v=${metricAssetVersion}`],["完工待结算项目","8","49.4",`./src/assets/economy/economy-metric-pending-settlement.svg?v=${metricAssetVersion}`],["已结算未销项项目","1","1.99",`./src/assets/economy/economy-metric-settled-unclosed.svg?v=${metricAssetVersion}`]];
   return `<section class="economy-command-screen ${international?`international ${EconomyI18n.isEnglish()?"english":"chinese"}`:"domestic"}" id="economyCommandScreen">
     <header class="economy-command-head"><div class="economy-command-brand"><span><img src="./src/assets/digital-construction-logo.svg" alt="数智施工"></span><strong>数智施工项目经济管理平台</strong></div><div class="economy-command-head-actions">${renderEconomyCommandMonthPicker()}${EconomyI18n.renderSwitch()}<button type="button" title="全屏投屏" onclick="toggleEconomyCommandFullscreen()">⛶</button></div></header>
     <div class="economy-command-filters"><div class="economy-command-filter-fields">${renderEconomyCommandSelect("organization","所属组织",selectOptions.organization)}${renderEconomyCommandSelect("client","集团重点客户",selectOptions.client)}${renderEconomyCommandSelect("projectType","项目类型",selectOptions.projectType)}${renderEconomyCommandSelect("headquarters","区域总部",selectOptions.headquarters)}${renderEconomyCommandSelect("region","所属区域",selectOptions.region)}</div><nav><button>项目风险预警</button><button>业务可视化分析</button><button onclick="openEconomyAnalysisReport()">经济分析报告</button></nav></div>

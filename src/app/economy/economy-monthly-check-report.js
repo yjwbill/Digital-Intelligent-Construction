@@ -48,6 +48,13 @@ const economyMonthlyCheckInternationalColumns=[
 ];
 
 function isEconomyMonthlyCheckInternational(){return economyDashboardState.edition==="international";}
+function isEconomyMonthlyCheckEnglish(){return isEconomyMonthlyCheckInternational()&&EconomyI18n.isEnglish();}
+function economyMonthlyCheckText(zh,en){return isEconomyMonthlyCheckEnglish()?en:zh;}
+function formatEconomyMonthlyCheckMonth(long=false){
+  const [year,month]=String(economyDashboardState.month||"2026-06").split("-");
+  if(isEconomyMonthlyCheckEnglish())return long?`${new Intl.DateTimeFormat("en",{month:"long"}).format(new Date(2000,Number(month)-1,1))} ${year}`:`${year}${month}`;
+  return long?`${year}年${Number(month)}月`:`${year}${month}`;
+}
 function getEconomyMonthlyCheckColumns(){return isEconomyMonthlyCheckInternational()?economyMonthlyCheckInternationalColumns:economyMonthlyCheckColumns;}
 function getEconomyMonthlyCheckTableWidth(){return Math.round(740+1571/23*getEconomyMonthlyCheckColumns().length);}
 
@@ -114,13 +121,19 @@ function renderEconomyMonthlyCheckHeader(){
 
 function renderEconomyMonthlyCheckCompany(group,groupIndex){
   const stats=getEconomyMonthlyCheckStats(group.projects);
-  const month=(economyDashboardState.month||"2026-06").replace("-","");
+  const month=formatEconomyMonthlyCheckMonth();
   const columns=getEconomyMonthlyCheckColumns();
   const tableWidth=getEconomyMonthlyCheckTableWidth();
+  const company=EconomyI18n.translateText(group.company);
+  const heading=isEconomyMonthlyCheckEnglish()?`${company} Project Economic Risk Inspection Report (${month})`:`${group.company}工程项目经济风险月度检验单（${month}）`;
+  const summary=economyMonthlyCheckText(
+    `在线项目 <b>${stats.total}</b> 个，其中：预警项目 <b>${stats.warning}</b> 个、未整改项目 <b>${stats.unresolved}</b> 个、未预警项目 <b>${stats.normal}</b> 个。`,
+    `<b>${stats.total}</b> online projects: <b>${stats.warning}</b> with warnings, <b>${stats.unresolved}</b> unrectified, and <b>${stats.normal}</b> without warnings.`
+  );
   return `<section class="economy-monthly-company" id="economyMonthlyCompany${groupIndex}">
     <div class="economy-monthly-company-head" style="min-width:${tableWidth}px">
-      <div><h2>${group.company}工程项目经济风险月度检验单（${month}）</h2><p>在线项目 <b>${stats.total}</b> 个，其中：预警项目 <b>${stats.warning}</b> 个、未整改项目 <b>${stats.unresolved}</b> 个、未预警项目 <b>${stats.normal}</b> 个。</p></div>
-      <span>未达到预警前置条件及未实现功能的二级指标以灰色底纹标注</span>
+      <div><h2>${heading}</h2><p>${summary}</p></div>
+      <span>${economyMonthlyCheckText("未达到预警前置条件及未实现功能的二级指标以灰色底纹标注","Secondary indicators that do not meet warning prerequisites or are not yet available are shaded gray")}</span>
     </div>
     <div class="economy-monthly-table-wrap"><table style="width:${tableWidth}px">${renderEconomyMonthlyCheckHeader()}<tbody>${group.projects.map((row,index)=>{
       const seed=getEconomyMonthlyCheckSeed(row,index);
@@ -140,19 +153,21 @@ function renderEconomyMonthlyCheckReport(){
   const warning=groups.reduce((sum,group)=>sum+getEconomyMonthlyCheckStats(group.projects).warning,0);
   const unresolved=groups.reduce((sum,group)=>sum+getEconomyMonthlyCheckStats(group.projects).unresolved,0);
   const editionName=isEconomyMonthlyCheckInternational()?"国际工程":"企业工程";
+  const reportTitle=economyMonthlyCheckText(`${editionName}项目经济风险月度检验单`,"International Projects Economic Risk Inspection Report");
+  const summaryLabels=isEconomyMonthlyCheckEnglish()?["Subsidiaries","Online Projects","Warning Projects","Unrectified Projects"]:["子公司","在线项目","预警项目","未整改项目"];
   return `<div class="economy-monthly-check-report ${isEconomyMonthlyCheckInternational()?'international':''}">
     <header class="economy-monthly-check-toolbar">
-      <div><h1>${editionName}项目经济风险月度检验单</h1><p>${(economyDashboardState.month||"2026-06").replace("-","年")}月</p></div>
-      <div class="economy-monthly-check-summary"><span>子公司<strong>${groups.length}</strong></span><span>在线项目<strong>${total}</strong></span><span>预警项目<strong>${warning}</strong></span><span>未整改项目<strong>${unresolved}</strong></span></div>
+      <div><h1>${reportTitle}</h1><p>${formatEconomyMonthlyCheckMonth(true)}</p></div>
+      <div class="economy-monthly-check-summary"><span>${summaryLabels[0]}<strong>${groups.length}</strong></span><span>${summaryLabels[1]}<strong>${total}</strong></span><span>${summaryLabels[2]}<strong>${warning}</strong></span><span>${summaryLabels[3]}<strong>${unresolved}</strong></span></div>
       <div class="economy-monthly-check-legend">${Object.entries(economyMonthlyCheckMeta).map(([key,item])=>`<span><i class="${key}"></i>${item.label}</span>`).join("")}<span><i class="gray"></i>不满足前置条件</span></div>
     </header>
     <nav class="economy-monthly-check-nav">${groups.map((group,index)=>`<button type="button" onclick="scrollEconomyMonthlyCheckCompany(${index})">${group.company}<b>${group.projects.length}</b></button>`).join("")}</nav>
-    <main class="economy-monthly-check-content">${groups.map(renderEconomyMonthlyCheckCompany).join("")||`<div class="project-log-empty">当前筛选范围暂无项目</div>`}</main>
+    <main class="economy-monthly-check-content">${groups.map(renderEconomyMonthlyCheckCompany).join("")||`<div class="project-log-empty">${economyMonthlyCheckText("当前筛选范围暂无项目","No projects in the current scope")}</div>`}</main>
   </div>`;
 }
 
 function openEconomyMonthlyCheckReport(){
-  FullscreenModal.open({title:isEconomyMonthlyCheckInternational()?"国际版月度检验单":"月度检验单",content:renderEconomyMonthlyCheckReport(),footer:`<button class="btn" onclick="FullscreenModal.close()">关闭</button><button class="btn primary" onclick="showToast('月度检验单导出成功')"><span aria-hidden="true">⇩</span> 导出</button>`,className:"economy-monthly-check-modal"});
+  FullscreenModal.open({title:isEconomyMonthlyCheckInternational()?"国际版月度检验单":"月度检验单",content:renderEconomyMonthlyCheckReport(),footer:`<button class="btn" onclick="FullscreenModal.close()">关闭</button><button class="btn primary" onclick="showToast('${economyMonthlyCheckText("月度检验单导出成功","Inspection report exported")}')"><span aria-hidden="true">⇩</span> 导出</button>`,className:"economy-monthly-check-modal"});
   EconomyI18n.refreshFullscreenChrome();
 }
 
