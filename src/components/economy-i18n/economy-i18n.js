@@ -19,6 +19,8 @@
   phrases.set("数据范围","Data Scope");
   phrases.set("所属组织","Organization");
   phrases.set("集团重点客户","KA");
+  phrases.set("重点客户","KA");
+  phrases.set("其他重点客户","Other KA");
   phrases.set("JV项目个数","JV Project Count");
   phrases.set("JV项目分析","JV Project Analysis");
   phrases.set("JV项目适用","JV Only");
@@ -164,6 +166,29 @@
   phrases.set("合同个数","Contract Count");
   phrases.set("分包商产值计量","Subcontractor Output Measurement");
   phrases.set("项目管理费","Project Management Fee");
+  phrases.set("业务可视化分析","Business Visualization Analysis");
+  phrases.set("指标项下全主题分析","All Theme Analysis under Metric");
+  phrases.set("主题项下全指标分析","All Metric Analysis under Theme");
+  phrases.set("分析维度","Analysis Dimension");
+  phrases.set("主题分析","Theme Analysis");
+  phrases.set("指标分析","Metric Analysis");
+  phrases.set("筛选条件","Filters");
+  phrases.set("诊断期数","Diagnosis Period");
+  phrases.set("区域市场","Regional Market");
+  phrases.set("指标列表","Metric List");
+  phrases.set("主题列表","Theme List");
+  phrases.set("管控类","Control");
+  phrases.set("关注类","Attention");
+  phrases.set("观测类","Observation");
+  phrases.set("风险存货率","Risk Inventory Rate");
+  phrases.set("项目安措费","Project Safety Measure Fee");
+  phrases.set("工程保险费率","Engineering Insurance Rate");
+  phrases.set("全周期人效比","Full-cycle Labor Efficiency Ratio");
+  phrases.set("结算周期","Settlement Cycle");
+  phrases.set("业主拖欠款","Owner Arrears");
+  phrases.set("综合税负率","Comprehensive Tax Burden Rate");
+  phrases.set("统计值","Statistical Value");
+  phrases.set("放大查看","View Enlarged");
   phrases.set("工期异常","Schedule Exception");
   phrases.set("子公司当年营收计划、实际值及完成进度","Annual Revenue Plan, Actual Value and Completion by Subsidiary");
   phrases.set("子公司加权平均目标利润率与加权平均存货率","Weighted Average Target Profit Margin and Inventory Ratio by Subsidiary");
@@ -177,7 +202,7 @@
   ["条","第","页","共","个"].forEach(key=>phrases.delete(key));
   const ordered=[...phrases.entries()].sort((a,b)=>b[0].length-a[0].length);
   const state={language:"zh"};
-  const translatedModalSelector=".economy-report-modal,.economy-monthly-check-modal,.economy-project-overview-modal";
+  const translatedModalSelector=".economy-report-modal,.economy-monthly-check-modal,.economy-project-overview-modal,.economy-business-analysis-modal";
   function isEnglish(){return state.language==="en";}
   function translateText(value){if(!isEnglish()||!value)return value;let result=value;for(const [zh,en] of ordered)result=result.split(zh).join(en);return result;}
   function isInternationalDisplayRoot(root){
@@ -192,7 +217,7 @@
   }
   function apply(root){if(!isEnglish()||!isInternationalDisplayRoot(root))return;const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);nodes.forEach(node=>{if(!node.parentElement?.closest("script,style"))node.nodeValue=translateText(node.nodeValue);});root.querySelectorAll("[placeholder],[title],[aria-label],[alt]").forEach(node=>["placeholder","title","aria-label","alt"].forEach(attr=>{if(node.hasAttribute(attr))node.setAttribute(attr,translateText(node.getAttribute(attr)));}));}
   function renderSwitch(){if(global.economyDashboardState?.edition!=="international")return "";return `<div class="economy-language-switch" role="group" aria-label="Language"><button type="button" class="${state.language==="zh"?"active":""}" onclick="setEconomyLanguage('zh')">中文</button><button type="button" class="${state.language==="en"?"active":""}" onclick="setEconomyLanguage('en')">EN</button></div>`;}
-  function setLanguage(language){if(global.economyDashboardState?.edition!=="international")return;state.language=language==="en"?"en":"zh";if(document.querySelector(".economy-report-modal")){refreshEconomyAnalysisReport();refreshFullscreenChrome();return;}if(document.querySelector(".economy-monthly-check-modal")){modalBody.innerHTML=renderEconomyMonthlyCheckReport();apply(modalBody);refreshFullscreenChrome();return;}if(document.querySelector(".economy-project-overview-modal")){const embed=document.getElementById("economyProjectOverviewEmbed");if(embed&&global.__economyProjectOverviewEmbedProject)embed.innerHTML=renderProjectEconomyOverviewContent(global.__economyProjectOverviewEmbedProject);apply(modalBody);refreshFullscreenChrome();return;}renderEconomyDashboardPage(global.economyDashboardState?.tab||"diagnosis");}
+  function setLanguage(language){if(global.economyDashboardState?.edition!=="international")return;state.language=language==="en"?"en":"zh";if(document.querySelector(".economy-report-modal")){refreshEconomyAnalysisReport();refreshFullscreenChrome();return;}if(document.querySelector(".economy-monthly-check-modal")){modalBody.innerHTML=renderEconomyMonthlyCheckReport();apply(modalBody);refreshFullscreenChrome();return;}if(document.querySelector(".economy-project-overview-modal")){const embed=document.getElementById("economyProjectOverviewEmbed");if(embed&&global.__economyProjectOverviewEmbedProject)embed.innerHTML=renderProjectEconomyOverviewContent(global.__economyProjectOverviewEmbedProject);apply(modalBody);refreshFullscreenChrome();return;}if(document.querySelector(".economy-business-analysis-modal")){const body=document.querySelector(".economy-business-analysis-modal .modal-bd");if(body){body.innerHTML=renderEconomyBusinessAnalysis();applyEconomyBusinessAnalysisFilters();}refreshFullscreenChrome();return;}renderEconomyDashboardPage(global.economyDashboardState?.tab||"diagnosis");}
   function refreshFullscreenChrome(){
     const box=document.getElementById("modalBox");
     if(!box)return;

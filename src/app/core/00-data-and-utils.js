@@ -948,18 +948,11 @@ const businessMenus={
         ]
       },
       {
-        icon:"📋",
-        name:"经济开项",
-        open:true,
-        children:[
-          {name:"开项审批",active:true}
-        ]
-      },
-      {
         icon:"🗂️",
         name:"经济纳管",
         open:true,
         children:[
+          {name:"经济开项",active:true},
           {name:"纳管项目",active:false}
         ]
       },

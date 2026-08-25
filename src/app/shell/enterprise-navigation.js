@@ -245,7 +245,7 @@ function selectBusinessChildMenu(line,gi,ci,name){
   if(line==="safety"&&(parent?.name==="安全评价"||parent?.name==="历史功能"))return renderChild(()=>renderSafetyEvaluationManagePage(name));
   if(line==="operation"&&name==="生产项目列表")return renderChild(()=>renderOperationProductionProjectListPage());
   if(line==="operation")return renderChild(()=>renderOperationProductionProjectReportPage());
-  if(line==="economy"&&parent?.name==="经济开项"&&name==="开项审批")return renderChild(()=>renderEconomyProjectInitiationPage());
+  if(line==="economy"&&parent?.name==="经济纳管"&&name==="经济开项")return renderChild(()=>renderEconomyProjectInitiationPage());
   if(line==="economy"&&parent?.name==="经济纳管"&&name==="纳管项目")return renderChild(()=>renderEconomyManagementPage());
   if(line==="economy"&&parent?.name==="大屏看板"&&name==="经济总览国内版")return renderChild(()=>renderEconomyOverviewEdition("domestic"));
   if(line==="economy"&&parent?.name==="大屏看板"&&name==="经济总览国际版")return renderChild(()=>renderEconomyOverviewEdition("international"));

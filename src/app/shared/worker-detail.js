@@ -1180,10 +1180,22 @@ function openModal(title,html,footerHtml,modalSize){
   modalMask.style.display="flex";
 }
 
+let standardConfirmModalAction=null;
+function openStandardConfirmModal({title="确认操作",message="",confirmText="确认",cancelText="取消",onConfirm}={}){
+  standardConfirmModalAction=typeof onConfirm==="function"?onConfirm:null;
+  openModal(title,`<div class="standard-confirm-modal-content">${message}</div>`,`<button class="btn" onclick="closeModal()">${cancelText}</button><button class="btn primary" onclick="confirmStandardModalAction()">${confirmText}</button>`);
+  modalBox.classList.add("standard-confirm-modal");
+}
+
+function confirmStandardModalAction(){
+  const action=standardConfirmModalAction;
+  if(typeof action==="function")action();
+}
 
 function closeModal(){
   modalMask.style.display="none";
   modalBox.className="modal";
+  standardConfirmModalAction=null;
   modalBox.querySelector(".economy-fullscreen-language-host")?.remove();
   delete modalTitle.dataset.zhTitle;
   delete modalFooter.dataset.zhHtml;
