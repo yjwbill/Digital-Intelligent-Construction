@@ -21685,6 +21685,9 @@ body.enterprise-mobile-mode .enterprise-mobile-mine-menu-item strong{
 .project-equipment-form .form-item label em{color:#F53F3F;font-style:normal;margin-left:2px;}
 .project-equipment-form .form-item label small{margin-left:4px;color:#86909C;font-size:12px;font-weight:700;}
 .project-equipment-form .input,.project-equipment-form .select{height:34px;border-radius:4px;}
+.project-equipment-form .form-item.planning-locked .input:disabled,
+.project-equipment-form .form-item.planning-locked .select:disabled{border-color:#E5E6EB;background:#F2F3F5;color:#86909C;cursor:not-allowed;opacity:1;}
+.project-equipment-form .form-item.planning-locked label{color:#86909C;}
 .project-equipment-movement-form{padding:4px 0 2px;display:grid;gap:10px;}
 .project-equipment-movement-form .form-item{display:grid;gap:6px;}
 .project-equipment-movement-form label{font-size:13px;color:#4E5969;font-weight:800;}

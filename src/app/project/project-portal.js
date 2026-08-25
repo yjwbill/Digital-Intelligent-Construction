@@ -3044,27 +3044,27 @@ function openProjectEquipmentRegistrationModal(planId,registrationId=""){
     <section>
       <h3>筹划信息</h3>
       <div class="project-equipment-form-grid four">
-        <div class="form-item"><label>设备类型 <em>*</em></label><select class="select" id="projectEquipmentDeviceType">${renderProjectEquipmentOptions(projectEquipmentTypes,registration?.deviceType||plan.deviceType)}</select></div>
-        <div class="form-item"><label>需求数量 <em>*</em></label><input class="input" id="projectEquipmentDemandQuantity" type="number" min="1" value="${escapeAttr(registration?.demandQuantity||plan.demandQuantity)}"/></div>
-        <div class="form-item"><label>拟使用部位 <em>*</em></label><input class="input" id="projectEquipmentUsePart" value="${escapeAttr(registration?.usePart||plan.usePart)}"/></div>
-        <div class="form-item"><label>工作周期 <em>*</em></label><input class="input" id="projectEquipmentWorkPeriod" value="${escapeAttr(registration?.workPeriod||plan.workPeriod)}"/></div>
+        <div class="form-item"><label>设备类型 <em data-required-mark="1">*</em></label><select class="select project-equipment-planning-field" data-planning-field="1" id="projectEquipmentDeviceType">${renderProjectEquipmentOptions(projectEquipmentTypes,registration?.deviceType||plan.deviceType)}</select></div>
+        <div class="form-item"><label>需求数量 <em data-required-mark="1">*</em></label><input class="input project-equipment-planning-field" data-planning-field="1" id="projectEquipmentDemandQuantity" type="number" min="1" value="${escapeAttr(registration?.demandQuantity||plan.demandQuantity)}"/></div>
+        <div class="form-item"><label>拟使用部位 <em data-required-mark="1">*</em></label><input class="input project-equipment-planning-field" data-planning-field="1" id="projectEquipmentUsePart" value="${escapeAttr(registration?.usePart||plan.usePart)}"/></div>
+        <div class="form-item"><label>工作周期 <em data-required-mark="1">*</em></label><input class="input project-equipment-planning-field" data-planning-field="1" id="projectEquipmentWorkPeriod" value="${escapeAttr(registration?.workPeriod||plan.workPeriod)}"/></div>
       </div>
     </section>
     <section>
       <h3>设备全量信息</h3>
       <div class="project-equipment-form-grid four">
-        <div class="form-item"><label>设备分类 <em>*</em></label><select class="select" id="projectEquipmentCategory" onchange="syncProjectEquipmentImageRequired()">${renderProjectEquipmentOptions(projectEquipmentCategories,categoryValue)}</select></div>
-        <div class="form-item"><label>设备名称</label><input class="input" id="projectEquipmentName" value="${escapeAttr(registration?.deviceName||"")}" placeholder="请输入设备名称"/></div>
-        <div class="form-item"><label>规格型号 <em>*</em></label><input class="input" id="projectEquipmentModel" value="${escapeAttr(registration?.model||"")}" placeholder="请输入规格型号"/></div>
-        <div class="form-item"><label>设备编号 <em>*</em></label><input class="input" id="projectEquipmentNo" value="${escapeAttr(registration?.deviceNo||"")}" placeholder="请输入设备编号"/></div>
-        <div class="form-item"><label>设备品牌 <em>*</em></label><div class="project-equipment-brand-field ${brandSelectValue==="其他"?"show-custom":""}" id="projectEquipmentBrandField"><select class="select" id="projectEquipmentBrand" onchange="syncProjectEquipmentBrandField()">${renderProjectEquipmentOptions(projectEquipmentBrandOptions,brandSelectValue)}</select><input class="input" id="projectEquipmentBrandCustom" value="${escapeAttr(customBrand)}" placeholder="请输入设备品牌"/></div></div>
-        <div class="form-item"><label>国别 <em>*</em></label><select class="select" id="projectEquipmentCountry">${renderProjectEquipmentOptions(projectEquipmentCountryOptions,registration?.country||"国产")}</select></div>
-        <div class="form-item"><label>能源方式 <em>*</em></label><select class="select" id="projectEquipmentEnergy">${renderProjectEquipmentOptions(projectEquipmentEnergyOptions,registration?.energy||"电能")}</select></div>
-        <div class="form-item"><label>额定功率（KW） <em>*</em></label><input class="input" id="projectEquipmentPower" type="number" min="0" step="0.01" value="${escapeAttr(registration?.power||"")}" placeholder="请输入"/></div>
-        <div class="form-item"><label>出厂日期 <em>*</em></label><input class="input" id="projectEquipmentManufactureMonth" type="month" value="${escapeAttr(registration?.manufactureMonth||"")}"/></div>
-        <div class="form-item"><label>设备产权 <em>*</em></label><select class="select" id="projectEquipmentProperty">${renderProjectEquipmentOptions(projectEquipmentPropertyOptions,registration?.property||"租赁")}</select></div>
-        <div class="form-item"><label>计划进场日期 <em>*</em></label><input class="input" id="projectEquipmentEntryDate" type="date" value="${escapeAttr(registration?.planEntryDate||"")}"/></div>
-        <div class="form-item"><label>计划退场日期 <em>*</em></label><input class="input" id="projectEquipmentExitDate" type="date" value="${escapeAttr(registration?.planExitDate||"")}"/></div>
+        <div class="form-item"><label>设备分类 <em data-required-mark="1">*</em></label><select class="select" id="projectEquipmentCategory" onchange="syncProjectEquipmentRegistrationFormMode()">${renderProjectEquipmentOptions(projectEquipmentCategories,categoryValue)}</select></div>
+        <div class="form-item"><label>设备名称 <em data-required-mark="0"></em></label><input class="input" id="projectEquipmentName" value="${escapeAttr(registration?.deviceName||"")}" placeholder="请输入设备名称"/></div>
+        <div class="form-item"><label>规格型号 <em data-required-mark="1">*</em></label><input class="input" id="projectEquipmentModel" value="${escapeAttr(registration?.model||"")}" placeholder="请输入规格型号"/></div>
+        <div class="form-item"><label>设备编号 <em data-required-mark="1">*</em></label><input class="input" id="projectEquipmentNo" value="${escapeAttr(registration?.deviceNo||"")}" placeholder="请输入设备编号"/></div>
+        <div class="form-item"><label>设备品牌 <em data-required-mark="1">*</em></label><div class="project-equipment-brand-field ${brandSelectValue==="其他"?"show-custom":""}" id="projectEquipmentBrandField"><select class="select" id="projectEquipmentBrand" onchange="syncProjectEquipmentBrandField()">${renderProjectEquipmentOptions(projectEquipmentBrandOptions,brandSelectValue)}</select><input class="input" id="projectEquipmentBrandCustom" value="${escapeAttr(customBrand)}" placeholder="请输入设备品牌"/></div></div>
+        <div class="form-item"><label>国别 <em data-required-mark="1">*</em></label><select class="select" id="projectEquipmentCountry">${renderProjectEquipmentOptions(projectEquipmentCountryOptions,registration?.country||"国产")}</select></div>
+        <div class="form-item"><label>能源方式 <em data-required-mark="1">*</em></label><select class="select" id="projectEquipmentEnergy">${renderProjectEquipmentOptions(projectEquipmentEnergyOptions,registration?.energy||"电能")}</select></div>
+        <div class="form-item"><label>额定功率（KW） <em data-required-mark="1">*</em></label><input class="input" id="projectEquipmentPower" type="number" min="0" step="0.01" value="${escapeAttr(registration?.power||"")}" placeholder="请输入"/></div>
+        <div class="form-item"><label>出厂日期 <em data-required-mark="1">*</em></label><input class="input" id="projectEquipmentManufactureMonth" type="month" value="${escapeAttr(registration?.manufactureMonth||"")}"/></div>
+        <div class="form-item"><label>设备产权 <em data-required-mark="1">*</em></label><select class="select" id="projectEquipmentProperty">${renderProjectEquipmentOptions(projectEquipmentPropertyOptions,registration?.property||"租赁")}</select></div>
+        <div class="form-item"><label>计划进场日期 <em data-required-mark="1">*</em></label><input class="input" id="projectEquipmentEntryDate" type="date" value="${escapeAttr(registration?.planEntryDate||"")}"/></div>
+        <div class="form-item"><label>计划退场日期 <em data-required-mark="1">*</em></label><input class="input" id="projectEquipmentExitDate" type="date" value="${escapeAttr(registration?.planExitDate||"")}"/></div>
         <div class="form-item"><label>联系人</label><input class="input" id="projectEquipmentContact" value="${escapeAttr(registration?.contact||"")}" placeholder="请输入联系人"/></div>
         <div class="form-item"><label>联系电话</label><input class="input" id="projectEquipmentPhone" value="${escapeAttr(registration?.phone||"")}" placeholder="请输入联系电话"/></div>
         <div class="form-item"><label>自有/租赁单位</label><input class="input" id="projectEquipmentOwnerUnit" value="${escapeAttr(registration?.ownerUnit||"")}" placeholder="请输入单位名称"/></div>
@@ -3078,7 +3078,7 @@ function openProjectEquipmentRegistrationModal(planId,registrationId=""){
   </div>`;
   openModal(registration?"编辑设备信息":"设备信息登记",body,`<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveProjectEquipmentRegistration('${escapeAttr(plan.id)}','${escapeAttr(registration?.id||"")}')">保存</button>`,"large");
   modalBox.classList.add("project-equipment-modal");
-  syncProjectEquipmentImageRequired();
+  syncProjectEquipmentRegistrationFormMode();
   syncProjectEquipmentBrandField();
 }
 
@@ -3088,14 +3088,33 @@ function syncProjectEquipmentBrandField(){
   if(field)field.classList.toggle("show-custom",isOther);
 }
 
+function syncProjectEquipmentPlanningFields(){
+  const locked=true;
+  document.querySelectorAll(".project-equipment-planning-field").forEach(field=>{
+    field.disabled=locked;
+    field.closest(".form-item")?.classList.toggle("planning-locked",locked);
+  });
+}
+
 function syncProjectEquipmentImageRequired(){
   const category=document.getElementById("projectEquipmentCategory")?.value||"特种设备";
   const optional=category==="小型机具";
+  document.querySelectorAll(".project-equipment-form .form-item label").forEach(label=>{
+    if(label.dataset.baseHtml===undefined)label.dataset.baseHtml=label.innerHTML;
+    const baseHtml=label.dataset.baseHtml||label.innerHTML;
+    label.innerHTML=optional?baseHtml.replace(/<em[^>]*>\s*\*\s*<\/em>/g,"").replace(/\s{2,}/g," ").trim():baseHtml;
+  });
   document.querySelectorAll(".project-equipment-upload-field label").forEach(label=>{
     const base=label.textContent.replace(/\s*\*|\s*小型机具非必填/g,"").trim();
     label.innerHTML=`${base} ${optional?"<small>小型机具非必填</small>":"<em>*</em>"}`;
   });
   syncProjectEquipmentDocumentRequired(category);
+}
+
+function syncProjectEquipmentRegistrationFormMode(){
+  syncProjectEquipmentPlanningFields();
+  const category=document.getElementById("projectEquipmentCategory")?.value||"特种设备";
+  syncProjectEquipmentImageRequired();
 }
 
 function syncProjectEquipmentDocumentRequired(category=document.getElementById("projectEquipmentCategory")?.value||"特种设备"){
@@ -3237,7 +3256,8 @@ function readProjectEquipmentValue(id){
   return document.getElementById(id)?.value?.trim()||"";
 }
 
-function validateProjectEquipmentRequired(fields){
+function validateProjectEquipmentRequired(fields,skip=false){
+  if(skip)return true;
   for(const field of fields){
     const value=readProjectEquipmentValue(field.id);
     if(!value){
@@ -3280,6 +3300,8 @@ function validateProjectEquipmentDocuments(category){
 function saveProjectEquipmentRegistration(planId,registrationId=""){
   const plan=getProjectEquipmentPlanById(planId);
   if(!plan)return showToast("未找到设备筹划数据");
+  const category=readProjectEquipmentValue("projectEquipmentCategory");
+  const isSmallMachine=category==="小型机具";
   const requiredFields=[
     {id:"projectEquipmentDeviceType",label:"设备类型"},
     {id:"projectEquipmentDemandQuantity",label:"需求数量"},
@@ -3297,14 +3319,13 @@ function saveProjectEquipmentRegistration(planId,registrationId=""){
     {id:"projectEquipmentEntryDate",label:"计划进场日期"},
     {id:"projectEquipmentExitDate",label:"计划退场日期"}
   ];
-  if(!validateProjectEquipmentRequired(requiredFields))return;
+  if(!validateProjectEquipmentRequired(requiredFields,isSmallMachine))return;
   const brand=getProjectEquipmentBrandValue();
-  if(!brand){
+  if(!brand&&!isSmallMachine){
     showToast("请填写设备品牌");
     document.getElementById("projectEquipmentBrandCustom")?.focus();
     return;
   }
-  const category=readProjectEquipmentValue("projectEquipmentCategory");
   const deviceImageNode=document.getElementById("projectEquipmentDeviceImageName");
   const nameplateImageNode=document.getElementById("projectEquipmentNameplateImageName");
   const deviceImages=parseProjectEquipmentFiles(deviceImageNode);
@@ -3313,8 +3334,8 @@ function saveProjectEquipmentRegistration(planId,registrationId=""){
   const nameplateImageName=nameplateImages.map(file=>file.name).filter(Boolean).join("、");
   const deviceImageUrl=deviceImages[0]?.url||"";
   const nameplateImageUrl=nameplateImages[0]?.url||"";
-  if(category!=="小型机具"&&!deviceImages.length)return showToast("请上传设备图片");
-  if(category!=="小型机具"&&!nameplateImages.length)return showToast("请上传铭牌图片");
+  if(!isSmallMachine&& !deviceImages.length)return showToast("请上传设备图片");
+  if(!isSmallMachine&& !nameplateImages.length)return showToast("请上传铭牌图片");
   if(!validateProjectEquipmentDocuments(category))return;
   const entryDate=readProjectEquipmentValue("projectEquipmentEntryDate");
   const exitDate=readProjectEquipmentValue("projectEquipmentExitDate");
