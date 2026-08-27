@@ -957,7 +957,7 @@ const componentLibraryMenusV2288={
     {group:"基础组件",items:[["button","按钮 Button"],["icon","图标 Icon"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"],["month","年月选择器 MonthPicker"]]},
     {group:"表单组件",items:[["input","输入框 Input"],["select","选择器 Select"]]},
     {group:"数据展示",items:[["tag","标签 Tag"],["table","表格 Table"],["standard-list","标准列表 StandardList"],["project-manager-contact","项目经理联系方式 ProjectManagerContact"],["row-span-table","纵跨行组件 RowSpanTable"]]},
-    {group:"弹层组件",items:[["modal-standard","基础标准弹框 Modal"],["modal-fullscreen","全屏弹框 FullscreenModal"],["modal-nested","嵌套弹框 NestedModal"],["modal-business","业务定制弹框 BusinessModal"],["modal-immersive","沉浸式预览弹框 ImmersiveModal"],["modal-mobile","移动端弹层 MobileOverlay"],["modal-lightweight","轻量浮层 Popover"]]},
+    {group:"弹层组件",items:[["modal-standard","基础标准弹框 Modal"],["modal-fullscreen","全屏弹框 FullscreenModal"],["modal-nested","嵌套弹框 NestedModal"],["modal-business","业务定制弹框 BusinessModal"],["approval-dialog","审批弹框 ApprovalDialog"],["modal-immersive","沉浸式预览弹框 ImmersiveModal"],["modal-mobile","移动端弹层 MobileOverlay"],["modal-lightweight","轻量浮层 Popover"]]},
     {group:"业务组件",items:[["statistics-filter","统计筛选 StatisticsFilter"],["dashboard-org-switch","看板组织切换 DashboardOrgSwitch"],["project-selector","项目选择器 ProjectSelector"]]}
   ],
   mobile:[
@@ -1325,6 +1325,7 @@ function renderPcComponentPreviewV2288(type){
     "modal-fullscreen":ModalGallery.renderPreview("fullscreen"),
     "modal-nested":ModalGallery.renderPreview("nested"),
     "modal-business":ModalGallery.renderPreview("business"),
+    "approval-dialog":ApprovalDialog.renderLibraryPreview(),
     "modal-immersive":ModalGallery.renderPreview("immersive"),
     "modal-mobile":ModalGallery.renderPreview("mobile"),
     "modal-lightweight":ModalGallery.renderPreview("lightweight"),

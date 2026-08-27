@@ -167,13 +167,13 @@
   phrases.set("分包商产值计量","Subcontractor Output Measurement");
   phrases.set("项目管理费","Project Management Fee");
   phrases.set("业务可视化分析","Business Visualization Analysis");
-  phrases.set("指标项下全主题分析","All Theme Analysis under Metric");
-  phrases.set("主题项下全指标分析","All Metric Analysis under Theme");
+  phrases.set("指标项下全主题分析","Theme Analysis");
+  phrases.set("主题项下全指标分析","Metric Analysis");
   phrases.set("分析维度","Analysis Dimension");
-  phrases.set("主题分析","Theme Analysis");
-  phrases.set("指标分析","Metric Analysis");
+  phrases.set("主题分析","Theme");
+  phrases.set("指标分析","Metric");
   phrases.set("筛选条件","Filters");
-  phrases.set("诊断期数","Diagnosis Period");
+  phrases.set("诊断期数","Period");
   phrases.set("区域市场","Regional Market");
   phrases.set("指标列表","Metric List");
   phrases.set("主题列表","Theme List");
@@ -188,6 +188,7 @@
   phrases.set("业主拖欠款","Owner Arrears");
   phrases.set("综合税负率","Comprehensive Tax Burden Rate");
   phrases.set("统计值","Statistical Value");
+  phrases.set("平均值","Average");
   phrases.set("放大查看","View Enlarged");
   phrases.set("工期异常","Schedule Exception");
   phrases.set("子公司当年营收计划、实际值及完成进度","Annual Revenue Plan, Actual Value and Completion by Subsidiary");
@@ -204,7 +205,7 @@
   const state={language:"zh"};
   const translatedModalSelector=".economy-report-modal,.economy-monthly-check-modal,.economy-project-overview-modal,.economy-business-analysis-modal";
   function isEnglish(){return state.language==="en";}
-  function translateText(value){if(!isEnglish()||!value)return value;let result=value;for(const [zh,en] of ordered)result=result.split(zh).join(en);return result;}
+  function translateText(value){if(!isEnglish()||!value)return value;const dictionaryTranslation=global.getDataDictionaryEnglishName?.(value);if(dictionaryTranslation&&dictionaryTranslation!==value)return dictionaryTranslation;let result=value;for(const [zh,en] of ordered)result=result.split(zh).join(en);return result;}
   function isInternationalDisplayRoot(root){
     if(!root||global.economyDashboardState?.edition!=="international")return false;
     const element=root.nodeType===Node.ELEMENT_NODE?root:root.parentElement;

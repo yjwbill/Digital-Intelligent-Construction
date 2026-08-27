@@ -1,6 +1,73 @@
 /* 企业管理 / 经济 / 大屏看板 */
 const economyDashboardState={tab:"diagnosis",edition:"domestic",projectName:"",projectType:"",region:"",month:"2026-06",sortKey:"",sortDirection:"",page:1,pageSize:50};
 window.economyDashboardState=economyDashboardState;
+
+/* 经济模块列表统一使用生产施工项目一览的标准列设置能力。 */
+const economyCustomColumnSettings={};
+function getEconomyCustomColumnStorageKey(key){return `ECONOMY_COLUMN_SETTINGS_V2_${key}`;}
+function getEconomyCustomFreezeStorageKey(key){return `ECONOMY_COLUMN_FREEZE_V2_${key}`;}
+function normalizeEconomyCustomColumns(columns){
+  return columns.map((column,index)=>typeof column==="string"?{key:`column-${index}`,index,title:column,width:120,minWidth:60,visible:true,order:index+1,align:"left"}:{...column,index, key:column.key||`column-${index}`,title:column.title||column.key||`列${index+1}`,width:Number(column.width)||120,minWidth:Number(column.minWidth)||60,visible:column.visible!==false,order:Number(column.order)||index+1,align:column.align||"left"});
+}
+function getEconomyCustomColumnConfig(key,columns){
+  const defaults=normalizeEconomyCustomColumns(columns);
+  let saved=null;
+  try{saved=JSON.parse(localStorage.getItem(getEconomyCustomColumnStorageKey(key))||localStorage.getItem(`ECONOMY_COLUMN_SETTINGS_V1_${key}`)||"null");}catch(error){}
+  if(Array.isArray(saved)&&saved.every(item=>typeof item==="number")){
+    const visible=new Set(saved);
+    return defaults.map(column=>({...column,visible:column.key==="operation"||visible.has(column.index)}));
+  }
+  if(!Array.isArray(saved))return defaults;
+  return defaults.map(column=>{const old=saved.find(item=>item.key===column.key||Number(item.index)===column.index);return old?{...column,visible:old.visible!==false,width:Number(old.width)||column.width,align:old.align||column.align,order:Number(old.order)||column.order}:column;}).sort((a,b)=>a.key==="operation"?1:b.key==="operation"?-1:a.order-b.order).map((column,index)=>({...column,order:index+1}));
+}
+function getEconomyCustomFreezeCount(key,columns){
+  const max=normalizeEconomyCustomColumns(columns).filter(column=>column.key!=="operation").length;
+  const saved=localStorage.getItem(getEconomyCustomFreezeStorageKey(key));
+  return Math.min(max,Math.max(0,saved===null?0:Number(saved)||0));
+}
+function applyEconomyCustomColumnVisibility(key){
+  const setting=economyCustomColumnSettings[key];
+  if(!setting)return;
+  const config=getEconomyCustomColumnConfig(key,setting.columns);
+  const visible=config.filter(column=>column.visible).sort((a,b)=>a.order-b.order);
+  const freezeCount=Math.min(getEconomyCustomFreezeCount(key,setting.columns),visible.filter(column=>column.key!=="operation").length);
+  let leftOffset=0;
+  document.querySelectorAll(`${setting.selector} tr`).forEach(row=>{
+    const cells=[...row.children];
+    config.sort((a,b)=>a.order-b.order).forEach(column=>{
+      const cell=cells[column.index];
+      if(!cell)return;
+      cell.style.display=column.visible?"":"none";
+      cell.style.width=`${column.width}px`;cell.style.minWidth=`${column.width}px`;cell.style.maxWidth=`${column.width}px`;cell.style.textAlign=column.align;
+      cell.classList.remove("table-sticky-left","table-sticky-left-edge","table-sticky-operation");
+      if(column.key==="operation")cell.classList.add("table-sticky-operation");
+      const visibleIndex=visible.indexOf(column),normalIndex=visible.filter(item=>item.key!=="operation").indexOf(column);
+      if(column.visible&&column.key!=="operation"&&normalIndex>=0&&normalIndex<freezeCount){cell.classList.add("table-sticky-left");cell.style.setProperty("--table-sticky-left",`${leftOffset}px`);if(normalIndex===freezeCount-1)cell.classList.add("table-sticky-left-edge");leftOffset+=column.width;}
+      if(column.visible&&visibleIndex===visible.length-1&&column.key!=="operation")leftOffset=0;
+      row.appendChild(cell);
+    });
+    leftOffset=0;
+  });
+}
+function openEconomyCustomColumnSetting(key,columns,selector,rerenderFn){
+  economyCustomColumnSettings[key]={columns:normalizeEconomyCustomColumns(columns),selector,rerenderFn};
+  const config=getEconomyCustomColumnConfig(key,columns),maxFreeze=config.filter(column=>column.key!=="operation").length;
+  openModal("列设置",`<div class="setting-tip">可设置当前列表的列宽、是否展示、显示顺序、内容对齐方式。设置会自动保存到浏览器本地缓存。排序数字越小越靠前；也可使用上移、下移快速调整。</div><div class="column-freeze-setting"><label for="economyColumnFreezeCount">冻结至第</label><input id="economyColumnFreezeCount" type="number" min="0" max="${maxFreeze}" value="${getEconomyCustomFreezeCount(key,columns)}"><span>列</span><em>从左侧起冻结前 X 列，填 0 表示不冻结；操作列始终固定在右侧。</em></div><div style="overflow:auto"><table class="column-setting-table"><thead><tr><th style="width:80px">展示</th><th>列名</th><th style="width:130px">列宽(px)</th><th style="width:130px">内容对齐</th><th style="width:120px">排序</th><th style="width:150px">快捷排序</th></tr></thead><tbody id="columnSettingTbody">${config.map(column=>`<tr data-key="${column.key}" data-index="${column.index}"><td style="text-align:center"><input type="checkbox" class="col-visible" ${column.visible?"checked":""} ${column.key==="operation"?"disabled":""}></td><td>${column.title}</td><td><input type="number" class="col-width" min="${column.minWidth}" max="600" value="${column.width}"></td><td><select class="col-align"><option value="left" ${column.align==="left"?"selected":""}>居左</option><option value="center" ${column.align==="center"?"selected":""}>居中</option><option value="right" ${column.align==="right"?"selected":""}>居右</option></select></td><td><input type="number" class="col-order" min="1" max="${config.length}" value="${column.order}"></td><td><button class="mini-btn" onclick="moveColumnSettingRow(this,-1)">上移</button><button class="mini-btn" onclick="moveColumnSettingRow(this,1)">下移</button></td></tr>`).join("")}</tbody></table></div>`,`<button class="btn" onclick="resetEconomyCustomColumnSetting('${key}')">恢复默认</button><button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveEconomyCustomColumnSetting('${key}')">保存</button>`,`large`);
+}
+function saveEconomyCustomColumnSetting(key){
+  const setting=economyCustomColumnSettings[key];if(!setting)return;
+  const defaults=normalizeEconomyCustomColumns(setting.columns),rows=[...document.querySelectorAll("#columnSettingTbody tr")];
+  const config=rows.map((row,index)=>{const original=defaults.find(column=>column.key===row.dataset.key)||defaults[Number(row.dataset.index)]||defaults[index];return {...original,visible:original.key==="operation"?true:row.querySelector(".col-visible")?.checked!==false,width:Math.max(original.minWidth,Number(row.querySelector(".col-width")?.value)||original.width),align:row.querySelector(".col-align")?.value||original.align,order:index+1};}).sort((a,b)=>a.key==="operation"?1:b.key==="operation"?-1:a.order-b.order).map((column,index)=>({...column,order:index+1}));
+  localStorage.setItem(getEconomyCustomColumnStorageKey(key),JSON.stringify(config));localStorage.setItem(getEconomyCustomFreezeStorageKey(key),String(Math.min(config.filter(column=>column.key!=="operation"&&column.visible).length,Math.max(0,Number(document.getElementById("economyColumnFreezeCount")?.value)||0))));
+  closeModal();if(typeof window[setting.rerenderFn]==="function")window[setting.rerenderFn]();setTimeout(()=>applyEconomyCustomColumnVisibility(key),0);showToast("列设置已保存");
+}
+function resetEconomyCustomColumnSetting(key){const setting=economyCustomColumnSettings[key];if(!setting)return;localStorage.removeItem(getEconomyCustomColumnStorageKey(key));localStorage.removeItem(getEconomyCustomFreezeStorageKey(key));closeModal();if(typeof window[setting.rerenderFn]==="function")window[setting.rerenderFn]();setTimeout(()=>applyEconomyCustomColumnVisibility(key),0);showToast("已恢复默认列设置");}
+function mountEconomyCustomColumnSettingButton(key,columns,cardSelector,tableSelector,rerenderFn){
+  economyCustomColumnSettings[key]={columns:normalizeEconomyCustomColumns(columns),selector:tableSelector,rerenderFn};
+  const actions=document.querySelector(`${cardSelector} .card-hd .actions`);
+  if(actions&&!actions.querySelector(`[data-economy-column-setting="${key}"]`)){const button=document.createElement("button");button.type="button";button.className="column-setting-icon-btn";button.title="列设置";button.dataset.economyColumnSetting=key;button.textContent="⚙";button.onclick=()=>openEconomyCustomColumnSetting(key,columns,tableSelector,rerenderFn);actions.appendChild(button);}
+  applyEconomyCustomColumnVisibility(key);
+}
 const economyDiagnosisTaskState={period:"",edition:"",diagnosisStatus:"",publishStatus:"",page:1,pageSize:15};
 let economyDiagnosisTasks=[
   {id:1,period:"202607",edition:"international",projects:86,managed:86,diagnosisStatus:"已诊断",publishStatus:"已发布",publicTime:"2026-08-15 14:30",sent:78,generated:102},
@@ -74,7 +141,12 @@ function renderEconomyDiagnosisResultPage(){
   const titleHtml=`<div class="compact-title-row"><div class="module-title">经济诊断 / 诊断结果</div></div>`;
   const queryHtml=`<section class="card unified-query-card"><div class="card-hd"><div class="card-title">查询条件</div><div class="actions"><button class="btn" onclick="resetEconomyDiagnosisResultFilters()">重置</button><button class="btn primary" onclick="queryEconomyDiagnosisResults()">查询</button></div></div><div class="card-bd"><div class="search-grid"><div class="form-item"><label>诊断期数</label><select id="economyDiagnosisResultPeriod" class="select"><option value="">全部</option>${periods.map(value=>`<option value="${value}" ${value===economyDiagnosisResultState.period?"selected":""}>${value}</option>`).join("")}</select></div><div class="form-item"><label>适用版本</label><select id="economyDiagnosisResultEdition" class="select"><option value="">全部</option><option value="domestic" ${economyDiagnosisResultState.edition==="domestic"?"selected":""}>国内版</option><option value="international" ${economyDiagnosisResultState.edition==="international"?"selected":""}>国际版</option></select></div><div class="form-item"><label>诊断状态</label><select id="economyDiagnosisResultDiagnosisStatus" class="select"><option value="">全部</option><option value="已完成" ${economyDiagnosisResultState.diagnosisStatus==="已完成"?"selected":""}>已完成</option></select></div><div class="form-item"><label>发布状态</label><select id="economyDiagnosisResultPublishStatus" class="select"><option value="">全部</option><option value="已发布" ${economyDiagnosisResultState.publishStatus==="已发布"?"selected":""}>已发布</option><option value="预发布" ${economyDiagnosisResultState.publishStatus==="预发布"?"selected":""}>预发布</option><option value="未发布" ${economyDiagnosisResultState.publishStatus==="未发布"?"selected":""}>未发布</option></select></div></div></div></section>`;
   const contentHtml=`<section class="card table-card economy-diagnosis-result-table-card"><div class="card-hd"><div class="card-title">诊断结果列表</div><div class="actions"><button class="btn" onclick="renderEconomyDiagnosisResultPage();showToast('诊断结果已刷新')">刷新</button><button class="btn" onclick="showToast('导出成功：经济诊断结果列表.xlsx')">导出</button></div></div><div class="table-wrap roster-table-wrap"><table><thead><tr><th>序号</th><th>结果编号</th><th>诊断期数</th><th>适用版本</th><th>诊断任务</th><th>诊断项目数量</th><th>预警数量</th><th>诊断状态</th><th>发布状态</th><th>生成时间</th><th>创建人</th><th>操作</th></tr></thead><tbody>${pageRows.map((row,index)=>`<tr><td>${start+index+1}</td><td>${row.resultCode}</td><td>${row.period}</td><td>${row.edition==="international"?"国际版":"国内版"}</td><td class="ellipsis" title="${escapeAttr(row.taskName)}">${escapeAttr(row.taskName)}</td><td>${row.projectCount}</td><td>${row.warningCount}</td><td>${renderEconomyDiagnosisTaskStatus(row.diagnosisStatus)}</td><td>${renderEconomyDiagnosisTaskStatus(row.publishStatus,"publish")}</td><td>${row.createdAt}</td><td>${row.createdBy}</td><td class="actions"><button class="link" onclick="openEconomyDiagnosisResultDetail(${row.id})">查看</button>${row.publishStatus==="已发布"||row.publishStatus==="预发布"?`<button class="link" onclick="revokeEconomyDiagnosisResult(${row.id})">撤回</button>`:``}${row.publishStatus==="预发布"?`<button class="link" onclick="publishEconomyDiagnosisResult(${row.id})">正式发布</button>`:`${row.publishStatus==="未发布"?`<button class="link" onclick="prepublishEconomyDiagnosisResult(${row.id})">预发布</button>`:``}`}</td></tr>`).join("")||`<tr><td colspan="12" class="empty-state">暂无诊断结果</td></tr>`}</tbody></table></div><div class="pagination"><span>共 ${rows.length} 条记录</span><div class="pager"><button class="btn mini" ${economyDiagnosisResultState.page<=1?"disabled":""} onclick="changeEconomyDiagnosisResultPage(${economyDiagnosisResultState.page-1})">上一页</button><b>第 ${economyDiagnosisResultState.page} / ${totalPages} 页</b><button class="btn mini" ${economyDiagnosisResultState.page>=totalPages?"disabled":""} onclick="changeEconomyDiagnosisResultPage(${economyDiagnosisResultState.page+1})">下一页</button></div></div></section>`;
-  listPage.innerHTML=StandardList.render({variant:"table",titleHtml,queryHtml,contentHtml});
+  const resultColumns=["序号","结果编号","诊断期数","适用版本","诊断任务","诊断项目数量","预警数量","诊断状态","发布状态","生成时间","创建人","操作"];
+  const resultTable=contentHtml.replace("<table>","<table class=\"economy-diagnosis-result-table\">").replace("<button class=\"btn\" onclick=\"showToast('导出成功：经济诊断结果列表.xlsx')\">导出</button>","<button class=\"btn\" onclick=\"showToast('导出成功：经济诊断结果列表.xlsx')\">导出</button><button class=\"column-setting-icon-btn\" title=\"列设置\" onclick=\"openEconomyCustomColumnSetting('diagnosisResult',economyDiagnosisResultColumnTitles,'.economy-diagnosis-result-table','renderEconomyDiagnosisResultPage')\">⚙</button>");
+  window.economyDiagnosisResultColumnTitles=resultColumns;
+  listPage.innerHTML=StandardList.render({variant:"table",titleHtml,queryHtml,contentHtml:resultTable});
+  economyCustomColumnSettings.diagnosisResult={columns:resultColumns,selector:".economy-diagnosis-result-table",rerenderFn:"renderEconomyDiagnosisResultPage"};
+  applyEconomyCustomColumnVisibility("diagnosisResult");
 }
 function getEconomyDiagnosisTaskRows(){
   return economyDiagnosisTasks.filter(row=>(!economyDiagnosisTaskState.period||row.period.includes(economyDiagnosisTaskState.period))&&(!economyDiagnosisTaskState.edition||row.edition===economyDiagnosisTaskState.edition)&&(!economyDiagnosisTaskState.diagnosisStatus||row.diagnosisStatus===economyDiagnosisTaskState.diagnosisStatus)&&(!economyDiagnosisTaskState.publishStatus||row.publishStatus===economyDiagnosisTaskState.publishStatus));
@@ -181,13 +253,18 @@ function renderEconomyDiagnosisTaskPage(){
   const periods=[...new Set(economyDiagnosisTasks.map(row=>row.period))];
   const queryFields=`<div class="form-item"><label>诊断期数</label><select id="economyDiagnosisTaskPeriod" class="select"><option value="">请选择诊断期数</option>${periods.map(value=>`<option value="${value}" ${value===economyDiagnosisTaskState.period?"selected":""}>${value}</option>`).join("")}</select></div><div class="form-item"><label>适用版本</label><select id="economyDiagnosisTaskEdition" class="select"><option value="">请选择适用版本</option><option value="domestic" ${economyDiagnosisTaskState.edition==="domestic"?"selected":""}>国内版</option><option value="international" ${economyDiagnosisTaskState.edition==="international"?"selected":""}>国际版</option></select></div><div class="form-item"><label>诊断状态</label><select id="economyDiagnosisTaskDiagnosisStatus" class="select"><option value="">请选择</option><option value="已诊断" ${economyDiagnosisTaskState.diagnosisStatus==="已诊断"?"selected":""}>已诊断</option><option value="待诊断" ${economyDiagnosisTaskState.diagnosisStatus==="待诊断"?"selected":""}>待诊断</option></select></div><div class="form-item"><label>发布状态</label><select id="economyDiagnosisTaskPublishStatus" class="select"><option value="">请选择</option><option value="已发布" ${economyDiagnosisTaskState.publishStatus==="已发布"?"selected":""}>已发布</option><option value="预发布" ${economyDiagnosisTaskState.publishStatus==="预发布"?"selected":""}>预发布</option><option value="未发布" ${economyDiagnosisTaskState.publishStatus==="未发布"?"selected":""}>未发布</option></select></div>`;
   const query=renderUnifiedQueryCard(queryFields,{id:"economyDiagnosisTaskQuery",gridClass:"search-grid economy-diagnosis-task-search",queryFn:"syncEconomyDiagnosisTaskFilters()",resetFn:"resetEconomyDiagnosisTaskFilters()",canCollapse:false});
-  const table=`<section class="card table-card economy-diagnosis-task-table-card"><div class="card-hd"><div class="card-title">经济诊断任务列表</div><div class="actions"><button class="btn primary" onclick="openEconomyDiagnosisTaskEditor()">发起诊断</button><button class="btn" onclick="renderEconomyDiagnosisTaskPageRoute();showToast('经济诊断任务已刷新')">刷新</button><button class="btn" onclick="showToast('导出成功：经济诊断任务列表.xlsx')">导出</button></div></div><div class="table-wrap roster-table-wrap"><table class="economy-diagnosis-task-table"><thead><tr><th>序号</th><th>诊断期数</th><th>适用版本</th><th>经济纳管项目数</th><th>诊断项目数</th><th>纳管项目诊断率</th><th>诊断状态</th><th>发布状态</th><th>任务发起时间</th><th>诊断时间</th><th>发布时间</th><th>短信发送情况<br>已发条数 / 生成条数</th><th>操作</th></tr></thead><tbody>${pageRows.map((row,index)=>`<tr><td>${start+index+1}</td><td>${row.period}</td><td>${renderEconomyDiagnosisEditionTag(row.edition)}</td><td>${row.managed}</td><td>${row.projects}</td><td>${row.managed?Math.round(row.projects/row.managed*100):0}%</td><td>${renderEconomyDiagnosisTaskStatus(row.diagnosisStatus,"diagnosis")}</td><td>${renderEconomyDiagnosisTaskStatus(row.publishStatus,"publish")}</td><td>${row.initiatedAt||"--"}</td><td>${row.diagnosedAt||"--"}</td><td>${row.publicTime||"--"}</td><td>${row.sent} / ${row.generated}</td><td class="actions">${getEconomyDiagnosisTaskAction(row)}</td></tr>`).join("")||`<tr><td colspan="13" class="empty-state">暂无诊断任务</td></tr>`}</tbody></table></div><div class="pagination"><span>共 ${rows.length} 条记录</span><div class="pager"><button class="btn mini" ${economyDiagnosisTaskState.page<=1?"disabled":""} onclick="changeEconomyDiagnosisTaskPage(${economyDiagnosisTaskState.page-1})">上一页</button><b>第 ${economyDiagnosisTaskState.page} / ${totalPages} 页</b><button class="btn mini" ${economyDiagnosisTaskState.page>=totalPages?"disabled":""} onclick="changeEconomyDiagnosisTaskPage(${economyDiagnosisTaskState.page+1})">下一页</button></div></div></section>`;
-  return `<div class="economy-diagnosis-task-page">${query}${table}</div>`;
+  const table=`<section class="card table-card economy-diagnosis-task-table-card"><div class="card-hd"><div class="card-title">经济诊断任务列表</div><div class="actions"><button class="btn primary" onclick="openEconomyDiagnosisTaskEditor()">发起诊断</button><button class="btn" onclick="renderEconomyDiagnosisTaskPageRoute();showToast('经济诊断任务已刷新')">刷新</button><button class="btn" onclick="showToast('导出成功：经济诊断任务列表.xlsx')">导出</button></div></div><div class="table-wrap roster-table-wrap"><table class="economy-diagnosis-task-table"><thead><tr><th>序号</th><th>诊断期数</th><th>适用版本</th><th>经济纳管项目数</th><th>诊断项目数</th><th>纳管项目诊断率</th><th>诊断状态</th><th>发布状态</th><th>任务发起时间</th><th>诊断时间</th><th>发布时间</th><th>短信生成条数</th><th>短信已发条数</th><th>操作</th></tr></thead><tbody>${pageRows.map((row,index)=>`<tr><td>${start+index+1}</td><td>${row.period}</td><td>${renderEconomyDiagnosisEditionTag(row.edition)}</td><td>${row.managed}</td><td>${row.projects}</td><td>${row.managed?Math.round(row.projects/row.managed*100):0}%</td><td>${renderEconomyDiagnosisTaskStatus(row.diagnosisStatus,"diagnosis")}</td><td>${renderEconomyDiagnosisTaskStatus(row.publishStatus,"publish")}</td><td>${row.initiatedAt||"--"}</td><td>${row.diagnosedAt||"--"}</td><td>${row.publicTime||"--"}</td><td>${row.generated}</td><td>${row.sent}</td><td class="actions">${getEconomyDiagnosisTaskAction(row)}</td></tr>`).join("")||`<tr><td colspan="14" class="empty-state">暂无诊断任务</td></tr>`}</tbody></table></div><div class="pagination"><span>共 ${rows.length} 条记录</span><div class="pager"><button class="btn mini" ${economyDiagnosisTaskState.page<=1?"disabled":""} onclick="changeEconomyDiagnosisTaskPage(${economyDiagnosisTaskState.page-1})">上一页</button><b>第 ${economyDiagnosisTaskState.page} / ${totalPages} 页</b><button class="btn mini" ${economyDiagnosisTaskState.page>=totalPages?"disabled":""} onclick="changeEconomyDiagnosisTaskPage(${economyDiagnosisTaskState.page+1})">下一页</button></div></div></section>`;
+  const taskColumns=["序号","诊断期数","适用版本","经济纳管项目数","诊断项目数","纳管项目诊断率","诊断状态","发布状态","任务发起时间","诊断时间","发布时间","短信生成条数","短信已发条数","操作"];
+  const taskTable=table.replace("<button class=\"btn\" onclick=\"showToast('导出成功：经济诊断任务列表.xlsx')\">导出</button>","<button class=\"btn\" onclick=\"showToast('导出成功：经济诊断任务列表.xlsx')\">导出</button><button class=\"column-setting-icon-btn\" title=\"列设置\" onclick=\"openEconomyCustomColumnSetting('diagnosisTask',economyDiagnosisTaskColumnTitles,'.economy-diagnosis-task-table','renderEconomyDiagnosisTaskPageRoute')\">⚙</button>");
+  window.economyDiagnosisTaskColumnTitles=taskColumns;
+  return `${query}${taskTable}`;
 }
 function renderEconomyDiagnosisTaskPageRoute(){
   detailPage.style.display="none";
   listPage.style.display="flex";
   listPage.innerHTML=StandardList.render({variant:"table",titleHtml:`<div class="compact-title-row"><div class="module-title">经济诊断 / 诊断任务</div></div>`,contentHtml:renderEconomyDiagnosisTaskPage()});
+  economyCustomColumnSettings.diagnosisTask={columns:window.economyDiagnosisTaskColumnTitles,selector:".economy-diagnosis-task-table",rerenderFn:"renderEconomyDiagnosisTaskPageRoute"};
+  applyEconomyCustomColumnVisibility("diagnosisTask");
 }
 const economyDashboardOrgState={company:"",branch:""};
 const economyWarningTypes=[
@@ -275,7 +352,7 @@ function toggleEconomyDiagnosisSort(key){
   renderEconomyDashboardPage("diagnosis");
 }
 function renderEconomyDashboardHeader(view="diagnosis"){
-  const regionFilter=economyDashboardState.edition==="domestic"?`<select id="economyDashboardRegion" class="select" onchange="setEconomyDashboardFilter('region',this.value)"><option value="">所属区域</option>${["华东区域","华南区域","华北区域","西南区域"].map(x=>`<option ${economyDashboardState.region===x?'selected':''}>${x}</option>`).join('')}</select>`:"";
+  const regionFilter=economyDashboardState.edition==="domestic"?`<select id="economyDashboardRegion" class="select" onchange="setEconomyDashboardFilter('region',this.value)"><option value="">区域市场</option>${getEconomyBusinessAnalysisDictionaryOptions("MARKET_AREA").map(x=>`<option ${economyDashboardState.region===x?'selected':''}>${x}</option>`).join('')}</select>`:"";
   const monthPicker=MonthPicker.render({id:"economyDashboardMonth",value:economyDashboardState.month,max:"2026-07",locale:economyDashboardState.edition==="international"&&EconomyI18n.isEnglish()?"en":"zh",placeholder:economyDashboardState.edition==="international"&&EconomyI18n.isEnglish()?"Select month":"请选择年月",className:"economy-diagnosis-month-picker",onChange:value=>setEconomyDashboardFilter("month",value)});
   const filters=view==="diagnosis"?`<div class="economy-dashboard-filters ${economyDashboardState.edition}"><input id="economyDashboardProject" class="input" placeholder="项目名称" value="${escapeAttr(economyDashboardState.projectName)}" onchange="setEconomyDashboardFilter('projectName',this.value)" onkeydown="if(event.key==='Enter'){this.blur()}"/><select id="economyDashboardType" class="select" onchange="setEconomyDashboardFilter('projectType',this.value)"><option value="">项目类型</option>${economyProjectTypes.map(x=>`<option ${economyDashboardState.projectType===x?'selected':''}>${x}</option>`).join('')}</select>${regionFilter}${monthPicker}<button class="btn primary economy-dashboard-download monthly" onclick="openEconomyMonthlyCheckReport()"><img src="./src/assets/economy/download.svg" alt="" aria-hidden="true">月度检验单</button><button class="btn primary economy-dashboard-download report" onclick="openEconomyAnalysisReport()"><img src="./src/assets/economy/download.svg" alt="" aria-hidden="true">分析报告</button>${EconomyI18n.renderSwitch()}</div>`:"";
   return `<div class="safety-screen-header economy-screen-header no-edition-tabs"><div class="screen-brand"><span class="screen-logo">P</span><strong>数智施工项目经济管理平台</strong></div>${filters}</div>`;
@@ -471,6 +548,12 @@ function toggleEconomyCommandMonthPicker(event){event?.stopPropagation?.();econo
 function moveEconomyCommandMonthYear(delta,event){event?.stopPropagation?.();economyCommandState.monthPanelYear+=Number(delta)||0;renderEconomyCommandMonthPanel();}
 function selectEconomyCommandMonth(month,event){event?.stopPropagation?.();const value=`${economyCommandState.monthPanelYear}-${String(month).padStart(2,"0")}`;if(value>getCurrentMonthValue())return;economyCommandState.month=value;economyCommandState.monthSelected=true;economyCommandState.monthPanelOpen=false;renderEconomyDashboardPage("overview");}
 function closeEconomyCommandMonthPicker(){if(!economyCommandState.monthPanelOpen)return;economyCommandState.monthPanelOpen=false;document.getElementById("economyCommandMonthPanel")?.classList.remove("open");document.getElementById("economyCommandMonthInput")?.classList.remove("active");}
+function getEconomyCommandDisplayUnit(unit){
+  if(economyDashboardState.edition!=="international"||!EconomyI18n.isEnglish())return unit;
+  return ({"个":"","亿元":"CNY 100m","万元":"CNY 10k","人":"people","月":"months"})[unit]??unit;
+}
+function renderEconomyCommandUnit(unit){const display=getEconomyCommandDisplayUnit(unit);return display?`<em>${display}</em>`:"";}
+function renderEconomyCommandMetricUnitLabel(unit){const display=getEconomyCommandDisplayUnit(unit);return display?`（${display}）`:"";}
 function renderEconomyCommandMonthPanel(){
   const panel=document.getElementById("economyCommandMonthPanel"),input=document.getElementById("economyCommandMonthInput");
   if(!panel)return;
@@ -486,20 +569,20 @@ function toggleEconomyCommandFullscreen(){
   if(document.fullscreenElement)document.exitFullscreen?.();
   else screen.requestFullscreen?.();
 }
-function renderEconomyCommandSelect(key,label,options){return `<label class="economy-command-select"><span>${label}</span><select aria-label="${label}" onchange="setEconomyCommandFilter('${key}',this.value)"><option value="">${label}</option>${options.map(item=>`<option value="${item}" ${economyCommandState[key]===item?"selected":""}>${item}</option>`).join("")}</select></label>`;}
+function renderEconomyCommandSelect(key,label,options){const displayLabel=label==="集团重点客户"?"重点客户":label;return `<label class="economy-command-select"><span>${displayLabel}</span><select aria-label="${displayLabel}" onchange="setEconomyCommandFilter('${key}',this.value)"><option value="">${displayLabel}</option>${options.map(item=>`<option value="${item}" ${economyCommandState[key]===item?"selected":""}>${item}</option>`).join("")}</select></label>`;}
 function renderEconomyCommandSectionTitle(title,extra=""){return `<div class="economy-command-section-title"><strong>${title}</strong>${extra}</div>`;}
 function renderEconomyCommandTrendTabs(){return `<div class="economy-command-trend-tabs" role="tablist" aria-label="统计维度"><button type="button" role="tab" class="${economyCommandState.trendMode==="trend"?"active":""}" aria-selected="${economyCommandState.trendMode==="trend"}" onclick="setEconomyCommandTrendMode('trend')">按趋势</button><button type="button" role="tab" class="${economyCommandState.trendMode==="company"?"active":""}" aria-selected="${economyCommandState.trendMode==="company"}" onclick="setEconomyCommandTrendMode('company')">按公司</button></div>`;}
 function getEconomyCommandKpiList(){return economyDashboardState.edition==="international"?economyCommandInternationalKpis:economyCommandKpis;}
 function getEconomyCommandKpi(){const list=getEconomyCommandKpiList();return list.find(item=>item.key===economyCommandState.kpi)||list[0];}
 function getEconomyCommandDataRange(){
   const conditions=[];
-  [["所属组织",economyCommandState.organization],["集团重点客户",economyCommandState.client],["项目类型",economyCommandState.projectType],["区域总部",economyCommandState.headquarters],["所属区域",economyCommandState.region]].forEach(([label,value])=>{
+  [["所属组织",economyCommandState.organization],["重点客户",economyCommandState.client],["项目类型",economyCommandState.projectType],["区域总部",economyCommandState.headquarters],[economyDashboardState.edition==="domestic"?"区域市场":"所属区域",economyCommandState.region]].forEach(([label,value])=>{
     if(value)conditions.push([label,value]);
   });
   if(economyCommandState.monthSelected&&economyCommandState.month)conditions.push(["年月",getEconomyCommandMonthLabel()]);
   return conditions.map(([label,value])=>`【${escapeAttr(label)}：${escapeAttr(value)}】`).join("、");
 }
-const economyBusinessAnalysisState={mode:"theme",group:"company",metric:"",period:"",company:"",region:"",projectType:""};
+const economyBusinessAnalysisState={mode:"theme",group:"company",metric:"",period:"",company:"",region:"",projectType:"",client:""};
 const economyBusinessAnalysisMetricDefinitions=[
   {key:"riskInventoryRate",label:"风险存货率",unit:"%",values:[12.56,10.8,14.2,9.6,11.4,8.7]},
   {key:"projectManagementFee",label:"项目管理费",unit:"%",values:[2.51,2.71,2.15,2.6,1.88,2.24]},
@@ -542,7 +625,7 @@ function getEconomyBusinessAnalysisCompanies(){
   return [...new Set(rows.filter(item=>Number(item.level)===2).map(item=>item.name).filter(Boolean))];
 }
 function getEconomyBusinessAnalysisDictionaryOptions(key){
-  if(key==="region"&&typeof ensureMarketAreaDictionaryV2608==="function")ensureMarketAreaDictionaryV2608();
+  if(key==="MARKET_AREA"&&typeof ensureMarketAreaDictionaryV2608==="function")ensureMarketAreaDictionaryV2608();
   const rows=typeof dataDictionaryValuesV2284!=="undefined"?(dataDictionaryValuesV2284[key]||[]):[];
   return [...new Set(rows.filter(item=>item.status!=="停用"&&item.status!=="禁用").map(item=>item.name).filter(Boolean))];
 }
@@ -554,7 +637,8 @@ function renderEconomyBusinessAnalysisFilters(){
   const companies=getEconomyBusinessAnalysisCompanies();
   const regions=getEconomyBusinessAnalysisDictionaryOptions("MARKET_AREA");
   const projectTypes=getEconomyBusinessAnalysisDictionaryOptions("PROJECT_TYPE");
-  return `<section class="economy-business-filter"><h3>筛选条件</h3>${renderEconomyBusinessAnalysisSelect("period","诊断期数",periods,"请选择诊断期数")}${renderEconomyBusinessAnalysisSelect("company","子公司",companies)}${renderEconomyBusinessAnalysisSelect("region","区域市场",regions)}${renderEconomyBusinessAnalysisSelect("projectType","项目类型",projectTypes)}</section>`;
+  const keyCustomers=typeof getKeyCustomerDictionaryOptionsV2284==="function"?getKeyCustomerDictionaryOptionsV2284():["上海久事","上海城投","上海机场","上海地产","上海申迪","上海临港新城","上海申通"];
+  return `<section class="economy-business-filter"><h3>筛选条件</h3>${renderEconomyBusinessAnalysisSelect("period","诊断期数",periods,"请选择诊断期数")}${renderEconomyBusinessAnalysisSelect("company","子公司",companies)}${renderEconomyBusinessAnalysisSelect("region","区域市场",regions)}${renderEconomyBusinessAnalysisSelect("projectType","项目类型",projectTypes)}${renderEconomyBusinessAnalysisSelect("client","重点客户",keyCustomers)}</section>`;
 }
 function setEconomyBusinessAnalysisFilter(key,value){economyBusinessAnalysisState[key]=String(value||"").trim();renderEconomyBusinessAnalysisBody();}
 function applyEconomyBusinessAnalysisFilters(){
@@ -571,7 +655,7 @@ function applyEconomyBusinessAnalysisFilters(){
 function getEconomyBusinessAnalysisLabels(group){
   if(group==="region")return economyDashboardState.edition==="international"?["新加坡","香港","澳门"]:["上海","浙江区域","江苏区域","华南区域","西南区域"];
   if(group==="sector")return ["市政工程","轨道交通","公路工程","机场工程","片区开发","地下工程"];
-  if(group==="client")return ["申铁","久事集团","上海机场","其他重点客户"];
+  if(group==="client")return typeof getKeyCustomerDictionaryOptionsV2284==="function"?getKeyCustomerDictionaryOptionsV2284():["上海久事","上海城投","上海机场","上海地产","上海申迪","上海临港新城","上海申通"];
   return economyDashboardState.edition==="international"?getEconomyCommandInternationalBranchNames().slice(0,6):["隧道股份","上海隧道","市政集团","上海路桥","城市环境","上海能建"];
 }
 function getEconomyBusinessAnalysisValues(metric,group){
@@ -579,18 +663,25 @@ function getEconomyBusinessAnalysisValues(metric,group){
   const multiplier=group==="region"?.82:group==="sector"?1.12:group==="client"?.64:1;
   return values.map((value,index)=>Number((value*multiplier*(1+(index%3-1)*.06)).toFixed(2)));
 }
+function getEconomyBusinessAnalysisDisplayUnit(unit){
+  return EconomyI18n.isEnglish()&&unit==="月"?"monthly":unit;
+}
 function renderEconomyBusinessAnalysisBars(metric,group){
   const labels=getEconomyBusinessAnalysisLabels(group);
   const values=getEconomyBusinessAnalysisValues(metric,group).slice(0,labels.length);
   const max=Math.max(...values.map(value=>Math.abs(value)),1);
-  return `<div class="economy-business-chart"><div class="economy-business-chart-legend"><span class="target">统计值</span><span>${metric.label}（${metric.unit}）</span></div><div class="economy-business-chart-body"><div class="economy-business-y-axis"><span>${max}${metric.unit}</span><span>${(max*.5).toFixed(1)}${metric.unit}</span><span>0</span></div><div class="economy-business-bars">${values.map((value,index)=>`<div class="economy-business-bar-column"><strong>${value.toFixed(Math.abs(value)>=100?0:2)}${metric.unit}</strong><i style="height:${Math.max(Math.abs(value)/max*78,2)}%" title="${labels[index]}：${value}${metric.unit}"></i><span title="${labels[index]}">${labels[index]}</span></div>`).join("")}</div></div></div>`;
+  const average=values.length?values.reduce((sum,value)=>sum+value,0)/values.length:0;
+  const averagePosition=Math.max(0,Math.min(100,(1-average/max)*100));
+  const averageText=average.toFixed(Math.abs(average)>=100?0:2);
+  const displayUnit=getEconomyBusinessAnalysisDisplayUnit(metric.unit);
+  return `<div class="economy-business-chart"><div class="economy-business-chart-body"><div class="economy-business-y-axis"><span>${max}${displayUnit}</span><span>${(max*.5).toFixed(1)}${displayUnit}</span><span>0</span></div><div class="economy-business-bars"><div class="economy-business-average-line" style="top:${averagePosition}%"><span>平均值：${averageText}${displayUnit}</span></div>${values.map((value,index)=>`<div class="economy-business-bar-column"><strong>${value.toFixed(Math.abs(value)>=100?0:2)}${displayUnit}</strong><i class="${value>=average?"above-average":"below-average"}" style="height:${Math.max(Math.abs(value)/max*78,2)}%" title="${labels[index]}：${value}${displayUnit}"></i><span title="${labels[index]}">${labels[index]}</span></div>`).join("")}</div></div><div class="economy-business-chart-legend"><span class="target">统计值</span><span>${metric.label}（${displayUnit}）</span></div></div>`;
 }
 function renderEconomyBusinessAnalysisCard(title,metric,group){return `<article class="economy-business-chart-card"><header><strong>${title}</strong><button type="button" title="放大查看" aria-label="放大查看">↗</button></header>${renderEconomyBusinessAnalysisBars(metric,group)}</article>`;}
 function setEconomyBusinessAnalysisMode(mode){economyBusinessAnalysisState.mode=mode==="metric"?"metric":"theme";renderEconomyBusinessAnalysisBody();}
 function setEconomyBusinessAnalysisGroup(group){economyBusinessAnalysisState.group=group;renderEconomyBusinessAnalysisBody();}
 function setEconomyBusinessAnalysisMetric(metric){economyBusinessAnalysisState.metric=metric;renderEconomyBusinessAnalysisBody();}
-function renderEconomyBusinessAnalysisBody(){const body=document.querySelector(".economy-business-analysis-modal .modal-bd");if(body){body.innerHTML=renderEconomyBusinessAnalysis();applyEconomyBusinessAnalysisFilters();}}
-function renderEconomyCommandKpis(){const activeKpi=getEconomyCommandKpi();return `<div class="economy-command-kpis">${getEconomyCommandKpiList().map(item=>`<button type="button" class="economy-command-kpi ${item.key===activeKpi.key?"active":""}" aria-pressed="${item.key===activeKpi.key}" onclick="setEconomyCommandKpi('${item.key}')"><span>${item.label}<i title="${item.label}说明">i</i></span><strong>${item.value}<em>${item.unit}</em></strong></button>`).join("")}</div>`;}
+function renderEconomyBusinessAnalysisBody(){const body=document.querySelector(".economy-business-analysis-modal .modal-bd");if(!body)return;body.innerHTML=renderEconomyBusinessAnalysis();applyEconomyBusinessAnalysisFilters();EconomyI18n.apply(body);EconomyI18n.refreshFullscreenChrome();}
+function renderEconomyCommandKpis(){const activeKpi=getEconomyCommandKpi();return `<div class="economy-command-kpis">${getEconomyCommandKpiList().map(item=>`<button type="button" class="economy-command-kpi ${item.key===activeKpi.key?"active":""}" aria-pressed="${item.key===activeKpi.key}" onclick="setEconomyCommandKpi('${item.key}')"><span>${item.label}<i title="${item.label}说明">i</i></span><strong>${item.value}${renderEconomyCommandUnit(item.unit)}</strong></button>`).join("")}</div>`;}
 const economyCommandMarketAreaPositions={
   CSJ:{left:85,top:64,factor:1.08},
   DW:{left:79,top:83,factor:.96},
@@ -620,7 +711,7 @@ function renderEconomyInternationalConnections(activeKpi){
     const controlY=Math.min(source.top,target.top)-lift;
     return `<path d="M ${source.left} ${source.top} Q ${controlX} ${controlY} ${target.left} ${target.top}"/>`;
   }).join("");
-  const point=(item,withValue)=>`<button type="button" class="economy-map-point economy-international-map-point region-${item.code} ${withValue?"is-region":"is-source"}" style="left:${item.left}%;top:${item.top}%" ${withValue?`onclick="showToast('${item.name}：${activeKpi.label} ${(Number(activeKpi.value)*item.factor).toFixed(2)}${activeKpi.unit}')"`:""}><b>${item.name}</b>${withValue?`<span>${(Number(activeKpi.value)*item.factor).toFixed(2)}${activeKpi.unit}</span>`:""}</button>`;
+  const point=(item,withValue)=>`<button type="button" class="economy-map-point economy-international-map-point region-${item.code} ${withValue?"is-region":"is-source"}" style="left:${item.left}%;top:${item.top}%" ${withValue?`onclick="showToast('${item.name}：${activeKpi.label} ${(Number(activeKpi.value)*item.factor).toFixed(2)}${getEconomyCommandDisplayUnit(activeKpi.unit)}')"`:""}><b>${item.name}</b>${withValue?`<span>${(Number(activeKpi.value)*item.factor).toFixed(2)}${getEconomyCommandDisplayUnit(activeKpi.unit)}</span>`:""}</button>`;
   return `<div class="economy-international-overlay"><svg class="economy-international-connections" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><filter id="economyInternationalGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation=".7" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g filter="url(#economyInternationalGlow)">${pathData}</g></svg>${point(source,false)}${targets.map(item=>point(item,true)).join("")}</div>`;
 }
 function renderEconomyCommandMap(){
@@ -629,7 +720,7 @@ function renderEconomyCommandMap(){
   const international=economyDashboardState.edition==="international";
   const mapSrc=international?"./src/assets/economy/economy-world-map-reference.png":"./src/assets/economy/economy-visual-map.svg";
   const mapAlt=economyDashboardState.edition==="international"?"项目经济指标全球分布地图":"项目经济指标区域分布地图";
-  const overlay=international?renderEconomyInternationalConnections(activeKpi):areas.map(area=>{const value=(Number(activeKpi.value)*area.factor).toFixed(2);return `<button type="button" class="economy-map-point level-${area.level}" data-market-area-code="${area.code}" style="left:${area.left}%;top:${area.top}%" onclick="showToast('${area.name}：${activeKpi.label} ${value}${activeKpi.unit}')"><b>${area.name}</b><span>${value}${activeKpi.unit}</span></button>`;}).join("");
+  const overlay=international?renderEconomyInternationalConnections(activeKpi):areas.map(area=>{const value=(Number(activeKpi.value)*area.factor).toFixed(2);return `<button type="button" class="economy-map-point level-${area.level}" data-market-area-code="${area.code}" style="left:${area.left}%;top:${area.top}%" onclick="showToast('${area.name}：${activeKpi.label} ${value}${getEconomyCommandDisplayUnit(activeKpi.unit)}')"><b>${area.name}</b><span>${value}${getEconomyCommandDisplayUnit(activeKpi.unit)}</span></button>`;}).join("");
   return `<div class="economy-command-map"><img class="economy-command-map-image" src="${mapSrc}" alt="${mapAlt}">${overlay}</div>`;
 }
 function getEconomyCommandInternationalBranchNames(){
@@ -651,7 +742,7 @@ function renderEconomyCommandTrend(kpi=getEconomyCommandKpi()){
     return `${String(date.getMonth()+1).padStart(2,"0")}月`;
   });
   const names=economyCommandState.trendMode==="trend"?monthNames:companyNames.slice(0,values.length);
-  return `<div class="economy-command-trend ${economyCommandState.trendMode==="trend"?"is-trend":"is-company"}"><div class="economy-trend-y">${[50,40,30,20,10,0].map(value=>`<span>${value}</span>`).join("")}</div><div class="economy-trend-plot"><div class="economy-trend-average" style="bottom:${Math.min(92,Math.max(8,kpi.average))}%"><span>加权平均值 ${kpi.value}${kpi.unit}</span></div>${values.map((value,index)=>{const barHeight=Math.max(5,value/50*100);return `<div class="economy-trend-column" style="--bar-height:${barHeight}%"><span class="economy-trend-value">${value.toFixed(2)}</span><i style="height:var(--bar-height)"></i><b title="${names[index]}">${names[index]}</b></div>`;}).join("")}<svg viewBox="0 0 700 180" preserveAspectRatio="none" aria-hidden="true"><polyline points="50,40 150,65 250,72 350,104 450,115 550,134 650,169"/></svg></div><div class="economy-trend-legend"><span class="line">${kpi.label}（${kpi.unit}）</span><span class="dash">加权平均值</span><span class="bar">${kpi.label}统计值</span></div></div>`;
+  return `<div class="economy-command-trend ${economyCommandState.trendMode==="trend"?"is-trend":"is-company"}"><div class="economy-trend-y">${[50,40,30,20,10,0].map(value=>`<span>${value}</span>`).join("")}</div><div class="economy-trend-plot"><div class="economy-trend-average" style="bottom:${Math.min(92,Math.max(8,kpi.average))}%"><span>加权平均值 ${kpi.value}${getEconomyCommandDisplayUnit(kpi.unit)}</span></div>${values.map((value,index)=>{const barHeight=Math.max(5,value/50*100);return `<div class="economy-trend-column" style="--bar-height:${barHeight}%"><span class="economy-trend-value">${value.toFixed(2)}</span><i style="height:var(--bar-height)"></i><b title="${names[index]}">${names[index]}</b></div>`;}).join("")}<svg viewBox="0 0 700 180" preserveAspectRatio="none" aria-hidden="true"><polyline points="50,40 150,65 250,72 350,104 450,115 550,134 650,169"/></svg></div><div class="economy-trend-legend"><span class="line">${kpi.label}${renderEconomyCommandMetricUnitLabel(kpi.unit)}</span><span class="dash">加权平均值</span><span class="bar">${kpi.label}统计值</span></div></div>`;
 }
 function renderEconomyCommandTypes(){
   const groups=[["市政","12 | 5.71%","能源","12 | 4.46%","公路","25 | 5.43%","机场","2 | 5.01%"],["市政-大隧道","12 | 5.71%","片区开发","5 | 3.99%","地下工程","4 | 3.98%"],["市政-非大隧道","12 | 5.71%","轨交","7 | 5.42%","排水环保","2 | 3.68%"]];
@@ -662,7 +753,7 @@ function renderEconomyCommandJvAnalysis(){
     {party:"我方",share:"55",investment:"860.00",managers:"12"},
     {party:"合作方",share:"45",investment:"700.00",managers:"9"}
   ];
-  return `<div class="economy-command-jv-analysis"><table><thead><tr><th>合作主体</th><th>分成比例</th><th>投入资金</th><th>管理人员数量</th></tr></thead><tbody>${rows.map(row=>`<tr><th>${row.party}</th><td><strong>${row.share}</strong><em>%</em></td><td><strong>${row.investment}</strong><em>万元</em></td><td><strong>${row.managers}</strong><em>人</em></td></tr>`).join("")}</tbody></table></div>`;
+  return `<div class="economy-command-jv-analysis"><table><thead><tr><th>合作主体</th><th>分成比例</th><th>投入资金</th><th>管理人员数量</th></tr></thead><tbody>${rows.map(row=>`<tr><th>${row.party}</th><td><strong>${row.share}</strong><em>%</em></td><td><strong>${row.investment}</strong>${renderEconomyCommandUnit("万元")}</td><td><strong>${row.managers}</strong>${renderEconomyCommandUnit("人")}</td></tr>`).join("")}</tbody></table></div>`;
 }
 function getEconomyCommandWarningCompanies(){
   if(economyDashboardState.edition!=="international")return economyCommandCompanies;
@@ -714,20 +805,29 @@ function renderEconomyOverview(){
   const dataRange=getEconomyCommandDataRange();
   const international=economyDashboardState.edition==="international";
   const jvAnalysis=international&&activeKpi.key==="jvProjectCount";
-  const selectOptions={organization:international?["城建国际","新加坡分公司"]:["隧道股份","上海隧道","市政集团","上海路桥"],client:["申铁","久事集团","上海机场"],projectType:["轨道交通","市政工程","公路工程"],headquarters:["华东总部","华南总部","西南总部"],region:["华东区域","华南区域","西南区域"]};
+  const keyCustomers=typeof getKeyCustomerDictionaryOptionsV2284==="function"?getKeyCustomerDictionaryOptionsV2284():["上海久事","上海城投","上海机场","上海地产","上海申迪","上海临港新城","上海申通"];
+  const selectOptions={organization:international?["城建国际","新加坡分公司"]:["隧道股份","上海隧道","市政集团","上海路桥"],client:keyCustomers,projectType:["轨道交通","市政工程","公路工程"],headquarters:["华东总部","华南总部","西南总部"],region:international?["华东区域","华南区域","西南区域"]:getEconomyBusinessAnalysisDictionaryOptions("MARKET_AREA")};
   const metricAssetVersion="2.2.683";
   const metrics=[["经济纳管项目","195","941.14",`./src/assets/economy/economy-metric-managed.svg?v=${metricAssetVersion}`],["在建项目","188","888.64",`./src/assets/economy/economy-metric-under-construction.svg?v=${metricAssetVersion}`],["完工待结算项目","8","49.4",`./src/assets/economy/economy-metric-pending-settlement.svg?v=${metricAssetVersion}`],["已结算未销项项目","1","1.99",`./src/assets/economy/economy-metric-settled-unclosed.svg?v=${metricAssetVersion}`]];
   return `<section class="economy-command-screen ${international?`international ${EconomyI18n.isEnglish()?"english":"chinese"}`:"domestic"}" id="economyCommandScreen">
     <header class="economy-command-head"><div class="economy-command-brand"><span><img src="./src/assets/digital-construction-logo.svg" alt="数智施工"></span><strong>数智施工项目经济管理平台</strong></div><div class="economy-command-head-actions">${renderEconomyCommandMonthPicker()}${EconomyI18n.renderSwitch()}<button type="button" title="全屏投屏" onclick="toggleEconomyCommandFullscreen()">⛶</button></div></header>
-    <div class="economy-command-filters"><div class="economy-command-filter-fields">${renderEconomyCommandSelect("organization","所属组织",selectOptions.organization)}${renderEconomyCommandSelect("client","集团重点客户",selectOptions.client)}${renderEconomyCommandSelect("projectType","项目类型",selectOptions.projectType)}${renderEconomyCommandSelect("headquarters","区域总部",selectOptions.headquarters)}${renderEconomyCommandSelect("region","所属区域",selectOptions.region)}</div><nav><button>项目风险预警</button><button onclick="openEconomyBusinessVisualization()">业务可视化分析</button><button onclick="openEconomyAnalysisReport()">经济分析报告</button></nav></div>
+    <div class="economy-command-filters"><div class="economy-command-filter-fields">${renderEconomyCommandSelect("organization","所属组织",selectOptions.organization)}${renderEconomyCommandSelect("client","集团重点客户",selectOptions.client)}${renderEconomyCommandSelect("projectType","项目类型",selectOptions.projectType)}${renderEconomyCommandSelect("headquarters","区域总部",selectOptions.headquarters)}${renderEconomyCommandSelect("region",international?"所属区域":"区域市场",selectOptions.region)}</div><nav><button onclick="openEconomyRiskWarning()">项目风险预警</button><button onclick="openEconomyBusinessVisualization()">业务可视化分析</button><button onclick="openEconomyAnalysisReport()">经济分析报告</button></nav></div>
     <div class="economy-command-grid">
-      <main class="economy-command-main"><div class="economy-command-metrics">${metrics.map(item=>`<article><i><img src="${item[3]}" alt="${item[0]}"></i><div><span>${item[0]} ⓘ</span><strong>${item[1]}<em>个</em><small>|</small>${item[2]}<em>亿元</em></strong></div></article>`).join("")}</div>
+      <main class="economy-command-main"><div class="economy-command-metrics">${metrics.map(item=>`<article><i><img src="${item[3]}" alt="${item[0]}"></i><div><span>${item[0]} ⓘ</span><strong>${item[1]}${renderEconomyCommandUnit("个")}<small>|</small>${item[2]}${renderEconomyCommandUnit("亿元")}</strong></div></article>`).join("")}</div>
         <section class="economy-command-overview">${renderEconomyCommandSectionTitle("项目经济指标总览",`<span>当前主题为 <b>【${activeKpi.label}】</b>${dataRange?`，数据范围 <b>${dataRange}</b>`:""}</span>`)}<div class="economy-command-map-layout">${renderEconomyCommandKpis()}${renderEconomyCommandMap()}</div></section>
         <div class="economy-command-bottom"><section class="${jvAnalysis?"economy-command-jv-section":""}">${jvAnalysis?`${renderEconomyCommandSectionTitle("JV项目分析",'<span class="economy-command-jv-badge">JV项目适用</span>')}${renderEconomyCommandJvAnalysis()}`:`${renderEconomyCommandSectionTitle(activeKpi.label,renderEconomyCommandTrendTabs())}${renderEconomyCommandTrend(activeKpi)}`}</section><section>${renderEconomyCommandSectionTitle("项目类型分析")}${renderEconomyCommandTypes()}</section></div>
       </main>
-      <aside class="economy-command-side"><div class="economy-command-risk-total"><img class="economy-command-risk-alert" src="./src/assets/economy/economy-risk-alert.png" alt="风险警示"><span>经济风险项目（红色/橙色/黄色/蓝色风险）</span><div><b class="red"><i></i>11<em>个</em> | 40.59<em>亿元</em></b><b class="orange"><i></i>44<em>个</em> | 222.65<em>亿元</em></b><b class="yellow"><i></i>49<em>个</em> | 17111.77<em>亿元</em></b><b class="blue"><i></i>29<em>个</em> | 1111119.81<em>亿元</em></b></div><div class="economy-command-mascot"><img src="./src/assets/economy/economy-xiaoan.png" alt="小安"><strong>🔥 × 122</strong></div></div><section>${renderEconomyCommandSectionTitle("风险预警分布")}${renderEconomyCommandWarningDistribution()}</section><section class="economy-command-reasons">${renderEconomyCommandSectionTitle("主要原因分析")}${renderEconomyCommandReasons()}</section></aside>
+      <aside class="economy-command-side"><div class="economy-command-risk-total"><img class="economy-command-risk-alert" src="./src/assets/economy/economy-risk-alert.png" alt="风险警示"><span>经济风险项目（红色/橙色/黄色/蓝色风险）</span><div><b class="red"><i></i>11${renderEconomyCommandUnit("个")} | 40.59${renderEconomyCommandUnit("亿元")}</b><b class="orange"><i></i>44${renderEconomyCommandUnit("个")} | 222.65${renderEconomyCommandUnit("亿元")}</b><b class="yellow"><i></i>49${renderEconomyCommandUnit("个")} | 17111.77${renderEconomyCommandUnit("亿元")}</b><b class="blue"><i></i>29${renderEconomyCommandUnit("个")} | 1111119.81${renderEconomyCommandUnit("亿元")}</b></div><div class="economy-command-mascot"><img src="./src/assets/economy/economy-xiaoan.png" alt="小安"><strong>🔥 × 122</strong></div></div><section>${renderEconomyCommandSectionTitle("风险预警分布")}${renderEconomyCommandWarningDistribution()}</section><section class="economy-command-reasons">${renderEconomyCommandSectionTitle("主要原因分析")}${renderEconomyCommandReasons()}</section></aside>
     </div>
   </section>`;
+}
+function openEconomyRiskWarning(){
+  const targetName=economyDashboardState.edition==="international"?"经济诊断国际版":"经济诊断国内版";
+  const menus=typeof businessMenus!=="undefined"?businessMenus.economy?.menus||[]:[];
+  const groupIndex=menus.findIndex(item=>item.name==="大屏看板");
+  const childIndex=groupIndex>=0?(menus[groupIndex].children||[]).findIndex(item=>item.name===targetName):-1;
+  if(groupIndex>=0&&childIndex>=0&&typeof selectBusinessChildMenu==="function")return selectBusinessChildMenu("economy",groupIndex,childIndex,targetName);
+  renderEconomyDiagnosisEdition(economyDashboardState.edition);
 }
 function renderEconomyDashboardPage(view="diagnosis"){
   economyDashboardState.tab=view==="overview"?"overview":"diagnosis";
@@ -758,4 +858,4 @@ function renderEconomyBusinessAnalysis(){
   const dynamicTitle=economyBusinessAnalysisState.mode==="metric"?"主题项下全指标分析":"指标项下全主题分析";
   return `<div class="economy-business-analysis"><aside class="economy-business-analysis-sidebar"><div class="economy-business-analysis-brand"><span><img src="./src/assets/digital-construction-logo.svg" alt="数智施工"></span><strong>${dynamicTitle}</strong></div><section><h3>分析维度</h3><div class="economy-business-mode-tabs"><button type="button" class="${economyBusinessAnalysisState.mode==="theme"?"active":""}" data-mode="theme" onclick="setEconomyBusinessAnalysisMode(this.dataset.mode)">主题分析</button><button type="button" class="${economyBusinessAnalysisState.mode==="metric"?"active":""}" data-mode="metric" onclick="setEconomyBusinessAnalysisMode(this.dataset.mode)">指标分析</button></div></section>${renderEconomyBusinessAnalysisFilters()}<section class="economy-business-index-list"><h3>${sidebarTitle}</h3>${sidebarItems}</section></aside><main class="economy-business-analysis-main"><nav class="economy-business-group-tabs ${economyBusinessAnalysisState.mode==="metric"?"metric-mode":"theme-mode"}">${topTabs}</nav><div class="economy-business-chart-grid">${(economyBusinessAnalysisState.mode==="metric"?metricCards:themeCards).join("")}</div></main></div>`;
 }
-function openEconomyBusinessVisualization(){economyBusinessAnalysisState.mode="theme";economyBusinessAnalysisState.group="company";resetEconomyBusinessAnalysisMetricOrder();economyBusinessAnalysisState.metric=getEconomyBusinessAnalysisMetricDefinitions()[0].key;economyBusinessAnalysisState.period=getEconomyBusinessAnalysisPeriods()[0]||String(economyDashboardState.month||"").replace("-","");economyBusinessAnalysisState.company="";economyBusinessAnalysisState.region="";economyBusinessAnalysisState.projectType="";FullscreenModal.open({title:"业务可视化分析",content:renderEconomyBusinessAnalysis(),footer:`<button class="btn" onclick="FullscreenModal.close()">关闭</button>`,className:"economy-business-analysis-modal"});applyEconomyBusinessAnalysisFilters();EconomyI18n.refreshFullscreenChrome();}
+function openEconomyBusinessVisualization(){economyBusinessAnalysisState.mode="theme";economyBusinessAnalysisState.group="company";resetEconomyBusinessAnalysisMetricOrder();economyBusinessAnalysisState.metric=getEconomyBusinessAnalysisMetricDefinitions()[0].key;economyBusinessAnalysisState.period=getEconomyBusinessAnalysisPeriods()[0]||String(economyDashboardState.month||"").replace("-","");economyBusinessAnalysisState.company="";economyBusinessAnalysisState.region="";economyBusinessAnalysisState.projectType="";economyBusinessAnalysisState.client="";FullscreenModal.open({title:"业务可视化分析",content:renderEconomyBusinessAnalysis(),footer:`<button class="btn" onclick="FullscreenModal.close()">关闭</button>`,className:"economy-business-analysis-modal"});applyEconomyBusinessAnalysisFilters();EconomyI18n.refreshFullscreenChrome();}

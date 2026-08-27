@@ -825,48 +825,7 @@ function getActualOutputApprovalRecords(row){
 
 function renderActualOutputApprovalPanel(row,meta){
   const records=getActualOutputApprovalRecords(row);
-  const statusClass=meta.approvalStatus==="审批通过"?"done":meta.approvalStatus==="审批中"?"processing":"draft";
-  return `
-    <aside class="actual-output-approval">
-      <button class="actual-output-approval-toggle" type="button" title="收起审批记录" aria-label="收起审批记录" onclick="toggleActualOutputApprovalPanel(this)">&#8250;</button>
-      <div class="actual-output-section-title actual-output-approval-title"><span>审批记录</span></div>
-      <div class="actual-output-approval-status">
-        <span>整体审批状态</span>
-        <b class="${statusClass}">${meta.approvalStatus}</b>
-      </div>
-      <div class="actual-output-approval-body">
-        ${records.map((record,index)=>`
-          <div class="actual-output-approval-step ${record.status}">
-            <div class="actual-output-approval-dot">${record.status==="done"?"✓":index+1}</div>
-            <div class="actual-output-approval-content">
-              <div class="actual-output-approval-node">
-                <strong>${record.node}</strong>
-                <span>${record.time}</span>
-              </div>
-              <div class="actual-output-approval-card">
-                <b>${record.person}</b>
-                <p>${record.org}</p>
-                <p>操作：<em>${record.action}</em></p>
-                <p>意见：${record.opinion}</p>
-                <p>接收人：${record.receiver}</p>
-              </div>
-            </div>
-          </div>
-        `).join("")}
-      </div>
-    </aside>
-  `;
-}
-
-function toggleActualOutputApprovalPanel(btn){
-  const panel=btn?.closest(".actual-output-approval");
-  const detail=btn?.closest(".actual-output-detail");
-  if(!panel)return;
-  const collapsed=panel.classList.toggle("collapsed");
-  if(detail)detail.classList.toggle("approval-collapsed",collapsed);
-  btn.title=collapsed?"展开审批记录":"收起审批记录";
-  btn.setAttribute("aria-label",btn.title);
-  btn.innerHTML=collapsed?"&#8249;":"&#8250;";
+  return ApprovalDialog.renderPanel({records,status:meta.approvalStatus});
 }
 
 function previewActualOutputAttachment(id,index){
@@ -1968,8 +1927,8 @@ function rerenderComprehensiveActualOutputDetail(row){
   oldBody.outerHTML=renderComprehensiveActualOutputDetailBody(row);
   if(approvalCollapsed){
     const nextBody=document.querySelector(".comprehensive-actual-output-detail");
-    const panel=nextBody?.querySelector(".actual-output-approval");
-    const btn=nextBody?.querySelector(".actual-output-approval-toggle");
+    const panel=nextBody?.querySelector(".approval-dialog-panel");
+    const btn=nextBody?.querySelector(".approval-dialog-toggle");
     nextBody?.classList.add("approval-collapsed");
     panel?.classList.add("collapsed");
     if(btn){

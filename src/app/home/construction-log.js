@@ -245,7 +245,7 @@ function renderEnterpriseConstructionLogQueryFields(){
     <div class="form-item"><label>项目经理</label><input id="enterpriseLogManager" class="input" value="${escapeAttr(s.manager)}" placeholder="请输入项目经理模糊搜索"/></div>
     <div class="form-item"><label>管控等级</label><select id="enterpriseLogControlLevel" class="select">${renderActualOutputOptions(controlLevels,s.controlLevel,"全部")}</select></div>
     <div class="form-item"><label>建设单位</label><input id="enterpriseLogBuilder" class="input" value="${escapeAttr(s.builder)}" placeholder="请输入建设单位模糊搜索"/></div>
-    <div class="form-item"><label>重点客户</label><select id="enterpriseLogKeyCustomer" class="select">${renderActualOutputOptions(cpUnique("keyCustomer").map(value=>value||"无"),s.keyCustomer,"全部")}</select></div>
+    <div class="form-item"><label>重点客户</label><select id="enterpriseLogKeyCustomer" class="select">${renderActualOutputOptions(typeof getKeyCustomerDictionaryOptionsV2284==="function"?getKeyCustomerDictionaryOptionsV2284():cpUnique("keyCustomer").map(value=>value||"无"),s.keyCustomer,"全部")}</select></div>
     <div class="form-item"><label>所属区域</label><select id="enterpriseLogRegion" class="select">${renderActualOutputOptions(cpUnique("region"),s.region,"全部")}</select></div>
     <div class="form-item"><label>项目状态</label><select id="enterpriseLogProjectStatus" class="select">${renderActualOutputOptions(cpUnique("projectStatus"),s.projectStatus,"全部")}</select></div>
     <div class="form-item"><label>项目编号</label><input id="enterpriseLogProjectCode" class="input" value="${escapeAttr(s.projectCode)}" placeholder="请输入项目编号模糊搜索"/></div>

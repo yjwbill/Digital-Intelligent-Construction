@@ -195,7 +195,9 @@ const productionMajorFilterState={
   client:""
 };
 const productionOverviewRegions=["长三角区域","中原区域","大湾区","华北区域","西南区域","海外区域"];
-const productionOverviewClients=["上海久事","上海机场","上海申通","上海城投水务","前海建设投资","上海轨道交通建设管理中心"];
+function getProductionOverviewClients(){
+  return typeof getKeyCustomerDictionaryOptionsV2284==="function"?getKeyCustomerDictionaryOptionsV2284():["上海久事","上海城投","上海机场","上海地产","上海申迪","上海临港新城","上海申通"];
+}
 const productionOverviewDeviceData={
   current:{
     label:"当前在场设备",
@@ -368,7 +370,7 @@ function renderProductionScreenHeader(activeTab="产值看板"){
           <select class="select" onchange="setProductionOverviewFilter('company',this.value)">${renderProductionOverviewOptions(overviewCompanyOptions,productionOverviewFilterState.company,"子公司")}</select>
           <select class="select" onchange="setProductionOverviewFilter('branch',this.value)">${renderProductionOverviewOptions(overviewBranchOptions,productionOverviewFilterState.branch,"分公司")}</select>
           <select class="select" onchange="setProductionOverviewFilter('region',this.value)">${renderProductionOverviewOptions(productionOverviewRegions,productionOverviewFilterState.region,"所属区域")}</select>
-          <select class="select" onchange="setProductionOverviewFilter('client',this.value)">${renderProductionOverviewOptions(productionOverviewClients,productionOverviewFilterState.client,"重点客户")}</select>
+          <select class="select" onchange="setProductionOverviewFilter('client',this.value)">${renderProductionOverviewOptions(getProductionOverviewClients(),productionOverviewFilterState.client,"重点客户")}</select>
           <select class="select" onchange="setProductionOverviewFilter('projectType',this.value)">${renderProductionOverviewOptions(getProductionOverviewProjectTypeOptions(),productionOverviewFilterState.projectType,"项目类型")}</select>
         </div>
       `:isMajor?`
@@ -376,7 +378,7 @@ function renderProductionScreenHeader(activeTab="产值看板"){
           <select class="select" onchange="setProductionMajorFilter('year',this.value)">${["2026","2025","2024"].map(year=>`<option value="${year}" ${year===productionMajorFilterState.year?"selected":""}>${year}年</option>`).join("")}</select>
           <select class="select" onchange="setProductionMajorFilter('region',this.value)">${renderProductionOverviewOptions(productionOverviewRegions,productionMajorFilterState.region,"所属区域")}</select>
           <select class="select" onchange="setProductionMajorFilter('projectType',this.value)">${renderProductionOverviewOptions(getProductionOverviewProjectTypeOptions(),productionMajorFilterState.projectType,"项目类型")}</select>
-          <select class="select" onchange="setProductionMajorFilter('client',this.value)">${renderProductionOverviewOptions(productionOverviewClients,productionMajorFilterState.client,"重点客户")}</select>
+          <select class="select" onchange="setProductionMajorFilter('client',this.value)">${renderProductionOverviewOptions(getProductionOverviewClients(),productionMajorFilterState.client,"重点客户")}</select>
         </div>
       `:isEmerging?`
         <div class="screen-company screen-month-actions production-emerging-year-actions">

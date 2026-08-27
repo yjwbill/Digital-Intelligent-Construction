@@ -1,5 +1,0 @@
-
-window.EventBus = {
-  on(){},
-  emit(){}
-};

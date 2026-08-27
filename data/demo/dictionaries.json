@@ -123,6 +123,16 @@
       "status": "ENABLED",
       "createdAt": "2026-08-04 00:00:00",
       "updatedAt": "2026-08-04 00:00:00"
+    },
+    {
+      "id": "dict-type-KEY_CUSTOMER",
+      "dictCode": "KEY_CUSTOMER",
+      "dictName": "重点客户",
+      "remark": "集团重点客户标准字典",
+      "sortNo": 13,
+      "status": "ENABLED",
+      "createdAt": "2026-08-26 00:00:00",
+      "updatedAt": "2026-08-26 00:00:00"
     }
   ],
   "dictItems": [
@@ -1037,6 +1047,90 @@
       "remark": "项目监理单位",
       "createdAt": "2026-08-04 00:00:00",
       "updatedAt": "2026-08-04 00:00:00"
+    },
+    {
+      "id": "dict-item-KEY_CUSTOMER-001",
+      "dictCode": "KEY_CUSTOMER",
+      "itemCode": "0",
+      "itemName": "上海久事",
+      "status": "ENABLED",
+      "sortNo": 1,
+      "palette": "blue",
+      "remark": "重点客户标准值",
+      "createdAt": "2026-08-26 00:00:00",
+      "updatedAt": "2026-08-26 00:00:00"
+    },
+    {
+      "id": "dict-item-KEY_CUSTOMER-002",
+      "dictCode": "KEY_CUSTOMER",
+      "itemCode": "1",
+      "itemName": "上海城投",
+      "status": "ENABLED",
+      "sortNo": 2,
+      "palette": "cyan",
+      "remark": "重点客户标准值",
+      "createdAt": "2026-08-26 00:00:00",
+      "updatedAt": "2026-08-26 00:00:00"
+    },
+    {
+      "id": "dict-item-KEY_CUSTOMER-003",
+      "dictCode": "KEY_CUSTOMER",
+      "itemCode": "2",
+      "itemName": "上海机场",
+      "status": "ENABLED",
+      "sortNo": 3,
+      "palette": "orange",
+      "remark": "重点客户标准值",
+      "createdAt": "2026-08-26 00:00:00",
+      "updatedAt": "2026-08-26 00:00:00"
+    },
+    {
+      "id": "dict-item-KEY_CUSTOMER-004",
+      "dictCode": "KEY_CUSTOMER",
+      "itemCode": "3",
+      "itemName": "上海地产",
+      "status": "ENABLED",
+      "sortNo": 4,
+      "palette": "purple",
+      "remark": "重点客户标准值",
+      "createdAt": "2026-08-26 00:00:00",
+      "updatedAt": "2026-08-26 00:00:00"
+    },
+    {
+      "id": "dict-item-KEY_CUSTOMER-005",
+      "dictCode": "KEY_CUSTOMER",
+      "itemCode": "4",
+      "itemName": "上海申迪",
+      "status": "ENABLED",
+      "sortNo": 5,
+      "palette": "pink",
+      "remark": "重点客户标准值",
+      "createdAt": "2026-08-26 00:00:00",
+      "updatedAt": "2026-08-26 00:00:00"
+    },
+    {
+      "id": "dict-item-KEY_CUSTOMER-006",
+      "dictCode": "KEY_CUSTOMER",
+      "itemCode": "5",
+      "itemName": "上海临港新城",
+      "status": "ENABLED",
+      "sortNo": 6,
+      "palette": "indigo",
+      "remark": "重点客户标准值",
+      "createdAt": "2026-08-26 00:00:00",
+      "updatedAt": "2026-08-26 00:00:00"
+    },
+    {
+      "id": "dict-item-KEY_CUSTOMER-007",
+      "dictCode": "KEY_CUSTOMER",
+      "itemCode": "6",
+      "itemName": "上海申通",
+      "status": "ENABLED",
+      "sortNo": 7,
+      "palette": "green",
+      "remark": "重点客户标准值",
+      "createdAt": "2026-08-26 00:00:00",
+      "updatedAt": "2026-08-26 00:00:00"
     }
   ]
 }

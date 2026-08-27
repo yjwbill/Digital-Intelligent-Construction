@@ -316,11 +316,11 @@ function maskPhone(phone){
 const constructionProjectBase=[
   ["机场联络线工程","PJ20260001","上海隧道","市政分公司","在建","张项目","长三角区域","上海市","浦东新区","市政工程","施工总承包","股份重大工程项目","是","ORD20260001","PROD20260001","隧道股份总包公司","上海机场建设集团","张项目","房建市政","上海地产","已办理",365000,"2026-01-16","2026-02","2027-12"],
   ["大外环西段项目","PJ20260002","上海隧道","轨交分公司","停工","王经理","长三角区域","上海市","闵行区","轨交工程","PPP","子公司重大项目","是","ORD20260002","PROD20260002","上海隧道","上海城投","王经理","轨道交通","上海地产","未办理",182500,"2026-02-20","2026-03","2027-08"],
-  ["湾区金融中心项目","PJ20260003","城建国际","新加坡分公司","在建","李项目","大湾区域","广东省","深圳市","房建工程","施工总承包","子公司一般项目","否","ORD20260003","PROD20260003","城建国际","前海建设投资","李项目","房建市政","重点客户A","已办理",276800,"2025-12-08","2026-01","2027-06"],
-  ["北方数据中心项目","PJ20260004","市政集团","第一建筑","完工","赵经理","中原区域","河南省","郑州市","房建工程","EPC","子公司重大项目","否","ORD20260004","PROD20260004","市政集团","北方云计算公司","赵经理","产业园区","重点客户B","已办理",98000,"2025-08-11","2025-09","2026-10"],
+  ["湾区金融中心项目","PJ20260003","城建国际","新加坡分公司","在建","李项目","大湾区域","广东省","深圳市","房建工程","施工总承包","子公司一般项目","否","ORD20260003","PROD20260003","城建国际","前海建设投资","李项目","房建市政","上海久事","已办理",276800,"2025-12-08","2026-01","2027-06"],
+  ["北方数据中心项目","PJ20260004","市政集团","第一建筑","完工","赵经理","中原区域","河南省","郑州市","房建工程","EPC","子公司重大项目","否","ORD20260004","PROD20260004","市政集团","北方云计算公司","赵经理","产业园区","上海城投","已办理",98000,"2025-08-11","2025-09","2026-10"],
   ["奉贤新城18单元项目","PJ20260005","市政集团","第二建筑","在建","俞华杰","长三角区域","上海市","奉贤区","房建工程","施工总承包","股份重大工程项目","是","ORD20260005","PROD20260005","市政集团","上海肖塘投资","俞华杰","房建市政","无","已办理",457000,"2026-03-10","2026-04","2028-03"],
-  ["海南自贸港市政配套","PJ20260006","市政集团","福建分公司","完工","陈海南","海南","海南省","海口市","市政工程","施工总承包","子公司一般项目","否","ORD20260006","PROD20260006","市政集团","海口城投","陈海南","市政配套","海南重点客户","已办理",63500,"2025-05-20","2025-06","2026-05"],
-  ["境外港口物流园","PJ20260007","上海路桥","大湾区公司","在建","周海外","境外区域","境外","境外","港口工程","EPC","子公司重大项目","是","ORD20260007","PROD20260007","上海路桥","海外业主","周海外","海外工程","境外重点客户","未办理",310000,"2026-04-01","2026-05","2028-12"],
+  ["海南自贸港市政配套","PJ20260006","市政集团","福建分公司","完工","陈海南","海南","海南省","海口市","市政工程","施工总承包","子公司一般项目","否","ORD20260006","PROD20260006","市政集团","海口城投","陈海南","市政配套","上海地产","已办理",63500,"2025-05-20","2025-06","2026-05"],
+  ["境外港口物流园","PJ20260007","上海路桥","大湾区公司","在建","周海外","境外区域","境外","境外","港口工程","EPC","子公司重大项目","是","ORD20260007","PROD20260007","上海路桥","海外业主","周海外","海外工程","上海申迪","未办理",310000,"2026-04-01","2026-05","2028-12"],
   ["中原快速路提升工程","PJ20260008","市政集团","河南分公司","停工","孙中原","中原区域","河南省","郑州市","道路工程","PPP","子公司一般项目","否","ORD20260008","PROD20260008","市政集团","郑州建投","孙中原","道路桥梁","无","已办理",126000,"2025-10-12","2025-11","2027-04"]
 ];
 let constructionProjectData=constructionProjectBase.map((x,i)=>createConstructionProject(x,i+1));
@@ -330,22 +330,23 @@ for(let i=9;i<=35;i++){
   clone[0]=`${base[0]}（${i}标段）`;
   clone[1]=`PJ2026${String(i).padStart(4,"0")}`;
   clone[12]=i%3===0?"是":"否";
-  clone[18]=i%4===0?"重点客户C":base[18];
+  clone[18]=i%4===0?"上海申通":base[18];
   clone[21]=Number(base[21]) + i*3200;
   constructionProjectData.push(createConstructionProject(clone,i));
 }
 [
   ["上海示范区线工程 SFQSG-15 标","PJ20260036","上海隧道","轨交分公司","在建","赵菁","长三角区域","上海市","青浦区","轨交工程","施工总承包","股份重大工程项目","是","ORD20260036","PROD20260036","上海隧道","上海申铁投资有限公司","赵菁","轨道交通","上海地产","已办理",286500,"2026-05-12","2026-06","2028-12"],
-  ["上海市轨道交通23号线一期土建工程","PJ20260037","上海隧道","轨交分公司","在建","李峻","长三角区域","上海市","闵行区","轨交工程","施工总承包","子公司重大项目","是","ORD20260037","PROD20260037","上海隧道","上海申通地铁建设集团","李峻","轨道交通","重点客户A","已办理",318000,"2026-04-08","2026-06","2029-06"],
-  ["两湖隧道东湖段附属配套工程","PJ20260038","市政集团","湖北分公司","停工","王晨","中原区域","湖北省","武汉市","市政工程","施工总承包","股份重大工程项目","是","ORD20260038","PROD20260038","市政集团","武汉城投集团","王晨","市政配套","重点客户B","已办理",196800,"2026-03-20","2026-06","2028-05"]
+  ["上海市轨道交通23号线一期土建工程","PJ20260037","上海隧道","轨交分公司","在建","李峻","长三角区域","上海市","闵行区","轨交工程","施工总承包","子公司重大项目","是","ORD20260037","PROD20260037","上海隧道","上海申通地铁建设集团","李峻","轨道交通","上海申通","已办理",318000,"2026-04-08","2026-06","2029-06"],
+  ["两湖隧道东湖段附属配套工程","PJ20260038","市政集团","湖北分公司","停工","王晨","中原区域","湖北省","武汉市","市政工程","施工总承包","股份重大工程项目","是","ORD20260038","PROD20260038","市政集团","武汉城投集团","王晨","市政配套","上海城投","已办理",196800,"2026-03-20","2026-06","2028-05"]
 ].forEach((item,index)=>constructionProjectData.push(createConstructionProject(item,36+index)));
+constructionProjectData.forEach(row=>{if(row.keyCustomer==="无")row.keyCustomer="";});
 constructionProjectData=window.EMMasterData?.ensure("projects",constructionProjectData) || constructionProjectData;
 if(constructionProjectData.length<38){
   const existingNames=new Set(constructionProjectData.map(project=>project.projectName));
   const defaults=[
     createConstructionProject(["上海示范区线工程 SFQSG-15 标","PJ20260036","上海隧道","轨交分公司","在建","赵菁","长三角区域","上海市","青浦区","轨交工程","施工总承包","股份重大工程项目","是","ORD20260036","PROD20260036","上海隧道","上海申铁投资有限公司","赵菁","轨道交通","上海地产","已办理",286500,"2026-05-12","2026-06","2028-12"],36),
-    createConstructionProject(["上海市轨道交通23号线一期土建工程","PJ20260037","上海隧道","轨交分公司","在建","李峻","长三角区域","上海市","闵行区","轨交工程","施工总承包","子公司重大项目","是","ORD20260037","PROD20260037","上海隧道","上海申通地铁建设集团","李峻","轨道交通","重点客户A","已办理",318000,"2026-04-08","2026-06","2029-06"],37),
-    createConstructionProject(["两湖隧道东湖段附属配套工程","PJ20260038","市政集团","湖北分公司","停工","王晨","中原区域","湖北省","武汉市","市政工程","施工总承包","股份重大工程项目","是","ORD20260038","PROD20260038","市政集团","武汉城投集团","王晨","市政配套","重点客户B","已办理",196800,"2026-03-20","2026-06","2028-05"],38)
+    createConstructionProject(["上海市轨道交通23号线一期土建工程","PJ20260037","上海隧道","轨交分公司","在建","李峻","长三角区域","上海市","闵行区","轨交工程","施工总承包","子公司重大项目","是","ORD20260037","PROD20260037","上海隧道","上海申通地铁建设集团","李峻","轨道交通","上海申通","已办理",318000,"2026-04-08","2026-06","2029-06"],37),
+    createConstructionProject(["两湖隧道东湖段附属配套工程","PJ20260038","市政集团","湖北分公司","停工","王晨","中原区域","湖北省","武汉市","市政工程","施工总承包","股份重大工程项目","是","ORD20260038","PROD20260038","市政集团","武汉城投集团","王晨","市政配套","上海城投","已办理",196800,"2026-03-20","2026-06","2028-05"],38)
   ];
   defaults.forEach(project=>{
     if(constructionProjectData.length<38&&!existingNames.has(project.projectName))constructionProjectData.push(project);
@@ -610,7 +611,7 @@ function renderConstructionProjectFilterFields(collapsed=false){
     ${renderConstructionProjectInput("cpBuilder","建设单位","模糊搜索")}
     ${renderConstructionProjectInput("cpContractProjectManager","合同项目经理","模糊搜索")}
     ${renderConstructionProjectSelect("cpProductionBizType","生产业务类型",cpUnique("productionBizType"))}
-    ${renderConstructionProjectSelect("cpKeyCustomer","重点客户",cpUnique("keyCustomer"))}
+    ${renderConstructionProjectSelect("cpKeyCustomer","重点客户",typeof getKeyCustomerDictionaryOptionsV2284==="function"?getKeyCustomerDictionaryOptionsV2284():cpUnique("keyCustomer"))}
     ${renderConstructionProjectSelect("cpConstructionPermit","施工许可证",["已办理","未办理"])}
     ${renderConstructionProjectRangeItem("立项日期",renderProjectRange("cpApprovalStart","cpApprovalEnd","date"))}
     ${renderConstructionProjectRangeItem("合同开工月份",renderProjectRange("cpContractStartBegin","cpContractStartEnd","month"))}
@@ -943,7 +944,7 @@ function saveConstructionProject(id){
   if(constructionProjectData.some(item=>item.projectCode===projectCode&&String(item.id)!==String(id)))return showToast("项目编号不可重复");
   const existing=id==null?null:constructionProjectData.find(item=>String(item.id)===String(id));
   const project=existing || {
-    id:Math.max(0,...constructionProjectData.map(item=>Number(item.id)||0))+1, managerPhone:"13800000000",region:"长三角区域",provinceCity:"上海市/上海市",orderProjectNo:"",productionProjectNo:"",generalContractor:"",contractProjectManager:"",productionBizType:"房建市政",keyCustomer:"无",constructionPermit:"未办理",totalContractor:"",detailAddress:"",accumulatedOutput:0,remainingWorkload:0,yearPlanOutput:0,monthlyAccumulatedOutput:0,currentMonthOutput:0,planStart:"",planEnd:"",planDuration:0,actualStart:"",actualEnd:"",registered:"未登记",shouldRegisterDays:7,actualRegisterDays:0,planned:"未筹划",shouldPlanDays:15,actualPlanDays:0,isShareInternal:"否",isSubCompanyInternal:"否",isConstructionProject:"是",isMajorRisk:"否",isSafetyManaged:"是",isKeyProject:"否",completedSettled:"否",resumeInTwoWeeks:"否"
+    id:Math.max(0,...constructionProjectData.map(item=>Number(item.id)||0))+1, managerPhone:"13800000000",region:"长三角区域",provinceCity:"上海市/上海市",orderProjectNo:"",productionProjectNo:"",generalContractor:"",contractProjectManager:"",productionBizType:"房建市政",keyCustomer:"",constructionPermit:"未办理",totalContractor:"",detailAddress:"",accumulatedOutput:0,remainingWorkload:0,yearPlanOutput:0,monthlyAccumulatedOutput:0,currentMonthOutput:0,planStart:"",planEnd:"",planDuration:0,actualStart:"",actualEnd:"",registered:"未登记",shouldRegisterDays:7,actualRegisterDays:0,planned:"未筹划",shouldPlanDays:15,actualPlanDays:0,isShareInternal:"否",isSubCompanyInternal:"否",isConstructionProject:"是",isMajorRisk:"否",isSafetyManaged:"是",isKeyProject:"否",completedSettled:"否",resumeInTwoWeeks:"否"
   };
   Object.assign(project,{
     projectName,projectCode,subCompany:document.getElementById("projectFormSub").value,branchCompany:document.getElementById("projectFormBranch").value,

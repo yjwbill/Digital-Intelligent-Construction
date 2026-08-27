@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.880-warning-notice-standard-gap";
+  const version="2.2.887-approval-view-record-tabs";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/tdesign-icon/tdesign-icon.js",
@@ -10,6 +10,7 @@
     "src/components/row-span-table/row-span-table.js",
     "src/components/modal-gallery/modal-gallery.js",
     "src/components/fullscreen-modal/fullscreen-modal.js",
+    "src/components/approval-dialog/approval-dialog.js",
     "src/components/economy-i18n/economy-i18n.js",
     "src/components/dashboard-org-switch/dashboard-org-switch.js",
     "src/components/project-selector/project-selector.js",
@@ -54,6 +55,6 @@
   ];
   window.__APP_SCRIPT_CHUNKS__=scripts.slice();
   scripts.forEach(function(src){
-    document.write('<script src="/'+src+'?v='+version+'"><\/script>');
+    document.write('<script src="./'+src+'?v='+version+'"><\/script>');
   });
 })();
