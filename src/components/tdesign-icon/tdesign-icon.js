@@ -1,5 +1,7 @@
 (function(global){
-  const assetRoot="/src/assets/tdesign-icons/";
+  const srcPathIndex=location.pathname.indexOf("/src/");
+  const appRoot=srcPathIndex>=0?location.pathname.slice(0,srcPathIndex+1):new URL(".",location.href).pathname;
+  const assetRoot=new URL(`${appRoot}src/assets/tdesign-icons/`,location.origin).href;
 
   function escapeHtml(value){
     return String(value??"")

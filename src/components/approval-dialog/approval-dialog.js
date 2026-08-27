@@ -1,4 +1,13 @@
 (function(global){
+  const componentScriptUrl=String(document.currentScript?.src||"");
+  let componentStyle=[...document.querySelectorAll('link[rel="stylesheet"]')].find(link=>String(link.href||"").includes("/approval-dialog/approval-dialog.css"));
+  if(!componentStyle){
+    componentStyle=document.createElement("link");
+    componentStyle.rel="stylesheet";
+  }
+  componentStyle.href=componentScriptUrl.replace(/approval-dialog\.js(?:\?.*)?$/,"approval-dialog.css?v=1.3.0-dialog-modes");
+  document.head.appendChild(componentStyle);
+
   function escapeHtml(value){
     return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[char]);
   }
@@ -80,6 +89,19 @@
     </aside>`;
   }
 
+  function renderPreviewPanel(options={}){
+    const nodes=(Array.isArray(options.previewNodes)?options.previewNodes:[]).map(node=>typeof node==="string"?{name:node}:node);
+    return `<aside class="approval-dialog-panel approval-dialog-preview-panel">
+      <div class="approval-dialog-preview-title">${escapeHtml(options.previewTitle||"流程预览")}</div>
+      <div class="approval-dialog-preview-tip">${escapeHtml(options.previewTip||"发起后按如下流程审批")}</div>
+      <div class="approval-dialog-preview-flow">
+        ${nodes.length?nodes.map((node,index)=>`<div class="approval-dialog-preview-node ${index===0||index===nodes.length-1?"terminal":""}">
+          <span>${index+1}</span><strong>${escapeHtml(node.name||node.node||`流程节点${index+1}`)}</strong>${node.role?`<em>${escapeHtml(node.role)}</em>`:""}
+        </div>`).join(""):'<div class="approval-dialog-empty">暂无流程节点</div>'}
+      </div>
+    </aside>`;
+  }
+
   function switchTab(button,name){
     const panel=button?.closest(".approval-dialog-panel");
     if(!panel)return;
@@ -89,7 +111,8 @@
 
   function renderLayout(options={}){
     const className=String(options.className||"").trim();
-    return `<div class="approval-dialog-layout ${className}"><div class="approval-dialog-main">${options.content||""}</div>${renderPanel(options)}</div>`;
+    const initiationMode=options.mode==="initiation"||options.mode==="before-start";
+    return `<div class="approval-dialog-layout ${initiationMode?"approval-dialog-initiation-mode":"approval-dialog-process-mode"} ${className}"><div class="approval-dialog-main">${options.content||""}</div>${initiationMode?renderPreviewPanel(options):renderPanel(options)}</div>`;
   }
 
   function togglePanel(button){
@@ -116,7 +139,12 @@
   ];
 
   function renderLibraryPreview(){
-    return `<div class="approval-dialog-library-preview"><section><h4>审批记录面板</h4>${renderPanel({records:demoRecords,status:"审批中",collapsible:false})}</section><section class="approval-dialog-library-copy"><strong>审批弹框 ApprovalDialog</strong><p>统一承载业务详情与审批记录，包含整体状态、节点时间轴、审批人、操作、意见、接收人及面板收起能力。</p><button class="btn primary" type="button" onclick="ApprovalDialog.openDemo()">打开示例</button></section></div><p>业务页面只提供详情内容、整体审批状态和节点数据；弹框骨架、审批记录布局、状态语义及收起交互由组件统一管理。</p>`;
+    const nodes=["发起审批","项目部总工","分公司管理员","结束审批"];
+    return `<div class="approval-dialog-library-modes"><section><h4>流程发起前</h4>${renderPreviewPanel({previewNodes:nodes})}<button class="btn primary" type="button" onclick="ApprovalDialog.openInitiationDemo()">打开示例</button></section><section><h4>流程处理过程</h4>${renderPanel({records:demoRecords,status:"审批中",collapsible:false})}<button class="btn primary" type="button" onclick="ApprovalDialog.openDemo()">打开示例</button></section></div><p>发起前只展示即将进入的流程节点；流程发起后展示审批记录、浏览记录、节点处理人、意见和状态。</p>`;
+  }
+
+  function openInitiationDemo(){
+    open({title:"停工申请",mode:"initiation",previewNodes:["发起审批","项目部总工","分公司管理员","结束审批"],content:`<section class="approval-dialog-demo-card"><h3>上海示范区线工程</h3><p>流程发起表单内容区域</p></section>`,footer:`<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="closeModal()">保存并提交</button>`});
   }
 
   function openDemo(){
@@ -128,5 +156,5 @@
     });
   }
 
-  global.ApprovalDialog={open,renderLayout,renderPanel,switchTab,togglePanel,renderLibraryPreview,openDemo};
+  global.ApprovalDialog={open,renderLayout,renderPanel,renderPreviewPanel,switchTab,togglePanel,renderLibraryPreview,openDemo,openInitiationDemo};
 })(window);

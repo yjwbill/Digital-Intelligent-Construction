@@ -5000,22 +5000,277 @@ function renderProjectOverviewPage(){
 }
 
 function renderProjectWorkspacePage(){
-  renderProjectPageShell("工作桌面","项目人员处理待办、审批与消息的统一入口。",`
-    <section class="project-workbench-grid">
-      <div class="card project-workbench-card">
-        <div class="card-hd"><div class="card-title">项目待办</div><button class="project-workbench-view-all" type="button" onclick="openProjectWorkbenchDetail('todo')">查看所有待办</button></div>
-        ${projectTodoData.map(x=>`<div class="project-task-row"><span>${x.module1}</span><strong>${x.title}</strong><em>${x.status}</em></div>`).join("")}
+  const stages=[
+    {title:"工程待建和策划阶段",tasks:[
+      {name:"项目基本信息登记",icon:"file-edit"},
+      {name:"工程总体筹划",icon:"task-checked",action:"planning"},
+      {name:"开工申请",icon:"work"},
+      {name:"申请延长",icon:"time",disabled:true},
+      {name:"项目经理变更",icon:"user-setting"},
+      {name:"分公司变更",icon:"building-3"}
+    ]},
+    {title:"施工过程管理阶段",tasks:[
+      {name:"停工申请",icon:"stop-circle",action:"stopApplication"},
+      {name:"停工申请（补充版）",icon:"file-add",action:"stopSupplementApplication"},
+      {name:"复工申请",icon:"play-circle",disabled:true},
+      {name:"进度计划变更",icon:"time-filled"},
+      {name:"风险计划变更",icon:"task-setting"},
+      {name:"产值计划滚动更新",icon:"chart-line-data"},
+      {name:"实际产值上报",icon:"chart-add"}
+    ]},
+    {title:"完工和竣工结算阶段",tasks:[
+      {name:"完工申请",icon:"check-circle"},
+      {name:"竣工申请",icon:"check-rectangle",disabled:true},
+      {name:"项目终止",icon:"task-time"}
+    ]}
+  ];
+  detailPage.style.display="none";
+  listPage.style.display="flex";
+  listPage.innerHTML=`<div class="project-launch-workspace" aria-label="项目任务发起工作桌面">
+    ${stages.map(stage=>`<section class="project-launch-stage">
+      <h2>${stage.title}</h2>
+      <div class="project-launch-grid">
+        ${stage.tasks.map(task=>`<button type="button" class="project-launch-task${task.disabled?" is-disabled":""}" onclick="openProjectLaunchTask('${task.name}','${task.action||""}',${task.disabled?"true":"false"})" aria-label="${task.disabled?`${task.name}，暂未开放`:`发起${task.name}`}">
+          <span class="project-launch-icon">${TDesignIcon.render(task.icon,{size:22})}</span>
+          <span class="project-launch-label">${task.name}</span>
+        </button>`).join("")}
       </div>
-      <div class="card project-workbench-card">
-        <div class="card-hd"><div class="card-title">项目消息</div><button class="project-workbench-view-all" type="button" onclick="openProjectWorkbenchDetail('message')">查看所有消息</button></div>
-        ${projectMessageData.map(x=>`<div class="project-task-row message"><span>${x.type}</span><strong>${x.title}</strong><em>${x.status}</em></div>`).join("")}
+    </section>`).join("")}
+  </div>`;
+}
+
+function openProjectLaunchTask(name,action="",disabled=false){
+  if(pcPortalState.mode!=="project")return;
+  if(disabled){
+    showToast(`${name}暂未开放`);
+    return;
+  }
+  if(action==="planning"){
+    renderProjectOverallPlanningPage();
+    return;
+  }
+  if(action==="stopApplication"){
+    openProjectStopApplication();
+    return;
+  }
+  if(action==="stopSupplementApplication"){
+    openProjectStopSupplementApplication();
+    return;
+  }
+  const project=getCurrentProjectContext()||{};
+  const today=new Date().toISOString().slice(0,10);
+  openModal(name,`
+    <div class="project-launch-form">
+      <div class="project-launch-form-tip">请确认项目信息并填写本次申请内容，提交后将进入审批流程。</div>
+      <div class="form-grid-2">
+        <div class="form-item"><label>项目名称</label><input class="input" value="${escapeAttr(project.projectName||"漕河泾创新水岸建设工程")}" disabled></div>
+        <div class="form-item"><label>项目编号</label><input class="input" value="${escapeAttr(project.projectCode||project.code||"-")}" disabled></div>
+        <div class="form-item"><label>申请类型</label><input class="input" value="${escapeAttr(name)}" disabled></div>
+        <div class="form-item"><label>申请日期</label><input class="input" type="date" value="${today}"></div>
+        <div class="form-item project-launch-form-reason"><label>申请说明 *</label><textarea class="input" id="projectLaunchReason" placeholder="请输入申请说明"></textarea></div>
+        <div class="form-item project-launch-form-reason"><label>附件</label><div class="project-launch-upload"><button class="btn" type="button" onclick="showToast('请选择需要上传的附件')">${TDesignIcon.render("upload",{size:16})} 上传附件</button><span>支持常用文档、图片及压缩文件</span></div></div>
       </div>
-      <div class="card project-workbench-card approval">
-        <div class="card-hd"><div class="card-title">待审批</div><button class="project-workbench-view-all" type="button" onclick="openProjectWorkbenchDetail('approval')">查看所有审批</button></div>
-        ${["施工日志补录审批","进度计划调整审批","合同付款节点确认","安全整改闭环审批"].map((x,i)=>`<div class="project-task-row"><span>审批</span><strong>${x}</strong><em>${i<2?"待处理":"已提交"}</em></div>`).join("")}
+    </div>`,
+    `<button class="btn" onclick="closeModal()">取消</button><button class="btn" onclick="saveProjectLaunchDraft('${name}')">保存草稿</button><button class="btn primary" onclick="submitProjectLaunchTask('${name}')">发起审批</button>`,"large");
+}
+
+function renderProjectStopApplicationProjectInfo(project){
+  const projectName=project.projectName||"漕河泾创新水岸建设工程";
+  const fields=[
+    ["项目编号",project.projectCode||project.code||"PJ20260036"],
+    ["子公司",project.subCompany||project.company||"上海隧道"],
+    ["分公司/项管部",project.branchCompany||project.branch||"轨交分公司"],
+    ["项目经理",renderProjectManagerContact(project.projectManager||"王安全",project.managerPhone||"15612345555",{key:`project-stop-manager-${project.id||"current"}`}),true],
+    ["项目造价（万元）",project.contractAmount||project.bidAmount||"114,312.50"],
+    ["项目类型",project.projectType||"轨交"],
+    ["区域市场",project.regionMarket||project.region||"上海"],
+    ["项目模式",project.implementationMode||"施工总承包"]
+  ];
+  return `<section class="project-stop-project-info">
+    <h2>${escapeAttr(projectName)}</h2>
+    <div class="project-stop-tags">
+      ${renderActualOutputDetailTag(project.projectStatus||"在建","green")}
+      ${renderActualOutputDetailTag(project.projectType||"轨交","blue")}
+      ${renderActualOutputDetailTag(project.controlLevel||"子公司一般项目","red")}
+      ${renderActualOutputDetailTag(project.implementationMode||"施工总承包","green")}
+    </div>
+    <div class="project-stop-info-grid">${fields.map(([label,value,isHtml])=>`<div><span>${label}</span><strong>${isHtml?value:escapeAttr(value||"-")}</strong></div>`).join("")}</div>
+  </section>`;
+}
+
+function renderProjectStopSupplementProjectInfo(project){
+  const projectName=project.projectName||"漕河泾创新水岸建设工程";
+  const fields=[
+    ["子公司",project.subCompany||project.company||"上海隧道"],
+    ["分公司/项管部",project.branchCompany||project.branch||"轨交分公司"],
+    ["项目经理",renderProjectManagerContact(project.projectManager||"王安全",project.managerPhone||"15612345555",{key:`project-stop-supplement-manager-${project.id||"current"}`}),true],
+    ["项目造价（万元）",project.contractAmount||project.bidAmount||"114,312.50"]
+  ];
+  return `<section class="project-stop-project-info project-stop-supplement-project-info">
+    <h2>${escapeAttr(projectName)}</h2>
+    <div class="project-stop-tags">
+      ${renderActualOutputDetailTag(project.projectStatus||"在建","green")}
+      ${renderActualOutputDetailTag(project.projectType||"轨交","blue")}
+      ${renderActualOutputDetailTag(project.controlLevel||"子公司一般项目","red")}
+      ${renderActualOutputDetailTag(project.implementationMode||"施工总承包","green")}
+    </div>
+    <div class="project-stop-info-grid">${fields.map(([label,value,isHtml])=>`<div><span>${label}</span><strong>${isHtml?value:escapeAttr(value||"-")}</strong></div>`).join("")}</div>
+  </section>`;
+}
+
+function openProjectStopApplication(){
+  const project=getCurrentProjectContext()||{};
+  const today=new Date().toISOString().slice(0,10);
+  const content=`
+    ${renderProjectStopApplicationProjectInfo(project)}
+    <section class="project-stop-form-card">
+      <h3>停工申请信息</h3>
+      <div class="project-stop-form-grid">
+        <div class="form-item required"><label>停工日期</label><input id="projectStopDate" class="input" type="date" value="${today}"></div>
+        <div class="form-item required"><label>计划复工日期</label><input id="projectResumeDate" class="input" type="date" min="${today}"></div>
+        <div class="form-item required"><label>停工后施工人员数量</label><div class="project-stop-input-unit"><input id="projectStopWorkerCount" class="input" type="number" min="0" step="1" placeholder="请输入人员数量"><span>人</span></div></div>
+        <div class="form-item required"><label>停工后管理人员带班</label>${typeof renderMessagePersonPicker==="function"?renderMessagePersonPicker("projectStopManagerPicker",[]):'<div class="base-multi-select" id="projectStopManagerPicker"><div class="base-multi-select__control" onclick="showToast(\'人员选择组件加载失败\')"><span class="message-person-picker__placeholder">请选择人员</span></div></div>'}</div>
+        <div class="form-item required project-stop-full-row"><label>停工原因</label><div class="project-stop-textarea-wrap"><textarea id="projectStopReason" class="input" maxlength="500" placeholder="请输入停工原因" oninput="updateProjectStopReasonCount(this)"></textarea><span id="projectStopReasonCount">0/500</span></div></div>
+        <div class="form-item required project-stop-full-row"><label>停工相关附件</label><div class="project-stop-upload"><button class="btn" type="button" onclick="selectProjectStopAttachment()">${TDesignIcon.render("upload",{size:16})} 点击上传</button><span id="projectStopAttachmentText">支持 PDF、Word、Excel、图片及压缩文件，单个文件不超过 20MB</span><input id="projectStopAttachment" type="file" hidden onchange="updateProjectStopAttachment(this)"></div></div>
       </div>
+    </section>`;
+  ApprovalDialog.open({
+    title:"停工申请",
+    mode:"initiation",
+    content,
+    modalClass:"project-stop-application-modal",
+    previewNodes:["发起审批","项目部总工","分公司管理员","结束审批"],
+    footer:`<button class="btn" onclick="closeModal()">取消</button><button class="btn" onclick="saveProjectStopApplicationDraft()">保存草稿</button><button class="btn primary" onclick="submitProjectStopApplication()">保存并提交</button>`
+  });
+}
+
+function changeProjectStopSupplementStatus(value){
+  const stopSection=document.getElementById("projectStopSupplementFormSection");
+  const tip=document.getElementById("projectStopSupplementStatusTip");
+  if(stopSection)stopSection.hidden=value!=="yes";
+  if(tip)tip.textContent=value==="yes"?"请补充停工申请信息":value==="no"?"提交后项目状态自动变为在建":"请选择是否停工";
+}
+
+function updateProjectStopReasonCount(textarea){
+  const counter=document.getElementById("projectStopReasonCount");
+  if(counter)counter.textContent=`${textarea.value.length}/500`;
+}
+
+function selectProjectStopAttachment(){
+  document.getElementById("projectStopAttachment")?.click();
+}
+
+function updateProjectStopAttachment(input){
+  const label=document.getElementById("projectStopAttachmentText");
+  if(label&&input.files?.[0])label.textContent=input.files[0].name;
+}
+
+function saveProjectStopApplicationDraft(){
+  closeModal();
+  showToast("停工申请草稿已保存");
+}
+
+function submitProjectStopApplication(){
+  const stopDate=document.getElementById("projectStopDate")?.value;
+  const resumeDate=document.getElementById("projectResumeDate")?.value;
+  const workerCount=document.getElementById("projectStopWorkerCount")?.value;
+  const managers=typeof getMessagePersonPickerValues==="function"?getMessagePersonPickerValues("projectStopManagerPicker"):[];
+  const reason=document.getElementById("projectStopReason")?.value.trim();
+  const attachment=document.getElementById("projectStopAttachment")?.files?.[0];
+  if(!stopDate||!resumeDate||workerCount===""||!managers.length||!reason)return showToast("请完整填写停工申请必填信息");
+  if(resumeDate<stopDate)return showToast("计划复工日期不能早于停工日期");
+  if(!attachment)return showToast("请上传停工相关附件");
+  closeModal();
+  showToast("停工申请已保存并提交");
+}
+
+function openProjectStopSupplementApplication(){
+  const project=getCurrentProjectContext()||{};
+  const today=new Date().toISOString().slice(0,10);
+  const content=`
+    ${renderProjectStopSupplementProjectInfo(project)}
+    <section class="project-stop-form-card project-stop-status-confirm-card">
+      <h3>状态确认</h3>
+      <div class="project-stop-status-confirm-field">
+        <label>是否停工 <em>*</em></label>
+        <div class="project-stop-status-options" role="radiogroup" aria-label="是否停工">
+          <label><input type="radio" name="projectStopSupplementStatusConfirm" value="yes" onchange="changeProjectStopSupplementStatus(this.value)"><span>是</span></label>
+          <label><input type="radio" name="projectStopSupplementStatusConfirm" value="no" onchange="changeProjectStopSupplementStatus(this.value)"><span>否</span></label>
+        </div>
+      </div>
+      <div id="projectStopSupplementStatusTip" class="project-stop-status-tip">请选择是否停工</div>
     </section>
-  `);
+    <section id="projectStopSupplementFormSection" class="project-stop-form-card" hidden>
+      <h3>停工申请信息</h3>
+      <div class="project-stop-form-grid">
+        <div class="form-item required"><label>停工日期</label><input id="projectStopSupplementDate" class="input" type="date" value="${today}"></div>
+        <div class="form-item required"><label>计划复工日期</label><input id="projectStopSupplementResumeDate" class="input" type="date" min="${today}"></div>
+        <div class="form-item required"><label>停工后施工人员数量</label><div class="project-stop-input-unit"><input id="projectStopSupplementWorkerCount" class="input" type="number" min="0" step="1" placeholder="请输入人员数量"><span>人</span></div></div>
+        <div class="form-item required"><label>停工后管理人员带班</label>${typeof renderMessagePersonPicker==="function"?renderMessagePersonPicker("projectStopSupplementManagerPicker",[]):'<div class="base-multi-select" id="projectStopSupplementManagerPicker"><div class="base-multi-select__control" onclick="showToast(\'人员选择组件加载失败\')"><span class="message-person-picker__placeholder">请选择人员</span></div></div>'}</div>
+        <div class="form-item required project-stop-full-row"><label>停工原因</label><div class="project-stop-textarea-wrap"><textarea id="projectStopSupplementReason" class="input" maxlength="500" placeholder="请输入停工原因" oninput="updateProjectStopSupplementReasonCount(this)"></textarea><span id="projectStopSupplementReasonCount">0/500</span></div></div>
+        <div class="form-item required project-stop-full-row"><label>停工相关附件</label><div class="project-stop-upload"><button class="btn" type="button" onclick="selectProjectStopSupplementAttachment()">${TDesignIcon.render("upload",{size:16})} 点击上传</button><span id="projectStopSupplementAttachmentText">支持 PDF、Word、Excel、图片及压缩文件，单个文件不超过 20MB</span><input id="projectStopSupplementAttachment" type="file" hidden onchange="updateProjectStopSupplementAttachment(this)"></div></div>
+      </div>
+    </section>`;
+  ApprovalDialog.open({
+    title:"停工申请（补充版）",
+    mode:"initiation",
+    content,
+    modalClass:"project-stop-application-modal project-stop-supplement-application-modal",
+    previewNodes:["发起审批","项目部总工","分公司管理员","结束审批"],
+    footer:`<button class="btn" onclick="closeModal()">取消</button><button class="btn" onclick="saveProjectStopSupplementApplicationDraft()">保存草稿</button><button class="btn primary" onclick="submitProjectStopSupplementApplication()">保存并提交</button>`
+  });
+}
+
+function updateProjectStopSupplementReasonCount(textarea){
+  const counter=document.getElementById("projectStopSupplementReasonCount");
+  if(counter)counter.textContent=`${textarea.value.length}/500`;
+}
+
+function selectProjectStopSupplementAttachment(){
+  document.getElementById("projectStopSupplementAttachment")?.click();
+}
+
+function updateProjectStopSupplementAttachment(input){
+  const label=document.getElementById("projectStopSupplementAttachmentText");
+  if(label&&input.files?.[0])label.textContent=input.files[0].name;
+}
+
+function saveProjectStopSupplementApplicationDraft(){
+  closeModal();
+  showToast("停工申请（补充版）草稿已保存");
+}
+
+function submitProjectStopSupplementApplication(){
+  const statusConfirm=document.querySelector('input[name="projectStopSupplementStatusConfirm"]:checked')?.value;
+  if(!statusConfirm)return showToast("请选择是否停工");
+  if(statusConfirm==="no"){
+    closeModal();
+    showToast("项目状态已自动更新为在建");
+    return;
+  }
+  const stopDate=document.getElementById("projectStopSupplementDate")?.value;
+  const resumeDate=document.getElementById("projectStopSupplementResumeDate")?.value;
+  const workerCount=document.getElementById("projectStopSupplementWorkerCount")?.value;
+  const managers=typeof getMessagePersonPickerValues==="function"?getMessagePersonPickerValues("projectStopSupplementManagerPicker"):[];
+  const reason=document.getElementById("projectStopSupplementReason")?.value.trim();
+  const attachment=document.getElementById("projectStopSupplementAttachment")?.files?.[0];
+  if(!stopDate||!resumeDate||workerCount===""||!managers.length||!reason)return showToast("请完整填写停工申请必填信息");
+  if(resumeDate<stopDate)return showToast("计划复工日期不能早于停工日期");
+  if(!attachment)return showToast("请上传停工相关附件");
+  closeModal();
+  showToast("停工申请（补充版）已保存并提交");
+}
+
+function saveProjectLaunchDraft(name){
+  closeModal();
+  showToast(`${name}草稿已保存`);
+}
+
+function submitProjectLaunchTask(name){
+  const reason=document.getElementById("projectLaunchReason")?.value.trim();
+  if(!reason)return showToast("请输入申请说明");
+  closeModal();
+  showToast(`${name}已发起审批`);
 }
 
 function openProjectWorkbenchDetail(type){

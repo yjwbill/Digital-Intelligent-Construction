@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.887-approval-view-record-tabs";
+  const version="2.2.904-stop-supplement-basic-info";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/tdesign-icon/tdesign-icon.js",
