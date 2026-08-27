@@ -160,6 +160,11 @@
   phrases.set("潜亏预警","Potential Loss Warning");
   phrases.set("各子公司预警项目数量（个）","Warning Projects by Subsidiary (Count)");
   phrases.set("各子公司预警项目合同（亿）","Warning Project Contract Value by Subsidiary (CNY 100m)");
+  phrases.set("各分公司预警项目数量（个）","Warning Projects by Branch (Count)");
+  phrases.set("各分公司预警项目合同（亿）","Warning Project Contract Value by Branch (100m)");
+  phrases.set("国家/地区维度预警展示","Warnings by Country/Region");
+  phrases.set("分公司一级指标预警项目数量总览（个数及占比）","Primary Warning Projects by Branch (Count and Share)");
+  phrases.set("分公司一级指标预警合同金额总览（金额及占比）","Primary Warning Contract Value by Branch (Value and Share)");
   phrases.set("子公司一级指标预警项目数量总览（个数及占比）","Primary Warning Projects by Subsidiary (Count and Share)");
   phrases.set("子公司一级指标预警合同金额总览（金额及占比）","Primary Warning Contract Value by Subsidiary (Value and Share)");
   phrases.set("近五期二级预警数量趋势","Secondary Warning Trend over the Last Five Periods");
@@ -212,13 +217,14 @@
     if(!element)return false;
     return Boolean(
       element.matches?.(".economy-dashboard-page") ||
+      element.matches?.(".project-economy-overview-page.international") ||
       element.closest?.(translatedModalSelector) ||
-      element.querySelector?.(".economy-dashboard-page")
+      element.querySelector?.(".economy-dashboard-page,.project-economy-overview-page.international")
     );
   }
   function apply(root){if(!isEnglish()||!isInternationalDisplayRoot(root))return;const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);nodes.forEach(node=>{if(!node.parentElement?.closest("script,style"))node.nodeValue=translateText(node.nodeValue);});root.querySelectorAll("[placeholder],[title],[aria-label],[alt]").forEach(node=>["placeholder","title","aria-label","alt"].forEach(attr=>{if(node.hasAttribute(attr))node.setAttribute(attr,translateText(node.getAttribute(attr)));}));}
   function renderSwitch(){if(global.economyDashboardState?.edition!=="international")return "";return `<div class="economy-language-switch" role="group" aria-label="Language"><button type="button" class="${state.language==="zh"?"active":""}" onclick="setEconomyLanguage('zh')">中文</button><button type="button" class="${state.language==="en"?"active":""}" onclick="setEconomyLanguage('en')">EN</button></div>`;}
-  function setLanguage(language){if(global.economyDashboardState?.edition!=="international")return;state.language=language==="en"?"en":"zh";if(document.querySelector(".economy-report-modal")){refreshEconomyAnalysisReport();refreshFullscreenChrome();return;}if(document.querySelector(".economy-monthly-check-modal")){modalBody.innerHTML=renderEconomyMonthlyCheckReport();apply(modalBody);refreshFullscreenChrome();return;}if(document.querySelector(".economy-project-overview-modal")){const embed=document.getElementById("economyProjectOverviewEmbed");if(embed&&global.__economyProjectOverviewEmbedProject)embed.innerHTML=renderProjectEconomyOverviewContent(global.__economyProjectOverviewEmbedProject);apply(modalBody);refreshFullscreenChrome();return;}if(document.querySelector(".economy-business-analysis-modal")){const body=document.querySelector(".economy-business-analysis-modal .modal-bd");if(body){body.innerHTML=renderEconomyBusinessAnalysis();applyEconomyBusinessAnalysisFilters();}refreshFullscreenChrome();return;}renderEconomyDashboardPage(global.economyDashboardState?.tab||"diagnosis");}
+  function setLanguage(language){if(global.economyDashboardState?.edition!=="international")return;state.language=language==="en"?"en":"zh";if(document.querySelector(".economy-report-modal")){refreshEconomyAnalysisReport();refreshFullscreenChrome();return;}if(document.querySelector(".economy-monthly-check-modal")){modalBody.innerHTML=renderEconomyMonthlyCheckReport();apply(modalBody);refreshFullscreenChrome();return;}if(document.querySelector(".economy-project-overview-modal")){const embed=document.getElementById("economyProjectOverviewEmbed");if(embed&&global.__economyProjectOverviewEmbedProject)embed.innerHTML=renderProjectEconomyOverviewContent(global.__economyProjectOverviewEmbedProject);apply(modalBody);refreshFullscreenChrome();return;}if(document.querySelector(".economy-business-analysis-modal")){const body=document.querySelector(".economy-business-analysis-modal .modal-bd");if(body){body.innerHTML=renderEconomyBusinessAnalysis();applyEconomyBusinessAnalysisFilters();}refreshFullscreenChrome();return;}if(document.querySelector(".project-economy-overview-page.international")){renderProjectEconomyOverviewPage();return;}renderEconomyDashboardPage(global.economyDashboardState?.tab||"diagnosis");}
   function refreshFullscreenChrome(){
     const box=document.getElementById("modalBox");
     if(!box)return;
@@ -237,7 +243,8 @@
       host.className="economy-fullscreen-language-host";
       box.querySelector(".modal-hd-actions")?.prepend(host);
     }
-    host.innerHTML=renderSwitch();
+    const supportsCurrency=box.matches(".economy-report-modal,.economy-monthly-check-modal,.economy-project-overview-modal,.economy-business-analysis-modal");
+    host.innerHTML=`${supportsCurrency&&typeof global.renderEconomyDiagnosisCurrencyPicker==="function"?global.renderEconomyDiagnosisCurrencyPicker("economyModalCurrency"):""}${renderSwitch()}`;
     apply(box);
   }
   global.EconomyI18n={state,isEnglish,translateText,apply,renderSwitch,refreshFullscreenChrome};

@@ -1606,7 +1606,7 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
 .economy-language-switch{display:inline-flex;align-items:center;flex:0 0 auto;height:32px;padding:2px;border:1px solid #c9cdd4;border-radius:8px;background:#f2f3f5}
 .economy-language-switch button{min-width:36px;height:26px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:#4e5969;font-size:12px;font-weight:600;cursor:pointer}
 .economy-language-switch button.active{background:#165dff;color:#fff;box-shadow:0 1px 4px rgba(22,93,255,.24)}
-.economy-fullscreen-language-host{display:inline-flex;align-items:center;margin-right:4px}
+.economy-fullscreen-language-host{display:inline-flex;align-items:center;gap:8px;margin-right:4px}
 .economy-screen-mode-tools{display:flex;align-items:center;gap:10px;min-width:max-content}
 
 .modal-hd-actions{
@@ -6111,7 +6111,8 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
 .economy-screen-header.no-edition-tabs{grid-template-columns:auto minmax(680px,1fr)}
 .economy-dashboard-tabs{height:40px;overflow:visible}
 .production-screen-tabs.economy-dashboard-tabs button,.production-screen-tabs.economy-dashboard-tabs button.active{flex:0 0 112px;width:112px;min-width:112px;height:40px;padding:0 18px;font-size:16px}
-.economy-edition-tabs{height:40px;overflow:visible}.production-screen-tabs.economy-edition-tabs button,.production-screen-tabs.economy-edition-tabs button.active{flex:0 0 auto;width:auto;min-width:84px;height:40px;padding:0 16px;font-size:15px;white-space:nowrap}.economy-dashboard-filters{display:grid;grid-template-columns:160px 160px 120px 160px max-content max-content;gap:8px;align-items:center;width:max-content;min-width:0}.economy-dashboard-filters.international{grid-template-columns:160px 160px 160px max-content max-content auto;width:max-content;min-width:0}
+.economy-edition-tabs{height:40px;overflow:visible}.production-screen-tabs.economy-edition-tabs button,.production-screen-tabs.economy-edition-tabs button.active{flex:0 0 auto;width:auto;min-width:84px;height:40px;padding:0 16px;font-size:15px;white-space:nowrap}.economy-dashboard-filters{display:grid;grid-template-columns:160px 160px 120px 160px max-content max-content;gap:8px;align-items:center;width:max-content;min-width:0}.economy-dashboard-filters.international{grid-template-columns:150px 130px 150px max-content max-content 148px auto;width:max-content;min-width:0}
+.economy-diagnosis-currency-picker{position:relative;z-index:92;width:148px;font-family:"Microsoft YaHei",Arial,sans-serif;font-size:14px;font-weight:400;line-height:normal}.economy-diagnosis-currency-input{width:148px;height:34px;padding:0 9px;border:1px solid #c9cdd4;border-radius:4px;background:#fff;color:#1d2129;display:grid;grid-template-columns:24px minmax(0,1fr) auto 14px;align-items:center;gap:6px;font-family:"Microsoft YaHei",Arial,sans-serif;font-size:14px;font-weight:400;line-height:normal;cursor:pointer;box-sizing:border-box}.economy-diagnosis-currency-input:hover,.economy-diagnosis-currency-input.active{border-color:#165dff;box-shadow:0 0 0 2px rgba(22,93,255,.1)}.economy-diagnosis-currency-flag,.economy-diagnosis-currency-panel button>img{width:24px;height:16px;object-fit:cover;border-radius:1px}.economy-diagnosis-currency-input>span{overflow:hidden;text-align:left;text-overflow:ellipsis;white-space:nowrap;font:400 14px/normal "Microsoft YaHei",Arial,sans-serif}.economy-diagnosis-currency-input>em,.economy-diagnosis-currency-panel button>em{color:#86909c;font:400 12px/normal "Microsoft YaHei",Arial,sans-serif;font-style:normal;white-space:nowrap}.economy-diagnosis-currency-arrow{width:14px;height:14px;transition:transform .18s}.economy-diagnosis-currency-picker.open .economy-diagnosis-currency-arrow{transform:rotate(180deg)}.economy-diagnosis-currency-panel{display:none;position:absolute;top:40px;right:0;width:196px;padding:6px;border:1px solid #e5e6eb;border-radius:6px;background:#fff;box-shadow:0 8px 24px rgba(29,33,41,.16);box-sizing:border-box}.economy-diagnosis-currency-picker.open .economy-diagnosis-currency-panel{display:flex;flex-direction:column;gap:2px}.economy-diagnosis-currency-panel button{width:100%;height:34px;padding:0 9px;border:0;border-radius:4px;background:#fff;color:#1d2129;display:grid;grid-template-columns:28px minmax(0,1fr) 42px;align-items:center;gap:7px;text-align:left;font:400 14px/normal "Microsoft YaHei",Arial,sans-serif;cursor:pointer}.economy-diagnosis-currency-panel button:hover{background:#f2f3f5}.economy-diagnosis-currency-panel button.selected{color:#165dff;background:#e8f3ff}.economy-diagnosis-currency-panel button strong{overflow:hidden;font:600 13px/normal "Microsoft YaHei",Arial,sans-serif;text-overflow:ellipsis;white-space:nowrap}.economy-diagnosis-currency-panel button.selected em{color:#165dff}
 .economy-dashboard-filters .input,.economy-dashboard-filters .select{min-width:0;width:100%;height:34px}
 .economy-dashboard-filters .economy-diagnosis-month-picker{width:100%;min-width:0}
 .economy-dashboard-filters .economy-diagnosis-month-picker .MonthPicker__input{height:34px}
@@ -6867,6 +6868,7 @@ body:has(.economy-command-screen),
 .economy-command-head-actions .economy-command-month-picker .SafetyMonthPicker__grid button.selected:before{border-top-color:#36d5f7}
 .economy-command-head-actions .economy-command-month-picker .SafetyMonthPicker__grid button.disabled{border-color:rgba(63,91,107,.35);color:#536d7b;background:rgba(8,25,35,.62)}
 .economy-command-head-actions .economy-command-month-picker .SafetyMonthPicker__grid button.disabled:hover{border-color:rgba(63,91,107,.35);color:#536d7b;background:rgba(8,25,35,.62)}
+.economy-command-currency-picker{position:relative;z-index:91;width:176px;color:#bdd7e9}.economy-command-currency-input{width:176px!important;height:40px!important;padding:0 11px!important;border:1px solid #1788be!important;border-radius:20px!important;background:rgba(12,45,69,.92)!important;box-shadow:inset 0 0 14px rgba(30,142,199,.12),0 0 8px rgba(28,151,215,.08)!important;color:#bdd7e9!important;display:grid;grid-template-columns:25px minmax(0,1fr) auto 14px;align-items:center;gap:5px;font-family:inherit;font-size:13px!important;cursor:pointer}.economy-command-currency-input:hover,.economy-command-currency-input.active{border-color:#35c6f2!important;box-shadow:inset 0 0 16px rgba(46,176,231,.18),0 0 10px rgba(43,193,244,.22)!important}.economy-command-currency-input>img{width:13px;height:13px;object-fit:contain;transition:transform .18s}.economy-command-currency-input.active>img:last-child{transform:rotate(180deg)}.economy-command-currency-input>.economy-command-currency-flag{width:24px;height:16px;object-fit:cover;border-radius:1px}.economy-command-currency-name{overflow:hidden;text-align:left;text-overflow:ellipsis;white-space:nowrap}.economy-command-currency-code{color:#6faccb;font-size:11px}.economy-command-currency-panel{display:none;position:absolute;top:48px;right:0;width:210px;padding:7px;border:1px solid rgba(42,168,218,.72);border-radius:8px;background:linear-gradient(180deg,rgba(15,55,78,.98),rgba(4,22,34,.98));box-shadow:0 14px 34px rgba(0,0,0,.48),inset 0 0 22px rgba(61,170,220,.08)}.economy-command-currency-picker.open .economy-command-currency-panel{display:flex;flex-direction:column;gap:3px}.economy-command-currency-panel button{width:100%!important;height:38px!important;padding:0 10px!important;border:1px solid transparent!important;border-radius:5px!important;background:transparent!important;color:#bed7e5!important;display:grid;grid-template-columns:28px minmax(0,1fr) 36px;align-items:center;gap:7px;text-align:left;font-family:inherit;cursor:pointer}.economy-command-currency-panel button:hover{border-color:rgba(47,196,240,.55)!important;background:rgba(20,98,137,.78)!important;color:#fff!important}.economy-command-currency-panel button.selected{border-color:#32cdf5!important;background:linear-gradient(135deg,#126b99,#178ab8)!important;color:#fff!important}.economy-command-currency-panel button>img{width:24px;height:16px;object-fit:cover;border-radius:1px}.economy-command-currency-panel button strong{overflow:hidden;font-size:13px;text-overflow:ellipsis;white-space:nowrap}.economy-command-currency-panel button em{color:#79b8d8;font-size:11px;font-style:normal;text-align:right}
 
 /* Economy overview compact density: actual component dimensions match the former 80% browser view. */
 .economy-command-head{height:61px;padding:0 35px}
@@ -6887,6 +6889,8 @@ body:has(.economy-command-screen),
 .economy-command-head-actions .economy-command-month-picker .SafetyMonthPicker__head button{width:26px;height:26px;font-size:18px}
 .economy-command-head-actions .economy-command-month-picker .SafetyMonthPicker__grid{gap:8px}
 .economy-command-head-actions .economy-command-month-picker .SafetyMonthPicker__grid button{height:34px;border-radius:6px;font-size:12px}
+.economy-command-head-actions .economy-command-currency-picker{width:141px}.economy-command-head-actions .economy-command-currency-input{width:141px!important;height:32px!important;padding:0 8px!important;border-radius:8px!important;grid-template-columns:21px minmax(0,1fr) auto 12px;font-size:11px!important}.economy-command-head-actions .economy-command-currency-flag{font-size:16px}.economy-command-head-actions .economy-command-currency-code{font-size:9px}.economy-command-head-actions .economy-command-currency-panel{top:38px;width:184px}.economy-command-head-actions .economy-command-currency-panel button{height:32px!important}
+.economy-command-currency-symbol{color:#6faccb;font-size:11px;white-space:nowrap}.economy-command-head-actions .economy-command-currency-symbol{font-size:9px}
 .economy-command-filters{height:50px;padding:0 22px;grid-template-columns:minmax(0,2fr) minmax(320px,1fr);gap:21px}
 .economy-command-filter-fields{gap:10px}
 .economy-command-select{height:27px}
@@ -7046,7 +7050,7 @@ body:has(.economy-command-screen),
   .economy-command-risk-total b em{font-size:9px}
   .economy-command-risk-total b>i{width:12px;height:12px;flex-basis:12px}
 }
-@media(max-width:1400px){.economy-screen-header,.economy-screen-header.no-edition-tabs{height:auto;min-height:96px;grid-template-columns:auto minmax(0,1fr);align-content:center}.economy-edition-tabs{justify-self:start}.economy-screen-header .economy-dashboard-filters{grid-column:1/-1;grid-template-columns:160px 160px 120px 160px max-content max-content;width:max-content;min-width:0;padding:4px 0;justify-self:end}.economy-screen-header .economy-dashboard-filters.international{grid-template-columns:160px 160px 160px max-content max-content auto;width:max-content;min-width:0}.economy-diagnosis-metrics{grid-template-columns:repeat(6,minmax(160px,1fr));gap:6px;padding:8px}.economy-diagnosis-metric{gap:8px;padding:0 4px}.economy-warning-card-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:1400px){.economy-screen-header,.economy-screen-header.no-edition-tabs{height:auto;min-height:96px;grid-template-columns:auto minmax(0,1fr);align-content:center}.economy-edition-tabs{justify-self:start}.economy-screen-header .economy-dashboard-filters{grid-column:1/-1;grid-template-columns:160px 160px 120px 160px max-content max-content;width:max-content;min-width:0;padding:4px 0;justify-self:end}.economy-screen-header .economy-dashboard-filters.international{grid-template-columns:150px 130px 150px max-content max-content 148px auto;width:max-content;min-width:0}.economy-diagnosis-metrics{grid-template-columns:repeat(6,minmax(160px,1fr));gap:6px;padding:8px}.economy-diagnosis-metric{gap:8px;padding:0 4px}.economy-warning-card-grid{grid-template-columns:repeat(2,1fr)}}
 
 /* Monthly economy diagnosis task list. */
 .economy-diagnosis-task-shell{background:#f1f3f6!important;min-height:100%;display:flex;flex-direction:column}
@@ -24641,6 +24645,7 @@ body.entry-mode .digital-entry-divider{height:6px;margin:0 auto 14px;opacity:.72
   transform:translate3d(0,-9px,0);
   line-height:20px;
 }
+.economy-command-screen .economy-command-overview{position:relative}.economy-command-screen .economy-command-map-exchange-rate{position:absolute;z-index:12;top:2px;right:18px;color:#b3c0c8;font-size:14px;line-height:20px;text-align:right;white-space:nowrap;pointer-events:none}
 .economy-command-screen .economy-command-filters nav button{
   font-size:14px;
 }
@@ -24877,6 +24882,20 @@ body.entry-mode .digital-entry-divider{height:6px;margin:0 auto 14px;opacity:.72
 .economy-diagnosis-table-card td{
   height:40px !important;
 }
+.economy-diagnosis-table-card [data-column-key="contractAmount"],
+.economy-diagnosis-table-card [data-column-key="outputProgress"]{white-space:nowrap}
+.economy-diagnosis-table-card th[data-column-key="subcontract"],
+.economy-diagnosis-table-card th[data-column-key="loss"],
+.economy-diagnosis-table-card th[data-column-key="settlement"],
+.economy-diagnosis-table-card th[data-column-key="arrears"]{height:54px!important;padding:5px 4px;font-size:13px;line-height:17px;white-space:normal}
+.economy-diagnosis-table-card th[data-column-key="subcontract"] .economy-table-sort,
+.economy-diagnosis-table-card th[data-column-key="loss"] .economy-table-sort,
+.economy-diagnosis-table-card th[data-column-key="settlement"] .economy-table-sort,
+.economy-diagnosis-table-card th[data-column-key="arrears"] .economy-table-sort{justify-content:center;gap:3px;white-space:normal}
+.economy-diagnosis-table-card td[data-column-key="subcontract"],
+.economy-diagnosis-table-card td[data-column-key="loss"],
+.economy-diagnosis-table-card td[data-column-key="settlement"],
+.economy-diagnosis-table-card td[data-column-key="arrears"]{padding-left:5px;padding-right:5px}
 .economy-warning-rule-page.standard-list-split{gap:0;padding:0;background:#f2f3f5}
 .economy-warning-rule-page .standard-list-split-body{gap:12px}
 .economy-warning-rule-page .standard-list-main>.economy-warning-rule-content{flex:1;min-height:0;margin:0}

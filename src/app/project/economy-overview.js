@@ -76,19 +76,13 @@ function parseProjectEconomyNumber(value,fallback=0){
   return Number.isFinite(parsed)?parsed:fallback;
 }
 function getProjectEconomyInternationalCostMetrics(project){
-  const store=typeof getProjectEconomyInfoStore==="function"?getProjectEconomyInfoStore():{};
   const rawContract=parseProjectEconomyNumber(project?.projectCost,67920364.89);
   const contractWithTax=rawContract<1000000?rawContract*10000:rawContract;
-  const contractWithoutTax=parseProjectEconomyNumber(store["总包合同价（不含税）"],contractWithTax/1.09);
-  const accruedProfitRate=parseProjectEconomyNumber(store["计提利润率"],4.5)/100;
-  const financialExpense=parseProjectEconomyNumber(store["财务费用"],1280000);
-  const projectType=typeof getProjectInternationalType==="function"?getProjectInternationalType(project):(store["国际项目属性"]||"非港澳JV项目");
-  const taxField=projectType==="港澳JV项目"?store["预计税金成本（含所得税）"]:store["预计税金成本"];
-  const estimatedTaxCost=parseProjectEconomyNumber(taxField??store["预计税金成本"],3560000);
-  const actualCost=parseProjectEconomyNumber(store["COST总额实际数（不含税）"],86450000);
+  const signedRows=typeof getProjectEconomyInternationalSignedContractRows==="function"?getProjectEconomyInternationalSignedContractRows(project):[];
+  const subcontractContractTotal=signedRows.reduce((sum,row)=>sum+(Number(row[4])||0),0);
   return {
-    actual:actualCost/10000,
-    threshold:Math.max(0,contractWithoutTax-contractWithoutTax*accruedProfitRate-financialExpense-estimatedTaxCost)/10000
+    actual:subcontractContractTotal/10000,
+    threshold:contractWithTax/10000
   };
 }
 
@@ -103,18 +97,18 @@ function getProjectEconomyOverviewData(project){
     {name:"COST总额实际数（不含税）",unit:"万元",key:"costActual"},
     {name:"所有专业/劳务计量总和",unit:"万元"},
     {name:"单个分包商最大产值计量",unit:"%",key:"subcontractMeasurement",drilldown:true},
-    {name:"当期资金结余",unit:"万元"},
+    {name:"当期资金结余",unit:"万元",key:"currentFundBalance",valueTone:"neutral"},
     {name:"完工后实际签证额",unit:"万元"},
     {name:"项目预计实际总成本",unit:"万元"},
     {name:"财务费用",unit:"万元"},
     {name:"预计税金成本（含所得税）",unit:"万元"},
     {name:"工程关键节点偏差",unit:"天"},
-    {name:"钢筋开累领用量",unit:"t",valueTone:"neutral"},
-    {name:"水泥开累领用量",unit:"t",valueTone:"neutral"},
-    {name:"商品混凝土开累领用量",unit:"m³",valueTone:"neutral"},
-    {name:"业主已计量产值（不含税）",unit:"万元"},
+    {name:"钢筋开累领用量",unit:"t",key:"materialUsage",valueTone:"neutral"},
+    {name:"水泥开累领用量",unit:"t",key:"materialUsage",valueTone:"neutral"},
+    {name:"商品混凝土开累领用量",unit:"m³",key:"materialUsage",valueTone:"neutral"},
+    {name:"业主已计量产值（不含税）",unit:"万元",key:"ownerMeasuredOutput",showThreshold:false},
     {name:"到期应收未收款",unit:"万元"},
-    {name:"到期应收未收款账龄",unit:"天"}
+    {name:"到期应收未收款账龄",unit:"天",key:"receivableAging",valueTone:"neutral"}
   ];
   const domesticAlerts=[
     {name:"分包分供等合同预警",color:seed%2?"red":"orange"},
@@ -170,9 +164,17 @@ function getProjectEconomyOverviewData(project){
       const currentValue=Number(value.toFixed?.(2)??value);
       const wavePattern=[.86,1.02,.91,1.07,1];
       const waveScale=unit==="%"?.9:unit==="个"?.15:unit==="天"?.45:7.2;
-      const series=getProjectEconomyTrendPeriods().map((period,i)=>({period,value:Number(Math.max(0,currentValue*wavePattern[i]+(((seed+index*3+i*5)%7)-3)*waveScale).toFixed(2))}));
+      const periods=getProjectEconomyTrendPeriods();
+      const monotonicTrend=definition.key==="costActual"||definition.key==="materialUsage"||definition.key==="ownerMeasuredOutput";
+      const series=monotonicTrend
+        ?periods.map((period,i)=>({period,value:Number((currentValue*[.42,.58,.73,.87,1][i]).toFixed(2))}))
+        :periods.map((period,i)=>({period,value:Number(Math.max(0,currentValue*wavePattern[i]+(((seed+index*3+i*5)%7)-3)*waveScale).toFixed(2))}));
       series[series.length-1].value=currentValue;
-      return {name,value:currentValue,threshold:Number(threshold.toFixed?.(2)??threshold),unit,color:definition.valueTone||(index%4===0?"red":index%4===1?"orange":"blue"),showInfo:!international,drilldown:definition.drilldown,series};
+      const thresholds=definition.key==="materialUsage"?[
+        {value:Number((currentValue*1.42).toFixed(2)),tone:"contract",label:"合同理论用量"},
+        {value:Number((currentValue*1.18).toFixed(2)),tone:"progress",label:"进度理论用量"}
+      ]:definition.showThreshold===false?[]:[{value:Number(threshold.toFixed?.(2)??threshold),tone:"default",label:"阈值"}];
+      return {name,value:currentValue,threshold:Number(threshold.toFixed?.(2)??threshold),thresholds,unit,color:definition.valueTone||(index%4===0?"red":index%4===1?"orange":"blue"),showInfo:!international,drilldown:definition.drilldown,series};
     })
   };
 }
@@ -188,15 +190,16 @@ function setProjectEconomyPeriod(value){
 }
 function renderProjectEconomySectionTitle(title,extra=""){return `<div class="project-economy-section-title"><span></span><strong>${title}</strong>${extra}</div>`;}
 function getProjectEconomyTrendGeometry(item){
-  const values=item.series.map(point=>point.value).concat(item.threshold),min=Math.min(...values),max=Math.max(...values),range=Math.max(1,max-min);
+  const thresholds=Array.isArray(item.thresholds)?item.thresholds:[];
+  const values=item.series.map(point=>point.value).concat(thresholds.map(entry=>entry.value)),min=Math.min(...values),max=Math.max(...values),range=Math.max(1,max-min);
   const points=item.series.map((point,index)=>({x:6+index*22,y:70-(point.value-min)/range*53,...point}));
-  return {points,thresholdY:70-(item.threshold-min)/range*53};
+  return {points,thresholds:thresholds.map(entry=>({...entry,y:70-(entry.value-min)/range*53}))};
 }
 function renderProjectEconomyTrendSvg(item){
-  const {points,thresholdY}=getProjectEconomyTrendGeometry(item);
+  const {points,thresholds}=getProjectEconomyTrendGeometry(item);
   const curve=points.reduce((path,point,index)=>{if(!index)return `M ${point.x} ${point.y}`;const previous=points[index-1],mid=(previous.x+point.x)/2;return `${path} C ${mid} ${previous.y}, ${mid} ${point.y}, ${point.x} ${point.y}`;},"");
   const area=`${curve} L ${points.at(-1).x} 82 L ${points[0].x} 82 Z`;
-  return `<svg viewBox="0 0 100 82" preserveAspectRatio="none" role="img" aria-label="${item.name}近五期趋势"><line x1="2" y1="${thresholdY}" x2="98" y2="${thresholdY}" class="threshold"></line><path d="${area}" class="trend-area"></path><path d="${curve}" class="trend-line"></path></svg>`;
+  return `<svg viewBox="0 0 100 82" preserveAspectRatio="none" role="img" aria-label="${item.name}近五期趋势">${thresholds.map(entry=>`<line x1="2" y1="${entry.y}" x2="98" y2="${entry.y}" class="threshold threshold-${entry.tone}"></line>`).join("")}<path d="${area}" class="trend-area"></path><path d="${curve}" class="trend-line"></path></svg>`;
 }
 function renderProjectEconomyTrendHover(item){
   const {points}=getProjectEconomyTrendGeometry(item);
@@ -212,15 +215,73 @@ function formatProjectEconomyTrendValue(item,value,withUnit=false){
     const date=new Date(Number(value));
     return `${date.getUTCFullYear()}-${String(date.getUTCMonth()+1).padStart(2,"0")}-${String(date.getUTCDate()).padStart(2,"0")}`;
   }
-  const text=Number(value).toLocaleString("zh-CN",{maximumFractionDigits:2});
-  return withUnit?`${text}${item.unit}`:text;
+  const converted=convertEconomyCommandMoney(value,item.unit);
+  const text=Number(converted).toLocaleString("zh-CN",{maximumFractionDigits:2});
+  return withUnit?`${text}${isEconomyCommandMoneyUnit(item.unit)?getEconomyCommandDisplayUnit(item.unit):item.unit}`:text;
 }
 function renderProjectEconomyTrendCard(item){
-  const {thresholdY}=getProjectEconomyTrendGeometry(item);
+  const {thresholds}=getProjectEconomyTrendGeometry(item);
   const valueText=formatProjectEconomyTrendValue(item,item.value);
-  const thresholdText=formatProjectEconomyTrendValue(item,item.threshold,true);
-  const valueContent=item.drilldown?`<button type="button" class="project-economy-trend-drill-value" onclick="openProjectEconomySubcontractMeasurementDrill()" title="查看分包产值计量率">${valueText}<small>${item.unit}</small></button>`:`${valueText}<small>${item.unit}</small>`;
-  return `<article class="project-economy-trend-card ${item.color}"><h4>${item.name}${item.showInfo===false?"":'<span title="指标说明">i</span>'}</h4><strong>${valueContent}</strong><div class="project-economy-trend-chart" style="--threshold-top:${(thresholdY/82*100).toFixed(2)}%">${renderProjectEconomyTrendSvg(item)}<em>${thresholdText}</em>${renderProjectEconomyTrendHover(item)}</div></article>`;
+  const displayUnit=isEconomyCommandMoneyUnit(item.unit)?getEconomyCommandDisplayUnit(item.unit):item.unit;
+  const valueContent=item.drilldown?`<button type="button" class="project-economy-trend-drill-value" onclick="openProjectEconomySubcontractMeasurementDrill()" title="查看分包产值计量率">${valueText}<small>${displayUnit}</small></button>`:`${valueText}<small>${displayUnit}</small>`;
+  const thresholdLabels=thresholds.map(entry=>`<em class="threshold-label threshold-label-${entry.tone}" style="--threshold-top:${(entry.y/82*100).toFixed(2)}%" title="${entry.label}">${formatProjectEconomyTrendValue(item,entry.value,true)}</em>`).join("");
+  return `<article class="project-economy-trend-card ${item.color}"><h4>${item.name}${item.showInfo===false?"":'<span title="指标说明">i</span>'}</h4><strong>${valueContent}</strong><div class="project-economy-trend-chart">${renderProjectEconomyTrendSvg(item)}${thresholdLabels}${renderProjectEconomyTrendHover(item)}</div></article>`;
+}
+function getProjectEconomyMonthlyReportProject(){
+  if(window.__projectEconomyOverviewCurrentProject)return window.__projectEconomyOverviewCurrentProject;
+  if(window.__economyProjectOverviewEmbedProject)return window.__economyProjectOverviewEmbedProject;
+  return typeof getProjectById==="function"?getProjectById(selectedProjectId):null;
+}
+function formatProjectEconomyMonthlyReportMoney(value){
+  return Number(value||0).toLocaleString("zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function renderProjectEconomyMonthlyTrendTable(title,columns,rows){
+  const mergeFirstColumn=rows.length>1&&rows[0]?.[0]&&rows.slice(1).every(row=>!row[0]);
+  return `<article class="project-monthly-report-trend"><h3><i></i>${title}</h3><div class="project-monthly-report-table-wrap"><table><thead><tr>${columns.map(item=>`<th>${item}</th>`).join("")}</tr></thead><tbody>${rows.map((row,rowIndex)=>`<tr>${row.map((item,columnIndex)=>mergeFirstColumn&&columnIndex===0?(rowIndex===0?`<td rowspan="${rows.length}" class="merged-indicator-name">${item}</td>`:""):`<td>${item}</td>`).join("")}</tr>`).join("")}</tbody></table></div></article>`;
+}
+function renderProjectEconomyMonthlyInspectionReport(project){
+  if(!project)return `<div class="project-log-empty">未找到项目数据</div>`;
+  const data=getProjectEconomyOverviewData(project);
+  const international=getProjectEconomyOverviewEdition(project)==="international";
+  const month=getProjectEconomyPeriodLabel(projectEconomyOverviewState.period);
+  const periods=getProjectEconomyTrendPeriods().slice(-3).reverse().map(value=>{const [year,monthValue]=value.split("-");return `${year}年${Number(monthValue)}月`;});
+  const contractAmount=Number(data.contract||0);
+  const outputAmount=Number(data.completed||0);
+  const signedAmount=international?getProjectEconomyInternationalCostMetrics(project).actual:Math.max(0,contractAmount*.201);
+  const fundTrend=data.trends.find(item=>item.key==="currentFundBalance"||item.name==="当期资金结余");
+  const ownerTrend=data.trends.find(item=>item.key==="ownerMeasuredOutput"||item.name.includes("业主已计量"));
+  const fundBalance=Number(fundTrend?.value||-20.63);
+  const ownerArrears=Number(ownerTrend?.value||3993.25);
+  const targetProfit=Number(data.targetProfit||5);
+  const inventoryRate=5.45;
+  const revenueInventoryRate=-28.19;
+  const trendDifference=inventoryRate+revenueInventoryRate;
+  const company=[project.subCompany,project.branchCompany].filter(Boolean).join("/")||"-";
+  const progress=Number(data.progress||0);
+  const reportRows=periods.map(period=>[period,formatProjectEconomyMonthlyReportMoney(contractAmount*.9072),formatProjectEconomyMonthlyReportMoney(signedAmount),formatProjectEconomyMonthlyReportMoney(signedAmount-contractAmount*.9072)]);
+  const stableRows=value=>periods.map(period=>[period,formatProjectEconomyMonthlyReportMoney(value)]);
+  const riskItems=[
+    ["潜亏预警","红","工期异常预警","资金存货目标利润率关联预警"],
+    ["业主拖欠款预警","红","账龄预警","业主拖欠款金额预警"],
+    ["分包分供等合同预警","无","指标较上期持平",""],
+    ["总包结算预警","无","指标较上期持平",""]
+  ];
+  return `<div class="project-monthly-report-shell">
+    <main class="project-monthly-report-scroll"><article class="project-monthly-report-document">
+      <header class="project-monthly-report-cover" id="projectMonthlyReportOverview"><img src="./src/assets/economy/tunnel-group-logo.svg" alt="隧道股份"><p>${international?"国际版项目经济管理":"项目经济管理"}</p><h1>工程项目经济风险<br><span>月度检验报告</span></h1><time>（${month}）</time></header>
+      <section class="project-monthly-report-basic"><h2>${project.projectName}</h2><div>${[["项目名称",project.projectName],["子公司/分公司",company],["合同总金额",`${formatProjectEconomyMonthlyReportMoney(contractAmount)} 万元`],["目标利润率（含税）",`${targetProfit.toFixed(2)}%`],["计划工期",`${project.planStart||"-"} 至 ${project.planEnd||"-"}`],["项目经理",project.projectManager||"-"]].map(([label,value])=>`<p><span>${label}</span><strong>${value}</strong></p>`).join("")}</div></section>
+      <section class="project-monthly-report-section"><div class="project-monthly-report-section-title"><b>01</b><div><span>PROJECT STATUS</span><h2>本月项目经济信息动态情况</h2></div></div><div class="project-monthly-report-summary-grid">${[["开累产值",`${formatProjectEconomyMonthlyReportMoney(outputAmount)} 万元`,`${progress.toFixed(2)}%`],["已签分包分供合同",`${formatProjectEconomyMonthlyReportMoney(signedAmount)} 万元`,`${contractAmount?Math.max(0,signedAmount/contractAmount*100).toFixed(2):"0.00"}%`],["当期资金结余",`${formatProjectEconomyMonthlyReportMoney(fundBalance)} 万元`,fundBalance<0?"需关注":"正常"],["业主拖欠款",`${formatProjectEconomyMonthlyReportMoney(ownerArrears)} 万元`,ownerArrears>0?"需关注":"正常"]].map(([label,value,note])=>`<div><span>${label}</span><strong>${value}</strong><em>${note}</em></div>`).join("")}</div><div class="project-monthly-report-copy"><p>项目开累产值 <b>${formatProjectEconomyMonthlyReportMoney(outputAmount)} 万元</b>，开累占总合同 <b>${progress.toFixed(2)}%</b>；开累已签订分包分供合同总额 <b>${formatProjectEconomyMonthlyReportMoney(signedAmount)} 万元</b>。</p><p>当前资金结余 <b>${formatProjectEconomyMonthlyReportMoney(fundBalance)} 万元</b>，项目业主拖欠款 <b>${formatProjectEconomyMonthlyReportMoney(ownerArrears)} 万元</b>，建议结合本期资金计划持续跟踪。</p></div></section>
+      <section class="project-monthly-report-section"><div class="project-monthly-report-section-title"><b>02</b><div><span>RISK ASSESSMENT</span><h2>项目风险判断</h2></div></div><div class="project-monthly-report-risk-result ${progress<40?"pending":"assessed"}"><strong>${progress<40?"暂不评级":data.riskLabel}</strong><div><h3>${progress<40?"产值进度未达到 40%，暂不做项目风险等级判断。":`本期项目经济风险等级为${data.riskLabel}。`}</h3><p>项目经济风险等级分为“非常严重”、“严重”、“较大”、“须关注”。</p></div></div></section>
+      <section class="project-monthly-report-section"><div class="project-monthly-report-section-title"><b>03</b><div><span>DIAGNOSIS</span><h2>本月项目经济风险诊断结论</h2></div></div><h3 class="project-monthly-report-lead">本项目当前存在经济风险预警：</h3><div class="project-monthly-report-risk-list">${riskItems.map(([name,level,...details])=>`<article><div><i class="${level==="红"?"red":"none"}"></i><strong>${name}</strong><span class="${level==="红"?"danger":"normal"}">${level}</span></div><ul>${details.filter(Boolean).map(text=>`<li>${text}</li>`).join("")}</ul></article>`).join("")}</div><p class="project-monthly-report-conclusion">项目整体风险发展趋势：<b>持平</b></p></section>
+      <section class="project-monthly-report-section" id="projectMonthlyReportTrend"><div class="project-monthly-report-section-title"><b>04</b><div><span>KEY INDICATORS</span><h2>重点指标近三期趋势</h2></div></div><div class="project-monthly-report-trends">${renderProjectEconomyMonthlyTrendTable("分包分供合同实际签署总额",["指标名称","期数","控制标准（万）","实际已签总额（万）","差额（万）"],reportRows.map((row,index)=>[index?"":"分包分供合同实际签署总额",...row]))}${renderProjectEconomyMonthlyTrendTable("存货",["指标名称","期数","目标利润率（不含税）","存货率","趋势差值"],periods.map((period,index)=>[index?"":"存货",period,`${inventoryRate.toFixed(2)}%`,`${revenueInventoryRate.toFixed(2)}%`,`${trendDifference.toFixed(2)}%`]))}${renderProjectEconomyMonthlyTrendTable("资金结余",["指标名称","期数","金额（万元）"],stableRows(fundBalance).map((row,index)=>[index?"":"资金结余",...row]))}${renderProjectEconomyMonthlyTrendTable("业主拖欠款",["指标名称","期数","金额（万元）"],stableRows(ownerArrears).map((row,index)=>[index?"":"业主拖欠款",...row]))}</div></section>
+      <section class="project-monthly-report-section project-monthly-report-advice" id="projectMonthlyReportAdvice"><div class="project-monthly-report-section-title"><b>05</b><div><span>IMPROVEMENT</span><h2>建议改进措施</h2></div></div><ol><li><b>针对潜亏预警：</b>建议加强工程进度管控，采取必要措施降低因工期异常带来的经济损失；开展项目成本分析，加强业主计量并跟进索赔事项，做好资金平衡，优化本项目资金支出。</li><li><b>针对业主拖欠款预警：</b>建议按拖欠时间、金额划分管理层级与管理措施，与业主定期沟通、催讨，并形成责任到人的回款计划。</li></ol><p>以上内容仅供参考，建议项目所属单位针对月度检验报告开展专项排查。</p></section>
+      <footer class="project-monthly-report-footer"><span>数智施工项目经济管理平台</span><time>生成时间：${new Date().toLocaleString("zh-CN",{hour12:false})}</time></footer>
+    </article></main>
+  </div>`;
+}
+function openProjectEconomyMonthlyInspectionReport(){
+  const project=getProjectEconomyMonthlyReportProject();
+  FullscreenModal.open({title:"工程项目经济风险月度检验报告",content:renderProjectEconomyMonthlyInspectionReport(project),footer:`<button class="btn" onclick="FullscreenModal.close()">关闭</button><button class="btn primary" onclick="showToast('月度检验报告下载成功')"><span aria-hidden="true">⇩</span> 下载报告</button>`,className:"project-monthly-inspection-modal"});
 }
 function renderProjectEconomySubcontractMeasurementDrill(){
   const rows=getProjectEconomySubcontractDrillRows();
@@ -255,11 +316,12 @@ function queryProjectEconomySubcontractMeasurementDrill(){
 }
 function resetProjectEconomySubcontractMeasurementDrill(){Object.assign(projectEconomySubcontractDrillState,{subcontractorName:"",creditCode:""});renderProjectEconomySubcontractMeasurementDrill();}
 function renderProjectEconomyInternationalReminderGrid(){
+  const moneyUnit=getEconomyCommandDisplayUnit("万元");
   return `<div class="project-economy-key-reminder-grid">
-    <article class="project-economy-key-reminder-card general"><h3><i>♙</i>通用提醒指标</h3><div class="project-economy-key-reminder-values three"><div class="danger"><span>营收产值偏差值</span><div class="project-economy-reminder-inline-value"><strong>-32.17</strong><em>万元</em></div></div><div><span>计提利润率</span><strong>4.82<small>%</small></strong></div><div><span>考核目标利润率</span><strong>5.20<small>%</small></strong></div></div></article>
+    <article class="project-economy-key-reminder-card general"><h3><i>♙</i>通用提醒指标</h3><div class="project-economy-key-reminder-values three"><div class="danger"><span>营收产值偏差值</span><div class="project-economy-reminder-inline-value"><strong>${formatEconomyCommandValue(-32.17,"万元")}</strong><em>${moneyUnit}</em></div></div><div><span>计提利润率</span><strong>4.82<small>%</small></strong></div><div><span>考核目标利润率</span><strong>5.20<small>%</small></strong></div></div></article>
     <article class="project-economy-key-reminder-card contract"><h3><i>▣</i>合同类提醒指标</h3><div class="project-economy-key-reminder-values two"><div><span>主体（主要）<br>劳务合同实际签署个数</span><strong>32 <small>个</small></strong></div><div><span>主体（主要）<br>专业分包合同实际签署个数</span><strong>18 <small>个</small></strong></div></div></article>
     <article class="project-economy-key-reminder-card exchange"><h3><i>◉</i>汇率相关提醒指标<em>本币：USD / 原币：CNY</em></h3><div class="project-economy-key-reminder-values three"><div><span>目标成本测算时的<br>目标汇率</span><strong>1 <small>USD</small> = 7.10 <small>CNY</small></strong></div><div><span>交割兑换时的<br>实际汇率</span><strong>1 <small>USD</small> = 7.24 <small>CNY</small></strong></div><div><span>当前汇率</span><strong>1 <small>USD</small> = 7.18 <small>CNY</small></strong></div></div></article>
-    <article class="project-economy-key-reminder-card jv"><h3><i>♟</i>JV项目专属提醒指标<em>JV项目适用</em></h3><div class="project-economy-jv-reminder-table"><b aria-hidden="true"></b><b>分成比例</b><b>投入资金</b><b>管理人员数量</b><strong>我方</strong><span>55<small>%</small></span><span>860.00<small>万元</small></span><span>12<small>人</small></span><strong>合作方</strong><span>45<small>%</small></span><span>700.00<small>万元</small></span><span>9<small>人</small></span></div></article>
+    <article class="project-economy-key-reminder-card jv"><h3><i>♟</i>JV项目专属提醒指标<em>JV项目适用</em></h3><div class="project-economy-jv-reminder-table"><b aria-hidden="true"></b><b>分成比例</b><b>投入资金</b><b>管理人员数量</b><strong>我方</strong><span>55<small>%</small></span><span>${formatEconomyCommandValue(860,"万元")}<small>${moneyUnit}</small></span><span>12<small>人</small></span><strong>合作方</strong><span>45<small>%</small></span><span>${formatEconomyCommandValue(700,"万元")}<small>${moneyUnit}</small></span><span>9<small>人</small></span></div></article>
   </div>`;
 }
 function renderProjectEconomyWarningPanel(data,international){
@@ -270,18 +332,21 @@ function renderProjectEconomyWarningPanel(data,international){
 function getProjectEconomyOverviewEdition(project){return project?.subCompany==="城建国际"?"international":"domestic";}
 function renderProjectEconomyOverviewEditionContent(project,edition){
   if(!project)return "";
+  window.__projectEconomyOverviewCurrentProject=project;
+  if(typeof economyDashboardState!=="undefined")economyDashboardState.edition=edition;
   const data=getProjectEconomyOverviewData(project);
   const [province,city]=(project.provinceCity||"上海市/上海市").split("/");
   const editionName=edition==="international"?"国际版":"国内版";
+  const showHeaderLocaleTools=edition==="international"&&!window.__economyProjectOverviewEmbedProject;
   return `<div class="project-economy-overview-page ${edition}">
-    <header class="project-economy-overview-header"><div><span>↗</span><h1>数智施工项目经济管理平台 -${editionName}</h1></div><div class="project-economy-header-actions"><label>诊断期数</label>${renderProjectEconomyPeriodPicker()}<button class="btn primary project-economy-download" onclick="showToast('月度检验报告下载成功')"><img src="./src/assets/economy/download.svg" alt="" aria-hidden="true">月度检验报告</button></div></header>
+    <header class="project-economy-overview-header"><div><span>↗</span><h1>数智施工项目经济管理平台 -${editionName}</h1></div><div class="project-economy-header-actions"><label>诊断期数</label>${renderProjectEconomyPeriodPicker()}<button class="btn primary project-economy-download" onclick="openProjectEconomyMonthlyInspectionReport()"><img src="./src/assets/economy/download.svg" alt="" aria-hidden="true">月度检验报告</button>${showHeaderLocaleTools?`${renderEconomyDiagnosisCurrencyPicker("projectEconomyCurrency")}${EconomyI18n.renderSwitch()}`:""}</div></header>
     <div class="project-economy-dashboard-grid">
       <div class="project-economy-left">
-        <section class="project-economy-project-card ${data.riskColor}"><div class="project-economy-project-head"><h2>${project.projectName}</h2><div>风险状态：<b>${data.riskLabel}</b><i></i></div></div><div class="project-economy-project-info">${[["所属公司",`${project.subCompany}/${project.branchCompany}`],["建设单位",project.builder],["项目经理",project.projectManager],["项目状态",project.projectStatus],["项目板块",project.projectType],["项目区域",project.region||`${province}${city}`],["计划开工",project.planStart||"2026-01-15"],["计划完工",project.planEnd||"2027-12-20"],["项目工期",`${project.planDuration||365}天`],["项目合同总额",`${(data.contract/10).toLocaleString('zh-CN',{maximumFractionDigits:2})}万元`],["目标利润率（含税）",`${data.targetProfit}%`]].map(([label,value])=>`<div><span>${label}：</span><strong>${value||"-"}</strong></div>`).join("")}</div></section>
+        <section class="project-economy-project-card ${data.riskColor}"><div class="project-economy-project-head"><h2>${project.projectName}</h2><div>风险状态：<b>${data.riskLabel}</b><i></i></div></div><div class="project-economy-project-info">${[["所属公司",`${project.subCompany}/${project.branchCompany}`],["建设单位",project.builder],["项目经理",project.projectManager],["项目状态",project.projectStatus],["项目板块",project.projectType],["项目区域",project.region||`${province}${city}`],["计划开工",project.planStart||"2026-01-15"],["计划完工",project.planEnd||"2027-12-20"],["项目工期",`${project.planDuration||365}天`],["项目合同总额",`${Number(convertEconomyCommandMoney(data.contract/10,"万元")).toLocaleString('zh-CN',{maximumFractionDigits:2})}${getEconomyCommandDisplayUnit("万元")}`],["目标利润率（含税）",`${data.targetProfit}%`]].map(([label,value])=>`<div><span>${label}：</span><strong>${value||"-"}</strong></div>`).join("")}</div></section>
         ${edition==="international"?renderProjectEconomyInternationalReminderGrid():`<div class="project-economy-risk-row"><section class="project-economy-panel">${renderProjectEconomySectionTitle("一级指标风险状态")}<div class="project-economy-risk-list">${data.alerts.map(item=>`<div class="${item.color}"><strong>${item.name}</strong><i></i></div>`).join("")}</div></section><section class="project-economy-panel">${renderProjectEconomySectionTitle("提醒指标")}<div class="project-economy-reminders">${data.reminders.map(([label,value,state])=>`<div class="${state}"><strong>${value}</strong><span>${label}</span></div>`).join("")}</div></section></div>`}
         ${renderProjectEconomyWarningPanel(data,edition==="international")}
       </div>
-      <div class="project-economy-right"><section class="project-economy-panel project-economy-live-panel">${renderProjectEconomySectionTitle("实时项目数据")}<div class="project-economy-live-metrics">${[["开累产值(万元)",data.contract/10,"▰"],["开累营收(万元)",data.completed/10,"▰"],["开累产值完成率",data.progress,"%"]].map(([label,value,unit])=>`<div><i>${unit}</i><strong>${Number(value).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}<em>${unit==="%"?"%":""}</em></strong><span>${label}</span></div>`).join("")}</div></section><section class="project-economy-panel project-economy-trends-panel">${renderProjectEconomySectionTitle("实时趋势分析",'<em>（近5次）</em><div class="project-economy-trend-legend"><span><img src="./src/assets/economy/trend-actual.svg" alt="">实际值</span><span><img src="./src/assets/economy/trend-threshold.svg" alt="">阈值</span></div>')}<div class="project-economy-trend-grid">${data.trends.map(renderProjectEconomyTrendCard).join("")}</div></section></div>
+      <div class="project-economy-right"><section class="project-economy-panel project-economy-live-panel">${renderProjectEconomySectionTitle("实时数据")}<div class="project-economy-live-metrics">${[[`开累产值(${getEconomyCommandDisplayUnit("万元")})`,convertEconomyCommandMoney(data.contract/10,"万元"),"▰"],[`开累营收(${getEconomyCommandDisplayUnit("万元")})`,convertEconomyCommandMoney(data.completed/10,"万元"),"▰"],["开累产值完成率",data.progress,"%"]].map(([label,value,unit])=>`<div><i>${unit}</i><strong>${Number(value).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}<em>${unit==="%"?"%":""}</em></strong><span>${label}</span></div>`).join("")}</div></section><section class="project-economy-panel project-economy-trends-panel">${renderProjectEconomySectionTitle("实时趋势分析",'<em>（近5次）</em><div class="project-economy-trend-legend"><span><img src="./src/assets/economy/trend-actual.svg" alt="">实际值</span><span><img src="./src/assets/economy/trend-threshold.svg" alt="">阈值</span></div>')}<div class="project-economy-trend-grid">${data.trends.map(renderProjectEconomyTrendCard).join("")}</div></section></div>
     </div></div>`;
 }
 function renderProjectEconomyOverviewDomesticContent(project){return renderProjectEconomyOverviewEditionContent(project,"domestic");}
@@ -297,4 +362,6 @@ function renderProjectEconomyOverviewPage(){
   listPage.style.display="flex";
   listPage.style.overflow="auto";
   listPage.innerHTML=renderProjectEconomyOverviewContent(project);
+  EconomyI18n.apply(listPage);
 }
+Object.assign(window,{openProjectEconomyMonthlyInspectionReport});

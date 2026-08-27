@@ -513,3 +513,5 @@
 .secondary-warning-report-page .eco-report-bar {
   width: var(--dsc-chart-bar-width-standard, 28px);
 }
+.overview-report-page .eco-report-company-grid.international-branches{grid-template-columns:repeat(5,minmax(0,1fr));gap:12px 6px;padding:1.4%}.overview-report-page .eco-report-company-grid.international-branches .eco-report-overview-metrics{gap:4px}.overview-report-page .eco-report-company-grid.international-branches .eco-report-overview-metric{transform:scale(.86);transform-origin:center bottom}.overview-report-page .eco-report-company-grid.international-branches h3{margin:2px 0 0;font-size:12px;line-height:15px}
+.eco-report-sunburst-lines path{fill:none;stroke-width:1.2px;stroke-linecap:round;stroke-linejoin:round;opacity:.82;vector-effect:non-scaling-stroke}.eco-report-sunburst-lines .connector-dot{stroke:#fff;stroke-width:1.2px;vector-effect:non-scaling-stroke}.eco-report-sunburst-lines path.line-red{stroke:#FF0013}.eco-report-sunburst-lines path.line-orange{stroke:#FF9933}.eco-report-sunburst-lines path.line-yellow{stroke:#e8bd00}.eco-report-sunburst-lines path.line-blue{stroke:#4596E2}.eco-report-sunburst-lines path.line-none{stroke:#aeb9c8}

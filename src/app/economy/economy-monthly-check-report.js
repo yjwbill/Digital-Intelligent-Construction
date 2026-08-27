@@ -110,13 +110,14 @@ function getEconomyMonthlyCheckStats(projects){
 
 function renderEconomyMonthlyCheckHeader(){
   const columns=getEconomyMonthlyCheckColumns();
+  const contractUnit=getEconomyCommandDisplayUnit("万元");
   const groups=[];
   columns.forEach(column=>{
     const current=groups[groups.length-1];
     if(current?.label===column.group)current.count+=1;
     else groups.push({label:column.group,count:1});
   });
-  return `<thead><tr><th rowspan="2" class="sticky-seq">序号</th><th rowspan="2" class="sticky-company">子公司</th><th rowspan="2" class="sticky-branch">分公司</th><th rowspan="2" class="sticky-project">项目名称</th><th rowspan="2">合同金额<br>（万元）</th><th rowspan="2">目标利润率<br>（含税）</th><th rowspan="2">开累产值<br>完成率</th>${groups.map(group=>`<th colspan="${group.count}" class="warning-group">${group.label}</th>`).join("")}</tr><tr>${columns.map(column=>`<th class="${column.key.endsWith("Level")?'primary-warning-title':''}">${column.label}</th>`).join("")}</tr></thead>`;
+  return `<thead><tr><th rowspan="2" class="sticky-seq">序号</th><th rowspan="2" class="sticky-company">子公司</th><th rowspan="2" class="sticky-branch">分公司</th><th rowspan="2" class="sticky-project">项目名称</th><th rowspan="2">合同金额<br>（${contractUnit}）</th><th rowspan="2">目标利润率<br>（含税）</th><th rowspan="2">开累产值<br>完成率</th>${groups.map(group=>`<th colspan="${group.count}" class="warning-group">${group.label}</th>`).join("")}</tr><tr>${columns.map(column=>`<th class="${column.key.endsWith("Level")?'primary-warning-title':''}">${column.label}</th>`).join("")}</tr></thead>`;
 }
 
 function renderEconomyMonthlyCheckCompany(group,groupIndex){
@@ -138,7 +139,8 @@ function renderEconomyMonthlyCheckCompany(group,groupIndex){
     <div class="economy-monthly-table-wrap"><table style="width:${tableWidth}px">${renderEconomyMonthlyCheckHeader()}<tbody>${group.projects.map((row,index)=>{
       const seed=getEconomyMonthlyCheckSeed(row,index);
       const profit=(.5+(seed%145)/10).toFixed(1);
-      return `<tr><td class="sticky-seq">${index+1}</td><td class="sticky-company">${group.company}</td><td class="sticky-branch">${row.branch||"-"}</td><td class="sticky-project"><button type="button" title="查看项目经济总览" onclick="openEconomyDiagnosisProjectOverview('${escapeAttr(row.sourceProjectId)}')">${row.projectName}</button></td><td class="number" title="${Number(row.contractAmount||0).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})} 万元">${Math.round(Number(row.contractAmount||0))}</td><td>${profit}%</td><td>${Math.round(Number(row.outputProgress||0))}%</td>${columns.map(column=>{const cell=getEconomyMonthlyCheckCell(row,column,index);return `<td class="warning-cell ${cell.unavailable?'unavailable':''}">${renderEconomyMonthlyThunder(cell,column)}</td>`;}).join("")}</tr>`;
+      const contractAmount=Number(convertEconomyCommandMoney(row.contractAmount||0,"万元")),contractUnit=getEconomyCommandDisplayUnit("万元"),contractText=contractAmount.toLocaleString(isEconomyMonthlyCheckEnglish()?"en":"zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2});
+      return `<tr><td class="sticky-seq">${index+1}</td><td class="sticky-company">${group.company}</td><td class="sticky-branch">${row.branch||"-"}</td><td class="sticky-project"><button type="button" title="查看项目经济总览" onclick="openEconomyDiagnosisProjectOverview('${escapeAttr(row.sourceProjectId)}')">${row.projectName}</button></td><td class="number" title="${contractText} ${contractUnit}">${contractText}</td><td>${profit}%</td><td>${Math.round(Number(row.outputProgress||0))}%</td>${columns.map(column=>{const cell=getEconomyMonthlyCheckCell(row,column,index);return `<td class="warning-cell ${cell.unavailable?'unavailable':''}">${renderEconomyMonthlyThunder(cell,column)}</td>`;}).join("")}</tr>`;
     }).join("")}</tbody></table></div>
   </section>`;
 }
@@ -157,11 +159,10 @@ function renderEconomyMonthlyCheckReport(){
   const summaryLabels=isEconomyMonthlyCheckEnglish()?["Subsidiaries","Online Projects","Warning Projects","Unrectified Projects"]:["子公司","在线项目","预警项目","未整改项目"];
   return `<div class="economy-monthly-check-report ${isEconomyMonthlyCheckInternational()?'international':''}">
     <header class="economy-monthly-check-toolbar">
-      <div><h1>${reportTitle}</h1><p>${formatEconomyMonthlyCheckMonth(true)}</p></div>
-      <div class="economy-monthly-check-summary"><span>${summaryLabels[0]}<strong>${groups.length}</strong></span><span>${summaryLabels[1]}<strong>${total}</strong></span><span>${summaryLabels[2]}<strong>${warning}</strong></span><span>${summaryLabels[3]}<strong>${unresolved}</strong></span></div>
+      <div class="economy-monthly-check-heading"><div><h1>${reportTitle}</h1><p>${formatEconomyMonthlyCheckMonth(true)}</p></div><nav class="economy-monthly-check-nav">${groups.map((group,index)=>`<button type="button" onclick="scrollEconomyMonthlyCheckCompany(${index})">${group.company}<b>${group.projects.length}</b></button>`).join("")}</nav></div>
       <div class="economy-monthly-check-legend">${Object.entries(economyMonthlyCheckMeta).map(([key,item])=>`<span><i class="${key}"></i>${item.label}</span>`).join("")}<span><i class="gray"></i>不满足前置条件</span></div>
+      <div class="economy-monthly-check-summary"><span>${summaryLabels[0]}<strong>${groups.length}</strong></span><span>${summaryLabels[1]}<strong>${total}</strong></span><span>${summaryLabels[2]}<strong>${warning}</strong></span><span>${summaryLabels[3]}<strong>${unresolved}</strong></span></div>
     </header>
-    <nav class="economy-monthly-check-nav">${groups.map((group,index)=>`<button type="button" onclick="scrollEconomyMonthlyCheckCompany(${index})">${group.company}<b>${group.projects.length}</b></button>`).join("")}</nav>
     <main class="economy-monthly-check-content">${groups.map(renderEconomyMonthlyCheckCompany).join("")||`<div class="project-log-empty">${economyMonthlyCheckText("当前筛选范围暂无项目","No projects in the current scope")}</div>`}</main>
   </div>`;
 }

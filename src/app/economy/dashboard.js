@@ -354,7 +354,7 @@ function toggleEconomyDiagnosisSort(key){
 function renderEconomyDashboardHeader(view="diagnosis"){
   const regionFilter=economyDashboardState.edition==="domestic"?`<select id="economyDashboardRegion" class="select" onchange="setEconomyDashboardFilter('region',this.value)"><option value="">区域市场</option>${getEconomyBusinessAnalysisDictionaryOptions("MARKET_AREA").map(x=>`<option ${economyDashboardState.region===x?'selected':''}>${x}</option>`).join('')}</select>`:"";
   const monthPicker=MonthPicker.render({id:"economyDashboardMonth",value:economyDashboardState.month,max:"2026-07",locale:economyDashboardState.edition==="international"&&EconomyI18n.isEnglish()?"en":"zh",placeholder:economyDashboardState.edition==="international"&&EconomyI18n.isEnglish()?"Select month":"请选择年月",className:"economy-diagnosis-month-picker",onChange:value=>setEconomyDashboardFilter("month",value)});
-  const filters=view==="diagnosis"?`<div class="economy-dashboard-filters ${economyDashboardState.edition}"><input id="economyDashboardProject" class="input" placeholder="项目名称" value="${escapeAttr(economyDashboardState.projectName)}" onchange="setEconomyDashboardFilter('projectName',this.value)" onkeydown="if(event.key==='Enter'){this.blur()}"/><select id="economyDashboardType" class="select" onchange="setEconomyDashboardFilter('projectType',this.value)"><option value="">项目类型</option>${economyProjectTypes.map(x=>`<option ${economyDashboardState.projectType===x?'selected':''}>${x}</option>`).join('')}</select>${regionFilter}${monthPicker}<button class="btn primary economy-dashboard-download monthly" onclick="openEconomyMonthlyCheckReport()"><img src="./src/assets/economy/download.svg" alt="" aria-hidden="true">月度检验单</button><button class="btn primary economy-dashboard-download report" onclick="openEconomyAnalysisReport()"><img src="./src/assets/economy/download.svg" alt="" aria-hidden="true">分析报告</button>${EconomyI18n.renderSwitch()}</div>`:"";
+  const filters=view==="diagnosis"?`<div class="economy-dashboard-filters ${economyDashboardState.edition}"><input id="economyDashboardProject" class="input" placeholder="项目名称" value="${escapeAttr(economyDashboardState.projectName)}" onchange="setEconomyDashboardFilter('projectName',this.value)" onkeydown="if(event.key==='Enter'){this.blur()}"/><select id="economyDashboardType" class="select" onchange="setEconomyDashboardFilter('projectType',this.value)"><option value="">项目类型</option>${economyProjectTypes.map(x=>`<option ${economyDashboardState.projectType===x?'selected':''}>${x}</option>`).join('')}</select>${regionFilter}${monthPicker}<button class="btn primary economy-dashboard-download monthly" onclick="openEconomyMonthlyCheckReport()"><img src="./src/assets/economy/download.svg" alt="" aria-hidden="true">月度检验单</button><button class="btn primary economy-dashboard-download report" onclick="openEconomyAnalysisReport()"><img src="./src/assets/economy/download.svg" alt="" aria-hidden="true">分析报告</button>${economyDashboardState.edition==="international"?renderEconomyDiagnosisCurrencyPicker():""}${EconomyI18n.renderSwitch()}</div>`:"";
   return `<div class="safety-screen-header economy-screen-header no-edition-tabs"><div class="screen-brand"><span class="screen-logo">P</span><strong>数智施工项目经济管理平台</strong></div>${filters}</div>`;
 }
 function renderEconomyOrgSwitch(){return DashboardOrgSwitch.render({id:"economy-dashboard-org",records:getEconomyEditionProjects(),state:economyDashboardOrgState,onChange:setEconomyDashboardOrg});}
@@ -403,7 +403,7 @@ function renderEconomyDiagnosisMetrics(list){
   const contract=list.reduce((sum,x)=>sum+x.contractAmount,0);
   const counts=getEconomyWarningProjectCounts(list);
   const warningItems=Object.entries(economyWarningColorMeta).map(([color,meta])=>({label:`${meta.label}预警项目`,value:counts[color],icon:meta.icon,color,warning:true}));
-  const summaryItems=[{label:"项目总数",value:list.length,unit:"个",iconSrc:"./src/assets/economy/project-total.svg",color:"blue"},{label:"合同总金额",value:(contract/10000).toFixed(4),unit:"亿元",iconSrc:"./src/assets/economy/contract-total.svg",color:"orange"}];
+  const summaryItems=[{label:"项目总数",value:list.length,unit:"个",iconSrc:"./src/assets/economy/project-total.svg",color:"blue"},{label:"合同总金额",value:formatEconomyCommandValue(contract/10000,"亿元",4),unit:getEconomyCommandDisplayUnit("亿元"),iconSrc:"./src/assets/economy/contract-total.svg",color:"orange"}];
   const renderItem=item=>`<div class="production-value-metric economy-diagnosis-metric ${item.color} ${item.warning?"warning-clickable":""}">${item.warning?"":`<img class="economy-diagnosis-summary-icon" src="${item.iconSrc}" alt=""/>`}<div><p>${item.label}</p>${item.warning?renderEconomyWarningMetricValue(item,list.length):`<strong>${item.value}<em>${item.unit}</em></strong>`}</div></div>`;
   return `<section class="production-value-top-strip economy-diagnosis-metrics"><div class="economy-diagnosis-summary-group">${summaryItems.map(renderItem).join("")}</div><div class="economy-diagnosis-warning-group">${warningItems.map(renderItem).join("")}</div></section>`;
 }
@@ -470,15 +470,17 @@ function renderEconomyWarningMiniTrend(values){
 }
 function renderEconomyWarningCards(list){return `<section class="economy-warning-card-grid">${economyWarningTypes.map((type,typeIndex)=>{const counts={red:0,orange:0,yellow:0,blue:0};list.forEach(project=>{const color=project.warnings[type.key];if(color)counts[color]++;});const total=Object.values(counts).reduce((sum,value)=>sum+value,0);return `<article class="economy-warning-card"><h3><img src="./src/assets/economy-warning/level-one-warning-title.svg" alt="">${getEconomyWarningDisplayName(type,true)}<b>${total}</b></h3><div class="economy-warning-card-values">${[[counts.red,type.delta[0],"red"],[counts.orange,type.delta[1],"orange"],[counts.yellow,type.delta[2],"yellow"],[counts.blue,type.delta[3],"blue"]].map(([value,desiredDelta,color],colorIndex)=>{const trend=getEconomyWarningCardTrend(typeIndex,colorIndex,value,desiredDelta);return `<button type="button" class="economy-warning-card-value ${color}" onclick="openEconomyWarningProjectDrill('${color}','${type.key}')" title="查看${getEconomyWarningDisplayName(type)}的${economyWarningColorMeta[color].label}预警项目"><strong>${value}</strong><span><em>${trend.delta>0?'+':''}${trend.delta}</em>${renderEconomyWarningMiniTrend(trend.values)}</span></button>`;}).join('')}</div></article>`;}).join('')}</section>`;}
 tableColumnDefinitions.economyDiagnosis=[
-  {key:"index",title:"序号",width:50,minWidth:40,align:"center",render:(x,index)=>index+1},
-  {key:"projectType",title:"项目类型",width:80,align:"center",render:x=>renderEconomyProjectTypeTag(x.projectType)},
-  {key:"projectName",title:"项目名称",width:360,align:"left",render:x=>`<div class="economy-project-name-cell"><button type="button" class="link" title="${escapeAttr(x.projectName)}" onclick="openEconomyDiagnosisProjectOverview('${escapeAttr(x.sourceProjectId)}')">${x.projectName}</button></div>`},
-  {key:"organization",title:"子公司/分公司（项管部）",width:220,align:"center",render:x=>`${x.company}/${x.branch}`},
-  {key:"contractAmount",title:"合同金额（万元）",width:140,align:"center",sortable:true,render:x=>x.contractAmount.toLocaleString("zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2})},
-  {key:"outputProgress",title:"产值进度",width:90,align:"center",sortable:true,render:x=>`${x.outputProgress.toFixed(2)}%`},
-  ...economyWarningTypes.map(type=>({key:type.key,title:type.name,width:160,align:"center",sortable:true,render:x=>renderEconomyWarningMark(x.warnings[type.key],x.overdue[type.key])}))
+  {key:"index",title:"序号",width:48,minWidth:40,align:"center",render:(x,index)=>index+1},
+  {key:"projectType",title:"项目类型",width:76,align:"center",render:x=>renderEconomyProjectTypeTag(x.projectType)},
+  {key:"projectName",title:"项目名称",width:310,align:"left",render:x=>`<div class="economy-project-name-cell"><button type="button" class="link" title="${escapeAttr(x.projectName)}" onclick="openEconomyDiagnosisProjectOverview('${escapeAttr(x.sourceProjectId)}')">${x.projectName}</button></div>`},
+  {key:"organization",title:"子公司/分公司（项管部）",width:190,align:"center",render:x=>`${x.company}/${x.branch}`},
+  {key:"contractAmount",title:"合同金额（万元）",width:146,align:"center",sortable:true,render:x=>Number(convertEconomyCommandMoney(x.contractAmount,"万元")).toLocaleString("zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2})},
+  {key:"outputProgress",title:"产值进度",width:96,align:"center",sortable:true,render:x=>`${x.outputProgress.toFixed(2)}%`},
+  ...economyWarningTypes.map(type=>({key:type.key,title:type.name,width:126,align:"center",sortable:true,render:x=>renderEconomyWarningMark(x.warnings[type.key],x.overdue[type.key])}))
 ];
 function syncEconomyDiagnosisColumnTitles(){
+  const contractColumn=tableColumnDefinitions.economyDiagnosis.find(item=>item.key==="contractAmount");
+  if(contractColumn)contractColumn.title=`合同金额（${getEconomyCommandDisplayUnit("万元")}）`;
   economyWarningTypes.forEach(type=>{
     const column=tableColumnDefinitions.economyDiagnosis.find(item=>item.key===type.key);
     if(column)column.title=getEconomyWarningDisplayName(type);
@@ -516,7 +518,16 @@ function renderEconomyDiagnosisTable(list){
 }
 function changeEconomyDiagnosisPage(delta){economyDashboardState.page+=Number(delta)||0;renderEconomyDashboardPage("diagnosis");}
 function changeEconomyDiagnosisPageSize(value){economyDashboardState.pageSize=Number(value)||50;economyDashboardState.page=1;renderEconomyDashboardPage("diagnosis");}
-const economyCommandState={month:"2025-03",monthSelected:false,monthPanelOpen:false,monthPanelYear:2025,organization:"",client:"",projectType:"",headquarters:"",region:"",kpi:"profit",trendMode:"company"};
+const economyCommandState={month:"2025-03",monthSelected:false,monthPanelOpen:false,monthPanelYear:2025,currency:"CNY",currencyPanelOpen:false,organization:"",client:"",projectType:"",headquarters:"",region:"",kpi:"profit",trendMode:"company"};
+const economyCurrencyPathIndex=location.pathname.indexOf("/src/");
+const economyCurrencyAppRoot=economyCurrencyPathIndex>=0?location.pathname.slice(0,economyCurrencyPathIndex+1):new URL(".",location.href).pathname;
+const economyCurrencyFlagRoot=new URL(`${economyCurrencyAppRoot}src/assets/economy/currency-flags/`,location.origin).href;
+const economyCommandCurrencies=[
+  {code:"CNY",name:"人民币",flag:`${economyCurrencyFlagRoot}cn.png`,symbol:"¥",rate:1},
+  {code:"HKD",name:"港币",flag:`${economyCurrencyFlagRoot}hk.png`,symbol:"HK$",rate:1.09},
+  {code:"MOP",name:"澳门元",flag:`${economyCurrencyFlagRoot}mo.png`,symbol:"MOP$",rate:1.12},
+  {code:"SGD",name:"新加坡元",flag:`${economyCurrencyFlagRoot}sg.png`,symbol:"S$",rate:.18}
+];
 const economyCommandKpis=[
   {key:"profit",label:"目标利润率(含税)",value:"5.12",unit:"%",average:5.12,values:[38.12,30.48,18.62,9.82,16.35,13.46,5.76]},
   {key:"inventory",label:"项目存货率",value:"12.56",unit:"%",average:12.56,values:[41.26,35.88,20.16,12.52,19.84,15.72,8.66]},
@@ -549,8 +560,12 @@ function moveEconomyCommandMonthYear(delta,event){event?.stopPropagation?.();eco
 function selectEconomyCommandMonth(month,event){event?.stopPropagation?.();const value=`${economyCommandState.monthPanelYear}-${String(month).padStart(2,"0")}`;if(value>getCurrentMonthValue())return;economyCommandState.month=value;economyCommandState.monthSelected=true;economyCommandState.monthPanelOpen=false;renderEconomyDashboardPage("overview");}
 function closeEconomyCommandMonthPicker(){if(!economyCommandState.monthPanelOpen)return;economyCommandState.monthPanelOpen=false;document.getElementById("economyCommandMonthPanel")?.classList.remove("open");document.getElementById("economyCommandMonthInput")?.classList.remove("active");}
 function getEconomyCommandDisplayUnit(unit){
-  if(economyDashboardState.edition!=="international"||!EconomyI18n.isEnglish())return unit;
-  return ({"个":"","亿元":"CNY 100m","万元":"CNY 10k","人":"people","月":"months"})[unit]??unit;
+  if(economyDashboardState.edition!=="international")return unit;
+  const currency=getEconomyCommandCurrency();
+  if(EconomyI18n.isEnglish())return ({"个":"","亿元":`${currency.code} 100m`,"万元":`${currency.code} 10k`,"人":"people","月":"months"})[unit]??unit;
+  if(unit==="亿元")return currency.code==="CNY"?unit:`亿${currency.name}`;
+  if(unit==="万元")return currency.code==="CNY"?unit:`万${currency.name}`;
+  return unit;
 }
 function renderEconomyCommandUnit(unit){const display=getEconomyCommandDisplayUnit(unit);return display?`<em>${display}</em>`:"";}
 function renderEconomyCommandMetricUnitLabel(unit){const display=getEconomyCommandDisplayUnit(unit);return display?`（${display}）`:"";}
@@ -562,7 +577,32 @@ function renderEconomyCommandMonthPanel(){
   panel.innerHTML=economyCommandState.monthPanelOpen?`<div class="SafetyMonthPicker__head"><button type="button" title="上一年" onclick="moveEconomyCommandMonthYear(-1,event)">‹</button><strong>${year}年</strong><button type="button" title="下一年" onclick="moveEconomyCommandMonthYear(1,event)">›</button></div><div class="SafetyMonthPicker__grid">${Array.from({length:12},(_,index)=>index+1).map(month=>{const value=`${year}-${String(month).padStart(2,"0")}`;const disabled=value>currentMonth;return `<button type="button" class="${value===economyCommandState.month?"selected":""} ${disabled?"disabled":""}" ${disabled?"disabled":""} onclick="selectEconomyCommandMonth(${month},event)"><span>${month}月</span></button>`;}).join("")}</div>`:"";
 }
 function renderEconomyCommandMonthPicker(){return `<div class="SafetyMonthPicker economy-command-month-picker" onclick="event.stopPropagation()"><button type="button" class="SafetyMonthPicker__input ${economyCommandState.monthPanelOpen?"active":""}" id="economyCommandMonthInput" onclick="toggleEconomyCommandMonthPicker(event)"><img class="SafetyMonthPicker__calendar" src="./src/assets/economy/economy-month-picker-file.svg" alt=""><span class="SafetyMonthPicker__value">${getEconomyCommandMonthLabel()}</span><img class="SafetyMonthPicker__arrow" src="./src/assets/economy/economy-month-picker-arrow.svg" alt=""></button><div class="SafetyMonthPicker__panel ${economyCommandState.monthPanelOpen?"open":""}" id="economyCommandMonthPanel"></div></div>`;}
+function getEconomyCommandCurrency(){return economyCommandCurrencies.find(item=>item.code===economyCommandState.currency)||economyCommandCurrencies[0];}
+function isEconomyCommandMoneyUnit(unit){return unit==="亿元"||unit==="万元";}
+function convertEconomyCommandMoney(value,unit){const number=Number(value);if(!Number.isFinite(number))return value;return economyDashboardState.edition==="international"&&isEconomyCommandMoneyUnit(unit)?number*getEconomyCommandCurrency().rate:number;}
+function formatEconomyCommandValue(value,unit,digits=2){const converted=convertEconomyCommandMoney(value,unit);return typeof converted==="number"?converted.toFixed(digits):converted;}
+function refreshEconomyCurrencyContext(){
+  if(document.querySelector(".economy-business-analysis-modal")){renderEconomyBusinessAnalysisBody();return EconomyI18n.refreshFullscreenChrome();}
+  if(document.querySelector(".economy-report-modal")){refreshEconomyAnalysisReport();return EconomyI18n.refreshFullscreenChrome();}
+  if(document.querySelector(".economy-monthly-check-modal")){const body=document.querySelector(".economy-monthly-check-modal .modal-bd");if(body){body.innerHTML=renderEconomyMonthlyCheckReport();EconomyI18n.apply(body);}return EconomyI18n.refreshFullscreenChrome();}
+  if(document.querySelector(".economy-project-overview-modal")){const embed=document.getElementById("economyProjectOverviewEmbed");if(embed&&window.__economyProjectOverviewEmbedProject)embed.innerHTML=renderProjectEconomyOverviewContent(window.__economyProjectOverviewEmbedProject);EconomyI18n.apply(modalBody);return EconomyI18n.refreshFullscreenChrome();}
+  if(document.querySelector(".project-economy-overview-page")){renderProjectEconomyOverviewPage();EconomyI18n.apply(listPage);return;}
+  renderEconomyDashboardPage(economyDashboardState.tab);
+}
+function toggleEconomyCommandCurrencyPicker(event){event?.stopPropagation?.();economyCommandState.currencyPanelOpen=!economyCommandState.currencyPanelOpen;economyCommandState.monthPanelOpen=false;refreshEconomyCurrencyContext();}
+function selectEconomyCommandCurrency(code,event){event?.stopPropagation?.();if(!economyCommandCurrencies.some(item=>item.code===code))return;economyCommandState.currency=code;economyCommandState.currencyPanelOpen=false;refreshEconomyCurrencyContext();}
+function closeEconomyCommandCurrencyPicker(){if(!economyCommandState.currencyPanelOpen)return;economyCommandState.currencyPanelOpen=false;document.querySelectorAll(".economy-command-currency-picker,.economy-diagnosis-currency-picker").forEach(node=>node.classList.remove("open"));document.querySelectorAll(".economy-command-currency-input,.economy-diagnosis-currency-input").forEach(node=>node.classList.remove("active"));}
+function renderEconomyCommandCurrencyPicker(){
+  const current=getEconomyCommandCurrency();
+  return `<div class="economy-command-currency-picker ${economyCommandState.currencyPanelOpen?"open":""}" id="economyCommandCurrencyPicker" onclick="event.stopPropagation()"><button type="button" class="economy-command-currency-input ${economyCommandState.currencyPanelOpen?"active":""}" id="economyCommandCurrencyButton" aria-haspopup="listbox" aria-expanded="${economyCommandState.currencyPanelOpen}" onclick="toggleEconomyCommandCurrencyPicker(event)"><img class="economy-command-currency-flag" src="${current.flag}" alt=""><span class="economy-command-currency-name">${current.name}</span><span class="economy-command-currency-symbol">${current.symbol}</span><img src="./src/assets/economy/economy-month-picker-arrow.svg" alt=""></button><div class="economy-command-currency-panel" role="listbox">${economyCommandCurrencies.map(item=>`<button type="button" role="option" aria-selected="${item.code===current.code}" class="${item.code===current.code?"selected":""}" onclick="selectEconomyCommandCurrency('${item.code}',event)"><img src="${item.flag}" alt=""><strong>${item.name}</strong><em>${item.symbol}</em></button>`).join("")}</div></div>`;
+}
+function renderEconomyDiagnosisCurrencyPicker(prefix="economyDiagnosisCurrency"){
+  const current=getEconomyCommandCurrency();
+  return `<div class="economy-diagnosis-currency-picker ${economyCommandState.currencyPanelOpen?"open":""}" id="${prefix}Picker" onclick="event.stopPropagation()"><button type="button" class="economy-diagnosis-currency-input ${economyCommandState.currencyPanelOpen?"active":""}" id="${prefix}Button" aria-haspopup="listbox" aria-expanded="${economyCommandState.currencyPanelOpen}" onclick="toggleEconomyCommandCurrencyPicker(event)"><img class="economy-diagnosis-currency-flag" src="${current.flag}" alt=""><span>${current.name}</span><em>${current.symbol}</em><img class="economy-diagnosis-currency-arrow" src="./src/assets/tdesign-icons/chevron-down.svg?v=0.4.6-corrected" alt=""></button><div class="economy-diagnosis-currency-panel" role="listbox">${economyCommandCurrencies.map(item=>`<button type="button" role="option" aria-selected="${item.code===current.code}" class="${item.code===current.code?"selected":""}" onclick="selectEconomyCommandCurrency('${item.code}',event)"><img src="${item.flag}" alt=""><strong>${item.name}</strong><em>${item.symbol}</em></button>`).join("")}</div></div>`;
+}
+function renderEconomyCommandExchangeRate(){const currency=getEconomyCommandCurrency();return `1 人民币（CNY）= ${currency.rate.toFixed(currency.code==="CNY"?2:currency.code==="SGD"?2:2)} ${currency.name}（${currency.code}）`;}
 document.addEventListener("click",closeEconomyCommandMonthPicker);
+document.addEventListener("click",closeEconomyCommandCurrencyPicker);
 function toggleEconomyCommandFullscreen(){
   const screen=document.getElementById("economyCommandScreen");
   if(!screen)return;
@@ -594,12 +634,18 @@ const economyBusinessAnalysisMetricDefinitions=[
   {key:"ownerArrears",label:"业主拖欠款",unit:"万元",values:[81872,0,38587,42816,0,469]},
   {key:"comprehensiveTaxBurden",label:"综合税负率",unit:"%",values:[3.2,2.8,4.1,3.6,2.4,3.8]}
 ];
+const economyBusinessAnalysisInternationalMetricDefinitions=[
+  {key:"revenueOutputVariance",label:"营收产值偏差值",unit:"万元",values:[-18.2,-24.6,-28.4,-30.1,-31.4,-32.17]},
+  {key:"accruedProfitRate",label:"计提利润率",unit:"%",values:[5.16,5.04,4.96,4.88,4.84,4.82]},
+  {key:"assessedTargetProfitRate",label:"考核目标利润率",unit:"%",values:[5.4,5.35,5.3,5.25,5.22,5.2]}
+];
 const economyBusinessAnalysisMetricGroups=[
   ["control","管控类",["targetProfitRate","ownerArrears","projectManagementFee","settlementCycle","comprehensiveTaxBurden"]],
   ["attention","关注类",["riskInventoryRate","projectSafetyFee"]],
   ["observation","观测类",["projectInsuranceRate","fullCycleEfficiency"]]
 ];
-function getEconomyBusinessAnalysisMetricDefinitions(){return economyBusinessAnalysisMetricDefinitions;}
+function getEconomyBusinessAnalysisMetricDefinitions(){return economyDashboardState.edition==="international"?economyBusinessAnalysisInternationalMetricDefinitions:economyBusinessAnalysisMetricDefinitions;}
+function getEconomyBusinessAnalysisGroups(){return economyDashboardState.edition==="international"?[["company","公司"],["region","国家/地区"],["sector","项目类型"]]:[["company","子公司"],["region","区域市场"],["sector","项目类型"],["client","重点客户"]];}
 function getEconomyBusinessAnalysisMetric(){const list=getEconomyBusinessAnalysisMetricDefinitions();return list.find(item=>item.key===economyBusinessAnalysisState.metric)||list[0];}
 function getEconomyBusinessAnalysisOrderedMetrics(){const definitions=getEconomyBusinessAnalysisMetricDefinitions();const order=Array.isArray(economyBusinessAnalysisState.metricOrder)?economyBusinessAnalysisState.metricOrder:[];const ordered=order.map(key=>definitions.find(item=>item.key===key)).filter(Boolean);return [...ordered,...definitions.filter(item=>!order.includes(item.key))];}
 function resetEconomyBusinessAnalysisMetricOrder(){economyBusinessAnalysisState.metricOrder=getEconomyBusinessAnalysisMetricDefinitions().map(item=>item.key);}
@@ -634,11 +680,12 @@ function renderEconomyBusinessAnalysisSelect(key,label,options,placeholder="全�
 }
 function renderEconomyBusinessAnalysisFilters(){
   const periods=getEconomyBusinessAnalysisPeriods();
-  const companies=getEconomyBusinessAnalysisCompanies();
-  const regions=getEconomyBusinessAnalysisDictionaryOptions("MARKET_AREA");
+  const international=economyDashboardState.edition==="international";
+  const companies=international?getEconomyCommandInternationalBranchNames():getEconomyBusinessAnalysisCompanies();
+  const regions=international?["新加坡","香港","澳门"]:getEconomyBusinessAnalysisDictionaryOptions("MARKET_AREA");
   const projectTypes=getEconomyBusinessAnalysisDictionaryOptions("PROJECT_TYPE");
   const keyCustomers=typeof getKeyCustomerDictionaryOptionsV2284==="function"?getKeyCustomerDictionaryOptionsV2284():["上海久事","上海城投","上海机场","上海地产","上海申迪","上海临港新城","上海申通"];
-  return `<section class="economy-business-filter"><h3>筛选条件</h3>${renderEconomyBusinessAnalysisSelect("period","诊断期数",periods,"请选择诊断期数")}${renderEconomyBusinessAnalysisSelect("company","子公司",companies)}${renderEconomyBusinessAnalysisSelect("region","区域市场",regions)}${renderEconomyBusinessAnalysisSelect("projectType","项目类型",projectTypes)}${renderEconomyBusinessAnalysisSelect("client","重点客户",keyCustomers)}</section>`;
+  return `<section class="economy-business-filter"><h3>筛选条件</h3>${renderEconomyBusinessAnalysisSelect("period","诊断期数",periods,"请选择诊断期数")}${renderEconomyBusinessAnalysisSelect("company",international?"公司":"子公司",companies)}${renderEconomyBusinessAnalysisSelect("region",international?"国家/地区":"区域市场",regions)}${renderEconomyBusinessAnalysisSelect("projectType","项目类型",projectTypes)}${international?"":renderEconomyBusinessAnalysisSelect("client","重点客户",keyCustomers)}</section>`;
 }
 function setEconomyBusinessAnalysisFilter(key,value){economyBusinessAnalysisState[key]=String(value||"").trim();renderEconomyBusinessAnalysisBody();}
 function applyEconomyBusinessAnalysisFilters(){
@@ -664,24 +711,25 @@ function getEconomyBusinessAnalysisValues(metric,group){
   return values.map((value,index)=>Number((value*multiplier*(1+(index%3-1)*.06)).toFixed(2)));
 }
 function getEconomyBusinessAnalysisDisplayUnit(unit){
+  if(economyDashboardState.edition==="international"&&isEconomyCommandMoneyUnit(unit))return getEconomyCommandDisplayUnit(unit);
   return EconomyI18n.isEnglish()&&unit==="月"?"monthly":unit;
 }
 function renderEconomyBusinessAnalysisBars(metric,group){
   const labels=getEconomyBusinessAnalysisLabels(group);
-  const values=getEconomyBusinessAnalysisValues(metric,group).slice(0,labels.length);
+  const values=getEconomyBusinessAnalysisValues(metric,group).slice(0,labels.length).map(value=>convertEconomyCommandMoney(value,metric.unit));
   const max=Math.max(...values.map(value=>Math.abs(value)),1);
   const average=values.length?values.reduce((sum,value)=>sum+value,0)/values.length:0;
   const averagePosition=Math.max(0,Math.min(100,(1-average/max)*100));
   const averageText=average.toFixed(Math.abs(average)>=100?0:2);
   const displayUnit=getEconomyBusinessAnalysisDisplayUnit(metric.unit);
-  return `<div class="economy-business-chart"><div class="economy-business-chart-body"><div class="economy-business-y-axis"><span>${max}${displayUnit}</span><span>${(max*.5).toFixed(1)}${displayUnit}</span><span>0</span></div><div class="economy-business-bars"><div class="economy-business-average-line" style="top:${averagePosition}%"><span>平均值：${averageText}${displayUnit}</span></div>${values.map((value,index)=>`<div class="economy-business-bar-column"><strong>${value.toFixed(Math.abs(value)>=100?0:2)}${displayUnit}</strong><i class="${value>=average?"above-average":"below-average"}" style="height:${Math.max(Math.abs(value)/max*78,2)}%" title="${labels[index]}：${value}${displayUnit}"></i><span title="${labels[index]}">${labels[index]}</span></div>`).join("")}</div></div><div class="economy-business-chart-legend"><span class="target">统计值</span><span>${metric.label}（${displayUnit}）</span></div></div>`;
+  return `<div class="economy-business-chart"><div class="economy-business-chart-body"><div class="economy-business-y-axis"><span>${max.toFixed(Math.abs(max)>=100?0:2)}${displayUnit}</span><span>${(max*.5).toFixed(1)}${displayUnit}</span><span>0</span></div><div class="economy-business-bars"><div class="economy-business-average-line" style="top:${averagePosition}%"><span>平均值：${averageText}${displayUnit}</span></div>${values.map((value,index)=>`<div class="economy-business-bar-column"><strong>${value.toFixed(Math.abs(value)>=100?0:2)}${displayUnit}</strong><i class="${value>=average?"above-average":"below-average"}" style="height:${Math.max(Math.abs(value)/max*78,2)}%" title="${labels[index]}：${value.toFixed(2)}${displayUnit}"></i><span title="${labels[index]}">${labels[index]}</span></div>`).join("")}</div></div><div class="economy-business-chart-legend"><span class="target">统计值</span><span>${metric.label}（${displayUnit}）</span></div></div>`;
 }
 function renderEconomyBusinessAnalysisCard(title,metric,group){return `<article class="economy-business-chart-card"><header><strong>${title}</strong><button type="button" title="放大查看" aria-label="放大查看">↗</button></header>${renderEconomyBusinessAnalysisBars(metric,group)}</article>`;}
 function setEconomyBusinessAnalysisMode(mode){economyBusinessAnalysisState.mode=mode==="metric"?"metric":"theme";renderEconomyBusinessAnalysisBody();}
 function setEconomyBusinessAnalysisGroup(group){economyBusinessAnalysisState.group=group;renderEconomyBusinessAnalysisBody();}
 function setEconomyBusinessAnalysisMetric(metric){economyBusinessAnalysisState.metric=metric;renderEconomyBusinessAnalysisBody();}
 function renderEconomyBusinessAnalysisBody(){const body=document.querySelector(".economy-business-analysis-modal .modal-bd");if(!body)return;body.innerHTML=renderEconomyBusinessAnalysis();applyEconomyBusinessAnalysisFilters();EconomyI18n.apply(body);EconomyI18n.refreshFullscreenChrome();}
-function renderEconomyCommandKpis(){const activeKpi=getEconomyCommandKpi();return `<div class="economy-command-kpis">${getEconomyCommandKpiList().map(item=>`<button type="button" class="economy-command-kpi ${item.key===activeKpi.key?"active":""}" aria-pressed="${item.key===activeKpi.key}" onclick="setEconomyCommandKpi('${item.key}')"><span>${item.label}<i title="${item.label}说明">i</i></span><strong>${item.value}${renderEconomyCommandUnit(item.unit)}</strong></button>`).join("")}</div>`;}
+function renderEconomyCommandKpis(){const activeKpi=getEconomyCommandKpi();return `<div class="economy-command-kpis">${getEconomyCommandKpiList().map(item=>`<button type="button" class="economy-command-kpi ${item.key===activeKpi.key?"active":""}" aria-pressed="${item.key===activeKpi.key}" onclick="setEconomyCommandKpi('${item.key}')"><span>${item.label}<i title="${item.label}说明">i</i></span><strong>${isEconomyCommandMoneyUnit(item.unit)?formatEconomyCommandValue(item.value,item.unit):item.value}${renderEconomyCommandUnit(item.unit)}</strong></button>`).join("")}</div>`;}
 const economyCommandMarketAreaPositions={
   CSJ:{left:85,top:64,factor:1.08},
   DW:{left:79,top:83,factor:.96},
@@ -711,7 +759,7 @@ function renderEconomyInternationalConnections(activeKpi){
     const controlY=Math.min(source.top,target.top)-lift;
     return `<path d="M ${source.left} ${source.top} Q ${controlX} ${controlY} ${target.left} ${target.top}"/>`;
   }).join("");
-  const point=(item,withValue)=>`<button type="button" class="economy-map-point economy-international-map-point region-${item.code} ${withValue?"is-region":"is-source"}" style="left:${item.left}%;top:${item.top}%" ${withValue?`onclick="showToast('${item.name}：${activeKpi.label} ${(Number(activeKpi.value)*item.factor).toFixed(2)}${getEconomyCommandDisplayUnit(activeKpi.unit)}')"`:""}><b>${item.name}</b>${withValue?`<span>${(Number(activeKpi.value)*item.factor).toFixed(2)}${getEconomyCommandDisplayUnit(activeKpi.unit)}</span>`:""}</button>`;
+  const point=(item,withValue)=>{const value=formatEconomyCommandValue(Number(activeKpi.value)*item.factor,activeKpi.unit);return `<button type="button" class="economy-map-point economy-international-map-point region-${item.code} ${withValue?"is-region":"is-source"}" style="left:${item.left}%;top:${item.top}%" ${withValue?`onclick="showToast('${item.name}：${activeKpi.label} ${value}${getEconomyCommandDisplayUnit(activeKpi.unit)}')"`:""}><b>${item.name}</b>${withValue?`<span>${value}${getEconomyCommandDisplayUnit(activeKpi.unit)}</span>`:""}</button>`;};
   return `<div class="economy-international-overlay"><svg class="economy-international-connections" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><filter id="economyInternationalGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation=".7" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g filter="url(#economyInternationalGlow)">${pathData}</g></svg>${point(source,false)}${targets.map(item=>point(item,true)).join("")}</div>`;
 }
 function renderEconomyCommandMap(){
@@ -734,7 +782,7 @@ function getEconomyCommandTrendCompanyNames(){
   return economyDashboardState.edition==="international"?getEconomyCommandInternationalBranchNames():domesticNames;
 }
 function renderEconomyCommandTrend(kpi=getEconomyCommandKpi()){
-  const values=kpi.values;
+  const values=kpi.values.map(value=>convertEconomyCommandMoney(value,kpi.unit));
   const companyNames=getEconomyCommandTrendCompanyNames();
   const [selectedYear,selectedMonth]=economyCommandState.month.split("-").map(Number);
   const monthNames=Array.from({length:values.length},(_,index)=>{
@@ -742,7 +790,8 @@ function renderEconomyCommandTrend(kpi=getEconomyCommandKpi()){
     return `${String(date.getMonth()+1).padStart(2,"0")}月`;
   });
   const names=economyCommandState.trendMode==="trend"?monthNames:companyNames.slice(0,values.length);
-  return `<div class="economy-command-trend ${economyCommandState.trendMode==="trend"?"is-trend":"is-company"}"><div class="economy-trend-y">${[50,40,30,20,10,0].map(value=>`<span>${value}</span>`).join("")}</div><div class="economy-trend-plot"><div class="economy-trend-average" style="bottom:${Math.min(92,Math.max(8,kpi.average))}%"><span>加权平均值 ${kpi.value}${getEconomyCommandDisplayUnit(kpi.unit)}</span></div>${values.map((value,index)=>{const barHeight=Math.max(5,value/50*100);return `<div class="economy-trend-column" style="--bar-height:${barHeight}%"><span class="economy-trend-value">${value.toFixed(2)}</span><i style="height:var(--bar-height)"></i><b title="${names[index]}">${names[index]}</b></div>`;}).join("")}<svg viewBox="0 0 700 180" preserveAspectRatio="none" aria-hidden="true"><polyline points="50,40 150,65 250,72 350,104 450,115 550,134 650,169"/></svg></div><div class="economy-trend-legend"><span class="line">${kpi.label}${renderEconomyCommandMetricUnitLabel(kpi.unit)}</span><span class="dash">加权平均值</span><span class="bar">${kpi.label}统计值</span></div></div>`;
+  const currencyScale=isEconomyCommandMoneyUnit(kpi.unit)?getEconomyCommandCurrency().rate:1;
+  return `<div class="economy-command-trend ${economyCommandState.trendMode==="trend"?"is-trend":"is-company"}"><div class="economy-trend-y">${[50,40,30,20,10,0].map(value=>`<span>${(value*currencyScale).toFixed(currencyScale===1?0:1)}</span>`).join("")}</div><div class="economy-trend-plot"><div class="economy-trend-average" style="bottom:${Math.min(92,Math.max(8,kpi.average))}%"><span>加权平均值 ${formatEconomyCommandValue(kpi.value,kpi.unit)}${getEconomyCommandDisplayUnit(kpi.unit)}</span></div>${values.map((value,index)=>{const barHeight=Math.max(5,value/(50*currencyScale)*100);return `<div class="economy-trend-column" style="--bar-height:${barHeight}%"><span class="economy-trend-value">${value.toFixed(2)}</span><i style="height:var(--bar-height)"></i><b title="${names[index]}">${names[index]}</b></div>`;}).join("")}<svg viewBox="0 0 700 180" preserveAspectRatio="none" aria-hidden="true"><polyline points="50,40 150,65 250,72 350,104 450,115 550,134 650,169"/></svg></div><div class="economy-trend-legend"><span class="line">${kpi.label}${renderEconomyCommandMetricUnitLabel(kpi.unit)}</span><span class="dash">加权平均值</span><span class="bar">${kpi.label}统计值</span></div></div>`;
 }
 function renderEconomyCommandTypes(){
   const groups=[["市政","12 | 5.71%","能源","12 | 4.46%","公路","25 | 5.43%","机场","2 | 5.01%"],["市政-大隧道","12 | 5.71%","片区开发","5 | 3.99%","地下工程","4 | 3.98%"],["市政-非大隧道","12 | 5.71%","轨交","7 | 5.42%","排水环保","2 | 3.68%"]];
@@ -753,7 +802,7 @@ function renderEconomyCommandJvAnalysis(){
     {party:"我方",share:"55",investment:"860.00",managers:"12"},
     {party:"合作方",share:"45",investment:"700.00",managers:"9"}
   ];
-  return `<div class="economy-command-jv-analysis"><table><thead><tr><th>合作主体</th><th>分成比例</th><th>投入资金</th><th>管理人员数量</th></tr></thead><tbody>${rows.map(row=>`<tr><th>${row.party}</th><td><strong>${row.share}</strong><em>%</em></td><td><strong>${row.investment}</strong>${renderEconomyCommandUnit("万元")}</td><td><strong>${row.managers}</strong>${renderEconomyCommandUnit("人")}</td></tr>`).join("")}</tbody></table></div>`;
+  return `<div class="economy-command-jv-analysis"><table><thead><tr><th>合作主体</th><th>分成比例</th><th>投入资金</th><th>管理人员数量</th></tr></thead><tbody>${rows.map(row=>`<tr><th>${row.party}</th><td><strong>${row.share}</strong><em>%</em></td><td><strong>${formatEconomyCommandValue(row.investment,"万元")}</strong>${renderEconomyCommandUnit("万元")}</td><td><strong>${row.managers}</strong>${renderEconomyCommandUnit("人")}</td></tr>`).join("")}</tbody></table></div>`;
 }
 function getEconomyCommandWarningCompanies(){
   if(economyDashboardState.edition!=="international")return economyCommandCompanies;
@@ -810,14 +859,14 @@ function renderEconomyOverview(){
   const metricAssetVersion="2.2.683";
   const metrics=[["经济纳管项目","195","941.14",`./src/assets/economy/economy-metric-managed.svg?v=${metricAssetVersion}`],["在建项目","188","888.64",`./src/assets/economy/economy-metric-under-construction.svg?v=${metricAssetVersion}`],["完工待结算项目","8","49.4",`./src/assets/economy/economy-metric-pending-settlement.svg?v=${metricAssetVersion}`],["已结算未销项项目","1","1.99",`./src/assets/economy/economy-metric-settled-unclosed.svg?v=${metricAssetVersion}`]];
   return `<section class="economy-command-screen ${international?`international ${EconomyI18n.isEnglish()?"english":"chinese"}`:"domestic"}" id="economyCommandScreen">
-    <header class="economy-command-head"><div class="economy-command-brand"><span><img src="./src/assets/digital-construction-logo.svg" alt="数智施工"></span><strong>数智施工项目经济管理平台</strong></div><div class="economy-command-head-actions">${renderEconomyCommandMonthPicker()}${EconomyI18n.renderSwitch()}<button type="button" title="全屏投屏" onclick="toggleEconomyCommandFullscreen()">⛶</button></div></header>
+    <header class="economy-command-head"><div class="economy-command-brand"><span><img src="./src/assets/digital-construction-logo.svg" alt="数智施工"></span><strong>数智施工项目经济管理平台</strong></div><div class="economy-command-head-actions">${renderEconomyCommandMonthPicker()}${international?renderEconomyCommandCurrencyPicker():""}${EconomyI18n.renderSwitch()}<button type="button" title="全屏投屏" onclick="toggleEconomyCommandFullscreen()">⛶</button></div></header>
     <div class="economy-command-filters"><div class="economy-command-filter-fields">${renderEconomyCommandSelect("organization","所属组织",selectOptions.organization)}${renderEconomyCommandSelect("client","集团重点客户",selectOptions.client)}${renderEconomyCommandSelect("projectType","项目类型",selectOptions.projectType)}${renderEconomyCommandSelect("headquarters","区域总部",selectOptions.headquarters)}${renderEconomyCommandSelect("region",international?"所属区域":"区域市场",selectOptions.region)}</div><nav><button onclick="openEconomyRiskWarning()">项目风险预警</button><button onclick="openEconomyBusinessVisualization()">业务可视化分析</button><button onclick="openEconomyAnalysisReport()">经济分析报告</button></nav></div>
     <div class="economy-command-grid">
-      <main class="economy-command-main"><div class="economy-command-metrics">${metrics.map(item=>`<article><i><img src="${item[3]}" alt="${item[0]}"></i><div><span>${item[0]} ⓘ</span><strong>${item[1]}${renderEconomyCommandUnit("个")}<small>|</small>${item[2]}${renderEconomyCommandUnit("亿元")}</strong></div></article>`).join("")}</div>
-        <section class="economy-command-overview">${renderEconomyCommandSectionTitle("项目经济指标总览",`<span>当前主题为 <b>【${activeKpi.label}】</b>${dataRange?`，数据范围 <b>${dataRange}</b>`:""}</span>`)}<div class="economy-command-map-layout">${renderEconomyCommandKpis()}${renderEconomyCommandMap()}</div></section>
+      <main class="economy-command-main"><div class="economy-command-metrics">${metrics.map(item=>`<article><i><img src="${item[3]}" alt="${item[0]}"></i><div><span>${item[0]} ⓘ</span><strong>${item[1]}${renderEconomyCommandUnit("个")}<small>|</small>${formatEconomyCommandValue(item[2],"亿元")}${renderEconomyCommandUnit("亿元")}</strong></div></article>`).join("")}</div>
+        <section class="economy-command-overview">${renderEconomyCommandSectionTitle("项目经济指标总览",`<span>当前主题为 <b>【${activeKpi.label}】</b>${dataRange?`，数据范围 <b>${dataRange}</b>`:""}</span>`)}${international?`<div class="economy-command-map-exchange-rate">当前汇率：${renderEconomyCommandExchangeRate()}</div>`:""}<div class="economy-command-map-layout">${renderEconomyCommandKpis()}${renderEconomyCommandMap()}</div></section>
         <div class="economy-command-bottom"><section class="${jvAnalysis?"economy-command-jv-section":""}">${jvAnalysis?`${renderEconomyCommandSectionTitle("JV项目分析",'<span class="economy-command-jv-badge">JV项目适用</span>')}${renderEconomyCommandJvAnalysis()}`:`${renderEconomyCommandSectionTitle(activeKpi.label,renderEconomyCommandTrendTabs())}${renderEconomyCommandTrend(activeKpi)}`}</section><section>${renderEconomyCommandSectionTitle("项目类型分析")}${renderEconomyCommandTypes()}</section></div>
       </main>
-      <aside class="economy-command-side"><div class="economy-command-risk-total"><img class="economy-command-risk-alert" src="./src/assets/economy/economy-risk-alert.png" alt="风险警示"><span>经济风险项目（红色/橙色/黄色/蓝色风险）</span><div><b class="red"><i></i>11${renderEconomyCommandUnit("个")} | 40.59${renderEconomyCommandUnit("亿元")}</b><b class="orange"><i></i>44${renderEconomyCommandUnit("个")} | 222.65${renderEconomyCommandUnit("亿元")}</b><b class="yellow"><i></i>49${renderEconomyCommandUnit("个")} | 17111.77${renderEconomyCommandUnit("亿元")}</b><b class="blue"><i></i>29${renderEconomyCommandUnit("个")} | 1111119.81${renderEconomyCommandUnit("亿元")}</b></div><div class="economy-command-mascot"><img src="./src/assets/economy/economy-xiaoan.png" alt="小安"><strong>🔥 × 122</strong></div></div><section>${renderEconomyCommandSectionTitle("风险预警分布")}${renderEconomyCommandWarningDistribution()}</section><section class="economy-command-reasons">${renderEconomyCommandSectionTitle("主要原因分析")}${renderEconomyCommandReasons()}</section></aside>
+      <aside class="economy-command-side"><div class="economy-command-risk-total"><img class="economy-command-risk-alert" src="./src/assets/economy/economy-risk-alert.png" alt="风险警示"><span>经济风险项目（红色/橙色/黄色/蓝色风险）</span><div><b class="red"><i></i>11${renderEconomyCommandUnit("个")} | ${formatEconomyCommandValue(40.59,"亿元")}${renderEconomyCommandUnit("亿元")}</b><b class="orange"><i></i>44${renderEconomyCommandUnit("个")} | ${formatEconomyCommandValue(222.65,"亿元")}${renderEconomyCommandUnit("亿元")}</b><b class="yellow"><i></i>49${renderEconomyCommandUnit("个")} | ${formatEconomyCommandValue(17111.77,"亿元")}${renderEconomyCommandUnit("亿元")}</b><b class="blue"><i></i>29${renderEconomyCommandUnit("个")} | ${formatEconomyCommandValue(1111119.81,"亿元")}${renderEconomyCommandUnit("亿元")}</b></div><div class="economy-command-mascot"><img src="./src/assets/economy/economy-xiaoan.png" alt="小安"><strong>🔥 × 122</strong></div></div><section>${renderEconomyCommandSectionTitle("风险预警分布")}${renderEconomyCommandWarningDistribution()}</section><section class="economy-command-reasons">${renderEconomyCommandSectionTitle("主要原因分析")}${renderEconomyCommandReasons()}</section></aside>
     </div>
   </section>`;
 }
@@ -844,7 +893,8 @@ function renderEconomyDashboardPage(view="diagnosis"){
 function renderEconomyBusinessAnalysis(){
   const metric=getEconomyBusinessAnalysisMetric();
   const metrics=getEconomyBusinessAnalysisOrderedMetrics();
-  const groups=[["company","子公司"],["region","区域市场"],["sector","项目类型"],["client","重点客户"]];
+  const international=economyDashboardState.edition==="international";
+  const groups=getEconomyBusinessAnalysisGroups();
   const selectedGroup=groups.find(([key])=>key===economyBusinessAnalysisState.group)||groups[0];
   const themeCards=metrics.map(item=>renderEconomyBusinessAnalysisCard(`${item.label} - ${selectedGroup[1]}`,item,economyBusinessAnalysisState.group));
   const metricCards=groups.map(([key,label])=>renderEconomyBusinessAnalysisCard(`${metric.label} - ${label}`,metric,key));
@@ -853,7 +903,9 @@ function renderEconomyBusinessAnalysis(){
     ?groups.map(([key,label])=>`<button type="button" class="${key===economyBusinessAnalysisState.group?"active":""}" data-group="${key}" onclick="setEconomyBusinessAnalysisGroup(this.dataset.group)"><img class="economy-business-drag-icon" src="./src/assets/tdesign-icons/drag-move.svg" alt="可拖动">${label}</button>`).join("")
     :metrics.map(item=>`<button type="button" class="${item.key===metric.key?"active":""}" data-metric="${item.key}" draggable="true" aria-grabbed="false" title="拖动调整指标顺序" onclick="setEconomyBusinessAnalysisMetric(this.dataset.metric)"><img class="economy-business-drag-icon" src="./src/assets/tdesign-icons/drag-move.svg" alt="可拖动">${item.label}</button>`).join("");
   const topTabs=economyBusinessAnalysisState.mode==="metric"
-    ?economyBusinessAnalysisMetricGroups.map(([key,label,metricKeys])=>`<div class="economy-business-metric-group"><span>${label}</span><div>${metricKeys.map(metricKey=>{const item=getEconomyBusinessAnalysisMetricDefinitions().find(entry=>entry.key===metricKey);return `<button type="button" class="${item.key===metric.key?"active":""}" data-metric="${item.key}" onclick="setEconomyBusinessAnalysisMetric(this.dataset.metric)">${item.label}</button>`;}).join("")}</div></div>`).join("")
+    ?international
+      ?metrics.map(item=>`<button type="button" class="${item.key===metric.key?"active":""}" data-metric="${item.key}" onclick="setEconomyBusinessAnalysisMetric(this.dataset.metric)">${item.label}</button>`).join("")
+      :economyBusinessAnalysisMetricGroups.map(([key,label,metricKeys])=>`<div class="economy-business-metric-group"><span>${label}</span><div>${metricKeys.map(metricKey=>{const item=getEconomyBusinessAnalysisMetricDefinitions().find(entry=>entry.key===metricKey);return `<button type="button" class="${item.key===metric.key?"active":""}" data-metric="${item.key}" onclick="setEconomyBusinessAnalysisMetric(this.dataset.metric)">${item.label}</button>`;}).join("")}</div></div>`).join("")
     :groups.map(([key,label])=>`<button type="button" class="${economyBusinessAnalysisState.group===key?"active":""}" data-group="${key}" onclick="setEconomyBusinessAnalysisGroup(this.dataset.group)">${label}</button>`).join("");
   const dynamicTitle=economyBusinessAnalysisState.mode==="metric"?"主题项下全指标分析":"指标项下全主题分析";
   return `<div class="economy-business-analysis"><aside class="economy-business-analysis-sidebar"><div class="economy-business-analysis-brand"><span><img src="./src/assets/digital-construction-logo.svg" alt="数智施工"></span><strong>${dynamicTitle}</strong></div><section><h3>分析维度</h3><div class="economy-business-mode-tabs"><button type="button" class="${economyBusinessAnalysisState.mode==="theme"?"active":""}" data-mode="theme" onclick="setEconomyBusinessAnalysisMode(this.dataset.mode)">主题分析</button><button type="button" class="${economyBusinessAnalysisState.mode==="metric"?"active":""}" data-mode="metric" onclick="setEconomyBusinessAnalysisMode(this.dataset.mode)">指标分析</button></div></section>${renderEconomyBusinessAnalysisFilters()}<section class="economy-business-index-list"><h3>${sidebarTitle}</h3>${sidebarItems}</section></aside><main class="economy-business-analysis-main"><nav class="economy-business-group-tabs ${economyBusinessAnalysisState.mode==="metric"?"metric-mode":"theme-mode"}">${topTabs}</nav><div class="economy-business-chart-grid">${(economyBusinessAnalysisState.mode==="metric"?metricCards:themeCards).join("")}</div></main></div>`;
