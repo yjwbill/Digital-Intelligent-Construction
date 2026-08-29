@@ -586,6 +586,10 @@ function refreshEconomyCurrencyContext(){
   if(document.querySelector(".economy-report-modal")){refreshEconomyAnalysisReport();return EconomyI18n.refreshFullscreenChrome();}
   if(document.querySelector(".economy-monthly-check-modal")){const body=document.querySelector(".economy-monthly-check-modal .modal-bd");if(body){body.innerHTML=renderEconomyMonthlyCheckReport();EconomyI18n.apply(body);}return EconomyI18n.refreshFullscreenChrome();}
   if(document.querySelector(".economy-project-overview-modal")){const embed=document.getElementById("economyProjectOverviewEmbed");if(embed&&window.__economyProjectOverviewEmbedProject)embed.innerHTML=renderProjectEconomyOverviewContent(window.__economyProjectOverviewEmbedProject);EconomyI18n.apply(modalBody);return EconomyI18n.refreshFullscreenChrome();}
+  if(document.querySelector(".enterprise-mobile-page")&&typeof refreshEnterpriseEconomyCurrencyContext==="function"){
+    refreshEnterpriseEconomyCurrencyContext();
+    return;
+  }
   if(document.querySelector(".project-economy-overview-page")){renderProjectEconomyOverviewPage();EconomyI18n.apply(listPage);return;}
   renderEconomyDashboardPage(economyDashboardState.tab);
 }

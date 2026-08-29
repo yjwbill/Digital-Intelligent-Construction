@@ -151,7 +151,7 @@ function renderDigitalConstructionEntry(){
   if(!digitalConstructionPcShell)digitalConstructionPcShell=app.innerHTML;
   window.__digitalConstructionMode="entry";
   removeBottomFixedMenu();
-  document.body.classList.remove("mobile-mode","component-library-mode","enterprise-mobile-mode");
+  document.body.classList.remove("mobile-mode","component-library-mode","enterprise-mobile-mode","product-overview-mode");
   document.body.classList.add("entry-mode");
   app.innerHTML=`
     <main class="digital-entry">
@@ -173,7 +173,10 @@ function renderDigitalConstructionEntry(){
                 <button class="entry-terminal-card entry-terminal-mobile-card" onclick="enterDigitalConstructionMobileEnterprise()"><span class="entry-terminal-icon terminal-image mobile" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>移动端-企业管理</strong><em>股份统一门户入口</em></span><b>立即体验　→</b></button>
                 <button class="entry-terminal-card entry-terminal-mobile-card" onclick="enterDigitalConstructionMobileProject()"><span class="entry-terminal-icon terminal-image mobile" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>移动端-项目管理</strong><em>微信小程序入口</em></span><b>立即体验　→</b></button>
               </div>
-              <button class="entry-terminal-card" onclick="enterDigitalConstructionComponentLibrary()"><span class="entry-terminal-icon library" aria-hidden="true"></span><strong>组件库</strong><em>灵活组件与复用沉淀</em><b>立即体验　→</b></button>
+              <div class="entry-mobile-card-stack entry-resource-card-stack">
+                <button class="entry-terminal-card entry-terminal-mobile-card" onclick="enterDigitalConstructionProductOverview()"><span class="entry-terminal-icon terminal-image screen" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>产品概览</strong><em>数智施工产品全景</em></span><b>立即体验　→</b></button>
+                <button class="entry-terminal-card entry-terminal-mobile-card" onclick="enterDigitalConstructionComponentLibrary()"><span class="entry-terminal-icon library" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>组件库</strong><em>灵活组件与复用沉淀</em></span><b>立即体验　→</b></button>
+              </div>
             </div>
           </section>
           <section class="entry-product-card housing">
@@ -218,6 +221,23 @@ function openDigitalConstructionExternalEntry(name){
   notice.classList.add("show");
   clearTimeout(window.__digitalEntryNoticeTimer);
   window.__digitalEntryNoticeTimer=setTimeout(()=>notice.classList.remove("show"),1800);
+}
+
+function enterDigitalConstructionProductOverview(){
+  const app=document.querySelector(".app");
+  if(!app)return;
+  window.__digitalConstructionMode="product-overview";
+  removeBottomFixedMenu();
+  document.body.classList.remove("mobile-mode","entry-mode","component-library-mode","enterprise-mobile-mode","zjw-demo-mode");
+  document.body.classList.add("product-overview-mode");
+  app.innerHTML=`
+    <main class="product-overview-workspace">
+      <header class="product-overview-shell-header">
+        <button type="button" class="product-overview-back" onclick="renderDigitalConstructionEntry()" title="返回Demo入口"><span aria-hidden="true">&#8249;</span>返回入口</button>
+        <div class="product-overview-shell-title"><span class="digital-entry-logo" aria-hidden="true"></span><div><strong>产品概览</strong><small>数智施工平台产品规划与建设进展</small></div></div>
+      </header>
+      <iframe class="product-overview-frame" src="./src/app/product/product-overview.html?v=2.2.966-roadmap-dash-smooth" title="数智施工平台产品概览"></iframe>
+    </main>`;
 }
 
 function enterZjwMobileDemo(){
@@ -355,8 +375,24 @@ function openEnterpriseMobileHomeCard(art,edition){
     return renderEnterpriseMobileEconomyBoard();
   }
   if(art==="report")return renderEnterpriseMobileInspectionReport();
+  if(art==="warning")return openEnterpriseMobileWarningNotice();
   const card=enterpriseMobileHomeCards.find(item=>item.art===art);
   showToast(`${enterpriseMobileState.edition==="international"?"国际版":"国内版"}${card?.title||"页面"}待接入`);
+}
+
+function openEnterpriseMobileWarningNotice(){
+  if(typeof economyDashboardState!=="undefined"){
+    economyDashboardState.edition=enterpriseMobileState.edition;
+    economyDashboardState.month=enterpriseMobileEconomyLatestMonth;
+    economyDashboardState.projectName="";
+    economyDashboardState.projectType="";
+    economyDashboardState.region="";
+    economyDashboardState.sortKey="";
+    economyDashboardState.sortDirection="";
+    economyDashboardState.tab="diagnosis";
+    economyDashboardState.page=1;
+  }
+  return renderEnterpriseMobileMonthlyCheckReport();
 }
 
 function renderEnterpriseMobileHome(){
@@ -413,6 +449,109 @@ window.openEnterpriseMobileHomeCard=openEnterpriseMobileHomeCard;
 window.renderEnterpriseMobileInspectionReport=renderEnterpriseMobileInspectionReport;
 window.setEnterpriseMobileReportFilter=setEnterpriseMobileReportFilter;
 
+function syncEnterpriseMobileMonthlyCheckState(){
+  if(typeof economyDashboardState!=="undefined"){
+    economyDashboardState.edition=enterpriseMobileState.edition;
+    economyDashboardState.month=enterpriseMobileEconomyFilterState.month;
+  }
+}
+function getEnterpriseMobileMonthlyCheckGroups(){
+  const rows=getEnterpriseMobileEconomyRows();
+  const groups=new Map();
+  rows.forEach((row,index)=>{
+    const company=row.company||"未归属公司";
+    if(!groups.has(company))groups.set(company,[]);
+    groups.get(company).push({row,index});
+  });
+  return [...groups.entries()].map(([company,items])=>({company,items}));
+}
+function getEnterpriseMobileMonthlyCheckStats(groups){
+  const stats={companies:groups.length,online:0,warning:0,unresolved:0};
+  groups.forEach(group=>{
+    stats.online+=group.items.length;
+    group.items.forEach(item=>{
+      const risks=getEnterpriseMobileMonthlyCheckRiskItems(item.row,item.index);
+      if(risks.length)stats.warning++;
+      if(risks.some(risk=>risk.overdue))stats.unresolved++;
+    });
+  });
+  return stats;
+}
+function getEnterpriseMobileMonthlyCheckRiskItems(row,index){
+  if(typeof getEconomyMonthlyCheckColumns!=="function"||typeof getEconomyMonthlyCheckCell!=="function")return [];
+  const international=enterpriseMobileState.edition==="international";
+  const sourceNames=international
+    ?{subcontract:"目标成本预警",loss:"目标利润率预警",settlement:"结算预警",arrears:"拖欠款预警"}
+    :{subcontract:"分包分供等合同预警",loss:"潜亏预警",settlement:"总包结算预警",arrears:"业主拖欠款预警"};
+  const seen=new Set();
+  return getEconomyMonthlyCheckColumns().reduce((items,column)=>{
+    const cell=getEconomyMonthlyCheckCell(row,column,index);
+    if(!cell.color)return items;
+    const key=`${column.source}:${cell.color}:${cell.overdue?1:0}`;
+    if(seen.has(key))return items;
+    seen.add(key);
+    items.push({source:column.source,label:column.key.endsWith("Level")?"一级预警":column.label,color:cell.color,overdue:cell.overdue,group:sourceNames[column.source]||column.group});
+    return items;
+  },[]);
+}
+function renderEnterpriseMobileMonthlyCheckRiskItems(row,index){
+  const items=getEnterpriseMobileMonthlyCheckRiskItems(row,index);
+  if(!items.length)return `<div class="enterprise-mobile-monthly-check-normal"><i></i><span>未发现预警</span></div>`;
+  return `<div class="enterprise-mobile-monthly-check-risk-list">${items.map(item=>`<span class="enterprise-mobile-monthly-check-risk ${item.color}"><i></i><em>${item.group}</em><b>${item.label}</b>${item.overdue?`<small>连续未整改</small>`:""}</span>`).join("")}</div>`;
+}
+function renderEnterpriseMobileMonthlyCheckProject(item){
+  const row=item.row;
+  const contract=Number(row.contractAmount)||0;
+  const contractValue=typeof convertEconomyCommandMoney==="function"?convertEconomyCommandMoney(contract,"万元"):contract;
+  const contractUnit=typeof getEconomyCommandDisplayUnit==="function"?getEconomyCommandDisplayUnit("万元"):"万元";
+  const contractText=Number(contractValue).toLocaleString("zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2});
+  const seed=typeof getEconomyMonthlyCheckSeed==="function"?getEconomyMonthlyCheckSeed(row,item.index):item.index+1;
+  const profit=(.5+(seed%145)/10).toFixed(1);
+  const progress=Math.round(Number(row.outputProgress)||0);
+  const company=row.company||"未归属公司";
+  const branch=row.branch||"-";
+  const region=row.region||row.city||"-";
+  const riskItems=getEnterpriseMobileMonthlyCheckRiskItems(row,item.index);
+  return `<article class="enterprise-mobile-monthly-check-project" onclick="openEnterpriseEconomyProjectDetail('${escapeAttr(row.sourceProjectId||row.id||row.projectName)}')">
+    <header><div><span class="enterprise-mobile-monthly-check-index">${item.index+1}</span><h3 title="${escapeAttr(row.projectName)}">${escapeAttr(row.projectName||"未命名项目")}</h3></div><i class="enterprise-mobile-monthly-check-arrow" aria-hidden="true"></i></header>
+    <div class="enterprise-mobile-monthly-check-project-tags"><span>${escapeAttr(company)}</span><span>${escapeAttr(branch)}</span><span>${escapeAttr(region)}</span></div>
+    <div class="enterprise-mobile-monthly-check-project-metrics"><div><small>合同金额</small><strong>${contractText}<em>${contractUnit}</em></strong></div><div><small>目标利润率</small><strong>${profit}<em>%</em></strong></div><div><small>开累产值完成率</small><strong>${progress}<em>%</em></strong></div></div>
+    <div class="enterprise-mobile-monthly-check-risk-heading"><span>风险指标</span><b class="${riskItems.length?"warning":"normal"}">${riskItems.length?"存在预警":"正常"}</b></div>
+    ${renderEnterpriseMobileMonthlyCheckRiskItems(row,item.index)}
+  </article>`;
+}
+function renderEnterpriseMobileMonthlyCheckGroup(group){
+  const warningCount=group.items.filter(item=>getEnterpriseMobileMonthlyCheckRiskItems(item.row,item.index).length).length;
+  return `<section class="enterprise-mobile-monthly-check-group"><header><div><h2>${escapeAttr(group.company)}</h2><p>在线项目 <b>${group.items.length}</b> 个</p></div><span><b>${warningCount}</b> 个预警项目</span></header><div class="enterprise-mobile-monthly-check-projects">${group.items.map(renderEnterpriseMobileMonthlyCheckProject).join("")}</div></section>`;
+}
+function renderEnterpriseMobileMonthlyCheckReport(){
+  const app=document.querySelector(".app");
+  if(!app)return;
+  syncEnterpriseMobileMonthlyCheckState();
+  enterpriseMobileEconomyFilterState.context="monthly-check";
+  const groups=getEnterpriseMobileMonthlyCheckGroups();
+  const stats=getEnterpriseMobileMonthlyCheckStats(groups);
+  const international=enterpriseMobileState.edition==="international";
+  const title=international?"月度检验单-国际版":"月度检验单-国内版";
+  const month=formatEnterpriseEconomyMonth(enterpriseMobileEconomyFilterState.month);
+  window.__digitalConstructionMode="enterprise-mobile-monthly-check";
+  removeBottomFixedMenu();
+  document.body.classList.add("mobile-mode","enterprise-mobile-mode");
+  document.body.classList.remove("entry-mode","component-library-mode");
+  app.innerHTML=`<div class="mobile-workbench enterprise-mobile-page enterprise-mobile-monthly-check-page">
+    ${renderEnterpriseMobileHeader(title,"renderEnterpriseMobilePage('home')")}
+    <main class="enterprise-mobile-monthly-check-scroll">
+      <section class="enterprise-mobile-monthly-check-heading"><div><h1>工程项目经济风险月度检验单</h1><span>${month}</span></div><p>${international?"按国际项目风险指标查看本期检验结果":"按国内项目风险指标查看本期检验结果"}</p></section>
+      ${renderEnterpriseMobileFilterBar()}
+      <section class="enterprise-mobile-monthly-check-summary"><div><small>${international?"公司":"子公司"}</small><strong>${stats.companies}</strong></div><div><small>在线项目</small><strong>${stats.online}</strong></div><div><small>预警项目</small><strong class="warning">${stats.warning}</strong></div><div><small>未整改项目</small><strong class="danger">${stats.unresolved}</strong></div></section>
+      <section class="enterprise-mobile-monthly-check-legend"><span><i class="red"></i>红色预警</span><span><i class="orange"></i>橙色预警</span><span><i class="yellow"></i>黄色预警</span><span><i class="blue"></i>蓝色预警</span><span><i class="gray"></i>未满足前置条件</span></section>
+      <div class="enterprise-mobile-monthly-check-groups">${groups.length?groups.map(renderEnterpriseMobileMonthlyCheckGroup).join(""):`<div class="enterprise-mobile-monthly-check-empty">当前筛选范围暂无项目</div>`}</div>
+      ${renderEnterpriseEconomyPickerOverlay()}
+    </main>
+  </div>`;
+}
+window.renderEnterpriseMobileMonthlyCheckReport=renderEnterpriseMobileMonthlyCheckReport;
+
 function getEnterpriseMobileEconomyRows(){
   const state=enterpriseMobileEconomyFilterState;
   return getEnterpriseMobileEconomyBaseRows().filter(row=>(!state.company||row.company===state.company)&&(!state.branch||row.branch===state.branch)&&(!state.region||row.region===state.region)&&(!state.sector||row.projectType===state.sector));
@@ -428,6 +567,8 @@ function formatEnterpriseEconomyMonth(value){
 }
 function refreshEnterpriseEconomyFilterContext(){
   if(enterpriseMobileEconomyFilterState.context==="report")return renderEnterpriseMobileInspectionReport();
+  if(enterpriseMobileEconomyFilterState.context==="monthly-check")return renderEnterpriseMobileMonthlyCheckReport();
+  if(enterpriseMobileEconomyFilterState.context==="detail-report")return renderEnterpriseMobileProjectMonthlyInspectionReport(getEnterpriseMobileMonthlyReportProject(getEnterpriseEconomyProjectDetailRow(enterpriseMobileEconomyDetailState.identifier)));
   if(enterpriseMobileEconomyFilterState.context==="detail")return renderEnterpriseEconomyProjectDetailPage();
   return renderEnterpriseMobileEconomyBoard();
 }
@@ -439,6 +580,8 @@ function openEnterpriseEconomyFilter(kind){
     ?{month:state.month,year:Number(state.month.slice(0,4))||Number(enterpriseMobileEconomyLatestMonth.slice(0,4))}
     :kind==="company"
       ?{company:state.company,branch:state.branch}
+      :kind==="more"
+        ?{company:state.company,branch:state.branch,region:state.region,sector:state.sector}
       :{value:kind==="region"?state.region:state.sector};
   refreshEnterpriseEconomyFilterContext();
 }
@@ -453,6 +596,7 @@ function resetEnterpriseEconomyFilterDraft(){
   const state=enterpriseMobileEconomyFilterState;
   if(state.open==="month")state.draft={month:enterpriseMobileEconomyLatestMonth,year:Number(enterpriseMobileEconomyLatestMonth.slice(0,4))};
   else if(state.open==="company")state.draft={company:"",branch:""};
+  else if(state.open==="more")state.draft={company:"",branch:"",region:"",sector:""};
   else state.draft={value:""};
   refreshEnterpriseEconomyFilterContext();
 }
@@ -461,6 +605,7 @@ function confirmEnterpriseEconomyFilter(){
   const state=enterpriseMobileEconomyFilterState;
   if(state.open==="month")state.month=state.draft.month;
   else if(state.open==="company")Object.assign(state,{company:state.draft.company,branch:state.draft.branch});
+  else if(state.open==="more")Object.assign(state,{company:state.draft.company,branch:state.draft.branch,region:state.draft.region,sector:state.draft.sector});
   else if(state.open==="region")state.region=state.draft.value;
   else if(state.open==="sector")state.sector=state.draft.value;
   state.open="";
@@ -497,6 +642,14 @@ function selectEnterpriseEconomySimpleFilter(value){
   refreshEnterpriseEconomyFilterContext();
 }
 
+function setEnterpriseEconomyMoreDraft(key,value){
+  const draft=enterpriseMobileEconomyFilterState.draft;
+  if(!draft||!["company","branch","region","sector"].includes(key))return;
+  draft[key]=decodeComponentPickerValueV2298(value);
+  if(key==="company")draft.branch="";
+  refreshEnterpriseEconomyFilterContext();
+}
+
 function getEnterpriseMobileRiskCounts(rows){
   const counts={red:0,orange:0,yellow:0,blue:0,none:0};
   rows.forEach(row=>{
@@ -507,9 +660,28 @@ function getEnterpriseMobileRiskCounts(rows){
   return counts;
 }
 
+function refreshEnterpriseEconomyCurrencyContext(){
+  const context=enterpriseMobileEconomyFilterState.context;
+  if(context==="detail")return renderEnterpriseEconomyProjectDetailPage();
+  if(context==="report")return renderEnterpriseMobileInspectionReport();
+  if(context==="monthly-check")return renderEnterpriseMobileMonthlyCheckReport();
+  if(context==="detail-report")return renderEnterpriseMobileProjectMonthlyInspectionReport(getEnterpriseMobileMonthlyReportProject(getEnterpriseEconomyProjectDetailRow(enterpriseMobileEconomyDetailState.identifier)));
+  return renderEnterpriseMobileEconomyBoard();
+}
+
 function renderEnterpriseMobileFilterBar(){
   const state=enterpriseMobileEconomyFilterState;
   const companyLabel=state.branch||state.company||"隧道股份";
+  const internationalBoard=enterpriseMobileState.edition==="international"&&(state.context==="board"||state.context==="monthly-check");
+  if(internationalBoard){
+    const currencyPicker=typeof renderEconomyDiagnosisCurrencyPicker==="function"?renderEconomyDiagnosisCurrencyPicker("enterpriseMobileCurrency"):"";
+    const moreCount=[state.company,state.branch,state.region,state.sector].filter(Boolean).length;
+    return `<section class="enterprise-economy-filterbar international" aria-label="项目经济筛选">
+      <button type="button" class="${state.month!==enterpriseMobileEconomyLatestMonth?"selected":""}" onclick="openEnterpriseEconomyFilter('month')" aria-label="选择年月">${formatEnterpriseEconomyMonth(state.month)}<span class="enterprise-filter-calendar" aria-hidden="true"></span></button>
+      ${currencyPicker}
+      <button type="button" class="enterprise-economy-more-filter ${moreCount?"selected":""}" onclick="openEnterpriseEconomyFilter('more')" aria-label="更多条件"><span>更多条件${moreCount?`（${moreCount}）`:""}</span><span class="enterprise-filter-more" aria-hidden="true"></span></button>
+    </section>`;
+  }
   return `<section class="enterprise-economy-filterbar" aria-label="项目经济筛选">
     <button type="button" class="${state.month!==enterpriseMobileEconomyLatestMonth?"selected":""}" onclick="openEnterpriseEconomyFilter('month')" aria-label="选择年月">${formatEnterpriseEconomyMonth(state.month)}<span class="enterprise-filter-calendar" aria-hidden="true"></span></button>
     <button type="button" class="${state.company?"selected":""}" onclick="openEnterpriseEconomyFilter('company')" aria-label="选择公司" title="${companyLabel}"><span>${companyLabel}</span><span class="enterprise-filter-org" aria-hidden="true"></span></button>
@@ -572,12 +744,31 @@ function renderEnterpriseEconomySimplePicker(kind){
   </section></div>`;
 }
 
+function renderEnterpriseEconomyMoreSelect(label,key,value,options,allLabel,disabled=false){
+  return `<label class="enterprise-economy-more-field ${disabled?"disabled":""}"><span>${label}</span><div><select aria-label="${label}" ${disabled?"disabled":""} onchange="setEnterpriseEconomyMoreDraft('${key}',this.value)"><option value="">${allLabel}</option>${options.map(option=>`<option value="${escapeAttr(option)}" ${value===option?"selected":""}>${option}</option>`).join("")}</select><i aria-hidden="true"></i></div></label>`;
+}
+
+function renderEnterpriseEconomyMorePicker(){
+  const draft=enterpriseMobileEconomyFilterState.draft||{};
+  const rows=getEnterpriseMobileEconomyBaseRows();
+  const companies=getEnterpriseEconomyUniqueOptions("company",rows);
+  const branches=draft.company?getEnterpriseEconomyUniqueOptions("branch",rows.filter(row=>row.company===draft.company)):[];
+  const regions=getEnterpriseEconomyUniqueOptions("region",rows);
+  const sectors=getEnterpriseEconomyUniqueOptions("projectType",rows);
+  return `<div class="enterprise-economy-more-form">
+    <section class="enterprise-economy-more-section"><h3>组织选择</h3><div class="enterprise-economy-more-grid">${renderEnterpriseEconomyMoreSelect("公司","company",draft.company,companies,"全部公司")}${renderEnterpriseEconomyMoreSelect("分公司","branch",draft.branch,branches,"全部分公司",!draft.company)}</div></section>
+    <section class="enterprise-economy-more-section"><h3>区域选择</h3>${renderEnterpriseEconomyMoreSelect("所属区域","region",draft.region,regions,"全部区域")}</section>
+    <section class="enterprise-economy-more-section"><h3>板块选择</h3>${renderEnterpriseEconomyMoreSelect("项目板块","sector",draft.sector,sectors,"全部板块")}</section>
+  </div>`;
+}
+
 function renderEnterpriseEconomyPickerOverlay(){
   const state=enterpriseMobileEconomyFilterState;
   if(!state.open||!state.draft)return "";
-  const titles={month:"选择年月",company:"选择公司",region:"选择区域",sector:"选择板块"};
-  const summary=state.open==="month"?formatEnterpriseEconomyMonth(state.draft.month):state.open==="company"?(state.draft.branch||state.draft.company||"隧道股份"):(state.draft.value||(state.open==="region"?"全部区域":"全部板块"));
-  const content=state.open==="month"?renderEnterpriseEconomyMonthPicker():state.open==="company"?renderEnterpriseEconomyCompanyPicker():renderEnterpriseEconomySimplePicker(state.open);
+  const titles={month:"选择年月",company:"选择公司",region:"选择区域",sector:"选择板块",more:"更多条件"};
+  const moreCount=state.open==="more"?[state.draft.company,state.draft.branch,state.draft.region,state.draft.sector].filter(Boolean).length:0;
+  const summary=state.open==="month"?formatEnterpriseEconomyMonth(state.draft.month):state.open==="company"?(state.draft.branch||state.draft.company||"隧道股份"):state.open==="more"?(moreCount?`${moreCount}项条件已选择`:"未设置更多条件"):(state.draft.value||(state.open==="region"?"全部区域":"全部板块"));
+  const content=state.open==="month"?renderEnterpriseEconomyMonthPicker():state.open==="company"?renderEnterpriseEconomyCompanyPicker():state.open==="more"?renderEnterpriseEconomyMorePicker():renderEnterpriseEconomySimplePicker(state.open);
   return `<div class="enterprise-economy-picker-overlay" onclick="closeEnterpriseEconomyFilter()">
     <section class="enterprise-economy-picker-sheet mobile-picker-demo" role="dialog" aria-modal="true" aria-label="${titles[state.open]}" onclick="event.stopPropagation()">
       <header class="mobile-picker-header"><strong>${titles[state.open]}</strong><button type="button" onclick="closeEnterpriseEconomyFilter()" aria-label="关闭">${renderTDesignIcon("close",{size:18})}</button></header>
@@ -596,6 +787,8 @@ function renderEnterpriseRiskDot(color,overdue=false){
 function renderEnterpriseEconomySummary(rows){
   const counts=getEnterpriseMobileRiskCounts(rows);
   const totalContract=rows.reduce((sum,row)=>sum+(Number(row.contractAmount)||0),0)/10000;
+  const convertedTotal=typeof convertEconomyCommandMoney==="function"?convertEconomyCommandMoney(totalContract,"亿元"):totalContract;
+  const contractUnit=typeof getEconomyCommandDisplayUnit==="function"?getEconomyCommandDisplayUnit("亿元"):"亿元";
   return `<section class="enterprise-economy-card enterprise-economy-summary">
     <header>
       <span class="enterprise-economy-section-icon" aria-hidden="true"></span>
@@ -604,7 +797,7 @@ function renderEnterpriseEconomySummary(rows){
     </header>
     <div class="enterprise-economy-summary-grid">
       <div><span>项目总数</span><strong>${rows.length}<em>+1</em></strong></div>
-      <div><span>合同总金额（亿）</span><strong>${totalContract.toFixed(4)}</strong></div>
+      <div><span>合同总金额（${contractUnit}）</span><strong>${Number(convertedTotal).toFixed(4)}</strong></div>
     </div>
     <p>各风险等级统计情况</p>
     <div class="enterprise-economy-risk-total">
@@ -636,7 +829,7 @@ function getEnterpriseEconomyWarningColumnLabel(type){
 
 function openEnterpriseEconomyMonthlyCheckReport(){
   if(typeof economyDashboardState!=="undefined")Object.assign(economyDashboardState,{edition:enterpriseMobileState.edition,month:enterpriseMobileEconomyFilterState.month});
-  if(typeof openEconomyMonthlyCheckReport==="function")openEconomyMonthlyCheckReport();
+  renderEnterpriseMobileMonthlyCheckReport();
 }
 
 function renderEnterpriseEconomyRiskStats(rows){
@@ -690,16 +883,77 @@ function renderEnterpriseEconomyDetailRisk(row){
   return risks.map(risk=>`<div class="enterprise-economy-detail-risk-group"><i class="${row.warnings?.[risk.key]||"blue"}"></i><strong>${risk.label}</strong><div>${risk.items.map(([item,count])=>`<span><img src="./src/assets/economy-warning/${count===2?"two-thunders.svg":"one-thunder.svg"}" alt="${count===2?"二颗雷":"一颗雷"}">${item}<time>2024-04-15</time></span>`).join("")}</div></div>`).join("");
 }
 function renderEnterpriseEconomyDetailMetric(title,value,unit="",danger=false){
-  return `<div class="enterprise-economy-detail-metric ${danger?"danger":""}"><span>${title}</span><strong>${value} <em>${unit}</em></strong></div>`;
+  let displayValue=value;
+  if(typeof isEconomyCommandMoneyUnit==="function"&&isEconomyCommandMoneyUnit(unit)){
+    const numeric=Number(String(value??"").replace(/,/g,""));
+    if(Number.isFinite(numeric)){
+      const converted=typeof convertEconomyCommandMoney==="function"?convertEconomyCommandMoney(numeric,unit):numeric;
+      displayValue=Number(converted).toLocaleString("zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2});
+    }
+  }
+  const displayUnit=typeof getEconomyCommandDisplayUnit==="function"?getEconomyCommandDisplayUnit(unit):unit;
+  return `<div class="enterprise-economy-detail-metric ${danger?"danger":""}"><span>${title}</span><strong>${displayValue} <em>${displayUnit}</em></strong></div>`;
+}
+function getEnterpriseMobileMonthlyReportProject(row){
+  const sourceId=row?.sourceProjectId;
+  if(sourceId!=null&&typeof constructionProjectData!=="undefined"){
+    const source=constructionProjectData.find(project=>String(project.id)===String(sourceId));
+    if(source)return source;
+  }
+  if(sourceId!=null&&typeof getProjectById==="function"){
+    const source=getProjectById(sourceId);
+    if(source)return source;
+  }
+  if(!row)return null;
+  const contractAmount=Number(row.contractAmount)||0;
+  return {
+    id:row.id,
+    projectName:row.projectName,
+    projectType:row.projectType,
+    subCompany:row.company,
+    branchCompany:row.branch,
+    region:row.region||row.city,
+    projectStatus:"在建",
+    projectManager:row.projectManager||"-",
+    projectCost:contractAmount,
+    accumulatedOutput:contractAmount*(Number(row.outputProgress)||0)/100,
+    planStart:row.planStart||"-",
+    planEnd:row.planEnd||"-"
+  };
+}
+function openEnterpriseMobileProjectMonthlyInspectionReport(identifier){
+  const row=getEnterpriseEconomyProjectDetailRow(identifier);
+  const project=getEnterpriseMobileMonthlyReportProject(row);
+  if(!project)return showToast("未找到项目月度检验报告");
+  renderEnterpriseMobileProjectMonthlyInspectionReport(project);
+}
+function renderEnterpriseMobileProjectMonthlyInspectionReport(project){
+  const app=document.querySelector(".app");
+  if(!app)return;
+  syncEnterpriseMobileMonthlyCheckState();
+  enterpriseMobileEconomyFilterState.context="detail-report";
+  window.__digitalConstructionMode="enterprise-mobile-project-monthly-report";
+  removeBottomFixedMenu();
+  document.body.classList.add("mobile-mode","enterprise-mobile-mode");
+  document.body.classList.remove("entry-mode","component-library-mode");
+  app.innerHTML=`<div class="mobile-workbench enterprise-mobile-page enterprise-mobile-project-monthly-report-page">
+    ${renderEnterpriseMobileHeader("月度检验报告",`renderEnterpriseEconomyProjectDetailPage()`)}
+    <main class="enterprise-mobile-project-monthly-report-host">${typeof renderProjectEconomyMonthlyInspectionReport==="function"?renderProjectEconomyMonthlyInspectionReport(project):`<div class="enterprise-mobile-monthly-check-empty">月度检验报告暂不可用</div>`}</main>
+  </div>`;
 }
 function renderEnterpriseEconomyProjectDetail(row){
   const project=row||{};
+  if(typeof economyDashboardState!=="undefined")economyDashboardState.edition=enterpriseMobileState.edition;
   const name=project.projectName||"项目经济看板";
   const company=project.company||"上海市政";
   const branch=project.branch||"机顶分公司";
   const region=project.region||project.city||"上海市嘉定区";
   const type=project.projectType||"市政";
   const warningLevel=project.warnings?.arrears||project.warnings?.subcontract||"red";
+  const contractAmount=Number(project.contractAmount)||10955.51;
+  const progressValue=Number(project.outputProgress);
+  const progress=Number.isFinite(progressValue)?progressValue:78.91;
+  const outputAmount=contractAmount*progress/100;
   return `<div class="mobile-workbench enterprise-mobile-page enterprise-economy-detail-page">
     ${renderEnterpriseMobileHeader(getEnterpriseEconomyBoardTitle(),"renderEnterpriseMobileEconomyBoard()")}
     <main class="enterprise-economy-detail-scroll">
@@ -707,9 +961,9 @@ function renderEnterpriseEconomyProjectDetail(row){
         <h2>${name}</h2>
         <div class="enterprise-economy-detail-risk-line"><strong>风险状态：</strong><i class="${warningLevel}"></i><button type="button" onclick="openEnterpriseEconomyFilter('month')" aria-label="选择年月">${formatEnterpriseEconomyMonth(enterpriseMobileEconomyFilterState.month)}<span class="enterprise-filter-calendar" aria-hidden="true"></span></button></div>
         <div class="enterprise-economy-detail-info"><p>所属公司：<b>${company}/${branch}</b></p><p>项目状态：<b>在建</b></p><p>项目区域：<b>${region}</b></p><p>项目板块：<b>${type}</b></p><p class="wide">项目工期：<b>2021-10-28~2026-11-14</b></p></div>
-        <div class="enterprise-economy-detail-metrics">${renderEnterpriseEconomyDetailMetric("开累产值","10,955.51","万元")}${renderEnterpriseEconomyDetailMetric("合同总额","10,955.51","万元")}${renderEnterpriseEconomyDetailMetric("产值完成率","78.91","%")}${renderEnterpriseEconomyDetailMetric("开累营收","10,955.51","万元")}${renderEnterpriseEconomyDetailMetric("目标利润率","78.91","%")}</div>
+        <div class="enterprise-economy-detail-metrics">${renderEnterpriseEconomyDetailMetric("开累产值",outputAmount,"万元")}${renderEnterpriseEconomyDetailMetric("合同总额",contractAmount,"万元")}${renderEnterpriseEconomyDetailMetric("产值完成率",progress,"%")}${renderEnterpriseEconomyDetailMetric("开累营收",outputAmount,"万元")}${renderEnterpriseEconomyDetailMetric("目标利润率","78.91","%")}</div>
       </section>
-      <section class="enterprise-economy-detail-card enterprise-economy-detail-warning"><header><img class="detail-section-icon warning" src="./src/assets/mobile-tab/economy-risk-status.svg" alt=""><h2>预警指标风险状态</h2><button onclick="showToast('检验报告待接入')">检验报告 ♡</button></header><div class="enterprise-economy-detail-risk-list">${renderEnterpriseEconomyDetailRisk(project)}</div><p class="enterprise-economy-detail-trend">风险发展趋势分析：本项目当前经济风险“较大”趋势基本没有改变</p></section>
+      <section class="enterprise-economy-detail-card enterprise-economy-detail-warning"><header><img class="detail-section-icon warning" src="./src/assets/mobile-tab/economy-risk-status.svg" alt=""><h2>预警指标风险状态</h2><button type="button" onclick="openEnterpriseMobileProjectMonthlyInspectionReport('${escapeAttr(project.sourceProjectId||project.id||project.projectName)}')">月度检验报告</button></header><div class="enterprise-economy-detail-risk-list">${renderEnterpriseEconomyDetailRisk(project)}</div><p class="enterprise-economy-detail-trend">风险发展趋势分析：本项目当前经济风险“较大”趋势基本没有改变</p></section>
       <section class="enterprise-economy-detail-card enterprise-economy-detail-linked"><header><span class="detail-section-icon linked"></span><h2>预警关联项动态</h2></header><div class="enterprise-economy-detail-linked-grid">${renderEnterpriseEconomyDetailMetric("分包分供合同金额","5323.34","万元",true)}${renderEnterpriseEconomyDetailMetric("主体（主要）劳务合同个数","8 / 6","个",true)}${renderEnterpriseEconomyDetailMetric("专业分包合同匹配率","80.00","%",true)}${renderEnterpriseEconomyDetailMetric("存货","-5559.36","万元",true)}${renderEnterpriseEconomyDetailMetric("资金结余","993.22","万元")}${renderEnterpriseEconomyDetailMetric("分包单位产值计量率","98.24","%",true)}${renderEnterpriseEconomyDetailMetric("项目管理费使用率","45.70","%")}${renderEnterpriseEconomyDetailMetric("增值税税负","900.00","万元",true)}${renderEnterpriseEconomyDetailMetric("关键节点偏差","27","天")}${renderEnterpriseEconomyDetailMetric("结算价","未到完工阶段","")}</div></section>
     </main>
     ${renderEnterpriseEconomyPickerOverlay()}
@@ -730,10 +984,12 @@ function openEnterpriseEconomyProjectDetail(identifier){
   renderEnterpriseEconomyProjectDetailPage();
 }
 window.openEnterpriseEconomyProjectDetail=openEnterpriseEconomyProjectDetail;
+window.openEnterpriseMobileProjectMonthlyInspectionReport=openEnterpriseMobileProjectMonthlyInspectionReport;
 
 function renderEnterpriseMobileEconomyBoard(){
   const app=document.querySelector(".app");
   if(!app)return;
+  if(typeof economyDashboardState!=="undefined")economyDashboardState.edition=enterpriseMobileState.edition;
   enterpriseMobileEconomyFilterState.context="board";
   const rows=getEnterpriseMobileEconomyRows();
   window.__digitalConstructionMode="enterprise-mobile-economy-board";
@@ -1784,6 +2040,7 @@ Object.assign(window,{
   renderEnterpriseMobilePage,
   renderEnterpriseMobileEconomyBoard,
   openEnterpriseMobileSharedPage,
+  enterDigitalConstructionProductOverview,
   enterDigitalConstructionComponentLibrary,
   switchComponentLibraryPlatformV2288,
   selectComponentLibraryItemV2288

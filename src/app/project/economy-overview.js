@@ -248,39 +248,57 @@ function renderProjectEconomyMonthlyInspectionReport(project){
   const contractAmount=Number(data.contract||0);
   const outputAmount=Number(data.completed||0);
   const signedAmount=international?getProjectEconomyInternationalCostMetrics(project).actual:Math.max(0,contractAmount*.201);
+  const signedContractCount=4;
   const fundTrend=data.trends.find(item=>item.key==="currentFundBalance"||item.name==="当期资金结余");
+  const inventoryTrend=data.trends.find(item=>item.name==="存货(万元)"||item.name.includes("存货"));
   const ownerTrend=data.trends.find(item=>item.key==="ownerMeasuredOutput"||item.name.includes("业主已计量"));
   const fundBalance=Number(fundTrend?.value||-20.63);
+  const inventoryAmount=Number(inventoryTrend?.value||0);
   const ownerArrears=Number(ownerTrend?.value||3993.25);
   const targetProfit=Number(data.targetProfit||5);
   const inventoryRate=5.45;
   const revenueInventoryRate=-28.19;
   const trendDifference=inventoryRate+revenueInventoryRate;
-  const company=[project.subCompany,project.branchCompany].filter(Boolean).join("/")||"-";
+  const managerName=project.projectManager||"-";
+  const managerPhone=project.managerPhone||project.projectManagerPhone||"15688885555";
+  const managerContact=`${managerName} | ${standardProjectManagerMaskPhone(managerPhone)}`;
   const progress=Number(data.progress||0);
+  const outputSeries=periods.map((_,i)=>outputAmount*[.42,.58,.73,.87,1][i]);
+  const previousOutput=outputSeries.length>1?outputSeries[outputSeries.length-2]:outputAmount;
+  const outputDelta=outputAmount-previousOutput;
+  const outputComparison=Math.abs(outputDelta)<0.01?"较上期无新增产值":outputDelta>0?`较上期新增产值 <b>${formatProjectEconomyMonthlyReportMoney(outputDelta)} 万元</b>`:`较上期减少产值 <b>${formatProjectEconomyMonthlyReportMoney(Math.abs(outputDelta))} 万元</b>`;
+  let monthsSinceOutputChange=0;
+  for(let i=outputSeries.length-1;i>0;i--){if(Math.abs(outputSeries[i]-outputSeries[i-1])>=0.01){break;}monthsSinceOutputChange++;}
+  monthsSinceOutputChange=Math.max(1,monthsSinceOutputChange);
   const reportRows=periods.map(period=>[period,formatProjectEconomyMonthlyReportMoney(contractAmount*.9072),formatProjectEconomyMonthlyReportMoney(signedAmount),formatProjectEconomyMonthlyReportMoney(signedAmount-contractAmount*.9072)]);
   const stableRows=value=>periods.map(period=>[period,formatProjectEconomyMonthlyReportMoney(value)]);
   const riskItems=[
-    ["潜亏预警","红","工期异常预警","资金存货目标利润率关联预警"],
-    ["业主拖欠款预警","红","账龄预警","业主拖欠款金额预警"],
-    ["分包分供等合同预警","无","指标较上期持平",""],
-    ["总包结算预警","无","指标较上期持平",""]
+    ["潜亏预警","红",2,["工期异常预警","资金存货目标利润率关联预警"],"指标较上期持平"],
+    ["业主拖欠款预警","红",1,["账龄预警","业主拖欠款金额预警"],"指标较上期严重"],
+    ["分包分供等合同预警","无",0,[],"指标较上期持平"],
+    ["总包结算预警","无",0,[],"指标较上期减轻"]
   ];
   return `<div class="project-monthly-report-shell">
     <main class="project-monthly-report-scroll"><article class="project-monthly-report-document">
       <header class="project-monthly-report-cover" id="projectMonthlyReportOverview"><img src="./src/assets/economy/tunnel-group-logo.svg" alt="隧道股份"><p>${international?"国际版项目经济管理":"项目经济管理"}</p><h1>工程项目经济风险<br><span>月度检验报告</span></h1><time>（${month}）</time></header>
-      <section class="project-monthly-report-basic"><h2>${project.projectName}</h2><div>${[["项目名称",project.projectName],["子公司/分公司",company],["合同总金额",`${formatProjectEconomyMonthlyReportMoney(contractAmount)} 万元`],["目标利润率（含税）",`${targetProfit.toFixed(2)}%`],["计划工期",`${project.planStart||"-"} 至 ${project.planEnd||"-"}`],["项目经理",project.projectManager||"-"]].map(([label,value])=>`<p><span>${label}</span><strong>${value}</strong></p>`).join("")}</div></section>
-      <section class="project-monthly-report-section"><div class="project-monthly-report-section-title"><b>01</b><div><span>PROJECT STATUS</span><h2>本月项目经济信息动态情况</h2></div></div><div class="project-monthly-report-summary-grid">${[["开累产值",`${formatProjectEconomyMonthlyReportMoney(outputAmount)} 万元`,`${progress.toFixed(2)}%`],["已签分包分供合同",`${formatProjectEconomyMonthlyReportMoney(signedAmount)} 万元`,`${contractAmount?Math.max(0,signedAmount/contractAmount*100).toFixed(2):"0.00"}%`],["当期资金结余",`${formatProjectEconomyMonthlyReportMoney(fundBalance)} 万元`,fundBalance<0?"需关注":"正常"],["业主拖欠款",`${formatProjectEconomyMonthlyReportMoney(ownerArrears)} 万元`,ownerArrears>0?"需关注":"正常"]].map(([label,value,note])=>`<div><span>${label}</span><strong>${value}</strong><em>${note}</em></div>`).join("")}</div><div class="project-monthly-report-copy"><p>项目开累产值 <b>${formatProjectEconomyMonthlyReportMoney(outputAmount)} 万元</b>，开累占总合同 <b>${progress.toFixed(2)}%</b>；开累已签订分包分供合同总额 <b>${formatProjectEconomyMonthlyReportMoney(signedAmount)} 万元</b>。</p><p>当前资金结余 <b>${formatProjectEconomyMonthlyReportMoney(fundBalance)} 万元</b>，项目业主拖欠款 <b>${formatProjectEconomyMonthlyReportMoney(ownerArrears)} 万元</b>，建议结合本期资金计划持续跟踪。</p></div></section>
-      <section class="project-monthly-report-section"><div class="project-monthly-report-section-title"><b>02</b><div><span>RISK ASSESSMENT</span><h2>项目风险判断</h2></div></div><div class="project-monthly-report-risk-result ${progress<40?"pending":"assessed"}"><strong>${progress<40?"暂不评级":data.riskLabel}</strong><div><h3>${progress<40?"产值进度未达到 40%，暂不做项目风险等级判断。":`本期项目经济风险等级为${data.riskLabel}。`}</h3><p>项目经济风险等级分为“非常严重”、“严重”、“较大”、“须关注”。</p></div></div></section>
-      <section class="project-monthly-report-section"><div class="project-monthly-report-section-title"><b>03</b><div><span>DIAGNOSIS</span><h2>本月项目经济风险诊断结论</h2></div></div><h3 class="project-monthly-report-lead">本项目当前存在经济风险预警：</h3><div class="project-monthly-report-risk-list">${riskItems.map(([name,level,...details])=>`<article><div><i class="${level==="红"?"red":"none"}"></i><strong>${name}</strong><span class="${level==="红"?"danger":"normal"}">${level}</span></div><ul>${details.filter(Boolean).map(text=>`<li>${text}</li>`).join("")}</ul></article>`).join("")}</div><p class="project-monthly-report-conclusion">项目整体风险发展趋势：<b>持平</b></p></section>
+      <section class="project-monthly-report-basic"><h2>${project.projectName}</h2><div>${[["子公司",project.subCompany||"-"],["分公司",project.branchCompany||"-"],["合同总金额",`${formatProjectEconomyMonthlyReportMoney(contractAmount)} 万元`],["目标利润率（含税）",`${targetProfit.toFixed(2)}%`],["计划工期",`${project.planStart||"-"} 至 ${project.planEnd||"-"}`],["项目经理",managerContact]].map(([label,value])=>`<p><span>${label}</span><strong>${value}</strong></p>`).join("")}</div></section>
+      <section class="project-monthly-report-section"><div class="project-monthly-report-section-title"><b>01</b><div><span>PROJECT STATUS</span><h2>本月项目经济信息动态情况</h2></div></div><div class="project-monthly-report-summary-grid">${[
+        ["开累产值",`${formatProjectEconomyMonthlyReportMoney(outputAmount)} 万元`, `开累占总包合同 <b>${progress.toFixed(2)}%</b>`],
+        ["已签分包分供合同",`${formatProjectEconomyMonthlyReportMoney(signedAmount)} 万元`, `占可签署分包合同总额 <b>${contractAmount?Math.max(0,signedAmount/contractAmount*100).toFixed(2):"0.00"}%</b>`],
+        ["开累资金结余",`${formatProjectEconomyMonthlyReportMoney(fundBalance)} 万元`,fundBalance<0?"需关注":"正常"],
+        ["开累项目存货",`${formatProjectEconomyMonthlyReportMoney(inventoryAmount)} 万元`,inventoryAmount>0?"需关注":"正常"],
+        ["开累项目业主拖欠款",`${formatProjectEconomyMonthlyReportMoney(ownerArrears)} 万元`,ownerArrears>0?"需关注":"正常"]
+      ].map(([label,value,note])=>`<div><span>${label}</span><strong>${value}</strong><em class="metric-note">${note}</em></div>`).join("")}</div><div class="project-monthly-report-copy"><p>项目开累产值 <b>${formatProjectEconomyMonthlyReportMoney(outputAmount)} 万元</b>，开累占总包合同 <b>${progress.toFixed(2)}%</b>；${outputComparison}，距离上一次产值计量为 <b>${monthsSinceOutputChange} 个月</b>；</p><p>开累已签订分包分供合同总额 <b>${formatProjectEconomyMonthlyReportMoney(signedAmount)} 万元</b>，占可签署分包分供合同总额 <b>${contractAmount?Math.max(0,signedAmount/contractAmount*100).toFixed(2):"0.00"}%</b>，已签合同总个数 <b>${signedContractCount} 个</b>;</p><p>项目混凝土开累用量 <b>4798.00 方</b>，开累占总计划量 <b>12.21%</b>；钢材开累用量 <b>576.32 吨</b>，开累占总计划量 <b>8.85%</b>；水泥开累用量 <b>670.00 吨</b>，开累占总计划量 <b>4.71%</b>；</p><p>开累资金结余 <b>${formatProjectEconomyMonthlyReportMoney(fundBalance)} 万元</b>；</p><p>开累项目存货 <b>${formatProjectEconomyMonthlyReportMoney(inventoryAmount)} 万元</b>；</p><p>开累项目业主拖欠款 <b>${formatProjectEconomyMonthlyReportMoney(ownerArrears)} 万元</b>。</p></div></section>
+      <section class="project-monthly-report-section"><div class="project-monthly-report-section-title"><b>02</b><div><span>RISK ASSESSMENT</span><h2>项目风险判断</h2></div></div><div class="project-monthly-report-risk-result ${progress<40?"pending":"assessed"}"><strong>${progress<40?"暂不评级":data.riskLabel}</strong><div><h3>${progress<40?"产值进度未达到 40%，暂不做项目风险等级判断。":`本期项目经济风险等级为${data.riskLabel}。`}</h3><p>注：项目经济风险等级分为“非常严重”、“严重”、“较大”、“须关注”</p></div></div></section>
+      <section class="project-monthly-report-section"><div class="project-monthly-report-section-title"><b>03</b><div><span>DIAGNOSIS</span><h2>本月项目经济风险诊断结论</h2></div></div><p class="project-monthly-report-conclusion">项目整体风险发展趋势：<b>持平</b></p><h3 class="project-monthly-report-lead">本项目当前存在经济风险预警：</h3><div class="project-monthly-report-risk-list">${riskItems.map(([name,level,boltCount,details,conclusion])=>`<article><div><i class="${level==="红"?"red":level==="橙"?"orange":level==="黄"?"yellow":level==="蓝"?"blue":"none"}"></i><strong>${name}</strong><span class="${level==="无"?"normal":"danger"}">${level}</span></div><ul>${details.map(text=>`<li>${"雷".repeat(boltCount)} ${text}</li>`).join("")}</ul><p class="project-monthly-report-conclusion">${conclusion}</p></article>`).join("")}</div></section>
       <section class="project-monthly-report-section" id="projectMonthlyReportTrend"><div class="project-monthly-report-section-title"><b>04</b><div><span>KEY INDICATORS</span><h2>重点指标近三期趋势</h2></div></div><div class="project-monthly-report-trends">${renderProjectEconomyMonthlyTrendTable("分包分供合同实际签署总额",["指标名称","期数","控制标准（万）","实际已签总额（万）","差额（万）"],reportRows.map((row,index)=>[index?"":"分包分供合同实际签署总额",...row]))}${renderProjectEconomyMonthlyTrendTable("存货",["指标名称","期数","目标利润率（不含税）","存货率","趋势差值"],periods.map((period,index)=>[index?"":"存货",period,`${inventoryRate.toFixed(2)}%`,`${revenueInventoryRate.toFixed(2)}%`,`${trendDifference.toFixed(2)}%`]))}${renderProjectEconomyMonthlyTrendTable("资金结余",["指标名称","期数","金额（万元）"],stableRows(fundBalance).map((row,index)=>[index?"":"资金结余",...row]))}${renderProjectEconomyMonthlyTrendTable("业主拖欠款",["指标名称","期数","金额（万元）"],stableRows(ownerArrears).map((row,index)=>[index?"":"业主拖欠款",...row]))}</div></section>
       <section class="project-monthly-report-section project-monthly-report-advice" id="projectMonthlyReportAdvice"><div class="project-monthly-report-section-title"><b>05</b><div><span>IMPROVEMENT</span><h2>建议改进措施</h2></div></div><ol><li><b>针对潜亏预警：</b>建议加强工程进度管控，采取必要措施降低因工期异常带来的经济损失；开展项目成本分析，加强业主计量并跟进索赔事项，做好资金平衡，优化本项目资金支出。</li><li><b>针对业主拖欠款预警：</b>建议按拖欠时间、金额划分管理层级与管理措施，与业主定期沟通、催讨，并形成责任到人的回款计划。</li></ol><p>以上内容仅供参考，建议项目所属单位针对月度检验报告开展专项排查。</p></section>
       <footer class="project-monthly-report-footer"><span>数智施工项目经济管理平台</span><time>生成时间：${new Date().toLocaleString("zh-CN",{hour12:false})}</time></footer>
     </article></main>
   </div>`;
 }
-function openProjectEconomyMonthlyInspectionReport(){
-  const project=getProjectEconomyMonthlyReportProject();
+function openProjectEconomyMonthlyInspectionReport(projectOverride){
+  const project=projectOverride||getProjectEconomyMonthlyReportProject();
   FullscreenModal.open({title:"工程项目经济风险月度检验报告",content:renderProjectEconomyMonthlyInspectionReport(project),footer:`<button class="btn" onclick="FullscreenModal.close()">关闭</button><button class="btn primary" onclick="showToast('月度检验报告下载成功')"><span aria-hidden="true">⇩</span> 下载报告</button>`,className:"project-monthly-inspection-modal"});
 }
 function renderProjectEconomySubcontractMeasurementDrill(){

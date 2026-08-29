@@ -197,6 +197,11 @@
 @media(max-width:900px){.project-monthly-report-scroll{padding:10px}.project-monthly-report-document{width:100%}.project-monthly-report-cover{padding:42px 30px}.project-monthly-report-basic,.project-monthly-report-section{padding:30px 24px}.project-monthly-report-summary-grid{grid-template-columns:repeat(2,1fr)}.project-monthly-report-risk-list{grid-template-columns:1fr}.project-monthly-report-toolbar nav{display:none}}
 .project-monthly-report-shell{grid-template-rows:minmax(0,1fr)}.project-monthly-report-scroll{height:100%;box-sizing:border-box}
 .project-monthly-report-table-wrap td.merged-indicator-name{background:#f8fbff;color:#173b6b;font-weight:600;line-height:1.6;vertical-align:middle}
+.project-monthly-report-basic p{grid-template-columns:150px minmax(0,1fr)}
+.project-monthly-report-basic p>span{white-space:nowrap}
+.project-monthly-report-basic p>strong{min-width:0}
+.project-monthly-report-basic .project-manager-contact{font-size:inherit;line-height:inherit;gap:4px}
+@media(max-width:900px){.project-monthly-report-basic p{grid-template-columns:130px minmax(0,1fr)}.project-monthly-report-basic p>span{white-space:nowrap}}
 .project-economy-subcontract-modal .modal-bd{min-height:0}
 .project-economy-subcontract-drill .query-card{flex:0 0 auto;margin:0}
 .project-economy-subcontract-drill .search-grid{grid-template-columns:repeat(2,minmax(260px,1fr))}
@@ -217,3 +222,9 @@
 .project-economy-trend-chart .threshold {
   stroke-width: var(--dsc-chart-reference-line-width, 1px);
 }
+/* Monthly report summary overrides */
+.project-monthly-report-summary-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+.project-monthly-report-summary-grid em.metric-note b{color:#2378ff;font-weight:700}
+.project-monthly-report-summary-grid em.metric-note{white-space:nowrap}
+.project-monthly-report-summary-grid>div strong + em{font-size:12px}
+@media(max-width:900px){.project-monthly-report-summary-grid{grid-template-columns:repeat(2,1fr)}.project-monthly-report-summary-grid em.metric-note{white-space:normal}}
