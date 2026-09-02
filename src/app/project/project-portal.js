@@ -2586,8 +2586,9 @@ function normalizeEnterpriseEquipmentLedgerTable(){
       const cells=row.children;
       if(cells[managerIndex]){
         const raw=cells[managerIndex].textContent.trim();
-        const phone=raw&&raw!=="-"?`13${String(Math.abs(raw.length*7912345)).padStart(9,"0").slice(0,9)}`:"";
-        cells[managerIndex].innerHTML=renderProjectManagerContact(raw,phone,{key:`enterprise-equipment-${Math.random()}`});
+        const name=raw.split("|")[0].trim();
+        const phone=name&&name!=="-"?`13${String(Math.abs(name.length*7912345)).padStart(9,"0").slice(0,9)}`:"";
+        cells[managerIndex].innerHTML=renderProjectManagerContact(name,phone,{key:`enterprise-equipment-${Math.random()}`});
       }
       if(cells[regionIndex])cells[regionIndex].innerHTML=renderProjectEquipmentTag(cells[regionIndex].textContent.trim(),'green');
       ["设备类型","设备分类","国别","能源方式","设备产权"].forEach(label=>{const index=desired.indexOf(label);if(cells[index])cells[index].innerHTML=renderProjectEquipmentTag(cells[index].textContent.trim(),"blue");});
@@ -2728,7 +2729,7 @@ function renderProjectEquipmentLedgerSection(options={}){
   const colspan=19+(showEnterpriseColumns?7:0)+(showActions?1:0);
   const rows=options.rows||projectEquipmentRegistrations;
   return `<section class="card project-equipment-ledger">
-    <div class="project-equipment-toolbar compact"><div><h3>${escapeAttr(title)}</h3>${subtitle?`<p>${escapeAttr(subtitle)}</p>`:""}</div><div class="actions">${options.exportAction?`<button class="btn" type="button" onclick="${options.exportAction}">导出</button>`:""}<button class="column-setting-icon-btn" title="列设置" onclick="openColumnSetting('enterpriseEquipmentLedger','renderEnterpriseEquipmentLedgerPage')">⚙</button></div></div>
+    <div class="card-hd"><div class="card-title">${escapeAttr(title)}</div><div class="actions">${options.exportAction?`<button class="btn" type="button" onclick="${options.exportAction}">导出</button>`:""}<button class="column-setting-icon-btn" title="列设置" onclick="openColumnSetting('enterpriseEquipmentLedger','renderEnterpriseEquipmentLedgerPage')">⚙</button></div></div>
     <div class="project-equipment-table-wrap">
       <table class="project-equipment-table ledger">
         <thead><tr><th>序号</th>${showEnterpriseColumns?"<th>子公司</th><th>分公司</th><th>所属区域</th><th>所在省市</th><th>项目名称</th><th>项目经理</th><th>建设单位</th>":""}<th>设备类型</th><th>设备分类</th><th>设备名称</th><th>规格型号</th><th>设备编号</th><th>设备品牌</th><th>国别</th><th>能源方式</th><th>额定功率(KW)</th><th>出厂日期</th><th>设备产权</th><th>计划进场日期</th><th>计划退场日期</th><th>实际进场日期</th><th>实际退场日期</th><th>设备图片</th><th>铭牌图片</th><th>附件上传情况</th>${showActions?"<th>操作</th>":""}</tr></thead>

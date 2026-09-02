@@ -21716,6 +21716,9 @@ body.enterprise-mobile-mode .enterprise-mobile-mine-menu-item strong{
 .project-equipment-table-wrap{width:100%;overflow:auto;border:1px solid #E5EAF2;border-radius:6px;}
 #listPage:has(.project-equipment-ledger){overflow:hidden;}
 .project-equipment-ledger{display:flex;flex:1;min-height:0;flex-direction:column;overflow:hidden;}
+.project-equipment-ledger{padding:0;margin:0;border:1px solid var(--border);border-radius:8px;background:#fff;box-shadow:none;}
+.project-equipment-ledger>.card-hd{flex:0 0 auto;margin:0;padding:9px 14px;min-height:38px;border-bottom:1px solid var(--border);}
+.project-equipment-ledger>.project-equipment-table-wrap{margin:0 14px;}
 .project-equipment-ledger .project-equipment-table-wrap{flex:1;min-height:0;max-height:none;overflow-x:auto;overflow-y:auto;}
 .project-equipment-ledger .pagination{flex:0 0 auto;}
 .project-equipment-table{min-width:1180px;table-layout:fixed;}
