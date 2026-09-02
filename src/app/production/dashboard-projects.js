@@ -424,6 +424,24 @@ let constructionProjectBaseFilteredList=[...constructionProjectData];
 let constructionProjectActiveStat=null;
 let constructionProjectPageSize=50;
 let constructionProjectCurrentPage=1;
+const constructionProjectOfflineApplicationsStorageKey="construction-project-offline-applications";
+let constructionProjectOfflineApplications=loadConstructionProjectOfflineApplications();
+
+function loadConstructionProjectOfflineApplications(){
+  try{
+    return JSON.parse(localStorage.getItem(constructionProjectOfflineApplicationsStorageKey)||"[]");
+  }catch(error){
+    return [];
+  }
+}
+
+function persistConstructionProjectOfflineApplications(){
+  try{
+    localStorage.setItem(constructionProjectOfflineApplicationsStorageKey,JSON.stringify(constructionProjectOfflineApplications));
+  }catch(error){
+    console.warn("persist construction project offline applications failed",error);
+  }
+}
 
 function moneyWan(v){return Number(v||0).toLocaleString("zh-CN");}
 function projectStatusTag(v){return tag(v,v==="在建"?"blue":v==="完工"?"green":v==="停工"?"orange":"gray");}
@@ -546,7 +564,7 @@ tableColumnDefinitions.constructionProject=[
   {key:"isKeyProject",title:"是否重点项目",width:120,align:"center",render:r=>yesNoTag(r.isKeyProject)},
   {key:"projectCode",title:"项目编号",width:140,render:r=>r.projectCode},
   {key:"productionProjectNo",title:"生产项目编号",width:150,render:r=>r.productionProjectNo},
-  {key:"operation",title:"操作",width:110,align:"center",render:r=>`<a class="link" onclick="openProjectEditModal(${r.id})">编辑</a> ｜ <a class="link danger-link" onclick="deleteConstructionProject(${r.id})">删除</a>`}
+  {key:"operation",title:"操作",width:170,align:"center",render:r=>`<a class="link" onclick="openProjectEditModal(${r.id})">编辑</a> ｜ <a class="link" onclick="openConstructionProjectOfflineModal(${r.id})">下线</a> ｜ <a class="link danger-link" onclick="deleteConstructionProject(${r.id})">删除</a>`}
 ];
 
 function cpUnique(key){
@@ -935,6 +953,170 @@ function openProjectEditModal(id){
   const project=constructionProjectData.find(item=>String(item.id)===String(id));
   if(!project)return;
   openModal("编辑项目",renderProjectMasterForm(project),`<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveConstructionProject(${id})">保存</button>`,"large");
+}
+
+function formatConstructionProjectFileSize(size){
+  const value=Number(size||0);
+  if(!value)return "-";
+  if(value>=1024*1024)return `${(value/1024/1024).toFixed(2)} MB`;
+  if(value>=1024)return `${(value/1024).toFixed(1)} KB`;
+  return `${value} B`;
+}
+
+function getConstructionProjectOfflineAttachments(){
+  const node=document.getElementById("constructionProjectOfflineAttachments");
+  if(!node)return [];
+  try{
+    return JSON.parse(node.dataset.files||"[]");
+  }catch(error){
+    return [];
+  }
+}
+
+function setConstructionProjectOfflineAttachments(files){
+  const node=document.getElementById("constructionProjectOfflineAttachments");
+  if(!node)return;
+  node.dataset.files=JSON.stringify(files||[]);
+  node.innerHTML=(files||[]).map((file,index)=>renderConstructionProjectOfflineAttachmentItem(file,index)).join("");
+}
+
+function renderConstructionProjectOfflineAttachmentItem(file,index){
+  const name=file?.name||"附件";
+  const sizeText=file?.sizeText||formatConstructionProjectFileSize(file?.size||0);
+  return `<div class="project-log-file-upload-item">
+    <div class="project-log-file-icon">DOC</div>
+    <button type="button" class="project-log-file-preview-trigger" onclick="showToast('已选择附件：${escapeAttr(name)}')">
+      <strong title="${escapeAttr(name)}">${escapeAttr(name)}</strong>
+      <span>${escapeAttr(sizeText)}</span>
+    </button>
+    <button type="button" aria-label="删除附件" title="删除附件" onclick="removeConstructionProjectOfflineAttachment(${index})">${renderTDesignIcon("close",{size:14})}</button>
+  </div>`;
+}
+
+function handleConstructionProjectOfflineAttachmentSelect(input){
+  const target=document.getElementById("constructionProjectOfflineAttachments");
+  if(!target||!input)return;
+  const next=[...getConstructionProjectOfflineAttachments()];
+  [...(input.files||[])].forEach(file=>{
+    const item={name:file.name||"附件",size:file.size||0,sizeText:formatConstructionProjectFileSize(file.size||0),type:file.type||"",url:""};
+    next.push(item);
+    if(file.type?.startsWith("image/")||file.type==="application/pdf"){
+      const reader=new FileReader();
+      reader.onload=()=>{item.url=String(reader.result||"");setConstructionProjectOfflineAttachments(next);};
+      reader.readAsDataURL(file);
+    }
+  });
+  setConstructionProjectOfflineAttachments(next);
+  input.value="";
+}
+
+function removeConstructionProjectOfflineAttachment(index){
+  const next=[...getConstructionProjectOfflineAttachments()];
+  next.splice(index,1);
+  setConstructionProjectOfflineAttachments(next);
+}
+
+function applyConstructionProjectOfflineEditorCommand(command,value=null){
+  document.getElementById("constructionProjectOfflineReasonEditor")?.focus();
+  document.execCommand(command,false,value);
+  syncConstructionProjectOfflineReason();
+}
+
+function syncConstructionProjectOfflineReason(){
+  const editor=document.getElementById("constructionProjectOfflineReasonEditor");
+  const counter=document.getElementById("constructionProjectOfflineReasonCount");
+  if(counter)counter.textContent=`${(editor?.innerText||"").replace(/\s+/g,"").length}/2000`;
+}
+
+function renderConstructionProjectOfflineForm(project){
+  const projectName=project.projectName||"-";
+  const projectCode=project.projectCode||"-";
+  const subCompany=project.subCompany||"-";
+  const branchCompany=project.branchCompany||"-";
+  const projectManager=project.projectManager||"-";
+  const managerPhone=project.managerPhone||"";
+  const projectCost=Number(project.projectCost||0);
+  const summaryFields=[
+    ["项目造价（元）",projectCost?projectCost.toLocaleString("zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2}):"-"],
+    ["项目类型",project.projectType||"-"],
+    ["所属区域",normalizeConstructionProjectRegion(project.region)||"-"],
+    ["项目模式",project.implementationMode||"-"],
+    ["管控等级",project.controlLevel||"-"]
+  ];
+  return `<div class="construction-project-offline-form">
+    <section class="construction-project-offline-header">
+      <h2>${escapeAttr(projectName)}</h2>
+      <div class="construction-project-offline-tags">
+        ${project.projectStatus?tag(project.projectStatus,project.projectStatus==="在建"?"green":project.projectStatus==="完工"?"blue":"orange"):""}
+        ${project.projectType?tag(project.projectType,"blue"):""}
+      </div>
+      <div class="construction-project-offline-meta">
+        <span>施工项目编号：<strong>${escapeAttr(projectCode)}</strong></span>
+        <span>子公司：<strong>${escapeAttr(subCompany)}</strong></span>
+        <span>分公司：<strong>${escapeAttr(branchCompany)}</strong></span>
+        <span>常务项目经理：<strong>${escapeAttr(projectManager)}${managerPhone?` ｜ ${escapeAttr(maskPhone(managerPhone))}`:""}</strong></span>
+      </div>
+      <div class="construction-project-offline-summary">
+        ${summaryFields.map(([label,value])=>`<div><span>${label}</span><strong>${escapeAttr(value)}</strong></div>`).join("")}
+      </div>
+    </section>
+    <section class="construction-project-offline-section">
+      <h3>项目下线原因 <em>*</em></h3>
+      <div class="message-rich-editor construction-project-offline-editor">
+        <div class="message-rich-toolbar">
+          <button type="button" onclick="applyConstructionProjectOfflineEditorCommand('bold')"><b>B</b></button>
+          <button type="button" onclick="applyConstructionProjectOfflineEditorCommand('italic')"><i>I</i></button>
+          <button type="button" onclick="applyConstructionProjectOfflineEditorCommand('underline')"><u>U</u></button>
+          <button type="button" onclick="applyConstructionProjectOfflineEditorCommand('insertUnorderedList')">• 列表</button>
+          <button type="button" onclick="applyConstructionProjectOfflineEditorCommand('insertOrderedList')">1. 列表</button>
+          <button type="button" onclick="applyConstructionProjectOfflineEditorCommand('removeFormat')">清除格式</button>
+        </div>
+        <div id="constructionProjectOfflineReasonEditor" class="message-rich-content construction-project-offline-content" contenteditable="true" data-placeholder="请输入项目下线原因" oninput="syncConstructionProjectOfflineReason()" onblur="syncConstructionProjectOfflineReason()"></div>
+      </div>
+      <div class="construction-project-offline-counter"><span id="constructionProjectOfflineReasonCount">0/2000</span></div>
+    </section>
+    <section class="construction-project-offline-section">
+      <h3>工程部敲章申请报告 <em>*</em></h3>
+      <div class="project-log-file-upload">
+        <input id="constructionProjectOfflineAttachmentInput" type="file" multiple hidden onchange="handleConstructionProjectOfflineAttachmentSelect(this)"/>
+        <button class="btn primary project-log-file-upload-btn" type="button" onclick="document.getElementById('constructionProjectOfflineAttachmentInput')?.click()">文件上传</button>
+        <p>支持多附件上传</p>
+        <div class="project-log-file-preview" id="constructionProjectOfflineAttachments" data-files="[]"></div>
+      </div>
+    </section>
+  </div>`;
+}
+
+function openConstructionProjectOfflineModal(id){
+  const project=constructionProjectData.find(item=>String(item.id)===String(id));
+  if(!project)return;
+  openModal("项目下线",renderConstructionProjectOfflineForm(project),`<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveConstructionProjectOfflineApplication(${project.id})">提交申请</button>`,"large");
+  modalBox.classList.add("construction-project-offline-modal");
+  setConstructionProjectOfflineAttachments([]);
+  syncConstructionProjectOfflineReason();
+}
+
+function saveConstructionProjectOfflineApplication(id){
+  const project=constructionProjectData.find(item=>String(item.id)===String(id));
+  if(!project)return;
+  const reasonEditor=document.getElementById("constructionProjectOfflineReasonEditor");
+  const reasonHtml=(reasonEditor?.innerHTML||"").trim();
+  const reasonText=(reasonEditor?.innerText||"").replace(/\s+/g,"").trim();
+  const attachments=getConstructionProjectOfflineAttachments();
+  if(!reasonText)return showToast("请填写项目下线原因");
+  if(!attachments.length)return showToast("请上传工程部敲章申请报告");
+  constructionProjectOfflineApplications.unshift({
+    id:`offline-${Date.now()}`,
+    projectId:project.id,
+    projectName:project.projectName,
+    projectCode:project.projectCode,
+    reasonHtml,
+    attachments,
+    createdAt:new Date().toISOString()
+  });
+  persistConstructionProjectOfflineApplications();
+  closeModal();
+  showToast("项目下线申请已提交");
 }
 
 function saveConstructionProject(id){

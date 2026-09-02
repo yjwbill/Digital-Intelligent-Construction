@@ -21638,6 +21638,24 @@ body.enterprise-mobile-mode .enterprise-mobile-mine-menu-item strong{
 .project-log-file-upload-item span{color:#86909C;font-size:12px;font-weight:700;}
 .project-log-file-upload-item button:not(.project-log-file-preview-trigger){width:22px;height:22px;border:0;border-radius:50%;background:#E5EAF2;color:#4E5969;font-size:16px;line-height:22px;display:grid;place-items:center;cursor:pointer;}
 .project-log-file-upload-item .project-log-file-preview-trigger{width:100%!important;height:auto!important;min-width:0!important;max-width:100%;overflow:hidden;display:block!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;color:inherit;text-align:left;}
+.construction-project-offline-modal:not(.fullscreen):not(.nested-modal){width:min(980px,calc(100vw - 48px))!important;}
+.construction-project-offline-form{display:grid;gap:16px;}
+.construction-project-offline-header{display:grid;gap:12px;padding:2px 2px 0;}
+.construction-project-offline-header h2{margin:0;color:#0052A4;font-size:34px;line-height:1.25;font-weight:900;letter-spacing:0;}
+.construction-project-offline-tags{display:flex;flex-wrap:wrap;gap:10px;}
+.construction-project-offline-meta{display:flex;flex-wrap:wrap;gap:10px 28px;color:#4E5969;font-size:17px;line-height:28px;font-weight:700;}
+.construction-project-offline-meta strong{color:#4E5969;font-weight:800;}
+.construction-project-offline-summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;padding:18px 16px;background:#F5F9FD;}
+.construction-project-offline-summary>div{min-width:0;display:grid;gap:10px;padding-right:24px;}
+.construction-project-offline-summary>div:not(:last-child){border-right:1px solid #E8EEF7;}
+.construction-project-offline-summary span{color:#4E5969;font-size:14px;font-weight:700;}
+.construction-project-offline-summary strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#0052A4;font-size:18px;font-weight:900;}
+.construction-project-offline-section{display:grid;gap:10px;}
+.construction-project-offline-section h3{margin:0;color:#1D2129;font-size:15px;font-weight:900;}
+.construction-project-offline-section h3 em{color:#F53F3F;font-style:normal;margin-left:2px;}
+.construction-project-offline-editor .message-rich-content{min-height:160px;}
+.construction-project-offline-content:empty:before{content:attr(data-placeholder);color:#A8B2C1;}
+.construction-project-offline-counter{display:flex;justify-content:flex-end;color:#86909C;font-size:12px;font-weight:700;}
 .project-log-stop-textarea{width:100%;min-height:96px!important;}
 .project-log-file-remark-item .project-log-stop-textarea{min-height:34px!important;height:34px;resize:vertical;}
 @media(max-width:1300px){
