@@ -2257,7 +2257,7 @@ function getVisibleColumns(tableKey){
       ...c,
       align:c.align||"left"
     }))
-    .filter(c=>c.key);
+    .filter(c=>c.key && !(typeof c.hidden === "function" && c.hidden()));
   return columns.filter(col=>col.key!=="operation").concat(columns.filter(col=>col.key==="operation"));
 }
 
@@ -2480,6 +2480,14 @@ function renderUnifiedQueryCard(fieldsHtml, options={}){
   `;
 }
 
+function renderStandardFormGroup(title,bodyHtml,options={}){
+  const safeTitle=escapeAttr(title||"");
+  const description=options.description?`<span class="standard-form-group-description">${escapeAttr(options.description)}</span>`:"";
+  const actions=options.actions||"";
+  return `<section class="detail-group standard-form-group ${escapeAttr(options.className||"")}"><div class="detail-group-header"><div class="detail-group-title">${safeTitle}${description}</div>${actions?`<div class="standard-form-group-actions">${actions}</div>`:""}</div><div class="detail-group-body">${bodyHtml||""}</div></section>`;
+}
+window.renderStandardFormGroup=renderStandardFormGroup;
+
 function toggleUnifiedQueryCard(cardId){
   const card=document.getElementById(cardId);
   if(!card)return;
@@ -2571,6 +2579,8 @@ function showFloatingInfoTip(el){
   const text=el?.dataset?.tip;
   if(!text)return;
 
+  const isEconomyManagementTip=el.classList?.contains("economy-management-status-info");
+
   let tip=document.getElementById("floatingInfoTip");
   if(!tip){
     tip=document.createElement("div");
@@ -2579,13 +2589,15 @@ function showFloatingInfoTip(el){
     document.body.appendChild(tip);
   }
 
+  tip.className=`floating-info-tip${isEconomyManagementTip?" economy-management-status-floating-tip":""}`;
   tip.textContent=text;
   tip.style.display="block";
 
   const rect=el.getBoundingClientRect();
   const gap=8;
-  const width=Math.min(260,window.innerWidth-24);
+  const width=Math.min(isEconomyManagementTip?400:260,window.innerWidth-24);
   tip.style.maxWidth=width+"px";
+  tip.style.width=isEconomyManagementTip?width+"px":"";
 
   const tipRect=tip.getBoundingClientRect();
   let left=rect.left + rect.width/2 - tipRect.width/2;
@@ -2603,9 +2615,9 @@ function hideFloatingInfoTip(){
   if(tip)tip.style.display="none";
 }
 
-function renderInfoTip(text){
+function renderInfoTip(text,className=""){
   if(!text)return "";
-  return `<span class="info-tip" tabindex="0" data-tip="${escapeAttr(text)}" onmouseenter="showFloatingInfoTip(this)" onmouseleave="hideFloatingInfoTip()" onfocus="showFloatingInfoTip(this)" onblur="hideFloatingInfoTip()">i</span>`;
+  return `<span class="info-tip${className?` ${className}`:""}" tabindex="0" data-tip="${escapeAttr(text)}" onmouseenter="showFloatingInfoTip(this)" onmouseleave="hideFloatingInfoTip()" onfocus="showFloatingInfoTip(this)" onblur="hideFloatingInfoTip()">i</span>`;
 }
 
 function renderUnifiedStatsCard(statsHtml, options={}){

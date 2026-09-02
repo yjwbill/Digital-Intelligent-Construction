@@ -653,11 +653,38 @@
   }
   #roadmapView{z-index:10}
   #architectureView{z-index:20}
+  #architectureView .arch-tabs,#architectureView .arch-current{display:none}
+  #architectureView .arch-board{left:28px;right:28px;top:10px;bottom:18px;border:0;border-radius:0;background:#fff;box-shadow:none;overflow:auto}
+  #architectureView .arch-board:after{display:none}
+  #architectureView .arch-canvas{position:relative;inset:auto;min-width:1680px;padding:14px 8px 20px;display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:16px}
+  #architectureView .arch-main{gap:12px}
+  #architectureView .arch-lane,#architectureView .arch-econ-lane,#architectureView .arch-base{border:1px solid #dce5f2;border-radius:10px;background:#fff;box-shadow:0 4px 12px rgba(23,43,77,.04);padding:10px}
+  #architectureView .arch-side-label{background:#f7f9fc;color:#155eef;border:1px solid #dce5f2;box-shadow:none;font-size:20px;letter-spacing:2px}
+  #architectureView .arch-group{border-color:#bfd0ff;border-radius:10px;background:#f4f7ff;box-shadow:none;padding:10px}
+  #architectureView .arch-group-title{background:transparent;color:#155eef;font-size:20px;min-height:34px;padding:4px;margin-bottom:8px}
+  #architectureView .arch-group-title.orange{color:#e85d04;background:transparent}.arch-group-title.green{color:#16876f;background:transparent}
+  #architectureView .arch-item{min-height:48px;background:#fff;border:1px solid #dce5f2;border-radius:8px;color:#172b4d;font-size:14px;font-weight:500}
+  #architectureView .arch-base{background:#f8fafd}.arch-base-label{color:#155eef!important;font-size:18px}
+  #architectureView .arch-rail-card{border:1px solid #dce5f2;border-radius:10px;background:#fff;box-shadow:none;padding:10px}.arch-rail-card h4{font-size:18px;color:#155eef}
+  #architectureView .rail-chip{background:#f7f9fc;border-color:#e3eaf4;font-size:14px}
+  #architectureView .arch-legend{display:none}
+  #architectureView .arch-board{overflow:hidden}
+  #architectureView .arch-canvas{height:100%;box-sizing:border-box;grid-template-columns:minmax(0,1fr) 182px;gap:14px}
+  #architectureView .arch-lane:first-child{min-height:112px}
+  #architectureView .arch-lane:first-child .arch-side-label{font-size:18px}
+  #architectureView .arch-main>.arch-lane:nth-child(2){min-height:390px}
+  #architectureView .arch-main>.arch-base{min-height:72px}
+  #architectureView .arch-main>.arch-base:last-child{min-height:78px}
+  #architectureView .arch-row{gap:10px}
+  #architectureView .arch-group-title{font-size:19px}
+  .presentation-header{height:72px;display:flex;align-items:center;padding:0 38px;border-bottom:1px solid #e8eef7;background:#fff;box-sizing:border-box;gap:34px}.presentation-header .brand{width:290px;display:flex;align-items:center}.presentation-header .brand img{width:218px;height:auto}.presentation-header nav{display:flex;align-items:center;height:100%;gap:8px}.presentation-header nav button{height:48px;padding:0 24px;border:0;border-radius:8px;background:transparent;color:#344563;font-size:18px;font-weight:500;cursor:pointer}.presentation-header nav button.active,.presentation-header nav button:hover{background:#f3f7ff;color:#155eef}.presentation-header nav button.active{box-shadow:inset 0 -3px #155eef}
+  .shell{display:block}.sidebar{display:none}.content{left:0;top:72px;right:0;bottom:0;width:100%;height:calc(100% - 72px)}
 </style>
 </head>
 <body>
 <div class="stage">
   <div class="shell">
+    <header class="presentation-header"><div class="brand"><img src="../assets/economy/tunnel-group-logo.svg" alt="隧道股份 数字集团"></div><nav aria-label="演示导航"><button class="active" data-page="architecture" data-arch="overall">01 业务架构</button><button data-page="architecture" data-arch="production">02 生产管理</button><button data-page="architecture" data-arch="safety">03 安全管理</button><button data-page="architecture" data-arch="economy">04 经济管理</button><button data-page="architecture" data-arch="overall">05 平台能力</button><button data-page="roadmap">06 建设进度</button></nav></header>
     <aside class="sidebar">
       <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-label="收起左侧菜单" aria-expanded="true" title="收起左侧菜单">
         <span class="toggle-arrow">‹</span>
@@ -1343,9 +1370,10 @@
     n.addEventListener('click',activate);
     n.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate();}});
   });
+  document.querySelectorAll('.presentation-header nav button').forEach(n=>n.addEventListener('click',()=>{document.querySelectorAll('.presentation-header nav button').forEach(x=>x.classList.remove('active'));n.classList.add('active');if(n.dataset.arch){activeArch=n.dataset.arch;setPage('architecture')}else setPage(n.dataset.page)}));
 
   renderArchitecture('overall');
-  setPage('roadmap');
+  setPage('architecture');
 })();
 </script>
 
