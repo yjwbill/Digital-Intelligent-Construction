@@ -174,7 +174,7 @@ function renderDigitalConstructionEntry(){
                 <button class="entry-terminal-card entry-terminal-mobile-card" onclick="enterDigitalConstructionMobileProject()"><span class="entry-terminal-icon terminal-image mobile" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>移动端-项目管理</strong><em>微信小程序入口</em></span><b>立即体验　→</b></button>
               </div>
               <div class="entry-mobile-card-stack entry-resource-card-stack">
-                <button class="entry-terminal-card entry-terminal-mobile-card" onclick="enterDigitalConstructionProductOverview()"><span class="entry-terminal-icon terminal-image screen" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>产品概览</strong><em>数智施工产品全景</em></span><b>立即体验　→</b></button>
+                <button class="entry-terminal-card entry-terminal-mobile-card" onclick="enterDigitalConstructionProductOverview()"><span class="entry-terminal-icon terminal-image screen" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>产品全景</strong><em>数智施工产品全景</em></span><b>立即体验　→</b></button>
                 <button class="entry-terminal-card entry-terminal-mobile-card" onclick="enterDigitalConstructionComponentLibrary()"><span class="entry-terminal-icon library" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>组件库</strong><em>灵活组件与复用沉淀</em></span><b>立即体验　→</b></button>
               </div>
             </div>
@@ -234,7 +234,7 @@ function enterDigitalConstructionProductOverview(){
     <main class="product-overview-workspace">
       <header class="product-overview-shell-header">
         <button type="button" class="product-overview-back" onclick="renderDigitalConstructionEntry()" title="返回Demo入口"><span aria-hidden="true">&#8249;</span>返回入口</button>
-        <div class="product-overview-shell-title"><span class="digital-entry-logo" aria-hidden="true"></span><div><strong>产品概览</strong><small>数智施工平台产品规划与建设进展</small></div></div>
+        <div class="product-overview-shell-title"><span class="digital-entry-logo" aria-hidden="true"></span><div><strong>产品全景</strong><small>数智施工平台产品规划与建设进展</small></div></div>
       </header>
       <iframe class="product-overview-frame" src="./src/app/product/product-overview.html?v=2.2.966-roadmap-dash-smooth" title="数智施工平台产品概览"></iframe>
     </main>`;
@@ -1211,7 +1211,7 @@ const componentLibraryMenusV2288={
   pc:[
     {group:"设计规范",items:[["design-token","设计变量 Design Token"]]},
     {group:"基础组件",items:[["button","按钮 Button"],["icon","图标 Icon"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"],["month","年月选择器 MonthPicker"]]},
-    {group:"表单组件",items:[["input","输入框 Input"],["select","选择器 Select"]]},
+    {group:"表单组件",items:[["input","输入框 Input"],["select","选择器 Select"],["form-group","表单分组 FormGroup"]]},
     {group:"数据展示",items:[["tag","标签 Tag"],["table","表格 Table"],["standard-list","标准列表 StandardList"],["project-manager-contact","项目经理联系方式 ProjectManagerContact"],["row-span-table","纵跨行组件 RowSpanTable"]]},
     {group:"弹层组件",items:[["modal-standard","基础标准弹框 Modal"],["modal-fullscreen","全屏弹框 FullscreenModal"],["modal-nested","嵌套弹框 NestedModal"],["modal-business","业务定制弹框 BusinessModal"],["approval-dialog","审批弹框 ApprovalDialog"],["modal-immersive","沉浸式预览弹框 ImmersiveModal"],["modal-mobile","移动端弹层 MobileOverlay"],["modal-lightweight","轻量浮层 Popover"]]},
     {group:"业务组件",items:[["statistics-filter","统计筛选 StatisticsFilter"],["dashboard-org-switch","看板组织切换 DashboardOrgSwitch"],["project-selector","项目选择器 ProjectSelector"]]}
@@ -1569,6 +1569,7 @@ function renderPcComponentPreviewV2288(type){
       <p>标准 Table 提供单行和多行两种表头模式。单行表头固定 44px；使用 <code>table-multiline-header</code> 标识双行或多级表头，每层固定 40px，并通过 rowspan / colspan 表达分组关系。所有数据行统一 40px，支持列设置、分页、导出和固定表头。</p>
     `,
     "standard-list":renderStandardListPreviewV2300(),
+    "form-group":renderStandardFormGroupPreviewV2300(),
     "project-manager-contact":`
       <div class="component-demo-row">
         ${renderProjectManagerContact("张建军","13812345678",{key:"component-library-manager-full"})}
@@ -1611,6 +1612,11 @@ function renderStandardListPreviewV2300(){
   const query=renderUnifiedQueryCard(`<div class="form-item"><label>项目名称</label><input class="input" placeholder="请输入项目名称"></div><div class="form-item"><label>项目状态</label><select class="select"><option>全部</option><option>在建</option></select></div>`,{queryFn:"showToast('标准列表查询')",resetFn:"showToast('标准列表已重置')",canCollapse:false});
   const table=`<section class="card table-card component-standard-list-demo-table"><div class="card-hd"><div class="card-title">表格列表</div><div class="actions"><button class="btn">刷新</button><button class="btn primary">导出</button></div></div><div class="table-wrap roster-table-wrap"><table><thead><tr><th>序号</th><th>项目名称</th><th>所属组织</th><th>状态</th></tr></thead><tbody><tr><td>1</td><td>机场联络线工程</td><td>上海隧道 / 轨交分公司</td><td>${tag("在建","green")}</td></tr><tr><td>2</td><td>大外环西段项目</td><td>市政集团 / 第一建筑</td><td>${tag("停工","orange")}</td></tr></tbody></table></div></section>`;
   return `<div class="standard-list-preview"><section><h4>类型一：标准列表</h4>${StandardList.render({variant:"table",queryHtml:query,contentHtml:table})}</section><section><h4>类型二：左侧内容 + 列表</h4>${StandardList.render({variant:"split",sideHtml:`<div class="component-standard-list-side-demo"><strong>组织树</strong><button class="active">隧道股份</button><button>上海隧道</button><button>市政集团</button></div>`,mainHtml:`${query}${table}`})}</section><p>StandardList 统一页面标题、查询区、表格卡片和分页布局；table 适用于完整列表，split 适用于左侧组织树、分类或选项的列表页面。</p></div>`;
+}
+
+function renderStandardFormGroupPreviewV2300(){
+  const fieldGrid=`<div class="standard-form-group-grid"><div class="form-item"><label>任务名称</label><input class="input" value="施工项目月度安全评价任务"></div><div class="form-item"><label>执行方式</label><select class="select"><option>自动</option><option>手动</option></select></div><div class="form-item"><label>任务描述</label><textarea class="input" rows="3">统一调用项目、分公司、子公司三个层级模型完成评价。</textarea></div></div>`;
+  return `<div class="standard-form-group-preview"><div class="standard-form-group-preview-shell">${renderStandardFormGroup("任务基础信息",fieldGrid,{description:"标准表单分组",actions:'<button class="btn">清空</button>'})}${renderStandardFormGroup("选择评价项目",'<div class="standard-form-group-placeholder">这里放置表格、选择器或其他表单内容</div>')}</div><div class="component-spec-grid"><div><b>弹框边距</b><span>标准 Modal 内容区上、下、左、右统一 16px。</span></div><div><b>分组结构</b><span>标题栏 44px，内容区 14px 内边距，分组之间 12px 间距。</span></div><div><b>标题规范</b><span>15px、700 字重，左侧 4px 主色竖线，可选说明与右侧操作。</span></div></div><p>调用 <code>renderStandardFormGroup(title, bodyHtml, options)</code> 生成统一分组；options 支持 description、actions、className。</p></div>`;
 }
 
 function renderDesignTokenPreviewV01(){
@@ -1984,6 +1990,7 @@ function renderMobileComponentPreviewV2288(type){
 function renderComponentLibraryPageV2288(){
   const app=document.querySelector(".app");
   if(!app)return;
+  const scrollState=captureComponentLibraryScrollV2301();
   window.__digitalConstructionMode="component-library";
   removeBottomFixedMenu();
   document.body.classList.remove("mobile-mode","entry-mode","enterprise-mobile-mode");
@@ -2011,18 +2018,39 @@ function renderComponentLibraryPageV2288(){
       </div>
     </main>
   `;
+  restoreComponentLibraryScrollV2301(scrollState);
 }
 
 function switchComponentLibraryPlatformV2288(platform){
+  const scrollState=captureComponentLibraryScrollV2301();
   componentLibraryStateV2288.platform=platform;
   componentLibraryStateV2288.active="button";
   renderComponentLibraryPageV2288();
+  restoreComponentLibraryScrollV2301(scrollState);
 }
 
 function selectComponentLibraryItemV2288(active){
+  const scrollState=captureComponentLibraryScrollV2301();
   window.ModalGallery?.close?.();
   componentLibraryStateV2288.active=active;
   renderComponentLibraryPageV2288();
+  restoreComponentLibraryScrollV2301(scrollState);
+}
+
+function captureComponentLibraryScrollV2301(){
+  return {windowX:window.scrollX,windowY:window.scrollY,content:document.querySelector(".component-library-content")?.scrollTop||0,sidebar:document.querySelector(".component-library-sidebar")?.scrollTop||0};
+}
+
+function restoreComponentLibraryScrollV2301(state){
+  const restore=()=>{
+    window.scrollTo(state.windowX,state.windowY);
+    const content=document.querySelector(".component-library-content");
+    const sidebar=document.querySelector(".component-library-sidebar");
+    if(content)content.scrollTop=state.content;
+    if(sidebar)sidebar.scrollTop=state.sidebar;
+  };
+  restore();
+  requestAnimationFrame(restore);
 }
 
 function enterDigitalConstructionComponentLibrary(){

@@ -37,7 +37,7 @@ const economyInitiationHistoryProjects=[
 
 const economyInitiationLatestMonth=[...new Set(economyInitiationApplications.map(x=>x.month))].sort().reverse()[0];
 const economyInitiationState={selectedId:"init-202607-st",projectName:"",projectCode:"",orderCode:"",branch:"",manager:"",builder:"",historySelected:[],expandedMonths:new Set([economyInitiationLatestMonth])};
-window.economyProjectInitiationApprovedData=economyInitiationApplications.filter(x=>x.status==="已完成").flatMap(x=>x.projects.map(project=>({...project,applicationId:x.id,approvalMonth:x.month,approveTime:x.approveTime})));
+window.economyProjectInitiationApprovedData=economyInitiationApplications.filter(x=>x.status==="已完成").flatMap(x=>x.projects.map(project=>({...project,managementStatus:project.online==="是"?"纳管中":"待纳管",applicationId:x.id,approvalMonth:x.month,approveTime:x.approveTime})));
 
 function getEconomyInitiationSelected(){
   return economyInitiationApplications.find(x=>x.id===economyInitiationState.selectedId)||economyInitiationApplications[0];
@@ -116,6 +116,7 @@ function removeEconomyInitiationHistoryProject(projectId){
 
 tableColumnDefinitions.economyInitiationProjects=[
   {key:"index",title:"序号",width:70,align:"center",render:(x,i)=>i+1},
+  {key:"managementStatus",hidden:()=>getEconomyInitiationSelected()?.status!=="已完成",title:`纳管状态${renderInfoTip("该状态为实际纳管状态，申请上线后会有1~3个月缓冲期\n待纳管代表运维人员正在和子公司经管部实施中\n纳管中代表该项目正式上线，将正式参与每月的经济诊断","economy-management-status-info")}`,width:130,align:"center",render:x=>{const app=getEconomyInitiationSelected();const status=app.status==="已完成"?(x.managementStatus||"待纳管"):"待纳管";return tag(status,status==="纳管中"?"green":"orange");}},
   {key:"sourceType",title:"项目性质",width:100,align:"center",render:x=>tag(x.sourceType==="新增"?"新开":"历史",x.sourceType==="新增"?"green":"red")},
   {key:"projectName",title:"项目名称",width:280,align:"left",render:x=>x.projectName},
   {key:"projectCode",title:"项目编号",width:150,align:"center",render:x=>x.projectCode},
@@ -226,7 +227,7 @@ function confirmApproveEconomyInitiationApplication(){
   const app=getEconomyInitiationSelected();
   const operator=getEconomyInitiationCurrentOperator();
   app.status="已完成";app.currentNode="申请结束";app.approverName=operator.name;app.approverRole=operator.role;app.approveTime=formatEconomyInitiationActionTime();
-  window.economyProjectInitiationApprovedData=economyInitiationApplications.filter(x=>x.status==="已完成").flatMap(x=>x.projects.map(project=>({...project,applicationId:x.id,approvalMonth:x.month,approveTime:x.approveTime})));
+  window.economyProjectInitiationApprovedData=economyInitiationApplications.filter(x=>x.status==="已完成").flatMap(x=>x.projects.map(project=>({...project,managementStatus:project.online==="是"?"纳管中":"待纳管",applicationId:x.id,approvalMonth:x.month,approveTime:x.approveTime})));
   closeModal();renderEconomyProjectInitiationPage();showToast("产运部已确认，开项审批流程结束");
 }
 

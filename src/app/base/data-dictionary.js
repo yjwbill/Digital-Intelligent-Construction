@@ -26,7 +26,12 @@ const dataDictionaryListV2284=[
   {name:"人员状态",code:"PERSONNEL_STATUS",remark:"实名制人员状态"},
   {name:"预警类型",code:"ALERT_TYPE",remark:"预警消息分类"},
   {name:"劳务类型",code:"LABOR_TYPE",remark:"劳务人员类型"},
-  {name:"参建单位类型",code:"PARTICIPANT_UNIT_TYPE",remark:"项目参建单位角色分类"}
+  {name:"参建单位类型",code:"PARTICIPANT_UNIT_TYPE",remark:"项目参建单位角色分类"},
+  {name:"合作模式",code:"COOPERATION_MODE",remark:"经济纳管项目合作模式"},
+  {name:"分包模式",code:"SUBCONTRACT_MODE",remark:"经济纳管项目分包模式"},
+  {name:"是否投资项目",code:"IS_INVESTMENT_PROJECT",remark:"经济纳管项目投资属性"},
+  {name:"是否类投资项目",code:"IS_INVESTMENT_LIKE_PROJECT",remark:"经济纳管项目类投资属性"},
+  {name:"CM项目板块",code:"CM_PROJECT_PLATE",remark:"CM项目板块标准字典"}
 ];
 const dataDictionaryValuesV2284={
   PROJECT_STATUS:[
@@ -101,6 +106,37 @@ const dataDictionaryValuesV2284={
     {name:"设计单位",code:"DESIGN_UNIT",status:"启用",palette:5,remark:"项目设计单位"},
     {name:"勘察单位",code:"SURVEY_UNIT",status:"启用",palette:3,remark:"项目勘察单位"},
     {name:"监理单位",code:"SUPERVISION_UNIT",status:"启用",palette:6,remark:"项目监理单位"}
+  ],
+  COOPERATION_MODE:[
+    {name:"自营",code:"01",status:"启用",palette:2,remark:"经济纳管项目合作模式"},
+    {name:"合作",code:"02",status:"启用",palette:3,remark:"经济纳管项目合作模式"}
+  ],
+  SUBCONTRACT_MODE:[
+    {name:"自营不垫资",code:"01",status:"启用",palette:2,remark:"经济纳管项目分包模式"},
+    {name:"自营垫资",code:"02",status:"启用",palette:3,remark:"经济纳管项目分包模式"},
+    {name:"合作不垫资",code:"03",status:"启用",palette:6,remark:"经济纳管项目分包模式"},
+    {name:"合作垫资",code:"04",status:"启用",palette:5,remark:"经济纳管项目分包模式"}
+  ],
+  IS_INVESTMENT_PROJECT:[
+    {name:"否",code:"0",status:"启用",palette:0,remark:"经济纳管项目投资属性"},
+    {name:"是",code:"1",status:"启用",palette:2,remark:"经济纳管项目投资属性"}
+  ],
+  IS_INVESTMENT_LIKE_PROJECT:[
+    {name:"否",code:"0",status:"启用",palette:0,remark:"经济纳管项目类投资属性"},
+    {name:"是",code:"1",status:"启用",palette:2,remark:"经济纳管项目类投资属性"}
+  ],
+  CM_PROJECT_PLATE:[
+    {name:"建筑",code:"JZ",status:"启用",palette:2,remark:"01"},
+    {name:"市政",code:"SZ",status:"启用",palette:2,remark:"02"},
+    {name:"公路",code:"GL",status:"启用",palette:2,remark:"03"},
+    {name:"轨交",code:"GJ",status:"启用",palette:2,remark:"04"},
+    {name:"隧道",code:"SD",status:"启用",palette:2,remark:"05"},
+    {name:"地下工程",code:"DXGC",status:"启用",palette:2,remark:"06"},
+    {name:"机场",code:"JC",status:"启用",palette:2,remark:"07"},
+    {name:"能源",code:"NY",status:"启用",palette:2,remark:"08"},
+    {name:"排水环保",code:"PSHB",status:"启用",palette:2,remark:"09"},
+    {name:"片区开发",code:"PQKF",status:"启用",palette:2,remark:"10"},
+    {name:"附属设施",code:"FSSS",status:"启用",palette:2,remark:"11"}
   ]
 };
 
@@ -181,10 +217,20 @@ function ensureBaseDataDictionaryMenuV2284(){
 }
 
 function selectDataDictionaryV2284(code){
+  const sideList=document.querySelector(".data-dict-list");
+  const valueTable=document.querySelector(".data-dict-value-table-card .table-wrap");
+  const scrollState={x:window.scrollX,y:window.scrollY,sideTop:sideList?.scrollTop||0,tableTop:valueTable?.scrollTop||0,tableLeft:valueTable?.scrollLeft||0};
   dataDictionaryStateV2284.active=code;
   dataDictionaryStateV2284.valueKeyword="";
   dataDictionaryStateV2284.valuePage=1;
   renderDataDictionaryPageV2284();
+  requestAnimationFrame(()=>{
+    window.scrollTo(scrollState.x,scrollState.y);
+    const nextSideList=document.querySelector(".data-dict-list");
+    const nextValueTable=document.querySelector(".data-dict-value-table-card .table-wrap");
+    if(nextSideList)nextSideList.scrollTop=scrollState.sideTop;
+    if(nextValueTable){nextValueTable.scrollTop=scrollState.tableTop;nextValueTable.scrollLeft=scrollState.tableLeft;}
+  });
 }
 
 function searchDataDictionaryV2284(value){
@@ -454,6 +500,56 @@ function ensureParticipantUnitTypeDictionaryV2561(){
   return changed;
 }
 
+const economyManagementDictionariesV2870=[
+  {type:{name:"合作模式",code:"COOPERATION_MODE",remark:"经济纳管项目合作模式"},values:[
+    {name:"自营",code:"01",palette:2,remark:"经济纳管项目合作模式"},
+    {name:"合作",code:"02",palette:3,remark:"经济纳管项目合作模式"}
+  ]},
+  {type:{name:"分包模式",code:"SUBCONTRACT_MODE",remark:"经济纳管项目分包模式"},values:[
+    {name:"自营不垫资",code:"01",palette:2,remark:"经济纳管项目分包模式"},
+    {name:"自营垫资",code:"02",palette:3,remark:"经济纳管项目分包模式"},
+    {name:"合作不垫资",code:"03",palette:6,remark:"经济纳管项目分包模式"},
+    {name:"合作垫资",code:"04",palette:5,remark:"经济纳管项目分包模式"}
+  ]},
+  {type:{name:"是否投资项目",code:"IS_INVESTMENT_PROJECT",remark:"经济纳管项目投资属性"},values:[
+    {name:"否",code:"0",palette:0,remark:"经济纳管项目投资属性"},
+    {name:"是",code:"1",palette:2,remark:"经济纳管项目投资属性"}
+  ]},
+  {type:{name:"是否类投资项目",code:"IS_INVESTMENT_LIKE_PROJECT",remark:"经济纳管项目类投资属性"},values:[
+    {name:"否",code:"0",palette:0,remark:"经济纳管项目类投资属性"},
+    {name:"是",code:"1",palette:2,remark:"经济纳管项目类投资属性"}
+  ]},
+  {type:{name:"CM项目板块",code:"CM_PROJECT_PLATE",remark:"CM项目板块标准字典"},values:[
+    {name:"建筑",code:"JZ",palette:2,remark:"01"},
+    {name:"市政",code:"SZ",palette:2,remark:"02"},
+    {name:"公路",code:"GL",palette:2,remark:"03"},
+    {name:"轨交",code:"GJ",palette:2,remark:"04"},
+    {name:"隧道",code:"SD",palette:2,remark:"05"},
+    {name:"地下工程",code:"DXGC",palette:2,remark:"06"},
+    {name:"机场",code:"JC",palette:2,remark:"07"},
+    {name:"能源",code:"NY",palette:2,remark:"08"},
+    {name:"排水环保",code:"PSHB",palette:2,remark:"09"},
+    {name:"片区开发",code:"PQKF",palette:2,remark:"10"},
+    {name:"附属设施",code:"FSSS",palette:2,remark:"11"}
+  ]}
+];
+
+function ensureEconomyManagementDictionariesV2870(){
+  let changed=false;
+  economyManagementDictionariesV2870.forEach(definition=>{
+    const existingType=dataDictionaryListV2284.find(item=>item.code===definition.type.code);
+    if(!existingType){dataDictionaryListV2284.push({...definition.type});changed=true;}
+    else if(existingType.name!==definition.type.name||existingType.remark!==definition.type.remark){Object.assign(existingType,definition.type);changed=true;}
+    const rows=dataDictionaryValuesV2284[definition.type.code]||(dataDictionaryValuesV2284[definition.type.code]=[]);
+    definition.values.forEach(seed=>{
+      const current=rows.find(item=>item.code===seed.code);
+      if(!current){rows.push({...seed,status:"启用"});changed=true;return;}
+      if(current.name!==seed.name||current.remark!==seed.remark||current.status!=="启用"){Object.assign(current,seed,{status:"启用"});changed=true;}
+    });
+  });
+  return changed;
+}
+
 /* MARKET_AREA 区域市场：按业务确认截图初始化，保留父子层级。 */
 const marketAreaDictionaryV2608={
   type:{name:"区域市场",code:"MARKET_AREA",remark:"区域市场标准字典，支持两级区域层级"},
@@ -495,6 +591,7 @@ function ensureDataDictionaryLocalLoadedV2284(){
   ensureEconomyWarningInternationalDictionaryV2431();
   ensureInternationalProjectTypeDictionaryV2433();
   ensureParticipantUnitTypeDictionaryV2561();
+  ensureEconomyManagementDictionariesV2870();
   ensureMarketAreaDictionaryV2608();
   const seed=buildDataDictionaryPayloadV2284();
   const stored=window.EMMasterData?.ensure("dictionaries",[seed]);
@@ -503,10 +600,11 @@ function ensureDataDictionaryLocalLoadedV2284(){
   const economyWarningChanged=ensureEconomyWarningInternationalDictionaryV2431();
   const internationalProjectTypeChanged=ensureInternationalProjectTypeDictionaryV2433();
   const participantUnitTypeChanged=ensureParticipantUnitTypeDictionaryV2561();
+  const economyManagementDictionariesChanged=ensureEconomyManagementDictionariesV2870();
   const marketAreaChanged=ensureMarketAreaDictionaryV2608();
   const keyCustomerChanged=ensureKeyCustomerDictionaryV2285();
   const englishNamesChanged=ensureDataDictionaryEnglishNamesV2842();
-  if(economyWarningChanged||internationalProjectTypeChanged||participantUnitTypeChanged||marketAreaChanged||keyCustomerChanged||englishNamesChanged)syncDataDictionaryToLocalStoreV2284();
+  if(economyWarningChanged||internationalProjectTypeChanged||participantUnitTypeChanged||economyManagementDictionariesChanged||marketAreaChanged||keyCustomerChanged||englishNamesChanged)syncDataDictionaryToLocalStoreV2284();
   dataDictionaryStateV2284.localLoaded=true;
   dataDictionaryStateV2284.localLoading=false;
 }

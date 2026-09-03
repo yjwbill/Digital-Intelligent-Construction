@@ -102,7 +102,7 @@ function getUserRoleNames(user){
 }
 
 function getUsersByOrgId(orgId){
-  return orgUserData.filter(u=>u.orgId===orgId);
+  return orgUserData.filter(u=>getUserAssignments(u).some(item=>item.orgId===orgId));
 }
 
 function getEnabledPostOptions(selectedId){
@@ -213,6 +213,73 @@ function renderOrgTreeNodes(node=orgTreeData,level=1){
   `;
 }
 
+function getUserAssignments(user){
+  const raw=Array.isArray(user?.orgPostAssignments)?user.orgPostAssignments:[];
+  if(raw.length)return raw.map(item=>({orgId:item.orgId||user.orgId,postIds:Array.isArray(item.postIds)?item.postIds.filter(Boolean):(item.postId?[item.postId]:[])})).filter(item=>item.orgId);
+  return user?.orgId?[{orgId:user.orgId,postIds:user.postId?[user.postId]:[]}]:[];
+}
+
+function getOrgPostLevel(orgId){
+  const level=Number(findOrgById(orgId)?.level || findOrgById(orgId)?.node?.level || 1);
+  return level<=1?"股份级":level===2?"子公司级":"分公司级";
+}
+
+function getEnabledPostsForOrg(orgId,selectedIds=[]){
+  const selected=new Set(selectedIds||[]);
+  const level=getOrgPostLevel(orgId);
+  return postData.filter(post=>(post.status==="启用" && post.level===level) || selected.has(post.id));
+}
+
+function getOrgAssignmentRows(assignments=[]){
+  return assignments.map((item,index)=>{
+    const options=getEnabledPostsForOrg(item.orgId,item.postIds).map(post=>`<option value="${post.id}" ${item.postIds.includes(post.id)?"selected":""}>${post.name}</option>`).join("");
+    return `<tr class="user-org-assignment" data-index="${index}"><td><select class="select user-assignment-org" onchange="refreshUserAssignmentPosts(this)">${getOrgSelectOptions(item.orgId)}</select></td><td><select class="select user-assignment-posts" multiple>${options || "<option disabled>暂无对应层级岗位</option>"}</select></td><td><button type="button" class="btn danger small user-assignment-remove" onclick="removeUserAssignment(this)">删除</button></td></tr>`;
+  }).join("");
+}
+
+function renderUserAssignmentTable(assignments=[]){
+  return `<div class="user-assignment-table-wrap"><table class="user-org-assignment-table"><thead><tr><th>所属组织</th><th>对应岗位</th><th>操作</th></tr></thead><tbody id="userOrgAssignments">${getOrgAssignmentRows(assignments)}</tbody></table></div>`;
+}
+
+function refreshUserAssignmentPosts(orgSelect){
+  const row=orgSelect.closest("tr.user-org-assignment");
+  const postSelect=row?.querySelector(".user-assignment-posts");
+  if(!postSelect)return;
+  const options=getEnabledPostsForOrg(orgSelect.value).map(post=>`<option value="${post.id}">${post.name}</option>`).join("");
+  postSelect.innerHTML=options || "<option disabled>暂无对应层级岗位</option>";
+}
+
+function addUserAssignment(){
+  const container=document.getElementById("userOrgAssignments");
+  if(!container)return;
+  const current=[...container.querySelectorAll(".user-assignment-org")].map(x=>x.value);
+  const orgId=flattenOrgTree().find(x=>!current.includes(x.id))?.id || orgTreeData.id;
+  container.insertAdjacentHTML("beforeend",getOrgAssignmentRows([{orgId,postIds:[]} ]));
+  container.lastElementChild?.scrollIntoView({block:"nearest"});
+}
+
+function removeUserAssignment(button){
+  const container=document.getElementById("userOrgAssignments");
+  const rows=container?.querySelectorAll("tr.user-org-assignment")||[];
+  if(rows.length<=1)return showToast("至少保留一个所属组织");
+  button.closest("tr.user-org-assignment")?.remove();
+}
+
+function getAssignmentsFromModal(prefix){
+  return [...document.querySelectorAll(`#${prefix} tr.user-org-assignment`)].map(row=>({
+    orgId:row.querySelector(".user-assignment-org")?.value||"",
+    postIds:[...row.querySelector(".user-assignment-posts")?.selectedOptions||[]].map(option=>option.value).filter(Boolean)
+  })).filter(item=>item.orgId);
+}
+
+function applyUserAssignments(user,assignments){
+  const normalized=assignments.filter(item=>item.orgId);
+  const first=normalized[0]||{orgId:"",postIds:[]};
+  user.orgPostAssignments=normalized;
+  user.orgId=first.orgId;
+  user.postId=first.postIds[0]||"";
+}
+
 function setOrganizationManagementTreeDepth(depth){
   const nextDepth=depth==="company"?"company":"branch";
   if(nextDepth===organizationManagementTreeDepth)return;
@@ -233,6 +300,17 @@ function renderOrgManagementPage(){
   const found=findOrgById(currentOrgId);
   const current=found?.node || orgTreeData;
   currentOrgId=current.id;
+  tableColumnDefinitions.organizationUsers=[
+    {key:"index",title:"序号",width:70,align:"center",render:(u,i)=>i+1},
+    {key:"name",title:"姓名",width:140,render:u=>u.name},
+    {key:"username",title:"用户名",width:150,render:u=>u.username},
+    {key:"phone",title:"手机号",width:150,render:u=>maskPhone(u.phone)},
+    {key:"gender",title:"性别",width:90,align:"center",render:u=>u.gender},
+    {key:"org",title:"所属组织",width:220,render:u=>getOrgNameById(u.orgId)},
+    {key:"post",title:"岗位",width:180,render:u=>getPostNameById(u.postId)},
+    {key:"role",title:"角色",width:180,render:u=>getUserRoleNames(u)},
+    {key:"status",title:"状态",width:100,align:"center",render:u=>u.status==="启用"?tag("启用","green"):tag("禁用","gray")}
+  ];
 
   listPage.innerHTML=`
     <div class="compact-title-row">
@@ -277,25 +355,16 @@ function renderOrgManagementPage(){
           </div>
 
           <div class="actions">
-            <button class="btn primary" onclick="openOrgUserAddModal('${currentOrgId}')">新增人员</button>
+            <button class="btn" onclick="renderOrgManagementPagePreservingScroll()">刷新</button>
+            <button class="btn" onclick="showToast('导出成功：组织人员列表.xlsx')">导出</button>
+            <button class="column-setting-icon-btn" title="列设置" onclick="openColumnSetting('organizationUsers','renderOrgUserTable')">⚙</button>
           </div>
         </div>
 
-        <div class="org-user-body">
-          <table style="min-width:1180px">
+        <div class="org-user-body table-wrap roster-table-wrap">
+          <table id="organizationUsersTable" style="min-width:${getTableMinWidth("organizationUsers")}px">
             <thead>
-              <tr>
-                <th style="width:70px;text-align:center">序号</th>
-                <th>姓名</th>
-                <th>用户名</th>
-                <th>手机号</th>
-                <th>性别</th>
-                <th>所属组织</th>
-                <th>岗位</th>
-                <th>角色</th>
-                <th>状态</th>
-                <th style="width:240px;text-align:center">操作</th>
-              </tr>
+              <tr id="organizationUsersThead"></tr>
             </thead>
             <tbody id="orgUserTbody"></tbody>
           </table>
@@ -321,29 +390,11 @@ function renderOrgUserTable(){
 
   const tbody=document.getElementById("orgUserTbody");
   if(!tbody)return;
-
-  tbody.innerHTML=currentOrgUserList.map((u,i)=>`
-    <tr>
-      <td style="text-align:center">${i+1}</td>
-      <td>${u.name}</td>
-      <td>${u.username}</td>
-      <td>${maskPhone(u.phone)}</td>
-      <td>${u.gender}</td>
-      <td>${getOrgNameById(u.orgId)}</td>
-      <td>${getPostNameById(u.postId)}</td>
-      <td>${getUserRoleNames(u)}</td>
-      <td>${u.status==="启用"?tag("启用","green"):tag("禁用","gray")}</td>
-      <td style="text-align:center">
-        <a class="link" onclick="openOrgUserEditModal('${u.id}')">编辑</a>
-        ｜
-        <a class="link" onclick="openOrgUserDetail('${u.id}')">查看</a>
-        ｜
-        <a class="link" onclick="toggleOrgUserStatus('${u.id}')">${u.status==="启用"?"禁用":"启用"}</a>
-        ｜
-        <a class="link" onclick="resetOrgUserPassword('${u.id}')">重置密码</a>
-      </td>
-    </tr>
-  `).join("");
+  const table=document.getElementById("organizationUsersTable");
+  if(table)table.style.minWidth=`${getTableMinWidth("organizationUsers")}px`;
+  const thead=document.getElementById("organizationUsersThead");
+  if(thead)thead.innerHTML=renderTableHeaderByColumns("organizationUsers");
+  renderTableByColumns("organizationUsers",currentOrgUserList,"orgUserTbody");
 
   const total=document.getElementById("orgUserTotalText");
   if(total)total.innerText=`共 ${currentOrgUserList.length} 条`;
@@ -405,7 +456,7 @@ function deleteOrgNode(id){
     return;
   }
 
-  const hasUser=orgUserData.some(u=>u.orgId===id);
+  const hasUser=orgUserData.some(u=>getUserAssignments(u).some(item=>item.orgId===id));
   if(hasUser){
     showToast("该组织下存在人员，不能删除");
     return;
@@ -591,7 +642,9 @@ function saveOrgEdit(id){
   showToast("组织已保存");
 }
 
-/* ---------- 人员新增、详情、状态、重置密码 ---------- */
+/* ---------- 人员列表 ---------- */
+/* Personnel CRUD actions were removed pending the new standardized design. */
+/*
 function openOrgUserAddModal(orgId){
   const org=findOrgById(orgId)?.node;
   if(!org)return;
@@ -599,7 +652,7 @@ function openOrgUserAddModal(orgId){
   openModal(
     "新增人员",
     `
-      <div class="form-grid-2">
+      <div class="user-form-sections" id="userAddForm"><section class="template-form-section"><div class="template-section-title"><span>基础信息</span></div><div class="user-basic-grid">
         <div class="form-item">
           <label>姓名 <span style="color:var(--danger)">*</span></label>
           <input id="userFormName" class="input" placeholder="请输入姓名"/>
@@ -622,34 +675,15 @@ function openOrgUserAddModal(orgId){
           </select>
         </div>
 
-        <div class="form-item">
-          <label>所属组织 <span style="color:var(--danger)">*</span></label>
-          <select id="userFormOrg" class="select">
-            ${getOrgSelectOptions(orgId)}
-          </select>
-        </div>
-
-        <div class="form-item">
-          <label>岗位 <span style="color:var(--danger)">*</span></label>
-          <select id="userFormPost" class="select">
-            <option value="">请选择岗位</option>
-            ${getEnabledPostOptions("")}
-          </select>
-        </div>
-
-        <div class="form-item" style="grid-column:1/-1">
-          <label>角色 <span style="color:var(--danger)">*</span></label>
-          <div style="padding:8px 0">
-            ${getEnabledRoleChecks([])}
-          </div>
-        </div>
-      </div>
+        <div class="form-item"><label>电子邮箱</label><input id="userFormEmail" class="input" placeholder="请输入电子邮箱"/></div><div class="form-item"><label>状态</label><select id="userFormStatus" class="select"><option>启用</option><option>禁用</option></select></div><div class="form-item user-remark-field"><label>备注</label><textarea id="userFormRemark" class="input" rows="3" placeholder="请输入备注"></textarea></div>
+      </div></section><section class="template-form-section"><div class="template-section-title"><span>职位信息</span><button type="button" class="btn" onclick="addUserAssignment()">新增组织</button></div>${renderUserAssignmentTable([{orgId,postIds:[]}])}</section></div>
     `,
     `
       <button class="btn" onclick="closeModal()">取消</button>
       <button class="btn primary" onclick="saveOrgUserAdd()">保存</button>
-    `
+    `,"large"
   );
+  modalBox.classList.add("personnel-standard-modal");
 }
 
 function saveOrgUserAdd(){
@@ -657,16 +691,17 @@ function saveOrgUserAdd(){
   const username=document.getElementById("userFormUsername").value.trim();
   const phone=document.getElementById("userFormPhone").value.trim();
   const gender=document.getElementById("userFormGender").value;
-  const orgId=document.getElementById("userFormOrg").value;
-  const postId=document.getElementById("userFormPost").value;
+  const email=document.getElementById("userFormEmail").value.trim();
+  const status=document.getElementById("userFormStatus").value;
+  const remark=document.getElementById("userFormRemark").value.trim();
+  const assignments=getAssignmentsFromModal("userAddForm");
   const roleIds=getSelectedRoleIdsFromModal();
 
   if(!name)return showToast("请输入姓名");
   if(!username)return showToast("请输入用户名");
   if(!phone)return showToast("请输入手机号");
-  if(!orgId)return showToast("请选择所属组织");
-  if(!postId)return showToast("请选择岗位");
-  if(!roleIds.length)return showToast("请选择角色");
+  if(!assignments.length)return showToast("请选择所属组织");
+  if(assignments.some(item=>!item.postIds.length))return showToast("请为每个组织配置岗位");
 
   if(orgUserData.some(u=>u.username===username)){
     showToast("用户名不可重复");
@@ -679,14 +714,15 @@ function saveOrgUserAdd(){
     username,
     phone,
     gender,
-    orgId,
-    postId,
+    email,
+    remark,
     roleIds,
-    status:"启用"
+    status
   };
 
+  applyUserAssignments(user,assignments);
   orgUserData.push(user);
-  currentOrgId=orgId;
+  currentOrgId=user.orgId;
 
   persistMasterData("users",orgUserData);
   closeModal();
@@ -695,38 +731,22 @@ function saveOrgUserAdd(){
 }
 
 function openOrgUserEditModal(userId){
-  const u=orgUserData.find(x=>x.id===userId);
+  const u=orgUserData.find(item=>item.id===userId);
   if(!u)return;
-  openModal("编辑人员",`
-    <div class="form-grid-2">
-      <div class="form-item"><label>姓名 <span style="color:var(--danger)">*</span></label><input id="userEditName" class="input" value="${u.name}"/></div>
-      <div class="form-item"><label>用户名</label><input class="input" value="${u.username}" disabled/></div>
-      <div class="form-item"><label>手机号 <span style="color:var(--danger)">*</span></label><input id="userEditPhone" class="input" value="${u.phone}"/></div>
-      <div class="form-item"><label>性别</label><select id="userEditGender" class="select">${genderOptions.map(x=>`<option ${x===u.gender?"selected":""}>${x}</option>`).join("")}</select></div>
-      <div class="form-item"><label>所属组织</label><select id="userEditOrg" class="select">${getOrgSelectOptions(u.orgId)}</select></div>
-      <div class="form-item"><label>岗位</label><select id="userEditPost" class="select">${getEnabledPostOptions(u.postId)}</select></div>
-      <div class="form-item" style="grid-column:1/-1"><label>角色</label><div style="padding:8px 0">${getEnabledRoleChecks(u.roleIds || [])}</div></div>
-    </div>
-  `,`<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveOrgUserEdit('${userId}')">保存</button>`);
+  const body=`<div class="standard-modal-form" id="userEditForm"><section class="template-form-section"><div class="template-section-title"><span>基础信息</span></div><div class="template-grid four-col"><label class="template-field"><span>账号</span><input class="input" value="${escapeAttr(u.username)}" disabled></label><label class="template-field"><span>姓名</span><input id="userEditName" class="input" value="${escapeAttr(u.name)}"></label><label class="template-field"><span>性别</span><select id="userEditGender" class="select">${genderOptions.map(x=>`<option ${x===u.gender?"selected":""}>${x}</option>`).join("")}</select></label><label class="template-field"><span>手机号码</span><input id="userEditPhone" class="input" value="${escapeAttr(u.phone)}"></label><label class="template-field"><span>电子邮箱</span><input id="userEditEmail" class="input" value="${escapeAttr(u.email||"")}"></label><label class="template-field"><span>状态</span><select id="userEditStatus" class="select"><option ${u.status==="启用"?"selected":""}>启用</option><option ${u.status==="禁用"?"selected":""}>禁用</option></select></label><label class="template-field span-4"><span>备注</span><textarea id="userEditRemark" class="input" rows="4">${escapeAttr(u.remark||"")}</textarea></label></div></section><section class="template-form-section"><div class="template-section-title"><span>职位信息</span><button type="button" class="btn primary small" onclick="addUserAssignment()">新增组织</button></div>${renderUserAssignmentTable(getUserAssignments(u))}</section></div>`;
+  openModal("编辑人员",body,`<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveOrgUserEdit('${userId}')">保存</button>`,`large`);
 }
 
 function saveOrgUserEdit(userId){
-  const u=orgUserData.find(x=>x.id===userId);
+  const u=orgUserData.find(item=>item.id===userId);
   if(!u)return;
-  const name=document.getElementById("userEditName").value.trim();
-  const phone=document.getElementById("userEditPhone").value.trim();
+  const name=document.getElementById("userEditName")?.value.trim();
+  const phone=document.getElementById("userEditPhone")?.value.trim();
+  const assignments=getAssignmentsFromModal("userEditForm");
   if(!name||!phone)return showToast("请完善姓名和手机号");
-  u.name=name;
-  u.phone=phone;
-  u.gender=document.getElementById("userEditGender").value;
-  u.orgId=document.getElementById("userEditOrg").value;
-  u.postId=document.getElementById("userEditPost").value;
-  u.roleIds=getSelectedRoleIdsFromModal();
-  currentOrgId=u.orgId;
-  persistMasterData("users",orgUserData);
-  closeModal();
-  renderOrgManagementPagePreservingScroll();
-  showToast("人员已保存");
+  if(!assignments.length||assignments.some(item=>!item.postIds.length))return showToast("请完善组织及岗位配置");
+  u.name=name;u.phone=phone;u.gender=document.getElementById("userEditGender").value;u.email=document.getElementById("userEditEmail").value.trim();u.status=document.getElementById("userEditStatus").value;u.remark=document.getElementById("userEditRemark").value.trim();
+  applyUserAssignments(u,assignments);currentOrgId=u.orgId;persistMasterData("users",orgUserData);closeModal();renderOrgManagementPagePreservingScroll();showToast("人员已保存");
 }
 
 function openOrgUserDetail(userId){
@@ -741,10 +761,11 @@ function openOrgUserDetail(userId){
         ${info("用户名",u.username)}
         ${info("手机号",maskPhone(u.phone))}
         ${info("性别",u.gender)}
-        ${info("所属组织",getOrgNameById(u.orgId))}
-        ${info("岗位",getPostNameById(u.postId))}
+        ${info("电子邮箱",u.email||"-")}
+        ${info("所属组织及岗位",getUserAssignments(u).map(item=>`${getOrgNameById(item.orgId)}：${item.postIds.map(getPostNameById).join("、")||"-"}`).join("；<br>")||"-")}
         ${info("角色",getUserRoleNames(u))}
         ${info("状态",u.status)}
+        ${info("备注",u.remark||"-")}
       </div>
     `
   );
@@ -767,8 +788,28 @@ function resetOrgUserPassword(userId){
 
   showToast(`已重置 ${u.name} 的密码为默认密码`);
 }
+*/
 
 /* ---------- 岗位管理 ---------- */
+/* Removed personnel add implementation pending redesign.
+function openOrgUserAddModal(orgId){
+  if(!findOrgById(orgId))return;
+  const body=`<div id="userAddForm"><section class="template-form-section"><div class="template-section-title"><span>基础信息</span></div><div class="template-grid four-col"><label class="template-field"><span>账号</span><input id="userFormUsername" class="input" placeholder="请输入账号"></label><label class="template-field"><span>姓名</span><input id="userFormName" class="input" placeholder="请输入姓名"></label><label class="template-field"><span>性别</span><select id="userFormGender" class="select">${genderOptions.map(x=>`<option>${x}</option>`).join("")}</select></label><label class="template-field"><span>手机号码</span><input id="userFormPhone" class="input" placeholder="请输入手机号码"></label><label class="template-field"><span>电子邮箱</span><input id="userFormEmail" class="input" placeholder="请输入电子邮箱"></label><label class="template-field"><span>状态</span><select id="userFormStatus" class="select"><option>启用</option><option>禁用</option></select></label><label class="template-field span-4"><span>备注</span><textarea id="userFormRemark" class="input" rows="4" placeholder="请输入备注"></textarea></label></div></section><section class="template-form-section"><div class="template-section-title"><span>职位信息</span><button type="button" class="btn primary small" onclick="addUserAssignment()">新增组织</button></div>${renderUserAssignmentTable([{orgId,postIds:[]}])}</section></div>`;
+  openModal("新增人员",body,`<button class="btn" onclick="closeModal()">关闭</button><button class="btn primary" onclick="saveOrgUserAddNew()">保存</button>`,`large`);
+}
+
+function saveOrgUserAddNew(){
+  const username=document.getElementById("userFormUsername")?.value.trim(),name=document.getElementById("userFormName")?.value.trim(),phone=document.getElementById("userFormPhone")?.value.trim();
+  const assignments=getAssignmentsFromModal("userAddForm");
+  if(!username)return showToast("请输入账号");
+  if(!name)return showToast("请输入姓名");
+  if(!phone)return showToast("请输入手机号码");
+  if(!assignments.length||assignments.some(item=>!item.postIds.length))return showToast("请完善组织及岗位配置");
+  if(orgUserData.some(item=>item.username===username))return showToast("账号不可重复");
+  const user={id:"user-"+Date.now(),username,name,phone,gender:document.getElementById("userFormGender").value,email:document.getElementById("userFormEmail").value.trim(),status:document.getElementById("userFormStatus").value,remark:document.getElementById("userFormRemark").value.trim(),roleIds:[]};
+  applyUserAssignments(user,assignments);orgUserData.push(user);persistMasterData("users",orgUserData);currentOrgId=user.orgId;closeModal();renderOrgManagementPagePreservingScroll();showToast("人员新增成功");
+}
+*/
 function renderPostManagementPage(){
   detailPage.style.display="none";
   listPage.style.display="flex";
@@ -820,7 +861,7 @@ function renderPostTable(){
   if(!tbody)return;
 
   tbody.innerHTML=postData.map((p,i)=>{
-    const count=orgUserData.filter(u=>u.postId===p.id).length;
+    const count=orgUserData.filter(u=>getUserAssignments(u).some(item=>item.postIds.includes(p.id))).length;
 
     return `
       <tr>
@@ -959,9 +1000,8 @@ function togglePostStatus(postId){
     post.status="禁用";
 
     orgUserData.forEach(u=>{
-      if(u.postId===postId){
-        u.postId="";
-      }
+      const assignments=getUserAssignments(u).map(item=>({...item,postIds:item.postIds.filter(id=>id!==postId)})).filter(item=>item.postIds.length);
+      applyUserAssignments(u,assignments);
     });
 
     showToast("岗位已禁用，已自动移除人员已选岗位");
@@ -970,6 +1010,7 @@ function togglePostStatus(postId){
     showToast("岗位已启用");
   }
 
+  persistMasterData("users",orgUserData);
   renderPostManagementPage();
 }
 
@@ -978,7 +1019,7 @@ function openPostBatchAuthorize(postId){
   if(!post)return;
 
   const selectedUserIds=orgUserData
-    .filter(u=>u.postId===postId)
+    .filter(u=>getUserAssignments(u).some(item=>item.postIds.includes(postId)))
     .map(u=>u.id);
 
   openModal(
@@ -1017,9 +1058,10 @@ function savePostBatchAuthorize(postId){
 
   orgUserData.forEach(u=>{
     if(checkedIds.includes(u.id)){
-      u.postId=postId;
-    }else if(u.postId===postId){
-      u.postId="";
+      const assignments=getUserAssignments(u); const first=assignments[0]||{orgId:u.orgId,postIds:[]};
+      first.postIds=[...new Set([...first.postIds,postId])]; applyUserAssignments(u,assignments.length?assignments:[first]);
+    }else if(getUserAssignments(u).some(item=>item.postIds.includes(postId))){
+      applyUserAssignments(u,getUserAssignments(u).map(item=>({...item,postIds:item.postIds.filter(id=>id!==postId)})).filter(item=>item.postIds.length));
     }
   });
 
