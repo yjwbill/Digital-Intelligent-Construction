@@ -443,6 +443,58 @@ function persistConstructionProjectOfflineApplications(){
   }
 }
 
+function getConstructionProjectOfflineApplication(projectId){
+  return constructionProjectOfflineApplications.find(item=>String(item.projectId)===String(projectId))||null;
+}
+
+function getConstructionProjectOfflineApprovalRecords(project,application){
+  const baseName=project.projectManager||"项目经理";
+  const projectName=project.projectName||"-";
+  if(!application){
+    return [
+      {node:"项目发起",status:"wait",time:"-",person:baseName,org:project.branchCompany||"-",action:"待提交",opinion:"请填写项目下线原因并上传工程部敲章申请报告",receiver:"分公司工程部"},
+      {node:"分公司工程部",status:"wait",time:"-",person:"待定",org:project.branchCompany||"-",action:"待审批",opinion:"-",receiver:"子公司生产管理部"},
+      {node:"子公司生产管理部",status:"wait",time:"-",person:"待定",org:project.subCompany||"-",action:"待审批",opinion:"-",receiver:"归档"}
+    ];
+  }
+  const reportTime=application.createdAt?String(application.createdAt).replace("T"," ").slice(0,16):"-";
+  return [
+    {node:"项目发起",status:"done",time:reportTime,person:baseName,org:project.branchCompany||"-",action:"提交申请",opinion:"提交项目下线申请",receiver:"分公司工程部"},
+    {node:"分公司工程部",status:"processing",time:"审批中",person:"待审批",org:project.branchCompany||"-",action:"审批中",opinion:"等待工程部敲章申请报告审核",receiver:"子公司生产管理部"},
+    {node:"子公司生产管理部",status:"wait",time:"-",person:"待审批",org:project.subCompany||"-",action:"待审批",opinion:"-",receiver:"归档"}
+  ];
+}
+
+function renderConstructionProjectOfflineApprovalPanel(project,application){
+  const records=getConstructionProjectOfflineApprovalRecords(project,application);
+  return `<aside class="approval-dialog-panel">
+    <section class="actual-output-report-card construction-project-offline-approval-card">
+      <div class="actual-output-section-title construction-project-offline-approval-title">
+        <span>审批记录</span>
+        <em>${application?"审批中":"未发起"}</em>
+      </div>
+      <div class="construction-project-offline-approval-list">
+        ${records.map(record=>`
+          <article class="construction-project-offline-approval-item ${record.status}">
+            <div class="construction-project-offline-approval-node">
+              <b>${escapeAttr(record.node)}</b>
+              <i>${escapeAttr(record.status==="done"?"已完成":record.status==="processing"?"审批中":"待处理")}</i>
+            </div>
+            <div class="construction-project-offline-approval-grid">
+              <div><span>时间</span><strong>${escapeAttr(record.time)}</strong></div>
+              <div><span>处理人</span><strong>${escapeAttr(record.person)}</strong></div>
+              <div><span>所属组织</span><strong>${escapeAttr(record.org)}</strong></div>
+              <div><span>动作</span><strong>${escapeAttr(record.action)}</strong></div>
+              <div><span>意见</span><strong>${escapeAttr(record.opinion)}</strong></div>
+              <div><span>接收人</span><strong>${escapeAttr(record.receiver)}</strong></div>
+            </div>
+          </article>
+        `).join("")}
+      </div>
+    </section>
+  </aside>`;
+}
+
 function moneyWan(v){return Number(v||0).toLocaleString("zh-CN");}
 function projectStatusTag(v){return tag(v,v==="在建"?"blue":v==="完工"?"green":v==="停工"?"orange":"gray");}
 function yesNoTag(v){return tag(v,v==="是"?"green":"gray");}
@@ -1028,7 +1080,7 @@ function syncConstructionProjectOfflineReason(){
   if(counter)counter.textContent=`${(editor?.innerText||"").replace(/\s+/g,"").length}/2000`;
 }
 
-function renderConstructionProjectOfflineForm(project){
+function renderConstructionProjectOfflineForm(project,application=null){
   const projectName=project.projectName||"-";
   const projectCode=project.projectCode||"-";
   const subCompany=project.subCompany||"-";
@@ -1043,7 +1095,8 @@ function renderConstructionProjectOfflineForm(project){
     ["项目模式",project.implementationMode||"-"],
     ["管控等级",project.controlLevel||"-"]
   ];
-  return `<div class="construction-project-offline-form">
+  return `<div class="actual-output-detail construction-project-offline-detail">
+    <div class="actual-output-detail-main">
     <section class="construction-project-offline-header">
       <h2>${escapeAttr(projectName)}</h2>
       <div class="construction-project-offline-tags">
@@ -1084,15 +1137,24 @@ function renderConstructionProjectOfflineForm(project){
         <div class="project-log-file-preview" id="constructionProjectOfflineAttachments" data-files="[]"></div>
       </div>
     </section>
+    </div>
+    ${renderConstructionProjectOfflineApprovalPanel(project,application)}
   </div>`;
 }
 
 function openConstructionProjectOfflineModal(id){
   const project=constructionProjectData.find(item=>String(item.id)===String(id));
   if(!project)return;
-  openModal("项目下线",renderConstructionProjectOfflineForm(project),`<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveConstructionProjectOfflineApplication(${project.id})">提交申请</button>`,"large");
+  const application=getConstructionProjectOfflineApplication(project.id);
+  openModal("项目下线",renderConstructionProjectOfflineForm(project,application),`<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveConstructionProjectOfflineApplication(${project.id})">提交申请</button>`,"large");
   modalBox.classList.add("construction-project-offline-modal");
+  modalBox.classList.add("actual-output-detail-modal");
   setConstructionProjectOfflineAttachments([]);
+  if(application){
+    const editor=document.getElementById("constructionProjectOfflineReasonEditor");
+    if(editor)editor.innerHTML=application.reasonHtml||"";
+    setConstructionProjectOfflineAttachments(application.attachments||[]);
+  }
   syncConstructionProjectOfflineReason();
 }
 
@@ -1105,15 +1167,18 @@ function saveConstructionProjectOfflineApplication(id){
   const attachments=getConstructionProjectOfflineAttachments();
   if(!reasonText)return showToast("请填写项目下线原因");
   if(!attachments.length)return showToast("请上传工程部敲章申请报告");
-  constructionProjectOfflineApplications.unshift({
-    id:`offline-${Date.now()}`,
+  const existingIndex=constructionProjectOfflineApplications.findIndex(item=>String(item.projectId)===String(project.id));
+  const application={
+    id:existingIndex>=0?constructionProjectOfflineApplications[existingIndex].id:`offline-${Date.now()}`,
     projectId:project.id,
     projectName:project.projectName,
     projectCode:project.projectCode,
     reasonHtml,
     attachments,
     createdAt:new Date().toISOString()
-  });
+  };
+  if(existingIndex>=0)constructionProjectOfflineApplications[existingIndex]=application;
+  else constructionProjectOfflineApplications.unshift(application);
   persistConstructionProjectOfflineApplications();
   closeModal();
   showToast("项目下线申请已提交");
