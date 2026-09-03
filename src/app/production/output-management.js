@@ -1,6 +1,7 @@
 const outputForecastState={
   activeTab:"施工类",
   activeSubTab:"全部分类",
+  outputMonth:getPreviousReportMonth(),
   projectName:"",
   company:"",
   branch:"",
@@ -13,6 +14,7 @@ const outputForecastState={
   orderProjectNo:"",
   ownerUnit:"",
   statKey:"all",
+  reportScope:"project",
   page:1,
   pageSize:50
 };
@@ -232,6 +234,7 @@ function getOutputForecastSearchRows(){
   const s=outputForecastState;
   return outputForecastConstructionRows.filter(row=>{
     if(!matchOutputForecastTab(row))return false;
+    if(s.outputMonth&&row.outputMonth&&row.outputMonth!==s.outputMonth)return false;
     if(s.projectName&&!row.projectName.includes(s.projectName))return false;
     if(s.company&&row.company!==s.company)return false;
     if(s.branch&&row.branch!==s.branch)return false;
@@ -264,6 +267,11 @@ function getOutputForecastFilteredRows(){
   if(outputForecastState.activeTab==="施工类"&&outputForecastState.statKey==="new")return rows.filter(row=>row.statisticNature==="新接");
   if(outputForecastState.activeTab==="施工类"&&outputForecastState.statKey==="transfer")return rows.filter(row=>row.statisticNature==="转接");
   if(outputForecastState.activeTab==="施工类"&&outputForecastState.statKey==="finished")return rows.filter(row=>row.statisticNature==="完工未结算");
+  if(isOutputForecastWeakIndustry()&&outputForecastState.reportScope==="branch"){
+    const grouped=new Map();
+    rows.forEach(row=>{const key=`${row.company}|${row.branch}`;const current=grouped.get(key)||{...row,projectName:`${row.company} / ${row.branch}`};["totalContractPriceYuan","completedTo2025","annualPlanOutput","annualCompletedOutput","mayOutput","remainingContractOutput","accumulatedOutput"].forEach(field=>current[field]=(Number(current[field])||0)+(Number(row[field])||0));grouped.set(key,current);});
+    return [...grouped.values()];
+  }
   return rows;
 }
 
@@ -276,6 +284,7 @@ function getOutputForecastPagedRows(){
 }
 
 function queryOutputForecastAnalysis(){
+  outputForecastState.outputMonth=document.getElementById("outputForecastOutputMonth")?.value || getPreviousReportMonth();
   outputForecastState.projectName=document.getElementById("outputForecastProjectName")?.value.trim() || "";
   outputForecastState.company=document.getElementById("outputForecastCompany")?.value || "";
   outputForecastState.branch=document.getElementById("outputForecastBranch")?.value || "";
@@ -291,6 +300,7 @@ function resetOutputForecastAnalysis(){
   Object.assign(outputForecastState,{
     activeTab:"施工类",
     activeSubTab:"全部分类",
+    outputMonth:getPreviousReportMonth(),
     projectName:"",
     company:"",
     branch:"",
@@ -406,6 +416,23 @@ tableColumnDefinitions.outputForecastConstruction=[
   {key:"remainingContractOutput",title:"剩余合同产值(万元)",width:180,align:"right",render:row=>formatForecastAmount(row.remainingContractOutput)},
   {key:"accumulatedOutput",title:"开累产值(万元)",width:160,align:"right",render:row=>formatForecastAmount(row.accumulatedOutput)}
 ];
+const outputForecastProjectColumns=tableColumnDefinitions.outputForecastConstruction;
+function getOutputForecastColumns(){
+  if(outputForecastState.reportScope!=="branch"||!isOutputForecastWeakIndustry())return outputForecastProjectColumns;
+  const amount=(key,title)=>({key,title,width:key==="company"?140:key==="branch"?180:180,align:key==="company"||key==="branch"?"center":"right",render:row=>key==="totalContractPriceYuan"?formatForecastYuan(row[key]):formatForecastAmount(row[key])});
+  return [
+    {key:"index",title:"序号",width:70,align:"center",render:(row,index)=>(outputForecastState.page-1)*outputForecastState.pageSize+index+1},
+    {key:"company",title:"子公司",width:140,align:"center",render:row=>row.company},
+    {key:"branch",title:"分公司",width:180,align:"center",render:row=>row.branch},
+    amount("totalContractPriceYuan","合同总额（元）"),
+    amount("completedTo2025","至2025年末累计完成产值(万元)"),
+    amount("annualPlanOutput","年度计划产值(万元)"),
+    amount("annualCompletedOutput","年度累计完成产值(万元)"),
+    amount("mayOutput","5月完成产值(万元)"),
+    amount("remainingContractOutput","剩余合同产值(万元)"),
+    amount("accumulatedOutput","开累产值(万元)")
+  ];
+}
 
 tableColumnDefinitions.outputForecastOrder=[
   {key:"index",title:"序号",width:70,align:"center",render:(row,index)=>(outputForecastState.page-1)*outputForecastState.pageSize+index+1},
@@ -440,6 +467,7 @@ function renderOutputForecastTable(){
 }
 
 function renderOutputForecastConstructionPage(){
+  tableColumnDefinitions.outputForecastConstruction=getOutputForecastColumns();
   const companyOptions=getOrganizationCompanies();
   const branchOptions=getOrganizationBranchOptions(outputForecastState.company);
   const projectStatusOptions=getOutputForecastProjectStatusOptions();
@@ -447,12 +475,13 @@ function renderOutputForecastConstructionPage(){
   const totalPages=Math.max(1,Math.ceil(rows.length/outputForecastState.pageSize));
   return `
     ${renderUnifiedQueryCard(`
+      <div class="form-item"><label>上报月份</label><input class="input" id="outputForecastOutputMonth" type="month" value="${outputForecastState.outputMonth}"/></div>
       <div class="form-item"><label>项目名称</label><input class="input" id="outputForecastProjectName" value="${escapeAttr(outputForecastState.projectName)}" placeholder="请输入项目名称"/></div>
       <div class="form-item"><label>子公司</label><select class="select" id="outputForecastCompany" onchange="syncOutputForecastBranchOptions()">${renderActualOutputOptions(companyOptions,outputForecastState.company,"全部")}</select></div>
       <div class="form-item"><label>分公司</label><select class="select" id="outputForecastBranch">${renderActualOutputOptions(branchOptions,outputForecastState.branch,"全部")}</select></div>
       <div class="form-item"><label>项目状态</label><select class="select" id="outputForecastProjectStatus">${renderActualOutputOptions(projectStatusOptions,outputForecastState.projectStatus,"全部")}</select></div>
-      <div class="form-item"><label>中标月份</label><input class="input" id="outputForecastBidMonth" type="month" value="${outputForecastState.bidMonth}"/></div>
       <div class="form-item"><label>项目编号</label><input class="input" id="outputForecastProjectNo" value="${escapeAttr(outputForecastState.projectNo)}" placeholder="请输入项目编号"/></div>
+      <div class="form-item"><label>中标月份</label><input class="input" id="outputForecastBidMonth" type="month" value="${outputForecastState.bidMonth}"/></div>
     `,{title:"查询条件",queryFn:"queryOutputForecastAnalysis()",resetFn:"resetOutputForecastAnalysis()",gridClass:"search-grid",canCollapse:false})}
     ${renderOutputForecastStatsCard()}
     ${renderUnifiedTableCard({
@@ -462,8 +491,9 @@ function renderOutputForecastConstructionPage(){
       renderFnName:"renderOutputForecastAnalysisPage",
       refreshAction:"renderOutputForecastAnalysisPage()",
       exportAction:"showToast('产值分析明细导出成功')",
-      title:"产值分析明细台账",
+      title:"产值明细",
       titleExtra:renderOutputForecastTotalCard(),
+      beforeActions:isOutputForecastWeakIndustry()?`<div class="component-button-radio output-forecast-scope-switch" role="radiogroup" aria-label="上报维度"><label class="component-button-radio-option output-forecast-scope-option"><input type="radio" name="outputForecastScope" value="branch" ${outputForecastState.reportScope==="branch"?"checked":""} onchange="setOutputForecastReportScope('branch')"/><span>分公司</span></label><label class="component-button-radio-option output-forecast-scope-option"><input type="radio" name="outputForecastScope" value="project" ${outputForecastState.reportScope==="project"?"checked":""} onchange="setOutputForecastReportScope('project')"/><span>项目</span></label></div>`:"",
       total:rows.length,
       pageText:`<span id="outputForecastPageText">第 1 / ${totalPages} 页　每页 ${outputForecastState.pageSize} 条</span>`,
       className:"construction-project-table-card output-forecast-table-card"
@@ -827,6 +857,8 @@ function renderActualOutputApprovalPanel(row,meta){
   const records=getActualOutputApprovalRecords(row);
   return ApprovalDialog.renderPanel({records,status:meta.approvalStatus});
 }
+function isOutputForecastWeakIndustry(){return ["产品销售","设计","数字","城市运营","房产","投资"].includes(outputForecastState.activeTab);}
+function setOutputForecastReportScope(scope){outputForecastState.reportScope=scope;outputForecastState.page=1;renderOutputForecastAnalysisPage();}
 
 function previewActualOutputAttachment(id,index){
   const row=actualOutputReportRows.find(item=>item.id===Number(id));

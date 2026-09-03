@@ -1233,14 +1233,14 @@ const componentChinaAreaDataV2298={
 const componentLibraryMenusV2288={
   pc:[
     {group:"设计规范",items:[["design-token","设计变量 Design Token"]]},
-    {group:"基础组件",items:[["button","按钮 Button"],["icon","图标 Icon"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"],["month","年月选择器 MonthPicker"]]},
+    {group:"基础组件",items:[["button","按钮 Button"],["icon","图标 Icon"],["radio","单选框 Radio / Button Radio"],["date","日期选择器 DatePicker"],["month","年月选择器 MonthPicker"]]},
     {group:"表单组件",items:[["input","输入框 Input"],["select","选择器 Select"],["form-group","表单分组 FormGroup"]]},
     {group:"数据展示",items:[["tag","标签 Tag"],["table","表格 Table"],["standard-list","标准列表 StandardList"],["project-manager-contact","项目经理联系方式 ProjectManagerContact"],["row-span-table","纵跨行组件 RowSpanTable"]]},
     {group:"弹层组件",items:[["modal-standard","基础标准弹框 Modal"],["modal-fullscreen","全屏弹框 FullscreenModal"],["modal-nested","嵌套弹框 NestedModal"],["modal-business","业务定制弹框 BusinessModal"],["approval-dialog","审批弹框 ApprovalDialog"],["modal-immersive","沉浸式预览弹框 ImmersiveModal"],["modal-mobile","移动端弹层 MobileOverlay"],["modal-lightweight","轻量浮层 Popover"]]},
     {group:"业务组件",items:[["statistics-filter","统计筛选 StatisticsFilter"],["dashboard-org-switch","看板组织切换 DashboardOrgSwitch"],["project-selector","项目选择器 ProjectSelector"]]}
   ],
   mobile:[
-    {group:"基础组件",items:[["button","按钮 Button"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"],["mobile-month","年月选择器 MobileMonthPicker"]]},
+    {group:"基础组件",items:[["button","按钮 Button"],["radio","单选框 Radio / Button Radio"],["date","日期选择器 DatePicker"],["mobile-month","年月选择器 MobileMonthPicker"]]},
     {group:"组织选择器 OrganizationPicker",items:[["org-single-picker","组织选择器-单选 OrgSinglePicker"],["org-multiple-picker","组织选择器-多选 OrgMultiplePicker"]]},
     {group:"省市区选择器 AreaPicker",items:[["area-single-picker","省市区选择器-单选 AreaSinglePicker"],["area-multiple-picker","省市区选择器-多选 AreaMultiplePicker"]]},
     {group:"反馈组件",items:[["toast","轻提示 Toast"],["sheet","底部面板 ActionSheet"]]},
@@ -1561,6 +1561,13 @@ function renderPcComponentPreviewV2288(type){
         <label class="component-radio"><input type="radio" name="component-radio-basic" value="manual" checked> 手动</label>
         <label class="component-radio"><input type="radio" name="component-radio-basic" value="integrated"> 集成</label>
         <label class="component-radio disabled"><input type="radio" name="component-radio-basic" value="disabled" disabled> 禁用</label>
+      </div>
+      <div class="component-demo-subtitle">Button Radio</div>
+      <div class="component-button-radio" role="radiogroup" aria-label="城市选择">
+        <label class="component-button-radio-option"><input type="radio" name="component-button-radio" checked><span>New York</span></label>
+        <label class="component-button-radio-option"><input type="radio" name="component-button-radio"><span>Washington</span></label>
+        <label class="component-button-radio-option"><input type="radio" name="component-button-radio"><span>Los Angeles</span></label>
+        <label class="component-button-radio-option"><input type="radio" name="component-button-radio"><span>Chicago</span></label>
       </div>
       <p>用于少量互斥选项，标题和值需清晰对齐，业务枚举优先读取数据字典。</p>
     `,

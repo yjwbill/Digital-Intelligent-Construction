@@ -816,38 +816,38 @@ function setApprovalCenterTab(tab){
   approvalCenterState.tab=tab;
   approvalCenterState.category="";
   approvalCenterState.page=1;
-  renderApprovalCenter();
+  window.__projectWorkbenchApprovalEmbedded?renderProjectWorkspacePage():renderApprovalCenter();
 }
 
 function searchApprovalCenter(){
   approvalCenterState.search=document.getElementById("approvalCenterSearch")?.value.trim()||"";
   approvalCenterState.page=1;
-  renderApprovalCenter();
+  window.__projectWorkbenchApprovalEmbedded?renderProjectWorkspacePage():renderApprovalCenter();
 }
 
 function searchApprovalCategory(){
   approvalCenterState.categorySearch=document.getElementById("approvalCategorySearch")?.value.trim()||"";
   approvalCenterState.page=1;
-  renderApprovalCenter();
+  window.__projectWorkbenchApprovalEmbedded?renderProjectWorkspacePage():renderApprovalCenter();
 }
 
 function selectApprovalCategory(category=""){
   approvalCenterState.category=approvalCenterState.category===category?"":category;
   approvalCenterState.page=1;
-  renderApprovalCenter();
+  window.__projectWorkbenchApprovalEmbedded?renderProjectWorkspacePage():renderApprovalCenter();
 }
 
 function toggleApprovalCategoryGroup(group){
   if(approvalCenterState.openGroups.has(group))approvalCenterState.openGroups.delete(group);
   else approvalCenterState.openGroups.add(group);
-  renderApprovalCenter();
+  window.__projectWorkbenchApprovalEmbedded?renderProjectWorkspacePage():renderApprovalCenter();
 }
 
 function selectApprovalCategoryGroup(group){
   approvalCenterState.category=approvalCenterState.category===group?"":group;
   approvalCenterState.openGroups.add(group);
   approvalCenterState.page=1;
-  renderApprovalCenter();
+  window.__projectWorkbenchApprovalEmbedded?renderProjectWorkspacePage():renderApprovalCenter();
 }
 
 function getApprovalCenterRows(){
@@ -967,8 +967,8 @@ function renderApprovalCenterPagination(page=getApprovalCenterPageData()){
   </div></div>`;
 }
 
-function setApprovalCenterPage(page){approvalCenterState.page=Number(page)||1;renderApprovalCenter();}
-function setApprovalCenterPageSize(size){approvalCenterState.pageSize=Number(size)||50;approvalCenterState.page=1;renderApprovalCenter();}
+function setApprovalCenterPage(page){approvalCenterState.page=Number(page)||1;window.__projectWorkbenchApprovalEmbedded?renderProjectWorkspacePage():renderApprovalCenter();}
+function setApprovalCenterPageSize(size){approvalCenterState.pageSize=Number(size)||50;approvalCenterState.page=1;window.__projectWorkbenchApprovalEmbedded?renderProjectWorkspacePage():renderApprovalCenter();}
 
 function openApprovalCenterDetail(id,mode="view"){
   const row=approvalCenterData.find(item=>item.id===Number(id));

@@ -5086,6 +5086,7 @@ function renderProjectOverviewPage(){
 }
 
 function renderProjectWorkspacePage(){
+  window.__projectWorkbenchApprovalEmbedded=true;
   const stages=[
     {title:"工程待建和策划阶段",tasks:[
       {name:"项目基本信息登记",icon:"file-edit"},
@@ -5112,9 +5113,11 @@ function renderProjectWorkspacePage(){
   ];
   detailPage.style.display="none";
   listPage.style.display="flex";
-  const visits=[{date:"2026-09-02",name:"王安全",role:"安全领导",time:"16:42"},{date:"2026-09-02",name:"秦群群",role:"项目经理",time:"15:18"},{date:"2026-09-02",name:"王安全",role:"安全领导",time:"10:06"},{date:"2026-09-01",name:"刘佳",role:"项目副经理",time:"17:35"},{date:"2026-09-01",name:"王峰",role:"施工经理",time:"09:20"}];
+  const visits=[{date:"2026-09-02",name:"王安全",level:"project",org:"漕河泾创新水岸建设工程",role:"安全领导",time:"16:42"},{date:"2026-09-02",name:"秦群群",level:"project",org:"漕河泾创新水岸建设工程",role:"项目经理",time:"15:18"},{date:"2026-09-02",name:"王安全",level:"project",org:"漕河泾创新水岸建设工程",role:"安全领导",time:"10:06"},{date:"2026-09-01",name:"刘佳",level:"branch",org:"上海隧道工程有限公司/第一分公司",role:"项目副经理、生产经理",time:"17:35"},{date:"2026-09-01",name:"王峰",level:"company",org:"上海隧道工程有限公司",role:"施工经理",time:"09:20"}];
   const grouped=visits.reduce((map,item)=>{(map[item.date]??=[]).push(item);return map;},{});
-  listPage.innerHTML=`<div class="project-workbench-layout"><div class="project-launch-workspace" aria-label="项目任务发起工作桌面">
+  const approvalTabs=renderApprovalCenterTabs();
+  const approvalBody=`<div class="project-workbench-approval-body">${renderApprovalCategoryTree()}<main class="approval-center-main">${renderApprovalCenterTable()}</main></div>`;
+  listPage.innerHTML=`<div class="project-workbench-page"><div class="project-workbench-layout"><div class="project-launch-workspace" aria-label="项目任务发起工作桌面">
     ${stages.map(stage=>`<section class="project-launch-stage">
       <h2>${stage.title}</h2>
       <div class="project-launch-grid">
@@ -5124,7 +5127,18 @@ function renderProjectWorkspacePage(){
         </button>`).join("")}
       </div>
     </section>`).join("")}
-  </div><aside class="project-visit-record-card"><h2>访问记录</h2><div class="project-visit-record-list">${Object.entries(grouped).map(([date,items])=>{const parts=date.split("-");return `<section><h3>${parts[0]}年${Number(parts[1])}月${Number(parts[2])}日</h3>${items.map(item=>`<div class="project-visit-record-item"><span class="project-visit-avatar">${item.name.slice(0,1)}</span><strong>${item.name}</strong><small>${item.role}</small><time>${date} ${item.time}</time></div>`).join("")}</section>`;}).join("")}</div></aside></div>`;
+  </div><aside class="project-visit-record-card"><div class="project-visit-record-head"><h2>访问记录</h2><button type="button" class="project-visit-record-all" onclick='openProjectVisitRecordModal()'>查看全部<span aria-hidden="true">›</span></button></div><div class="project-visit-record-list">${Object.entries(grouped).map(([date,items])=>{const parts=date.split("-");return `<section><h3>${parts[0]}年${Number(parts[1])}月${Number(parts[2])}日</h3>${items.map(item=>`<div class="project-visit-record-item"><span class="project-visit-avatar">${item.name.slice(0,1)}</span><strong>${item.name}</strong><span class="project-visit-role-tags">${item.role.split(/[、,，]/).filter(Boolean).map(role=>`<span class="project-visit-role-tag">${role}</span>`).join("")}</span><time>${date} ${item.time}</time></div>`).join("")}</section>`;}).join("")}</div></aside></div><section class="project-workbench-approval"><div class="project-workbench-approval-tabs">${approvalTabs}</div>${approvalBody}</section></div>`;
+}
+
+function openProjectVisitRecordModal(){
+  const rows=[
+    ["王安全","漕河泾创新水岸建设工程","安全领导","2026-09-02 16:42"],
+    ["秦群群","漕河泾创新水岸建设工程","项目经理","2026-09-02 15:18"],
+    ["王安全","漕河泾创新水岸建设工程","安全领导","2026-09-02 10:06"],
+    ["刘佳","上海隧道工程有限公司/第一分公司","项目副经理、生产经理","2026-09-01 17:35"],
+    ["王峰","上海隧道工程有限公司","施工经理","2026-09-01 09:20"]
+  ];
+  openModal("访问记录",`<div class="table-card project-visit-record-modal-table"><div class="table-wrap"><table><thead><tr><th style="width:60px;text-align:center">序号</th><th>姓名</th><th>所属组织</th><th>岗位</th><th>访问时间</th></tr></thead><tbody>${rows.map((row,index)=>`<tr><td style="text-align:center">${index+1}</td><td>${row[0]}</td><td><span class="project-visit-org"><span class="project-visit-org-tag">${row[0]==="王安全"||row[0]==="秦群群"?"项目":row[0]==="刘佳"?"分公司":"子公司"}</span>${row[1]}</span></td><td><div class="project-visit-role-tags">${row[2].split(/[、,，]/).filter(Boolean).map(role=>`<span class="project-visit-role-tag">${role}</span>`).join("")}</div></td><td>${row[3]}</td></tr>`).join("")}</tbody></table></div></div>`,`<button type="button" class="btn primary" onclick="closeModal()">关闭</button>` ,"large");
 }
 function changeEnterpriseEquipmentPage(delta){ enterpriseEquipmentState.page=Math.max(1,enterpriseEquipmentState.page+Number(delta||0)); renderEnterpriseEquipmentLedgerPage(); }
 function changeEnterpriseEquipmentPageSize(size){ enterpriseEquipmentState.pageSize=Number(size)||50; enterpriseEquipmentState.page=1; renderEnterpriseEquipmentLedgerPage(); }
