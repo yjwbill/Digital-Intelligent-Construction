@@ -668,6 +668,11 @@
   #architectureView .arch-rail-card{border:1px solid #dce5f2;border-radius:10px;background:#fff;box-shadow:none;padding:10px}.arch-rail-card h4{font-size:18px;color:#155eef}
   #architectureView .rail-chip{background:#f7f9fc;border-color:#e3eaf4;font-size:14px}
   #architectureView .arch-legend{display:none}
+  #architectureView .overall-architecture-preview{display:none;position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
+  .shell.overall-preview-active .presentation-header,.shell.overall-preview-active .sidebar{display:none}
+  .shell.overall-preview-active .content{left:0;top:0}
+  #architectureView.overall-preview-active .overall-architecture-preview{display:block}
+  #architectureView.overall-preview-active .arch-topline,#architectureView.overall-preview-active .arch-board,#architectureView.overall-preview-active .scroll-hint,#architectureView.overall-preview-active .arch-legend{display:none}
   #architectureView .arch-board{overflow:hidden}
   #architectureView .arch-canvas{height:100%;box-sizing:border-box;grid-template-columns:minmax(0,1fr) 182px;gap:14px}
   #architectureView .arch-lane:first-child{min-height:112px}
@@ -677,14 +682,51 @@
   #architectureView .arch-main>.arch-base:last-child{min-height:78px}
   #architectureView .arch-row{gap:10px}
   #architectureView .arch-group-title{font-size:19px}
+  /* 02-04 architecture views: align the legacy renderer with the 01 card system */
+  #architectureView:not(.overall-preview-active) .arch-board{left:28px;right:28px;top:10px;bottom:18px;border:0;border-radius:0;background:#fff;box-shadow:none;overflow:auto}
+  #architectureView:not(.overall-preview-active) .arch-board:after{display:none}
+  #architectureView:not(.overall-preview-active) .arch-canvas{padding:16px 8px 24px;gap:16px;background:#fff}
+  #architectureView:not(.overall-preview-active) .arch-main{gap:16px}
+  #architectureView:not(.overall-preview-active) .arch-lane,
+  #architectureView:not(.overall-preview-active) .arch-econ-lane,
+  #architectureView:not(.overall-preview-active) .arch-base{border:0;border-radius:0;background:transparent;box-shadow:none;padding:0;gap:16px}
+  #architectureView:not(.overall-preview-active) .arch-side-label,
+  #architectureView:not(.overall-preview-active) .arch-base-label{border:1px solid #DFE7F2;border-radius:11px;background:#fff;color:#155EEF;box-shadow:none}
+  #architectureView:not(.overall-preview-active) .arch-side-label{font-size:18px;letter-spacing:2px}
+  #architectureView:not(.overall-preview-active) .arch-base-label{font-size:18px}
+  #architectureView:not(.overall-preview-active) .arch-group,
+  #architectureView:not(.overall-preview-active) .arch-section-box{border:1px solid #DFE7F2;border-radius:11px;background:#fff;box-shadow:none;padding:10px}
+  #architectureView:not(.overall-preview-active) .arch-group-title{min-height:34px;margin-bottom:8px;padding:4px;background:transparent;color:#155EEF;font-size:18px}
+  #architectureView:not(.overall-preview-active) .arch-group-title.orange{color:#E85D04;background:transparent}
+  #architectureView:not(.overall-preview-active) .arch-group-title.green{color:#16876F;background:transparent}
+  #architectureView:not(.overall-preview-active) .arch-item{min-height:48px;border:1px solid #DFE7F2;border-radius:8px;background:#fff;color:#172B4D;font-size:14px;font-weight:500}
+  #architectureView:not(.overall-preview-active) .arch-item.doing{background:#FFF8E8;border-color:#F0C77D;color:#8A5600}
+  #architectureView:not(.overall-preview-active) .arch-item.plan{background:#FFF8FA;border-color:#E8BFC7;color:#7D4350}
+  #architectureView:not(.overall-preview-active) .arch-item.blue{background:#F3F7FF;border-color:#BFD3F7;color:#155EEF}
+  #architectureView:not(.overall-preview-active) .arch-item.orange{background:#FFF7EF;border-color:#F2C7A8;color:#C95016}
+  #architectureView:not(.overall-preview-active) .arch-item.gray{background:#F5F6F8;border-color:#D9DEE8;color:#667085}
+  #architectureView:not(.overall-preview-active) .arch-base-items{border:1px solid #DFE7F2;border-radius:11px;background:#fff;padding:10px}
+  #architectureView:not(.overall-preview-active) .arch-base .arch-item{min-height:42px;background:#F8FAFD;border-color:#E2E8F1;color:#172B4D}
+  #architectureView:not(.overall-preview-active) .arch-base .arch-item.doing{background:#FFF8E8;border-color:#F0C77D;color:#8A5600}
+  #architectureView:not(.overall-preview-active) .arch-base .arch-item.plan{background:#FFF8FA;border-color:#E8BFC7;color:#7D4350}
+  #architectureView:not(.overall-preview-active) .arch-econ-main{gap:16px}
+  #architectureView:not(.overall-preview-active) .arch-section-caption{color:#155EEF;font-size:14px}
+  #architectureView:not(.overall-preview-active) .arch-rail{gap:16px}
+  #architectureView:not(.overall-preview-active) .arch-rail-card{border:1px solid #DFE7F2;border-radius:11px;background:#fff;box-shadow:none;padding:10px}
+  #architectureView:not(.overall-preview-active) .arch-rail-card h4{margin-bottom:10px;color:#155EEF;font-size:18px}
+  #architectureView:not(.overall-preview-active) .rail-chip{border:1px solid #E2E8F1;border-radius:6px;background:#F8FAFD;color:#33425A;font-size:14px}
+  #architectureView:not(.overall-preview-active) .rail-chip.doing{background:#FFF8E8;border-color:#F0C77D;color:#8A5600}
+  #architectureView:not(.overall-preview-active) .rail-chip.gray{background:#F5F6F8;border-color:#D9DEE8;color:#667085}
   .presentation-header{height:72px;display:flex;align-items:center;padding:0 38px;border-bottom:1px solid #e8eef7;background:#fff;box-sizing:border-box;gap:34px}.presentation-header .brand{width:290px;display:flex;align-items:center}.presentation-header .brand img{width:218px;height:auto}.presentation-header nav{display:flex;align-items:center;height:100%;gap:8px}.presentation-header nav button{height:48px;padding:0 24px;border:0;border-radius:8px;background:transparent;color:#344563;font-size:18px;font-weight:500;cursor:pointer}.presentation-header nav button.active,.presentation-header nav button:hover{background:#f3f7ff;color:#155eef}.presentation-header nav button.active{box-shadow:inset 0 -3px #155eef}
   .shell{display:block}.sidebar{display:none}.content{left:0;top:72px;right:0;bottom:0;width:100%;height:calc(100% - 72px)}
+  html.embedded-preview .presentation-header{display:none}
+  html.embedded-preview .content{top:0;height:100%}
 </style>
 </head>
 <body>
 <div class="stage">
   <div class="shell">
-    <header class="presentation-header"><div class="brand"><img src="../assets/economy/tunnel-group-logo.svg" alt="隧道股份 数字集团"></div><nav aria-label="演示导航"><button class="active" data-page="architecture" data-arch="overall">01 业务架构</button><button data-page="architecture" data-arch="production">02 生产管理</button><button data-page="architecture" data-arch="safety">03 安全管理</button><button data-page="architecture" data-arch="economy">04 经济管理</button><button data-page="architecture" data-arch="overall">05 平台能力</button><button data-page="roadmap">06 建设进度</button></nav></header>
+    <header class="presentation-header"><div class="brand"><img src="../../assets/common/digital-group-logo.png" alt="隧道股份 数字集团"></div><nav aria-label="演示导航"><button class="active" data-page="architecture" data-arch="overall">01 业务架构</button><button data-page="architecture" data-arch="production">02 生产管理</button><button data-page="architecture" data-arch="safety">03 安全管理</button><button data-page="architecture" data-arch="economy">04 经济管理</button><button data-page="architecture" data-arch="overall">05 平台能力</button><button data-page="roadmap">06 建设进度</button></nav></header>
     <aside class="sidebar">
       <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-label="收起左侧菜单" aria-expanded="true" title="收起左侧菜单">
         <span class="toggle-arrow">‹</span>
@@ -813,6 +855,7 @@
       </div>
 
       <div id="architectureView" class="main-view">
+        <iframe id="overallArchitecturePreview" class="overall-architecture-preview" src="./product-architecture-preview.html?embedded=1&v=2.2.992-capability-height" title="01 业务架构"></iframe>
         <div class="arch-topline">
           <div class="arch-tabs" role="tablist" aria-label="功能架构">
             <button type="button" class="active" data-arch="overall" role="tab" aria-selected="true">平台总体</button>
@@ -1087,6 +1130,7 @@
 
 <script>
 (function(){
+  if(new URLSearchParams(window.location.search).get('embedded')==='1')document.documentElement.classList.add('embedded-preview');
   const pageTitle = document.querySelector('.page-title');
   const roadmapView = document.getElementById('roadmapView');
   const architectureView = document.getElementById('architectureView');
@@ -1094,6 +1138,8 @@
   const archTabs = [...document.querySelectorAll('.arch-tabs button')];
   const archCanvas = document.getElementById('archCanvas');
   const archCurrent = document.getElementById('archCurrent');
+  const overallPreview = document.getElementById('overallArchitecturePreview');
+  const shell = document.querySelector('.shell');
 
   const I = (t,s='done',up=false,cls='') => ({t,s,up,cls});
   const G = (title, items, cols=2, tone='') => ({title,items,cols,tone});
@@ -1336,6 +1382,9 @@
   function renderArchitecture(key){
     activeArch=key;
     const d=architectures[key];
+    const previewActive=key==='overall';
+    architectureView.classList.toggle('overall-preview-active',previewActive);
+    shell?.classList.toggle('overall-preview-active',previewActive);
     archTabs.forEach(tab=>{
       const selected=tab.dataset.arch===key;
       tab.classList.toggle('active',selected);
@@ -1343,6 +1392,10 @@
     });
     if(pageTitle)pageTitle.textContent=d.title;
     archCurrent.textContent=d.label;
+    if(previewActive){
+      archCanvas.innerHTML='';
+      return;
+    }
 
     const main = `<div class="arch-main">${d.lanes.map(laneHTML).join('')}${d.bases.map(baseHTML).join('')}</div>`;
     const rail = `<aside class="arch-rail">${d.rail.map(railHTML).join('')}</aside>`;
@@ -1362,6 +1415,8 @@
       renderArchitecture(activeArch);
       if(window.__resetArchScroll) setTimeout(window.__resetArchScroll, 60);
     }else{
+      architectureView.classList.remove('overall-preview-active');
+      shell?.classList.remove('overall-preview-active');
       if(pageTitle)pageTitle.textContent='';
     }
   }
@@ -1371,6 +1426,12 @@
     n.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate();}});
   });
   document.querySelectorAll('.presentation-header nav button').forEach(n=>n.addEventListener('click',()=>{document.querySelectorAll('.presentation-header nav button').forEach(x=>x.classList.remove('active'));n.classList.add('active');if(n.dataset.arch){activeArch=n.dataset.arch;setPage('architecture')}else setPage(n.dataset.page)}));
+  window.addEventListener('message',event=>{
+    const data=event.data||{};
+    if(data.type!=='product-overview-navigation')return;
+    if(data.page==='roadmap'){setPage('roadmap');return;}
+    if(['overall','production','safety','economy'].includes(data.arch)){activeArch=data.arch;setPage('architecture');}
+  });
 
   renderArchitecture('overall');
   setPage('architecture');

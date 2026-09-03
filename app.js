@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.975-monthly-report-summary-five-cards";
+  const version="2.2.978-architecture-label-style";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/tdesign-icon/tdesign-icon.js",

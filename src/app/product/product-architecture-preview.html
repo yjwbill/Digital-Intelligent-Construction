@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>数智施工整体业务架构</title>
+<style>
+:root{
+  --blue:#155EEF; --blue2:#2F6BFF; --blueText:#0B55E8; --blueBg:#F7F9FF; --blueSoft:#F2F6FF; --blueLine:#D9E5FA;
+  --green:#139B78; --greenText:#0D805F; --greenBg:#F7FCFA; --greenSoft:#EFF9F5; --greenLine:#D5ECE4;
+  --safetyRed:#B9656B; --safetyRedBg:#FFFAFA; --safetyRedSoft:#FCEDEE; --safetyRedLine:#EACDCF;
+  --orange:#FF5A1F; --orangeText:#EA4C13; --orangeBg:#FFFBF8; --orangeSoft:#FFF5EE; --orangeLine:#F5DCCF;
+  --ink:#101D3B; --text:#26334A; --muted:#6F7D95; --line:#E3E9F2; --soft:#F8FAFD; --shadow:0 3px 12px rgba(25,55,98,.035);
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#fff;font-family:"Microsoft YaHei","PingFang SC","Noto Sans CJK SC",Arial,sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
+button{font:inherit}
+#stageWrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fff}
+#stage{position:relative;width:1920px;height:1080px;background:#fff;transform-origin:center center;overflow:hidden}
+
+/* top */
+.topbar{height:90px;border-bottom:1px solid #E1E7F0;display:flex;align-items:center;padding:0 30px;background:#fff}
+.brand{width:330px;display:flex;align-items:center;flex:0 0 auto}
+.brandLogo{display:block;width:300px;height:auto;max-height:52px;object-fit:contain;object-position:left center}
+.nav{height:100%;display:flex;align-items:center;justify-content:flex-start;flex:1;gap:0}
+.navItem{position:relative;height:58px;padding:0 28px;min-width:188px;display:flex;align-items:center;justify-content:center;gap:12px;border:0;border-left:1px solid #EDF1F6;background:transparent;color:#26344E;font-size:20px;font-weight:600;cursor:pointer;transition:.2s}
+.navItem:first-child{border-left:0}.navItem:last-child{border-right:1px solid #EDF1F6}
+.navItem .ico{width:25px;height:25px;color:#15274A;flex:0 0 auto}
+.navItem.active{color:var(--blueText);background:#F8FAFF;border-radius:10px;border:1px solid #DCE6F8}
+.navItem.active + .navItem{border-left-color:transparent}.navItem.active .ico{color:var(--blue)}
+.navItem.active:after{content:"";position:absolute;bottom:-1px;width:70px;height:3px;border-radius:3px;background:var(--blue)}
+
+/* page two columns */
+.page{position:absolute;left:20px;right:20px;top:108px;bottom:20px}
+.mainCol{position:absolute;left:0;right:260px;top:0;bottom:0;min-width:0}
+.asideCol{position:absolute;right:0;top:0;width:210px;height:100%;min-width:0}
+
+/* shared */
+.sectionLabel span,.stripLabel span{white-space:nowrap}.outline{border:1px solid var(--blueLine);border-radius:12px;background:#fff}
+.sectionLabel{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--blueText);font-size:20px;font-weight:800;line-height:1.42;letter-spacing:.5px;background:#fff;border:1px solid var(--blueLine);border-radius:12px}
+
+/* management */
+.mgmt{position:absolute;left:0;right:0;top:0;height:110px;display:grid;grid-template-columns:112px 1fr;gap:16px}
+.mgmtFlow{display:grid;grid-template-columns:1fr 58px 1fr 58px 1fr;align-items:center;min-width:0}
+.flowCard{height:98px;border:1px solid var(--blueLine);border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;gap:21px;box-shadow:var(--shadow);min-width:0}
+.flowCard.green,.flowCard.orange{border-color:var(--blueLine)}
+.flowIcon{width:61px;height:61px;border-radius:50%;display:grid;place-items:center;background:#EFF4FF;color:var(--blue);flex:0 0 auto}
+.flowIcon .ico{width:35px;height:35px}.flowCard.green .flowIcon,.flowCard.orange .flowIcon{background:#EFF4FF;color:var(--blue)}
+.flowText{min-width:0}.flowTitle{font-size:25px;line-height:1.2;font-weight:800;color:var(--blueText);white-space:nowrap}.green .flowTitle,.orange .flowTitle{color:var(--blueText)}
+.flowSub{font-size:15px;color:var(--blueText);margin-top:9px;white-space:nowrap}.flowArrow{display:grid;place-items:center;color:var(--blue)}.flowArrow.greenArrow{color:var(--blue)}.flowArrow .ico{width:41px;height:41px;stroke-width:2}
+
+/* business */
+.business{position:absolute;left:0;right:0;top:129px;height:468px}
+.verticalLabel{position:absolute;left:0;top:0;width:112px;height:468px;display:flex;align-items:center;justify-content:center;border:1px solid var(--blueLine);border-radius:12px;background:#fff;color:var(--blueText);font-size:20px;font-weight:800}
+.verticalLabel span{display:flex;flex-direction:column;align-items:center;line-height:1.45;letter-spacing:0}
+.domains{position:absolute;left:128px;right:0;top:0;height:468px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;min-width:0}
+.domain{position:relative;height:468px;min-width:0;border:1px solid var(--line);border-radius:12px;background:#fff;padding:17px 14px 13px;display:grid;grid-template-rows:64px 45px 1fr 52px;gap:12px;box-shadow:0 2px 8px rgba(31,64,112,.02)}
+.domain.blue{border-color:var(--blueLine)}.domain.green{border-color:var(--safetyRedLine);background:var(--safetyRedBg)}.domain.orange{border-color:var(--orangeLine)}
+.domainHead{text-align:center}.domainHead h2{font-size:24px;line-height:1.15;margin:0;color:var(--blueText);font-weight:800}.domain.green .domainHead h2{color:var(--safetyRed)}.domain.orange .domainHead h2{color:var(--orangeText)}
+.domainHead p{font-size:14px;color:#293950;margin:10px 0 0;white-space:nowrap}
+.stages{display:grid;grid-template-columns:1fr 28px 1fr 28px 1fr 28px 1fr;align-items:center;text-align:center;height:45px;border-radius:8px;border:1px solid #E7EDF8;background:#FBFCFF;color:#2E66DC;font-size:15px;font-weight:600;padding:0 5px}
+.domain.green .stages{background:var(--safetyRedSoft);border-color:var(--safetyRedLine);color:var(--safetyRed)}.orange .stages{background:#FFFCFA;border-color:#F7E7DF;color:#F05B28}
+.stageArrow{display:grid;place-items:center;opacity:.65}.stageArrow .ico{width:19px;height:19px}
+.moduleGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:repeat(2,1fr);gap:10px;min-height:0}
+.mod{min-width:0;border:1px solid #E3EAF4;border-radius:9px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;color:var(--blue);transition:.2s}
+.blue .mod{border-color:#DFE8F8}.domain.green .mod{border-color:var(--safetyRedLine);color:var(--safetyRed)}.orange .mod{border-color:#F5E3DA;color:var(--orange)}
+.mod .ico{width:29px;height:29px;stroke-width:1.8}.mod b{font-size:16px;color:#28374D;font-weight:600;line-height:1.2;white-space:nowrap}.mod:hover{transform:translateY(-2px);box-shadow:0 7px 18px rgba(23,43,77,.07)}
+.goal{height:52px;border:1px solid #E6ECF5;border-radius:8px;background:#FDFEFF;display:flex;align-items:center;padding:0 16px;font-size:16px;color:#2F3A50;white-space:nowrap;overflow:hidden}.goal strong{color:var(--blueText);font-weight:800;margin-right:7px}.domain.green .goal{border-color:var(--safetyRedLine);background:var(--safetyRedSoft)}.domain.green .goal strong{color:var(--safetyRed)}.orange .goal strong{color:var(--orangeText)}
+
+/* strips */
+.strip{display:grid;grid-template-columns:112px 1fr;border:1px solid #DFE7F2;border-radius:11px;background:#fff;overflow:hidden}
+.stripLabel{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--blueText);font-size:20px;font-weight:800;line-height:1.25;background:#fff;border-right:1px solid #E6ECF4}
+.platform,.data,.tech{grid-template-columns:112px minmax(0,1fr);gap:16px;border:0;border-radius:0;background:transparent;overflow:visible}
+.platform .stripLabel,.data .stripLabel,.tech .stripLabel{border:1px solid #DFE7F2;border-radius:11px;background:#fff}
+.platform{position:absolute;left:0;right:0;top:627px;height:100px}.platformItems{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));min-width:0;border:1px solid #DFE7F2;border-radius:11px;background:#fff;overflow:hidden}
+.platformItem{min-width:0;border-left:1px solid #EDF1F6;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 6px}.platformItem:first-child{border-left:0}.platformItem .ico{width:25px;height:25px;color:var(--blue);flex:0 0 auto;stroke-width:1.8}.platformItem b{font-size:16px;color:#263650;display:block;white-space:nowrap}.platformItem small{font-size:14px;color:#77839A;display:block;margin-top:5px;white-space:nowrap}
+.data{position:absolute;left:0;right:0;top:743px;height:102px}.dataBody{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:12px;padding:0;min-width:0}.dataBox{border:1px solid #DFE7F2;border-radius:11px;background:#FCFDFF;padding:9px 10px;min-width:0}.dataBox h4{margin:0 0 9px;text-align:center;font-size:18px;color:var(--blueText);font-weight:800}.pills{display:flex;gap:8px;justify-content:center;min-width:0}.pill{height:31px;display:flex;align-items:center;justify-content:center;padding:0 12px;border:1px solid #E5EAF2;border-radius:6px;background:#F8FAFD;color:#33425A;font-size:16px;font-weight:700;white-space:nowrap}
+.tech{position:absolute;left:0;right:0;top:862px;height:100px}.techItems{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));min-width:0;border:1px solid #DFE7F2;border-radius:11px;background:#fff;overflow:hidden}.techItem{min-width:0;border-left:1px solid #EDF1F6;display:flex;align-items:center;justify-content:center;gap:10px}.techItem:first-child{border-left:0}.techItem .ico{width:31px;height:31px;color:var(--blue);stroke-width:1.7;flex:0 0 auto}.techItem b{font-size:16px;color:#24354E;display:block;white-space:nowrap}.techItem small{font-size:14px;color:#77839A;display:block;margin-top:5px;white-space:nowrap}
+
+/* aside */
+.sideCard{border:1px solid #DBE6F7;border-radius:12px;background:#fff;padding:14px 13px;box-shadow:var(--shadow)}
+.sideCard.endpoint{position:absolute;left:0;right:0;top:0;height:184px}.sideCard.prof{position:absolute;left:0;right:0;top:200px;height:306px}.sideCard.ext{position:absolute;left:0;right:0;top:522px;height:512px}.sideCard h3{margin:0 0 13px;text-align:center;color:var(--blueText);font-size:22px;font-weight:800}.sideList{display:grid;gap:7px}.sideItem{height:34px;display:flex;align-items:center;justify-content:center;background:#F9FBFE;border:1px solid #E6EDF7;border-radius:6px;color:#2D3C55;font-size:16px;white-space:nowrap}.endpoint .sideItem{gap:10px}.endpoint .sideItem .ico{width:20px;height:20px;color:var(--blue);flex:0 0 auto}.sideCard.ext .sideItem{height:34px}
+
+/* connectors */
+.bizToSide{position:absolute;left:1625px;top:338px;width:46px;height:30px;z-index:3;filter:drop-shadow(0 3px 4px rgba(72,128,255,.16))}
+.lowerToSide{position:absolute;left:1628px;top:763px;width:46px;height:30px;z-index:3;filter:drop-shadow(0 3px 4px rgba(72,128,255,.16))}
+.upArrow{position:absolute;left:50%;bottom:-17px;width:30px;height:38px;transform:translateX(-50%);z-index:3;pointer-events:none;filter:drop-shadow(0 3px 4px rgba(72,128,255,.16))}
+.decorSvg{display:block;width:100%;height:100%}
+/* icon */
+.ico{display:inline-block;vertical-align:middle}.ico svg{width:100%;height:100%;display:block}
+.navItem .ico svg{stroke:#16284B}.navItem.active .ico svg{stroke:var(--blue)}
+.flowCard .flowIcon svg,.flowCard.green .flowIcon svg,.flowCard.orange .flowIcon svg{stroke:var(--blue)}
+.flowArrow svg,.flowArrow.greenArrow svg{stroke:var(--blue)}
+.blue .stages .ico svg,.blue .mod .ico svg{stroke:var(--blue)}.domain.green .stages .ico svg,.domain.green .mod .ico svg{stroke:var(--safetyRed)}.orange .stages .ico svg,.orange .mod .ico svg{stroke:var(--orange)}
+.platformItem .ico svg,.techItem .ico svg{stroke:var(--blue)}
+
+@media print{html,body,#stageWrap{background:#fff}}
+html.embedded-preview .topbar{display:none}
+html.embedded-preview .page{top:20px}
+</style>
+</head>
+<body>
+<div id="stageWrap"><div id="stage">
+<header class="topbar">
+<div class="brand"><img class="brandLogo" src="../../assets/common/digital-group-logo.png" alt="隧道股份 数字集团" /></div>
+<nav class="nav">
+<button class="navItem active"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 21 7 12 12 3 7 12 2Z"></path><path d="m3 7 9 5 9-5v10l-9 5-9-5V7Z"></path><path d="M12 12v10"></path></svg></span><span>01 业务架构</span></button>
+<button class="navItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l4 4v16H6z"></path><path d="M14 2v5h5"></path><path d="M9 17v-3M13 17v-6M17 17v-2"></path></svg></span><span>02 生产管理</span></button>
+<button class="navItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 20 5v6c0 5-3.4 9-8 11-4.6-2-8-6-8-11V5l8-3Z"></path><path d="M9.5 12 11 13.5 15 9.5"></path></svg></span><span>03 安全管理</span></button>
+<button class="navItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path><path d="m4 9 6-5 6 6 5-4"></path></svg></span><span>04 经济管理</span></button>
+<button class="navItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect height="7" rx="1" width="7" x="3" y="3"></rect><rect height="7" rx="1" width="7" x="14" y="3"></rect><rect height="7" rx="1" width="7" x="3" y="14"></rect><rect height="7" rx="1" width="7" x="14" y="14"></rect></svg></span><span>05 平台能力</span></button>
+<button class="navItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 20 6.5 12 11 4 6.5 12 2Z"></path><path d="m4 6.5 8 4.5 8-4.5V17l-8 5-8-5V6.5Z"></path><path d="M12 11v11"></path></svg></span><span>06 建设进度</span></button>
+</nav>
+</header>
+<main class="page">
+<div class="mainCol">
+<section class="mgmt">
+<div class="sectionLabel"><span>三位一体</span><span>管理架构</span></div>
+<div class="mgmtFlow">
+<div class="flowCard"><div class="flowIcon"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V7l8-5 8 5v15"></path><path d="M8 22V10h8v12M7 7h.01M12 7h.01M17 7h.01"></path><path d="M2 22h20"></path></svg></span></div><div class="flowText"><div class="flowTitle">股份（监管端）</div><div class="flowSub">战略管控 · 标准制定 · 监督考核</div></div></div>
+<div class="flowArrow"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span></div>
+<div class="flowCard green"><div class="flowIcon"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V7l8-5 8 5v15"></path><path d="M8 22V10h8v12M7 7h.01M12 7h.01M17 7h.01"></path><path d="M2 22h20"></path></svg></span></div><div class="flowText"><div class="flowTitle">子/分公司（管控端）</div><div class="flowSub">过程管控 · 资源协同 · 技术支持</div></div></div>
+<div class="flowArrow greenArrow"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span></div>
+<div class="flowCard orange"><div class="flowIcon"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span></div><div class="flowText"><div class="flowTitle">项目部（执行端）</div><div class="flowSub">精准执行 · 过程反馈 · 成果落地</div></div></div>
+</div>
+</section>
+<section class="business">
+<div class="verticalLabel"><span>三大<br />业务<br />领域</span></div>
+<div class="domains">
+<article class="domain blue">
+<div class="domainHead"><h2>生产管理</h2><p>项目全生命周期的生产管控</p></div>
+<div class="stages"><span>项目筹划</span><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span><span>施工实施</span><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span><span>履约监管</span><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span><span>项目收尾</span></div>
+<div class="moduleGrid">
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect height="18" rx="2" width="14" x="5" y="4"></rect><path d="M9 4h6V2H9v2ZM8 10h8M8 14h5M8 18h7"></path></svg></span><b>项目管理</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect height="16" rx="2" width="18" x="3" y="5"></rect><path d="M16 3v4M8 3v4M3 10h18M8 14h3v3H8z"></path></svg></span><b>进度管理</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18a8 8 0 1 1 16 0"></path><path d="m12 14 4-4"></path><path d="M6 18h12"></path></svg></span><b>产值管理</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m7 3 5 3-5 3-5-3 5-3ZM17 3l5 3-5 3-5-3 5-3ZM12 12l5 3-5 3-5-3 5-3Z"></path><path d="M2 6v5l5 3 5-3V6M12 6v5l5 3 5-3V6M7 15v5l5 3 5-3v-5"></path></svg></span><b>资源管理</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5 5L3 18l3 3 6.7-6.7a4 4 0 0 0 5-5l-2.4 2.4-3-3 2.4-2.4Z"></path></svg></span><b>技术管理</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect height="18" rx="2" width="14" x="5" y="3"></rect><path d="M9 3v18M12 8h4M12 12h4M12 16h3"></path></svg></span><b>施工日志</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21h-4v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H3v-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3h4a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9A1.7 1.7 0 0 0 21 10v4a1.7 1.7 0 0 0-1.6 1Z"></path></svg></span><b>设备管理</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 21 7 12 12 3 7 12 2Z"></path><path d="m3 7 9 5 9-5v10l-9 5-9-5V7Z"></path><path d="M8 4.2 17 9M12 12v10"></path></svg></span><b>材料管理</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"></circle><path d="M2 21v-2a5 5 0 0 1 5-5h4M16 19l2 2 4-5"></path></svg></span><b>人员履职</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4c-8 0-13 4-13 10 0 4 3 6 6 6 6 0 8-7 7-16Z"></path><path d="M4 21c3-6 7-9 13-12"></path></svg></span><b>低碳管理</b></div>
+</div>
+<div class="goal"><strong>核心目标：</strong>提升项目履约能力，实现过程可控、结果可达</div>
+<div class="upArrow production"><svg class="decorSvg" viewBox="0 0 30 38" aria-hidden="true"><path d="M10 38V16H2L15 0l13 16h-8v22z" fill="#6B9DFF"/></svg></div>
+</article>
+<article class="domain green">
+<div class="domainHead"><h2>安全管理</h2><p>风险可控的安全生产体系</p></div>
+<div class="stages"><span>预防控制</span><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span><span>过程管控</span><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span><span>隐患治理</span><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span><span>应急处置</span></div>
+<div class="moduleGrid">
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span><b>实名制管理</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m15.5 15.5 5 5M8 10l2 2 3-4"></path></svg></span><b>隐患排查</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 20 5v6c0 5-3.4 9-8 11-4.6-2-8-6-8-11V5l8-3Z"></path><path d="M12 7v6M12 17h.01"></path></svg></span><b>重大风险</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect height="12" rx="2" width="13" x="3" y="6"></rect><path d="m16 10 5-3v10l-5-3"></path></svg></span><b>视频监控</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m2 10 10-5 10 5-10 5L2 10Z"></path><path d="M6 12v4c3 3 9 3 12 0v-4M22 10v6"></path></svg></span><b>安全教育</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"></circle><path d="M2 21v-2a5 5 0 0 1 5-5h4M16 19l2 2 4-5"></path></svg></span><b>到岗履职</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21h-4v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H3v-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3h4a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9A1.7 1.7 0 0 0 21 10v4a1.7 1.7 0 0 0-1.6 1Z"></path></svg></span><b>设备安全</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 4 10 2-5h6"></path></svg></span><b>行为管理</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 20 5v6c0 5-3.4 9-8 11-4.6-2-8-6-8-11V5l8-3Z"></path><path d="m8.5 12 2.3 2.3 4.7-5"></path></svg></span><b>工程保险</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 15 5l3.5-.5L19 8l2 3-2 3 .5 3.5-3.5.5-3 2-3-2-3.5-.5L7 14l-2-3 2-3-.5-3.5L10 5l2-2Z"></path><path d="m9 11 2 2 4-4"></path></svg></span><b>安全评价</b></div>
+</div>
+<div class="goal"><strong>核心目标：</strong>保障人员安全，防范风险事故，确保合规生产</div>
+<div class="upArrow safety"><svg class="decorSvg" viewBox="0 0 30 38" aria-hidden="true"><path d="M10 38V16H2L15 0l13 16h-8v22z" fill="#B9656B"/></svg></div>
+</article>
+<article class="domain orange">
+<div class="domainHead"><h2>经济管理</h2><p>精细化经济管控与价值创造</p></div>
+<div class="stages"><span>经济策划</span><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span><span>过程管控</span><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span><span>经济分析</span><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span><span>风险预警</span></div>
+<div class="moduleGrid">
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"></path><circle cx="11" cy="11" r="4"></circle><path d="m14 14 3 3"></path></svg></span><b>经济诊断</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l4 4v16H6z"></path><path d="M14 2v5h5M9 11h6M9 15h6M9 19h4"></path></svg></span><b>诊断报告</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path><path d="m4 9 6-5 6 6 5-4"></path></svg></span><b>可视化分析</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"></rect><path d="M8 3V1h8v2M8 9h8M8 13l2 2 4-4M8 18h4"></path></svg></span><b>月度检验单</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l4 4v16H6z"></path><path d="M14 2v5h5M9 11h6M9 15h6M9 19h4"></path></svg></span><b>合同管理</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg></span><b>经济筹划</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path><path d="m4 9 6-5 6 6 5-4"></path></svg></span><b>产值计量</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 8 4l2-2 2 2 2-2 2 2 2-2v20l-2-2-2 2-2-2-2 2-2-2-2 2V2Z"></path><path d="M9 9h6M9 13h6M9 17h4"></path></svg></span><b>成本管理</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l4 4v16H6z"></path><path d="M14 2v5h5M9 15l2 2 4-5"></path></svg></span><b>结算管理</b></div>
+<div class="mod"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h15a3 3 0 0 1 3 3v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6Z"></path><path d="M3 6l12-4 2 4M16 12h5"></path></svg></span><b>资金管理</b></div>
+</div>
+<div class="goal"><strong>核心目标：</strong>创造经济价值，防控经营风险，提升盈利能力</div>
+<div class="upArrow economy"><svg class="decorSvg" viewBox="0 0 30 38" aria-hidden="true"><path d="M10 38V16H2L15 0l13 16h-8v22z" fill="#FF7542"/></svg></div>
+</article>
+</div>
+<div class="bizToSide"><svg class="decorSvg" viewBox="0 0 46 30" aria-hidden="true"><path d="M0 10h27V2l19 13-19 13v-8H0z" fill="#6B9DFF"/></svg></div>
+</section>
+<section class="strip platform">
+<div class="stripLabel"><span>平台</span><span>公共能力</span></div>
+<div class="platformItems">
+<div class="platformItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect height="13" rx="2" width="18" x="3" y="7"></rect><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18M10 12v2h4v-2"></path></svg></span><div><b>项目中心</b><small>项目全生命周期管理</small></div></div>
+<div class="platformItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span><div><b>组织权限</b><small>多级组织权限体系</small></div></div>
+<div class="platformItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect height="5" rx="1" width="6" x="3" y="3"></rect><rect height="5" rx="1" width="6" x="15" y="16"></rect><path d="M9 5.5h4a4 4 0 0 1 4 4v6.5M15 18.5h-4a4 4 0 0 1-4-4V8"></path></svg></span><div><b>流程中心</b><small>流程驱动业务协同</small></div></div>
+<div class="platformItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 2 2 3-4M11 6h10M3 12l2 2 3-4M11 12h10M3 18l2 2 3-4M11 18h10"></path></svg></span><div><b>任务协同</b><small>任务分发与跟踪</small></div></div>
+<div class="platformItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H8l-4 4V4Z"></path><path d="M8 9h8M8 13h5"></path></svg></span><div><b>消息待办</b><small>消息通知与待办</small></div></div>
+<div class="platformItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"></ellipse><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"></path></svg></span><div><b>数据中心</b><small>数据资产与治理</small></div></div>
+<div class="platformItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l4 4v16H6z"></path><path d="M14 2v5h5"></path><path d="M9 17v-3M13 17v-6M17 17v-2"></path></svg></span><div><b>报表中心</b><small>多维数据分析</small></div></div>
+<div class="platformItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h7l2 2h9v11H3V6Z"></path></svg></span><div><b>文档中心</b><small>文档管理与共享</small></div></div>
+<div class="platformItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18M4 16c3-7 6 1 9-5s5-1 7-6"></path><circle cx="4" cy="16" r="1"></circle><circle cx="13" cy="11" r="1"></circle><circle cx="20" cy="5" r="1"></circle></svg></span><div><b>BI驾驶舱</b><small>数据可视化分析</small></div></div>
+</div>
+</section>
+<section class="strip data">
+<div class="stripLabel"><span>数据</span><span>底座</span></div>
+<div class="dataBody">
+<div class="dataBox"><h4>统一数据中台</h4><div class="pills"><span class="pill">主数据管理</span><span class="pill">数据集成</span><span class="pill">数据治理</span><span class="pill">数据标准</span><span class="pill">数据服务</span><span class="pill">数据安全</span></div></div>
+<div class="dataBox"><h4>指标中心</h4><div class="pills"><span class="pill">生产指标</span><span class="pill">安全指标</span><span class="pill">经济指标</span><span class="pill">综合指标</span></div></div>
+<div class="dataBox"><h4>模型中心</h4><div class="pills"><span class="pill">风险模型</span><span class="pill">诊断模型</span><span class="pill">预警模型</span><span class="pill">预测模型</span></div></div>
+</div>
+</section>
+<section class="strip tech">
+<div class="stripLabel"><span>基础设施</span><span>技术支撑</span></div>
+<div class="techItems">
+<div class="techItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H7a5 5 0 1 1 1.2-9.85A6 6 0 0 1 19.5 11 4 4 0 0 1 17.5 19Z"></path></svg></span><div><b>云计算</b><small>弹性扩展</small></div></div>
+<div class="techItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 9 5-9 5-9-5 9-5Z"></path><path d="m3 12 9 5 9-5M3 17l9 5 9-5"></path></svg></span><div><b>大数据</b><small>海量存储</small></div></div>
+<div class="techItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-8M8 20h8M5.6 14.4a5 5 0 0 1 0-7M18.4 7.4a5 5 0 0 1 0 7M2.8 17.2a9 9 0 0 1 0-12.4M21.2 4.8a9 9 0 0 1 0 12.4"></path><circle cx="12" cy="8" r="2"></circle></svg></span><div><b>物联网</b><small>设备接入</small></div></div>
+<div class="techItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect height="12" rx="3" width="14" x="5" y="7"></rect><path d="M9 3h6M12 3v4M8 12h.01M16 12h.01M9 16h6"></path></svg></span><div><b>AI智能</b><small>智能分析</small></div></div>
+<div class="techItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 20 6.5 12 11 4 6.5 12 2Z"></path><path d="m4 6.5 8 4.5 8-4.5V17l-8 5-8-5V6.5Z"></path><path d="M12 11v11"></path></svg></span><div><b>GIS/BIM</b><small>空间可视化</small></div></div>
+<div class="techItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect height="20" rx="2" width="10" x="7" y="2"></rect><path d="M10 5h4M11 19h2"></path></svg></span><div><b>移动互联</b><small>多端应用</small></div></div>
+<div class="techItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 20 5v6c0 5-3.4 9-8 11-4.6-2-8-6-8-11V5l8-3Z"></path><path d="m8.5 12 2.3 2.3 4.7-5"></path></svg></span><div><b>安全防护</b><small>等级合规</small></div></div>
+<div class="techItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect height="18" rx="2" width="18" x="3" y="3"></rect><path d="M9 3v18M9 9h12M9 15h12"></path></svg></span><div><b>低代码平台</b><small>快速定制</small></div></div>
+</div>
+</section>
+</div>
+<aside class="asideCol">
+<section class="sideCard endpoint"><h3>交互端</h3><div class="sideList">
+<div class="sideItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M7 12l3-3 3 2 4-4 2 2M8 21h8M12 17v4"></path></svg></span><span>大屏端</span></div>
+<div class="sideItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8M12 17v4"></path></svg></span><span>电脑端</span></div>
+<div class="sideItem"><span class="ico"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"></rect><path d="M10 5h4M11 19h2"></path></svg></span><span>移动端</span></div>
+</div></section>
+<section class="sideCard prof"><h3>专业版本</h3><div class="sideList">
+<div class="sideItem">盾构专业版</div><div class="sideItem">桥梁专业版</div><div class="sideItem">顶管专业版</div><div class="sideItem">房建专业版</div><div class="sideItem">能源专业版</div><div class="sideItem">基坑专业版</div>
+</div></section>
+<section class="sideCard ext"><h3>外部系统生态</h3><div class="sideList">
+<div class="sideItem">主数据平台</div><div class="sideItem">数智业财平台</div><div class="sideItem">子公司业务系统</div><div class="sideItem">合同管理平台</div><div class="sideItem">中城交AI平台</div><div class="sideItem">供应链系统</div><div class="sideItem">数字沙盘系统（资管）</div><div class="sideItem">数字沙盘系统（投资）</div><div class="sideItem">土方专营平台</div><div class="sideItem">保险经纪系统</div><div class="sideItem">智能设备厂商</div>
+</div></section>
+</aside>
+<div class="lowerToSide"><svg class="decorSvg" viewBox="0 0 46 30" aria-hidden="true"><path d="M0 10h27V2l19 13-19 13v-8H0z" fill="#6B9DFF"/></svg></div>
+</main>
+</div></div>
+<script>
+(function(){
+ if(new URLSearchParams(window.location.search).get('embedded')==='1')document.documentElement.classList.add('embedded-preview');
+ const stage=document.getElementById('stage');
+ function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform=`scale(${s})`;}
+ fit(); addEventListener('resize',fit);
+ document.querySelectorAll('.navItem').forEach(el=>el.addEventListener('click',()=>{document.querySelectorAll('.navItem').forEach(x=>x.classList.remove('active'));el.classList.add('active')}));
+})();
+</script>
+<script>
+(function(){
+  const pages=['overall','production','safety','economy','overall','roadmap'];
+  document.querySelectorAll('.navItem').forEach((item,index)=>item.addEventListener('click',()=>{
+    const target=pages[index];
+    if(window.parent!==window)window.parent.postMessage({type:'product-overview-navigation',page:target==='roadmap'?'roadmap':'architecture',arch:target},'*');
+  }));
+})();
+</script>
+</body>
+</html>

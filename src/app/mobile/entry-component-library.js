@@ -233,11 +233,34 @@ function enterDigitalConstructionProductOverview(){
   app.innerHTML=`
     <main class="product-overview-workspace">
       <header class="product-overview-shell-header">
+        <div class="product-overview-presentation-nav">
+          <div class="brand"><img src="./src/assets/common/digital-group-logo.png" alt="隧道股份 数字集团"></div>
+          <nav aria-label="产品全景导航">
+            <button type="button" class="active" data-page="architecture" data-arch="overall"><span class="product-overview-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 21 7 12 12 3 7 12 2Z"></path><path d="m3 7 9 5 9-5v10l-9 5-9-5V7Z"></path><path d="M12 12v10"></path></svg></span><span>01 业务架构</span></button>
+            <button type="button" data-page="architecture" data-arch="production"><span class="product-overview-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l4 4v16H6z"></path><path d="M14 2v5h5"></path><path d="M9 17v-3M13 17v-6M17 17v-2"></path></svg></span><span>02 生产管理</span></button>
+            <button type="button" data-page="architecture" data-arch="safety"><span class="product-overview-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 20 5v6c0 5-3.4 9-8 11-4.6-2-8-6-8-11V5l8-3Z"></path><path d="M9.5 12 11 13.5 15 9.5"></path></svg></span><span>03 安全管理</span></button>
+            <button type="button" data-page="architecture" data-arch="economy"><span class="product-overview-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path><path d="m4 9 6-5 6 6 5-4"></path></svg></span><span>04 经济管理</span></button>
+            <button type="button" data-page="architecture" data-arch="overall"><span class="product-overview-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect height="7" rx="1" width="7" x="3" y="3"></rect><rect height="7" rx="1" width="7" x="14" y="3"></rect><rect height="7" rx="1" width="7" x="3" y="14"></rect><rect height="7" rx="1" width="7" x="14" y="14"></rect></svg></span><span>05 平台能力</span></button>
+            <button type="button" data-page="roadmap"><span class="product-overview-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 20 6.5 12 11 4 6.5 12 2Z"></path><path d="m4 6.5 8 4.5 8-4.5V17l-8 5-8-5V6.5Z"></path><path d="M12 11v11"></path></svg></span><span>06 建设进度</span></button>
+          </nav>
+        </div>
         <button type="button" class="product-overview-back" onclick="renderDigitalConstructionEntry()" title="返回Demo入口"><span aria-hidden="true">&#8249;</span>返回入口</button>
-        <div class="product-overview-shell-title"><span class="digital-entry-logo" aria-hidden="true"></span><div><strong>产品全景</strong><small>数智施工平台产品规划与建设进展</small></div></div>
       </header>
-      <iframe class="product-overview-frame" src="./src/app/product/product-overview.html?v=2.2.966-roadmap-dash-smooth" title="数智施工平台产品概览"></iframe>
+      <iframe class="product-overview-frame" src="./src/app/product/product-overview.html?v=2.2.978-architecture-label-style&embedded=1" title="数智施工平台产品概览"></iframe>
     </main>`;
+  const frame=app.querySelector('.product-overview-frame');
+  const navButtons=[...app.querySelectorAll('.product-overview-presentation-nav button')];
+  const sendNavigation=button=>{
+    if(!frame?.contentWindow)return;
+    const page=button.dataset.page;
+    const arch=button.dataset.arch;
+    frame.contentWindow.postMessage({type:'product-overview-navigation',page,arch},'*');
+  };
+  navButtons.forEach(button=>button.addEventListener('click',()=>{
+    navButtons.forEach(item=>item.classList.toggle('active',item===button));
+    sendNavigation(button);
+  }));
+  frame?.addEventListener('load',()=>sendNavigation(navButtons.find(button=>button.classList.contains('active'))||navButtons[0]));
 }
 
 function enterZjwMobileDemo(){
