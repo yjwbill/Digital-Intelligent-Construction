@@ -2266,27 +2266,31 @@ function getTableMinWidth(tableKey){
 }
 
 function getTableColumnStickyMeta(tableKey,col,columns=getVisibleColumns(tableKey)){
-  if(col.key==="operation")return {operation:true,left:false,leftOffset:0,lastLeft:false};
+  const rightFreezeCount=Math.min(Math.max(0,Number(tableColumnDefinitions[tableKey]?.rightFreezeCount)||0),columns.length);
+  const rightIndex=columns.findIndex(item=>item.key===col.key);
+  const right=rightIndex>=0&&rightIndex>=columns.length-rightFreezeCount;
+  const rightOffset=right?columns.slice(rightIndex+1).reduce((sum,item)=>sum+(Number(item.width)||120),0):0;
+  if(col.key==="operation")return {operation:true,left:false,leftOffset:0,lastLeft:false,right,rightOffset,lastRight:right&&rightIndex===columns.length-rightFreezeCount};
   const normalColumns=columns.filter(item=>item.key!=="operation");
   const freezeCount=Math.min(getTableFreezeCount(tableKey),normalColumns.length);
   const index=normalColumns.findIndex(item=>item.key===col.key);
-  if(index<0||index>=freezeCount)return {operation:false,left:false,leftOffset:0,lastLeft:false};
+  if(index<0||index>=freezeCount)return {operation:false,left:false,leftOffset:0,lastLeft:false,right,rightOffset,lastRight:right&&rightIndex===columns.length-rightFreezeCount};
   return {
     operation:false,
     left:true,
     leftOffset:normalColumns.slice(0,index).reduce((sum,item)=>sum+(Number(item.width)||120),0),
-    lastLeft:index===freezeCount-1
+    lastLeft:index===freezeCount-1,right,rightOffset,lastRight:right&&rightIndex===columns.length-rightFreezeCount
   };
 }
 
 function getTableColumnClass(tableKey,col,columns=getVisibleColumns(tableKey)){
   const meta=getTableColumnStickyMeta(tableKey,col,columns);
-  return [meta.operation?"table-sticky-operation":"",meta.left?"table-sticky-left":"",meta.lastLeft?"table-sticky-left-edge":""].filter(Boolean).join(" ");
+  return [meta.operation?"table-sticky-operation":"",meta.left?"table-sticky-left":"",meta.lastLeft?"table-sticky-left-edge":"",meta.right?"table-sticky-right":"",meta.lastRight?"table-sticky-right-edge":""].filter(Boolean).join(" ");
 }
 
 function getTableColumnStickyStyle(tableKey,col,columns=getVisibleColumns(tableKey)){
   const meta=getTableColumnStickyMeta(tableKey,col,columns);
-  return meta.left?`--table-sticky-left:${meta.leftOffset}px;`:"";
+  return `${meta.left?`--table-sticky-left:${meta.leftOffset}px;`:""}${meta.right?`--table-sticky-right:${meta.rightOffset}px;`:""}`;
 }
 
 function renderTableHeaderByColumns(tableKey){
@@ -2648,6 +2652,7 @@ function renderUnifiedTableCard(options){
           ${options.beforeActions || ""}
           <button class="btn" onclick="${options.refreshAction || ""}">刷新</button>
           <button class="btn primary" onclick="${options.exportAction || ""}">导出</button>
+          ${options.beforeColumnSetting || ""}
           <button class="column-setting-icon-btn" title="列设置" onclick="openColumnSetting('${tableKey}','${options.renderFnName}')">⚙</button>
         </div>
       </div>

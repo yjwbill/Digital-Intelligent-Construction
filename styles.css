@@ -890,6 +890,11 @@ select.select{
 .table-wrap th.table-sticky-left{z-index:5;background:#FAFBFC}
 .table-wrap tr:hover td.table-sticky-left{background:#FAFCFF}
 .table-wrap .table-sticky-left-edge{box-shadow:12px 0 16px -10px rgba(29,33,41,.38),1px 0 0 #E5E6EB}
+.table-wrap th.table-sticky-right,.table-wrap td.table-sticky-right{position:sticky;right:var(--table-sticky-right,0);background:#fff;z-index:3}
+.table-wrap th.table-sticky-right{z-index:5;background:#FAFBFC}
+.table-wrap tr:hover td.table-sticky-right{background:#FAFCFF}
+.table-wrap .table-sticky-right-edge{box-shadow:-12px 0 16px -10px rgba(29,33,41,.38),-1px 0 0 #E5E6EB}
+.table-wrap th.table-sticky-operation.table-sticky-right,.table-wrap td.table-sticky-operation.table-sticky-right{right:var(--table-sticky-right,0)}
 .column-freeze-setting{display:flex;align-items:center;gap:8px;margin:12px 0;padding:12px 14px;border:1px solid var(--border);background:#FAFBFC}
 .column-freeze-setting label,.column-freeze-setting span{color:var(--text);font-size:14px}
 .column-freeze-setting input{width:72px;height:32px;padding:0 8px;border:1px solid #C9CDD4;border-radius:4px;background:#fff;color:var(--text);text-align:center}
@@ -7160,6 +7165,18 @@ body:has(.economy-command-screen),
 .economy-init-sidebar .card-hd{
   padding:0 14px;
 }
+.economy-init-page .standard-list-side{position:relative;overflow:visible}
+.economy-init-sidebar-toggle,.economy-init-sidebar-restore{display:inline-flex;width:22px;height:42px;align-items:center;justify-content:center;padding:0;border:0;background:#165dff;color:#fff;font-size:18px;line-height:42px;cursor:pointer;box-shadow:0 4px 12px rgba(22,93,255,.22)}
+.economy-init-sidebar-toggle:hover,.economy-init-sidebar-restore:hover{background:#0e559e;color:#fff}
+.economy-init-sidebar-toggle{position:absolute;right:0;top:50%;z-index:8;transform:translate(1px,-50%);border-radius:12px 0 0 12px}
+.economy-init-sidebar-collapsed .standard-list-side{display:none}
+.economy-init-sidebar-collapsed .standard-list-main{position:relative}
+.economy-init-sidebar-restore{position:absolute;left:0;top:50%;z-index:8;transform:translate(-1px,-50%);border-radius:0 12px 12px 0}
+.economy-init-fullscreen-btn .td-icon{width:16px;height:16px}
+body.economy-init-browser-expanded-active{overflow:hidden}
+.economy-init-project-table-card.economy-init-browser-expanded{position:fixed;inset:0;z-index:10000;display:flex;width:auto;height:auto;margin:0;border:0;border-radius:0;flex-direction:column;background:#fff;overflow:hidden}
+.economy-init-project-table-card.economy-init-browser-expanded>.card-hd,.economy-init-project-table-card.economy-init-browser-expanded>.pagination{flex:0 0 auto}
+.economy-init-project-table-card.economy-init-browser-expanded>.table-wrap{flex:1;min-height:0;max-height:none;overflow:auto}
 .economy-init-auto-tip{
   margin:0 12px 10px;
   padding:9px 10px;
