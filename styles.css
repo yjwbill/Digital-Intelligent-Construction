@@ -3,7 +3,7 @@
 ::view-transition-old(root),::view-transition-new(root){animation-duration:0s;}
 
 :root{
-  --primary:#1F51FF;
+  --primary:#165DFF;
   --primary-light:#EEF3FF;
   --bg:#F5F7FA;
   --card:#fff;
@@ -450,16 +450,17 @@ button{cursor:pointer}
 }
 .input,.select{
   width:100%;
-  height:30px;
+  height:32px;
   border:1px solid var(--border);
   border-radius:4px;
-  padding:0 9px;
+  padding:0 10px;
   background:#fff;
   outline:none;
+  font-size:14px;
 }
 .input:focus,.select:focus{
   border-color:var(--primary);
-  box-shadow:0 0 0 2px rgba(31,81,255,.08);
+  box-shadow:0 0 0 2px rgba(22,93,255,.08);
 }
 select.select{
   appearance:none;
@@ -467,7 +468,7 @@ select.select{
   background-color:#fff;
   background-image:url("./src/assets/tdesign-icons/chevron-down.svg?v=0.4.6-corrected");
   background-repeat:no-repeat;
-  background-position:right 9px center;
+  background-position:right 10px center;
   background-size:12px 12px;
 }
 .actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
@@ -872,7 +873,7 @@ select.select{
   position:sticky;
   right:0;
   background:#fff;
-  box-shadow:-12px 0 16px -10px rgba(29,33,41,.38),-1px 0 0 #E5E6EB;
+  box-shadow:-6px 0 10px -8px rgba(29,33,41,.28),-1px 0 0 #E5E6EB;
 }
 .table-wrap th.table-sticky-operation{
   z-index:5;
@@ -7174,6 +7175,7 @@ body:has(.economy-command-screen),
 .economy-init-sidebar-restore{position:absolute;left:0;top:50%;z-index:8;transform:translate(-1px,-50%);border-radius:0 12px 12px 0}
 .economy-init-fullscreen-btn .td-icon{width:16px;height:16px}
 body.economy-init-browser-expanded-active{overflow:hidden}
+.economy-progress-node-deviation{font-weight:400}.economy-progress-node-deviation.early{color:#00a870}.economy-progress-node-deviation.late{color:#f53f3f}.economy-progress-node-deviation.normal{color:#4e5969}
 .economy-init-project-table-card.economy-init-browser-expanded{position:fixed;inset:0;z-index:10000;display:flex;width:auto;height:auto;margin:0;border:0;border-radius:0;flex-direction:column;background:#fff;overflow:hidden}
 .economy-init-project-table-card.economy-init-browser-expanded>.card-hd,.economy-init-project-table-card.economy-init-browser-expanded>.pagination{flex:0 0 auto}
 .economy-init-project-table-card.economy-init-browser-expanded>.table-wrap{flex:1;min-height:0;max-height:none;overflow:auto}
@@ -9483,7 +9485,7 @@ body.entry-mode .digital-entry-footer{position:fixed;left:50%;bottom:80px;transf
   font-weight:700;
 }
 .component-input-demo{
-  width:260px;
+  width:320px;
 }
 .component-mini-table{
   overflow:auto;
@@ -25116,6 +25118,11 @@ body.entry-mode .digital-entry-divider{height:6px;margin:0 auto 14px;opacity:.72
   box-sizing:border-box;
   font-size:14px;
 }
+.economy-init-project-table-card.economy-init-status-submit th,.economy-init-project-table-card.economy-init-status-submit td,.economy-init-project-table-card.economy-init-status-review th,.economy-init-project-table-card.economy-init-status-review td,.economy-init-project-table-card.economy-init-status-finished th,.economy-init-project-table-card.economy-init-status-finished td{font-size:14px;line-height:20px;padding:7px 8px}
+.economy-init-project-table-card.economy-init-status-submit td,.economy-init-project-table-card.economy-init-status-review td,.economy-init-project-table-card.economy-init-status-finished td{height:40px!important}
+.economy-init-project-table-card.economy-init-status-submit th,.economy-init-project-table-card.economy-init-status-review th,.economy-init-project-table-card.economy-init-status-finished th{height:44px!important}
+.economy-init-project-table-card.economy-init-status-submit td>*,.economy-init-project-table-card.economy-init-status-review td>*,.economy-init-project-table-card.economy-init-status-finished td>*{font-size:14px;line-height:20px}
+.economy-init-project-table-card.economy-init-status-submit .tag,.economy-init-project-table-card.economy-init-status-review .tag,.economy-init-project-table-card.economy-init-status-finished .tag{min-height:30px;height:30px;padding:0 8px;font-size:14px;line-height:20px}
 .economy-init-project-table-card th{
   height:44px !important;
   background:#fafbfc;
@@ -25253,17 +25260,17 @@ body.entry-mode .digital-entry-divider{height:6px;margin:0 auto 14px;opacity:.72
 .economy-management-tabs button.active{color:var(--primary);font-weight:600}.economy-management-tabs button.active:after{content:"";position:absolute;right:0;bottom:-1px;left:0;height:3px;background:var(--primary)}
 .economy-management-tabs b{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:20px;margin-left:6px;padding:0 6px;border-radius:10px;background:#f2f3f5;color:var(--sub);font-size:12px;font-weight:500}.economy-management-tabs button.active b{background:#e8f3ff;color:var(--primary)}
 .economy-management-page>.unified-query-card{margin:0;flex:0 0 auto}.economy-management-search{grid-template-columns:repeat(4,minmax(0,1fr))!important}
-.economy-management-table-card{display:flex;flex:1;min-height:0;margin:0;overflow:hidden}.economy-management-table-card>.table-wrap{flex:1;min-height:0}.economy-management-table-card table{min-width:1450px;table-layout:fixed}.economy-management-table-card th,.economy-management-table-card td{height:40px;font-size:14px;text-align:center}.economy-management-table-card th{height:44px!important}.economy-management-table-card .economy-management-sequence-column{--table-sticky-left:0;width:60px;min-width:60px;max-width:60px;text-align:center}.economy-management-table-card .economy-management-code-column{--table-sticky-left:60px;width:150px;min-width:150px;max-width:150px;text-align:center}.economy-management-table-card .economy-management-name-column{--table-sticky-left:210px;width:240px;min-width:240px;max-width:240px;text-align:left}.economy-management-table-card th.economy-management-name-column{text-align:center}.economy-management-table-card .economy-management-operation-column{width:150px;min-width:150px;max-width:150px;text-align:center}.economy-management-table-card .actions{justify-content:center;white-space:nowrap}.economy-management-table-card .tag{min-width:54px;justify-content:center}
-.economy-management-pending-table-card .economy-management-name-column{--table-sticky-left:60px}.economy-management-pending-table-card .economy-management-code-column{--table-sticky-left:300px}.economy-management-pending-table-card .economy-management-operation-column{width:170px;min-width:170px;max-width:170px}
-.economy-management-managed-table-card .economy-management-name-column{--table-sticky-left:60px}.economy-management-managed-table-card .economy-management-code-column{--table-sticky-left:300px}
+.economy-management-table-card{display:flex;flex:1;min-height:0;margin:0;overflow:hidden}.economy-management-table-card>.table-wrap{flex:1;min-height:0}.economy-management-table-card table{min-width:1450px;table-layout:fixed}.economy-management-table-card th,.economy-management-table-card td{height:40px;font-size:14px;text-align:center}.economy-management-table-card th{height:44px!important}.economy-management-table-card .economy-management-sequence-column{width:60px;min-width:60px;max-width:60px;text-align:center}.economy-management-table-card .economy-management-code-column{width:130px;min-width:130px;max-width:130px;text-align:center}.economy-management-table-card .economy-management-name-column{width:220px;min-width:220px;max-width:220px;text-align:left}.economy-management-table-card th.economy-management-name-column{text-align:center}.economy-management-table-card .economy-management-operation-column{width:150px;min-width:150px;max-width:150px;text-align:center}.economy-management-table-card .actions{justify-content:center;white-space:nowrap}.economy-management-table-card .tag{min-width:54px;justify-content:center}
+.economy-management-table-card .economy-management-diagnosis-column{width:170px;min-width:170px;max-width:170px;text-align:center}.economy-management-table-card .economy-management-update-column{width:160px;min-width:160px;max-width:160px;text-align:center}.economy-management-diagnosis-header{display:inline-flex;align-items:center;justify-content:center;gap:5px;white-space:normal}.economy-management-diagnosis-result{display:inline-flex;align-items:center;justify-content:center;gap:5px;font-weight:400;white-space:nowrap}.economy-management-diagnosis-result i{width:16px;height:16px;display:inline-block;flex:0 0 16px;background:currentColor;mask-position:center;mask-size:16px 16px;mask-repeat:no-repeat;-webkit-mask-position:center;-webkit-mask-size:16px 16px;-webkit-mask-repeat:no-repeat}.economy-management-diagnosis-result.met{color:#00a870}.economy-management-diagnosis-result.met i{mask-image:url("./src/assets/tdesign-icons/check-circle-filled.svg");-webkit-mask-image:url("./src/assets/tdesign-icons/check-circle-filled.svg")}.economy-management-diagnosis-result.unmet{color:#ff7d00}.economy-management-diagnosis-result.unmet i{mask-image:url("./src/assets/tdesign-icons/error-circle-filled.svg");-webkit-mask-image:url("./src/assets/tdesign-icons/error-circle-filled.svg")}.economy-management-diagnosis-floating-tip{box-sizing:border-box;white-space:pre-line;text-align:left;line-height:20px}
+.economy-management-pending-table-card .economy-management-operation-column,.economy-management-managed-table-card .economy-management-operation-column{width:150px;min-width:150px;max-width:150px}
 .economy-management-table-card th.economy-management-operation-column,
 .economy-management-table-card td.economy-management-operation-column{
   position:sticky!important;
   right:0;
   z-index:5;
   white-space:nowrap;
-  background:#fff;
-  box-shadow:-12px 0 16px -10px rgba(29,33,41,.38),-1px 0 0 #e5e6eb;
+  background:#fff!important;
+  box-shadow:-6px 0 10px -8px rgba(29,33,41,.28),-1px 0 0 #e5e6eb;
 }
 .economy-management-table-card td.economy-management-operation-column .actions{
   display:flex;
@@ -25275,7 +25282,12 @@ body.entry-mode .digital-entry-divider{height:6px;margin:0 auto 14px;opacity:.72
 }
 .economy-management-pending-table-card .economy-management-operation-column{width:180px!important;min-width:180px!important;max-width:180px!important}
 .economy-management-managed-table-card .economy-management-operation-column{width:260px!important;min-width:260px!important;max-width:260px!important}
-.economy-management-modal-form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px 22px;padding:4px}.economy-management-modal-field{display:flex;min-width:0;flex-direction:column;gap:7px}.economy-management-modal-field label{position:relative;color:var(--text);font-size:14px}.economy-management-modal-field.required label:after{content:"*";margin-left:5px;color:var(--danger)}.economy-management-modal-field .input,.economy-management-modal-field .select{height:36px}.economy-management-modal-field .readonly{background:#f2f3f5;color:var(--text)}
+.economy-management-modal-form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px 22px;padding:4px;align-items:start}.economy-management-modal-field{display:flex;min-width:0;min-height:72px;flex-direction:column;gap:7px}.economy-management-modal-field label{position:relative;color:var(--text);font-size:14px;line-height:20px;white-space:nowrap}.economy-management-modal-field.required>label:after{content:"*";margin-left:5px;color:var(--danger)}.economy-management-modal-field .input,.economy-management-modal-field .select{width:100%;height:32px;box-sizing:border-box}.economy-management-modal-field .readonly{background:#f2f3f5;color:var(--text)}.economy-management-modal-field .DscMultiSelect{width:100%}.economy-management-radio-group{height:32px;display:flex;align-items:center;gap:20px}.economy-management-radio-group .component-radio{height:32px;cursor:pointer}.economy-management-radio-group .component-radio input{width:14px;height:14px;margin:0}
+/* Organization fields use the shared Combobox without inheriting native select/button rules. */
+.form-item>[data-org-combobox-upgraded],.field>[data-org-combobox-upgraded],.query-item>[data-org-combobox-upgraded]{display:block;min-width:0;width:100%}
+.form-item .DscCombobox,.field .DscCombobox,.query-item .DscCombobox{width:100%;max-width:none}
+.form-item .DscCombobox__control,.field .DscCombobox__control,.query-item .DscCombobox__control{display:flex;width:100%;height:32px;min-height:32px;margin:0;padding:0 10px;border:1px solid #E5E6EB;border-radius:4px;background:#fff;color:#1D2129;font-size:14px;font-weight:400;line-height:20px;font-family:inherit;box-shadow:none}
+.form-item .DscCombobox__control:hover,.field .DscCombobox__control:hover,.query-item .DscCombobox__control:hover{border-color:#165DFF}
 @media(max-width:1280px){.economy-management-search{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
 @media(max-width:900px){.economy-management-search{grid-template-columns:repeat(2,minmax(0,1fr))!important}.economy-management-modal-form{grid-template-columns:1fr 1fr}}
 
@@ -26134,3 +26146,24 @@ body.entry-mode .digital-entry-values{
 .card-hd>.component-button-radio.output-forecast-scope-switch .component-button-radio-option:has(input:checked){background:var(--primary)!important;color:#fff!important;border-color:var(--primary)!important;}
 .card-hd>.component-button-radio.output-forecast-scope-switch .component-button-radio-option:hover{opacity:.9!important;}
 .output-forecast-total-item{min-width:108px;padding:0 8px;}
+
+/* Standard form controls: unified 32px specification. */
+.standard-list .unified-query-card input.input,
+.standard-list .unified-query-card select.select,
+.standard-form-group input.input,
+.standard-form-group select.select,
+.modal-bd input.input,
+.modal-bd select.select{
+  height:32px;
+  border-color:#E5E6EB;
+  border-radius:4px;
+  padding-left:10px;
+  font-size:14px;
+}
+.standard-list .unified-query-card input.input,
+.standard-form-group input.input,
+.modal-bd input.input{padding-right:10px;}
+.standard-list .unified-query-card select.select,
+.standard-form-group select.select,
+.modal-bd select.select{padding-right:32px;}
+

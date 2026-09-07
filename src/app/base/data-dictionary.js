@@ -32,6 +32,7 @@ const dataDictionaryListV2284=[
   {name:"是否投资项目",code:"IS_INVESTMENT_PROJECT",remark:"经济纳管项目投资属性"},
   {name:"是否类投资项目",code:"IS_INVESTMENT_LIKE_PROJECT",remark:"经济纳管项目类投资属性"},
   {name:"CM项目板块",code:"CM_PROJECT_PLATE",remark:"CM项目板块标准字典"}
+  ,{name:"管控等级",code:"ECONOMY_CONTROL_LEVEL",remark:"经济报表进度节点管控层级"}
 ];
 const dataDictionaryValuesV2284={
   PROJECT_STATUS:[
@@ -47,6 +48,11 @@ const dataDictionaryValuesV2284={
     {name:"市政工程",code:"MUNICIPAL",status:"启用",palette:6,remark:"市政道路、桥梁、管线"},
     {name:"水务工程",code:"WATER",status:"启用",palette:6,remark:"水务与环境治理"},
     {name:"旧类型",code:"OLD_TYPE",status:"禁用",palette:0,remark:"历史兼容"}
+  ],
+  ECONOMY_CONTROL_LEVEL:[
+    {name:"分公司管控",code:"BRANCH",status:"启用",palette:2,remark:"经济进度节点管控等级"},
+    {name:"子公司管控",code:"SUBSIDIARY",status:"启用",palette:3,remark:"经济进度节点管控等级"},
+    {name:"股份管控",code:"GROUP",status:"启用",palette:5,remark:"经济进度节点管控等级"}
   ],
   KEY_CUSTOMER:[
     {name:"上海久事",code:"0",status:"启用",palette:2,remark:"重点客户标准值"},
@@ -985,7 +991,7 @@ function renderConstructionProjectFilterFields(collapsed=false){
     ${renderConstructionProjectSelect("cpBranchCompany","分公司",cpUnique("branchCompany"))}
     ${renderConstructionProjectSelect("cpProjectStatus","项目状态",projectStatusOptions)}
     ${renderConstructionProjectInput("cpProjectManager","项目经理","模糊搜索")}
-    ${renderConstructionProjectSelect("cpRegion","所属区域",["长三角区域","大湾区域","中原区域","海南","境外区域"])}
+    ${renderConstructionProjectSelect("cpRegion","区域市场",["长三角区域","大湾区域","中原区域","海南","境外区域"])}
     ${renderConstructionProjectInput("cpProvinceCity","所在省市","模糊搜索")}
   `;
   if(collapsed)return basicRows;

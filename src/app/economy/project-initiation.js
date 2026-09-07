@@ -36,7 +36,7 @@ const economyInitiationHistoryProjects=[
 
 const economyInitiationLatestMonth=[...new Set(economyInitiationApplications.map(x=>x.month))].sort().reverse()[0];
 const economyInitiationState={selectedId:"init-202607-st",projectName:"",projectCode:"",orderCode:"",branch:"",manager:"",builder:"",historySelected:[],expandedMonths:new Set([economyInitiationLatestMonth]),sidebarCollapsed:false,tableExpanded:false};
-window.economyProjectInitiationApprovedData=economyInitiationApplications.filter(x=>x.status==="已完成").flatMap(x=>x.projects.map(project=>({...project,applicationId:x.id,approvalMonth:x.month,approveTime:x.approveTime})));
+window.economyProjectInitiationApprovedData=economyInitiationApplications.filter(x=>x.status==="已完成").flatMap(x=>x.projects.map(project=>({...project,managementStatus:project.online==="是"?(project.managementStatus||"待纳管"):"--",applicationId:x.id,approvalMonth:x.month,approveTime:x.approveTime})));
 
 function getEconomyInitiationSelected(){
   return economyInitiationApplications.find(x=>x.id===economyInitiationState.selectedId)||economyInitiationApplications[0];
@@ -159,6 +159,7 @@ tableColumnDefinitions.economyInitiationProjects=[
   {key:"bidAmount",title:"中标价（元）",width:140,align:"right",render:x=>(Number(x.bidAmount)*10000).toLocaleString()},
   {key:"bidDate",title:"中标日期",width:130,align:"center",render:x=>x.bidDate},
   {key:"builder",title:"建设单位",width:190,align:"left",render:x=>x.builder||"--"},
+  {key:"managementStatus",title:"纳管状态",width:120,align:"center",hidden:()=>getEconomyInitiationSelected()?.status!=="已完成",render:x=>x.online==="是"?tag(x.managementStatus||"待纳管",x.managementStatus==="纳管中"?"green":"orange"):"--"},
   {key:"online",title:"本期是否上线",width:130,align:"center",render:x=>{
     const app=getEconomyInitiationSelected();
     if(app.status==="已完成")return messageStatusTag(x.online||"--");
@@ -173,7 +174,7 @@ tableColumnDefinitions.economyInitiationProjects=[
   {key:"operation",title:"操作",width:100,align:"center",render:x=>x.sourceType==="历史"&&getEconomyInitiationSelected().status==="待子公司提交"?`<a class="link" onclick="removeEconomyInitiationHistoryProject('${x.id}')">删除</a>`:"--"}
 ];
 tableColumnDefinitions.economyInitiationProjects.freezeCount=3;
-tableColumnDefinitions.economyInitiationProjects.rightFreezeCount=3;
+tableColumnDefinitions.economyInitiationProjects.rightFreezeCount=4;
 
 function renderEconomyInitiationApplicationList(){
   const months=[...new Set(economyInitiationApplications.map(x=>x.month))].sort().reverse();
@@ -259,7 +260,7 @@ function confirmApproveEconomyInitiationApplication(){
   const app=getEconomyInitiationSelected();
   const operator=getEconomyInitiationCurrentOperator();
   app.status="已完成";app.currentNode="申请结束";app.approverName=operator.name;app.approverRole=operator.role;app.approveTime=formatEconomyInitiationActionTime();
-  window.economyProjectInitiationApprovedData=economyInitiationApplications.filter(x=>x.status==="已完成").flatMap(x=>x.projects.map(project=>({...project,applicationId:x.id,approvalMonth:x.month,approveTime:x.approveTime})));
+  window.economyProjectInitiationApprovedData=economyInitiationApplications.filter(x=>x.status==="已完成").flatMap(x=>x.projects.map(project=>({...project,managementStatus:project.online==="是"?(project.managementStatus||"待纳管"):"--",applicationId:x.id,approvalMonth:x.month,approveTime:x.approveTime})));
   closeModal();renderEconomyProjectInitiationPage();showToast("产运部已确认，开项审批流程结束");
 }
 
@@ -268,11 +269,12 @@ function renderEconomyProjectInitiationPage(options={}){
   const tablePosition=currentTableWrap?{left:currentTableWrap.scrollLeft,top:currentTableWrap.scrollTop}:null;
   detailPage.style.display="none";listPage.style.display="flex";
   const app=getEconomyInitiationSelected();
+  tableColumnDefinitions.economyInitiationProjects.rightFreezeCount=app.status==="已完成"?4:3;
   const list=getEconomyInitiationFilteredProjects();
   const queryFields=`<div class="form-item"><label>项目名称</label><input class="input" id="economyInitProjectName" placeholder="请输入项目名称" value="${escapeAttr(economyInitiationState.projectName)}"/></div><div class="form-item"><label>项目编号</label><input class="input" id="economyInitProjectCode" placeholder="请输入项目编号" value="${escapeAttr(economyInitiationState.projectCode)}"/></div><div class="form-item"><label>订单项目编号</label><input class="input" id="economyInitOrderCode" placeholder="请输入订单项目编号" value="${escapeAttr(economyInitiationState.orderCode)}"/></div><div class="form-item"><label>分公司</label><input class="input" id="economyInitBranch" placeholder="请输入分公司" value="${escapeAttr(economyInitiationState.branch)}"/></div><div class="form-item"><label>项目经理</label><input class="input" id="economyInitManager" placeholder="请输入项目经理" value="${escapeAttr(economyInitiationState.manager)}"/></div><div class="form-item"><label>建设单位</label><input class="input" id="economyInitBuilder" placeholder="请输入建设单位" value="${escapeAttr(economyInitiationState.builder)}"/></div>`;
   const actions=app.status==="待子公司提交"?`<button class="btn primary" onclick="submitEconomyInitiationApplication()">提交申请</button>`:app.status==="产运部审批"?`<button class="btn primary" onclick="approveEconomyInitiationApplication()">确认审批</button>`:"";
   const sideHtml=`<aside class="card economy-init-sidebar"><div class="card-hd"><div class="card-title">子公司开项申请</div></div><div class="economy-init-auto-tip">每月自动生成，自动纳入上月新立项项目</div><div class="economy-init-application-list">${renderEconomyInitiationApplicationList()}</div></aside><button type="button" class="economy-init-sidebar-toggle" title="隐藏子公司开项申请" aria-label="隐藏子公司开项申请" onclick="toggleEconomyInitiationSidebar()">&#8249;</button>`;
-  const mainHtml=`<main class="economy-init-main">${economyInitiationState.sidebarCollapsed?`<button type="button" class="economy-init-sidebar-restore" title="展开子公司开项申请" aria-label="展开子公司开项申请" onclick="toggleEconomyInitiationSidebar()">&#8250;</button>`:""}<section class="card economy-init-header-card"><div class="economy-init-header-content"><div class="economy-init-header-title"><h2>${app.month} ${app.company}子公司开项申请</h2></div>${renderEconomyInitiationProgress(app)}</div><div class="economy-init-header-actions actions">${actions}</div></section>${renderUnifiedQueryCard(queryFields,{gridClass:"search-grid economy-init-search-grid",queryFn:"syncEconomyInitiationFilters()",resetFn:"resetEconomyInitiationFilters()"})}${renderUnifiedTableCard({title:"开项申请项目清单",className:"economy-init-project-table-card",tableKey:"economyInitiationProjects",tableId:"economyInitiationProjectTable",theadId:"economyInitiationProjectThead",tbodyId:"economyInitiationProjectTbody",totalId:"economyInitiationProjectTotal",total:list.length,renderFnName:"renderEconomyProjectInitiationPage",beforeActions:app.status==="待子公司提交"?`<button class="btn" onclick="openEconomyInitiationHistoryProjects()">选择历史项目</button>`:"",beforeColumnSetting:renderEconomyInitiationFullscreenButton(),refreshAction:"renderEconomyProjectInitiationPage();showToast('已刷新开项申请清单')",exportAction:"showToast('导出成功：开项申请项目清单.xlsx')"})}</main>`;
+  const mainHtml=`<main class="economy-init-main">${economyInitiationState.sidebarCollapsed?`<button type="button" class="economy-init-sidebar-restore" title="展开子公司开项申请" aria-label="展开子公司开项申请" onclick="toggleEconomyInitiationSidebar()">&#8250;</button>`:""}<section class="card economy-init-header-card"><div class="economy-init-header-content"><div class="economy-init-header-title"><h2>${app.month} ${app.company}子公司开项申请</h2></div>${renderEconomyInitiationProgress(app)}</div><div class="economy-init-header-actions actions">${actions}</div></section>${renderUnifiedQueryCard(queryFields,{gridClass:"search-grid economy-init-search-grid",queryFn:"syncEconomyInitiationFilters()",resetFn:"resetEconomyInitiationFilters()"})}${renderUnifiedTableCard({title:"开项申请项目清单",className:`economy-init-project-table-card economy-init-status-${app.status==="已完成"?"finished":app.status==="产运部审批"?"review":"submit"}`,tableKey:"economyInitiationProjects",tableId:"economyInitiationProjectTable",theadId:"economyInitiationProjectThead",tbodyId:"economyInitiationProjectTbody",totalId:"economyInitiationProjectTotal",total:list.length,renderFnName:"renderEconomyProjectInitiationPage",beforeActions:app.status==="待子公司提交"?`<button class="btn" onclick="openEconomyInitiationHistoryProjects()">选择历史项目</button>`:"",beforeColumnSetting:renderEconomyInitiationFullscreenButton(),refreshAction:"renderEconomyProjectInitiationPage();showToast('已刷新开项申请清单')",exportAction:"showToast('导出成功：开项申请项目清单.xlsx')"})}</main>`;
   listPage.innerHTML=StandardList.render({variant:"split",className:`economy-init-page ${economyInitiationState.sidebarCollapsed?"economy-init-sidebar-collapsed":""}`,titleHtml:`<div class="compact-title-row"><div class="module-title">经济纳管 / 经济开项</div></div>`,sideHtml,mainHtml});
   renderTableByColumns("economyInitiationProjects",list,"economyInitiationProjectTbody");
   if(economyInitiationState.tableExpanded){document.querySelector(".economy-init-project-table-card")?.classList.add("economy-init-browser-expanded");document.body.classList.add("economy-init-browser-expanded-active");}

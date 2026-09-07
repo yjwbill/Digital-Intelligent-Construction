@@ -114,7 +114,7 @@ function renderMessageProjectPickerQuery(){
     <div class="form-item"><label>分公司</label><select class="select" id="messageProjectPicker-branchCompany">${renderMessageProjectPickerOptions("branchCompany",f.branchCompany)}</select></div>
     <div class="form-item"><label>项目经理</label><input class="input" id="messageProjectPicker-projectManager" value="${escapeTplAttr(f.projectManager)}" placeholder="请输入项目经理"/></div>
     <div class="form-item"><label>项目状态</label><select class="select" id="messageProjectPicker-projectStatus">${renderMessageProjectPickerOptions("projectStatus",f.projectStatus)}</select></div>
-    <div class="form-item"><label>所属区域</label><select class="select" id="messageProjectPicker-region">${renderMessageProjectPickerOptions("region",f.region)}</select></div>
+    <div class="form-item"><label>区域市场</label><select class="select" id="messageProjectPicker-region">${renderMessageProjectPickerOptions("region",f.region)}</select></div>
     <div class="form-item"><label>所在省市</label><input class="input" id="messageProjectPicker-provinceCity" value="${escapeTplAttr(f.provinceCity)}" placeholder="请输入省市"/></div>
     <div class="form-item"><label>项目类型</label><select class="select" id="messageProjectPicker-projectType">${renderMessageProjectPickerOptions("projectType",f.projectType)}</select></div>
     <div class="form-item"><label>实施模式</label><select class="select" id="messageProjectPicker-implementationMode">${renderMessageProjectPickerOptions("implementationMode",f.implementationMode)}</select></div>
@@ -134,7 +134,7 @@ tableColumnDefinitions.messageReceiverProjectPicker=[
   {key:"projectCost",title:"项目造价",width:130,align:"right",render:row=>`${typeof moneyWan==="function"?moneyWan(row.projectCost):row.projectCost}万`},
   {key:"projectManager",title:"项目经理",width:190,render:row=>renderProjectManagerContact(row.projectManager,row.managerPhone,{key:`message-project-picker-${row.id}`})},
   {key:"provinceCity",title:"省市区",width:160,render:row=>row.provinceCity||"--"},
-  {key:"region",title:"所属区域",width:120,render:row=>row.region||"--"},
+  {key:"region",title:"区域市场",width:120,render:row=>row.region||"--"},
   {key:"builder",title:"建设单位",width:220,render:row=>`<span class="text-ellipsis" title="${escapeTplAttr(row.builder||'--')}">${row.builder||"--"}</span>`},
   {key:"projectStatus",title:"项目状态",width:100,align:"center",render:row=>typeof projectStatusTag==="function"?projectStatusTag(row.projectStatus):row.projectStatus},
   {key:"projectType",title:"项目类型",width:110,render:row=>row.projectType||"--"},

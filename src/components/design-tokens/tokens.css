@@ -157,13 +157,14 @@
   /* ---------- Component / Control ---------- */
   --dsc-control-height-compact: 28px;
   --dsc-control-height-small: 32px;
+  --dsc-control-height-default: 32px;
   /* ❓ 默认控件高度：现有基础组件为 30px，BaseSelect 为 36px */
   --dsc-candidate-control-height-legacy: 30px;
   --dsc-candidate-control-height-default-36: 36px;
   --dsc-candidate-control-height-default-40: 40px;
   --dsc-control-height-large: 48px;
   --dsc-control-padding-inline-small: 8px;
-  --dsc-control-padding-inline-default: 12px;
+  --dsc-control-padding-inline-default: 10px;
   --dsc-control-padding-inline-large: 16px;
   --dsc-control-radius: var(--dsc-radius-sm);
 

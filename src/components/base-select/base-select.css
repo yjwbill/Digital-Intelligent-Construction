@@ -1,8 +1,8 @@
 .base-select,
 .base-multi-select {
-  --bs-primary: #409EFF;
+  --bs-primary: #165DFF;
   --bs-hover: #F5F7FA;
-  --bs-border: #DCDFE6;
+  --bs-border: #E5E6EB;
   --bs-text: #303133;
   --bs-sub: #606266;
   --bs-disabled-bg: #F5F7FA;
@@ -22,10 +22,10 @@
 
 .base-select__control,
 .base-multi-select__control {
-  min-height: 36px;
+  min-height: 32px;
   width: 100%;
   border: 1px solid var(--bs-border);
-  border-radius: 6px;
+  border-radius: 4px;
   background: #fff;
   display: flex;
   align-items: center;
@@ -45,7 +45,7 @@
 .base-multi-select.is-open .base-multi-select__control,
 .base-multi-select.is-focused .base-multi-select__control {
   border-color: var(--bs-primary);
-  box-shadow: 0 0 0 2px rgba(64, 158, 255, .12);
+  box-shadow: 0 0 0 2px rgba(22, 93, 255, .12);
 }
 
 .base-select.is-disabled .base-select__control,
@@ -109,7 +109,7 @@
   top: calc(100% + 4px);
   z-index: 2000;
   border: 1px solid var(--bs-border);
-  border-radius: 6px;
+  border-radius: 4px;
   background: #fff;
   box-shadow: 0 6px 18px rgba(0, 0, 0, .10);
   padding: 4px 0;

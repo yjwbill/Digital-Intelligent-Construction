@@ -963,7 +963,8 @@ const businessMenus={
         children:[
           {name:"规则设置",active:false},
           {name:"诊断任务",active:false},
-          {name:"诊断结果",active:false}
+          {name:"诊断结果",active:false},
+          {name:"填报规则",active:false}
         ]
       },
       {
@@ -973,6 +974,24 @@ const businessMenus={
         children:[
           {name:"预警记录"},
           {name:"预警通知",active:false}
+        ]
+      },
+      {
+        icon:"📊",
+        name:"经济报表",
+        open:true,
+        children:[
+          {name:"进度节点",active:false}
+        ]
+      },
+      {
+        icon:"🕘",
+        name:"历史功能",
+        open:false,
+        children:[
+          {name:"开项审批（old）",active:false},
+          {name:"MDM项目列表",active:false},
+          {name:"消息通知",active:false}
         ]
       },
       {icon:"📑",name:"合同管理",active:false}
@@ -2584,6 +2603,7 @@ function showFloatingInfoTip(el){
   if(!text)return;
 
   const isEconomyManagementTip=el.classList?.contains("economy-management-status-info");
+  const isEconomyDiagnosisTip=el.classList?.contains("economy-management-diagnosis-info");
 
   let tip=document.getElementById("floatingInfoTip");
   if(!tip){
@@ -2593,15 +2613,15 @@ function showFloatingInfoTip(el){
     document.body.appendChild(tip);
   }
 
-  tip.className=`floating-info-tip${isEconomyManagementTip?" economy-management-status-floating-tip":""}`;
+  tip.className=`floating-info-tip${isEconomyManagementTip?" economy-management-status-floating-tip":""}${isEconomyDiagnosisTip?" economy-management-diagnosis-floating-tip":""}`;
   tip.textContent=text;
   tip.style.display="block";
 
   const rect=el.getBoundingClientRect();
   const gap=8;
-  const width=Math.min(isEconomyManagementTip?400:260,window.innerWidth-24);
+  const width=Math.min(isEconomyDiagnosisTip?720:isEconomyManagementTip?400:260,window.innerWidth-24);
   tip.style.maxWidth=width+"px";
-  tip.style.width=isEconomyManagementTip?width+"px":"";
+  tip.style.width=isEconomyManagementTip||isEconomyDiagnosisTip?width+"px":"";
 
   const tipRect=tip.getBoundingClientRect();
   let left=rect.left + rect.width/2 - tipRect.width/2;

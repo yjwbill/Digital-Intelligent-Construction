@@ -23,7 +23,8 @@ function getEconomyCustomColumnConfig(key,columns){
 function getEconomyCustomFreezeCount(key,columns){
   const max=normalizeEconomyCustomColumns(columns).filter(column=>column.key!=="operation").length;
   const saved=localStorage.getItem(getEconomyCustomFreezeStorageKey(key));
-  return Math.min(max,Math.max(0,saved===null?0:Number(saved)||0));
+  const defaultFreeze=key.startsWith("managementPendingDiagnosis")||key.startsWith("managementManagedDiagnosis")?5:(key==="managementPending"||key==="managementManaged")?3:0;
+  return Math.min(max,Math.max(0,saved===null?defaultFreeze:Number(saved)||0));
 }
 function applyEconomyCustomColumnVisibility(key){
   const setting=economyCustomColumnSettings[key];
@@ -620,7 +621,7 @@ function getEconomyCommandKpiList(){return economyDashboardState.edition==="inte
 function getEconomyCommandKpi(){const list=getEconomyCommandKpiList();return list.find(item=>item.key===economyCommandState.kpi)||list[0];}
 function getEconomyCommandDataRange(){
   const conditions=[];
-  [["所属组织",economyCommandState.organization],["重点客户",economyCommandState.client],["项目类型",economyCommandState.projectType],["区域总部",economyCommandState.headquarters],[economyDashboardState.edition==="domestic"?"区域市场":"所属区域",economyCommandState.region]].forEach(([label,value])=>{
+  [["所属组织",economyCommandState.organization],["重点客户",economyCommandState.client],["项目类型",economyCommandState.projectType],["区域总部",economyCommandState.headquarters],[economyDashboardState.edition==="domestic"?"区域市场":"区域市场",economyCommandState.region]].forEach(([label,value])=>{
     if(value)conditions.push([label,value]);
   });
   if(economyCommandState.monthSelected&&economyCommandState.month)conditions.push(["年月",getEconomyCommandMonthLabel()]);
@@ -864,7 +865,7 @@ function renderEconomyOverview(){
   const metrics=[["经济纳管项目","195","941.14",`./src/assets/economy/economy-metric-managed.svg?v=${metricAssetVersion}`],["在建项目","188","888.64",`./src/assets/economy/economy-metric-under-construction.svg?v=${metricAssetVersion}`],["完工待结算项目","8","49.4",`./src/assets/economy/economy-metric-pending-settlement.svg?v=${metricAssetVersion}`],["已结算未销项项目","1","1.99",`./src/assets/economy/economy-metric-settled-unclosed.svg?v=${metricAssetVersion}`]];
   return `<section class="economy-command-screen ${international?`international ${EconomyI18n.isEnglish()?"english":"chinese"}`:"domestic"}" id="economyCommandScreen">
     <header class="economy-command-head"><div class="economy-command-brand"><span><img src="./src/assets/digital-construction-logo.svg" alt="数智施工"></span><strong>数智施工项目经济管理平台</strong></div><div class="economy-command-head-actions">${renderEconomyCommandMonthPicker()}${international?renderEconomyCommandCurrencyPicker():""}${EconomyI18n.renderSwitch()}<button type="button" title="全屏投屏" onclick="toggleEconomyCommandFullscreen()">⛶</button></div></header>
-    <div class="economy-command-filters"><div class="economy-command-filter-fields">${renderEconomyCommandSelect("organization","所属组织",selectOptions.organization)}${renderEconomyCommandSelect("client","集团重点客户",selectOptions.client)}${renderEconomyCommandSelect("projectType","项目类型",selectOptions.projectType)}${renderEconomyCommandSelect("headquarters","区域总部",selectOptions.headquarters)}${renderEconomyCommandSelect("region",international?"所属区域":"区域市场",selectOptions.region)}</div><nav><button onclick="openEconomyRiskWarning()">项目风险预警</button><button onclick="openEconomyBusinessVisualization()">业务可视化分析</button><button onclick="openEconomyAnalysisReport()">经济分析报告</button></nav></div>
+    <div class="economy-command-filters"><div class="economy-command-filter-fields">${renderEconomyCommandSelect("organization","所属组织",selectOptions.organization)}${renderEconomyCommandSelect("client","集团重点客户",selectOptions.client)}${renderEconomyCommandSelect("projectType","项目类型",selectOptions.projectType)}${renderEconomyCommandSelect("headquarters","区域总部",selectOptions.headquarters)}${renderEconomyCommandSelect("region",international?"区域市场":"区域市场",selectOptions.region)}</div><nav><button onclick="openEconomyRiskWarning()">项目风险预警</button><button onclick="openEconomyBusinessVisualization()">业务可视化分析</button><button onclick="openEconomyAnalysisReport()">经济分析报告</button></nav></div>
     <div class="economy-command-grid">
       <main class="economy-command-main"><div class="economy-command-metrics">${metrics.map(item=>`<article><i><img src="${item[3]}" alt="${item[0]}"></i><div><span>${item[0]} ⓘ</span><strong>${item[1]}${renderEconomyCommandUnit("个")}<small>|</small>${formatEconomyCommandValue(item[2],"亿元")}${renderEconomyCommandUnit("亿元")}</strong></div></article>`).join("")}</div>
         <section class="economy-command-overview">${renderEconomyCommandSectionTitle("项目经济指标总览",`<span>当前主题为 <b>【${activeKpi.label}】</b>${dataRange?`，数据范围 <b>${dataRange}</b>`:""}</span>`)}${international?`<div class="economy-command-map-exchange-rate">当前汇率：${renderEconomyCommandExchangeRate()}</div>`:""}<div class="economy-command-map-layout">${renderEconomyCommandKpis()}${renderEconomyCommandMap()}</div></section>

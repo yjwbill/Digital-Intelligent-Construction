@@ -122,7 +122,7 @@ function renderProjectContextDropdown(currentProject){
         ${renderProjectContextSelect("projectSwitchBranchCompany","分公司","branchCompany",allProjects,branchSource)}
         ${renderProjectContextSelect("projectSwitchStatus","项目状态","projectStatus",allProjects)}
         <label class="project-switch-field"><span>项目经理</span><input id="projectSwitchManager" class="input" value="${escapeAttr(projectContextSwitchState.projectManager)}" placeholder="请输入项目经理" onkeydown="if(event.key==='Enter')syncProjectContextFilters()"/></label>
-        ${renderProjectContextSelect("projectSwitchRegion","所属区域","region",allProjects)}
+        ${renderProjectContextSelect("projectSwitchRegion","区域市场","region",allProjects)}
         <label class="project-switch-field"><span>所在省市</span><input id="projectSwitchProvinceCity" class="input" value="${escapeAttr(projectContextSwitchState.provinceCity)}" placeholder="请输入省/市" onkeydown="if(event.key==='Enter')syncProjectContextFilters()"/></label>
         ${renderProjectContextSelect("projectSwitchSafetyManaged","安全纳管","isSafetyManaged",allProjects)}
       </div>
@@ -2573,7 +2573,7 @@ function normalizeEnterpriseEquipmentLedgerTable(){
   const table=document.querySelector('.project-equipment-ledger .project-equipment-table');
   if(!table)return;
   const header=[...table.querySelectorAll('thead th')];
-  header.forEach(cell=>{if(cell.textContent.trim()==='所属区域')cell.textContent='区域市场';});
+  header.forEach(cell=>{if(cell.textContent.trim()==='区域市场')cell.textContent='区域市场';});
   const names=header.map(cell=>cell.textContent.trim());
   const desired=['序号','项目名称','子公司','分公司','项目经理','设备类型','设备分类','设备名称','规格型号','设备编号','设备品牌','国别','能源方式','额定功率(KW)','出厂日期','设备产权','计划进场日期','计划退场日期','实际进场日期','实际退场日期','设备图片','铭牌图片','附件上传情况','区域市场','所在省市','建设单位'];
   const order=desired.map(name=>names.indexOf(name)).filter(index=>index>=0);
@@ -2732,7 +2732,7 @@ function renderProjectEquipmentLedgerSection(options={}){
     <div class="card-hd"><div class="card-title">${escapeAttr(title)}</div><div class="actions">${options.exportAction?`<button class="btn" type="button" onclick="${options.exportAction}">导出</button>`:""}<button class="column-setting-icon-btn" title="列设置" onclick="openColumnSetting('enterpriseEquipmentLedger','renderEnterpriseEquipmentLedgerPage')">⚙</button></div></div>
     <div class="project-equipment-table-wrap">
       <table class="project-equipment-table ledger">
-        <thead><tr><th>序号</th>${showEnterpriseColumns?"<th>子公司</th><th>分公司</th><th>所属区域</th><th>所在省市</th><th>项目名称</th><th>项目经理</th><th>建设单位</th>":""}<th>设备类型</th><th>设备分类</th><th>设备名称</th><th>规格型号</th><th>设备编号</th><th>设备品牌</th><th>国别</th><th>能源方式</th><th>额定功率(KW)</th><th>出厂日期</th><th>设备产权</th><th>计划进场日期</th><th>计划退场日期</th><th>实际进场日期</th><th>实际退场日期</th><th>设备图片</th><th>铭牌图片</th><th>附件上传情况</th>${showActions?"<th>操作</th>":""}</tr></thead>
+        <thead><tr><th>序号</th>${showEnterpriseColumns?"<th>子公司</th><th>分公司</th><th>区域市场</th><th>所在省市</th><th>项目名称</th><th>项目经理</th><th>建设单位</th>":""}<th>设备类型</th><th>设备分类</th><th>设备名称</th><th>规格型号</th><th>设备编号</th><th>设备品牌</th><th>国别</th><th>能源方式</th><th>额定功率(KW)</th><th>出厂日期</th><th>设备产权</th><th>计划进场日期</th><th>计划退场日期</th><th>实际进场日期</th><th>实际退场日期</th><th>设备图片</th><th>铭牌图片</th><th>附件上传情况</th>${showActions?"<th>操作</th>":""}</tr></thead>
         <tbody>${rows.slice((enterpriseEquipmentState.page-1)*enterpriseEquipmentState.pageSize,enterpriseEquipmentState.page*enterpriseEquipmentState.pageSize).map((row,index)=>`<tr>
           <td>${index+1}</td>
           ${showEnterpriseColumns?`<td>${escapeAttr(row.subCompany||"-")}</td><td>${escapeAttr(row.branchCompany||"-")}</td><td>${escapeAttr(normalizeEnterpriseEquipmentRegion(row.region)||"-")}</td><td>${escapeAttr(row.provinceCity||"-")}</td><td title="${escapeAttr(row.projectName||pcPortalState.currentProject)}">${escapeAttr(row.projectName||pcPortalState.currentProject)}</td><td>${renderProjectManagerContact(row.projectManager,row.managerPhone,{key:`enterprise-equipment-${row.id||row.deviceNo}`})}</td><td title="${escapeAttr(row.builder||"-")}">${escapeAttr(row.builder||"-")}</td>`:""}
@@ -5298,13 +5298,13 @@ function openProjectStopSupplementApplication(){
       <div class="project-stop-status-confirm-field">
         <label>是否停工 <em>*</em></label>
         <div class="project-stop-status-options" role="radiogroup" aria-label="是否停工">
-          <label><input type="radio" name="projectStopSupplementStatusConfirm" value="yes" onchange="changeProjectStopSupplementStatus(this.value)"><span>是</span></label>
+          <label><input type="radio" name="projectStopSupplementStatusConfirm" value="yes" checked onchange="changeProjectStopSupplementStatus(this.value)"><span>是</span></label>
           <label><input type="radio" name="projectStopSupplementStatusConfirm" value="no" onchange="changeProjectStopSupplementStatus(this.value)"><span>否</span></label>
         </div>
       </div>
-      <div id="projectStopSupplementStatusTip" class="project-stop-status-tip">请选择是否停工</div>
-    </div>
-    <section id="projectStopSupplementFormSection" class="project-stop-form-card" hidden>
+      <div id="projectStopSupplementStatusTip" class="project-stop-status-tip">请补充停工申请信息</div>
+    </section>
+    <section id="projectStopSupplementFormSection" class="project-stop-form-card">
       <h3>停工申请信息</h3>
       <div class="project-stop-form-grid">
         <div class="form-item required"><label>停工日期</label><input id="projectStopSupplementDate" class="input" type="date" value="${today}"></div>
@@ -5319,7 +5319,7 @@ function openProjectStopSupplementApplication(){
     title:"停工申请（补充版）",
     mode:"initiation",
     content,
-    modalClass:"project-stop-application-modal project-stop-supplement-application-modal",
+    modalClass:"project-stop-supplement-application-modal",
     previewNodes:["发起审批","项目部总工","分公司管理员","结束审批"],
     footer:`<button class="btn" onclick="closeModal()">取消</button><button class="btn" onclick="saveProjectStopSupplementApplicationDraft()">保存草稿</button><button class="btn primary" onclick="submitProjectStopSupplementApplication()">保存并提交</button>`
   });

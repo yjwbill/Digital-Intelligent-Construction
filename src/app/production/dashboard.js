@@ -369,14 +369,14 @@ function renderProductionScreenHeader(activeTab="产值看板"){
         <div class="production-overview-filters">
           <select class="select" onchange="setProductionOverviewFilter('company',this.value)">${renderProductionOverviewOptions(overviewCompanyOptions,productionOverviewFilterState.company,"子公司")}</select>
           <select class="select" onchange="setProductionOverviewFilter('branch',this.value)">${renderProductionOverviewOptions(overviewBranchOptions,productionOverviewFilterState.branch,"分公司")}</select>
-          <select class="select" onchange="setProductionOverviewFilter('region',this.value)">${renderProductionOverviewOptions(productionOverviewRegions,productionOverviewFilterState.region,"所属区域")}</select>
+          <select class="select" onchange="setProductionOverviewFilter('region',this.value)">${renderProductionOverviewOptions(productionOverviewRegions,productionOverviewFilterState.region,"区域市场")}</select>
           <select class="select" onchange="setProductionOverviewFilter('client',this.value)">${renderProductionOverviewOptions(getProductionOverviewClients(),productionOverviewFilterState.client,"重点客户")}</select>
           <select class="select" onchange="setProductionOverviewFilter('projectType',this.value)">${renderProductionOverviewOptions(getProductionOverviewProjectTypeOptions(),productionOverviewFilterState.projectType,"项目类型")}</select>
         </div>
       `:isMajor?`
         <div class="production-overview-filters production-major-filters">
           <select class="select" onchange="setProductionMajorFilter('year',this.value)">${["2026","2025","2024"].map(year=>`<option value="${year}" ${year===productionMajorFilterState.year?"selected":""}>${year}年</option>`).join("")}</select>
-          <select class="select" onchange="setProductionMajorFilter('region',this.value)">${renderProductionOverviewOptions(productionOverviewRegions,productionMajorFilterState.region,"所属区域")}</select>
+          <select class="select" onchange="setProductionMajorFilter('region',this.value)">${renderProductionOverviewOptions(productionOverviewRegions,productionMajorFilterState.region,"区域市场")}</select>
           <select class="select" onchange="setProductionMajorFilter('projectType',this.value)">${renderProductionOverviewOptions(getProductionOverviewProjectTypeOptions(),productionMajorFilterState.projectType,"项目类型")}</select>
           <select class="select" onchange="setProductionMajorFilter('client',this.value)">${renderProductionOverviewOptions(getProductionOverviewClients(),productionMajorFilterState.client,"重点客户")}</select>
         </div>

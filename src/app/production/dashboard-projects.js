@@ -581,7 +581,7 @@ tableColumnDefinitions.constructionProject=[
   {key:"projectCost",title:"项目造价",width:120,align:"right",render:r=>`${moneyWan(r.projectCost)}万`},
   {key:"projectManager",title:"项目经理",width:190,render:r=>renderProjectManagerContact(r.projectManager,r.managerPhone,{key:`construction-project-${r.id}`})},
   {key:"provinceCity",title:"所在省市",width:130,render:r=>r.provinceCity},
-  {key:"region",title:"所属区域",width:120,render:r=>normalizeConstructionProjectRegion(r.region)},
+  {key:"region",title:"区域市场",width:120,render:r=>normalizeConstructionProjectRegion(r.region)},
   {key:"detailAddress",title:"详细地址",width:240,render:r=>`<span class="text-ellipsis" title="${r.detailAddress}">${r.detailAddress}</span>`},
   {key:"builder",title:"建设单位",width:220,render:r=>`<span class="text-ellipsis" title="${r.builder}">${r.builder}</span>`},
   {key:"projectProgress",title:"项目进展情况",width:150,render:r=>renderConstructionProjectProgress(r)},
@@ -665,7 +665,7 @@ function renderConstructionProjectFilterFields(collapsed=false){
     ${renderConstructionProjectSelect("cpBranchCompany","分公司",cpUnique("branchCompany"))}
     ${renderConstructionProjectSelect("cpProjectStatus","项目状态",projectStatusOptions)}
     ${renderConstructionProjectInput("cpProjectManager","项目经理","模糊搜索")}
-    ${renderConstructionProjectSelect("cpRegion","所属区域",constructionProjectRegionOptions)}
+    ${renderConstructionProjectSelect("cpRegion","区域市场",constructionProjectRegionOptions)}
     ${renderConstructionProjectInput("cpProvinceCity","所在省市","模糊搜索")}
   `;
   if(collapsed)return basicRows;
@@ -1091,7 +1091,7 @@ function renderConstructionProjectOfflineForm(project,application=null){
   const summaryFields=[
     ["项目造价（元）",projectCost?projectCost.toLocaleString("zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2}):"-"],
     ["项目类型",project.projectType||"-"],
-    ["所属区域",normalizeConstructionProjectRegion(project.region)||"-"],
+    ["区域市场",normalizeConstructionProjectRegion(project.region)||"-"],
     ["项目模式",project.implementationMode||"-"],
     ["管控等级",project.controlLevel||"-"]
   ];

@@ -217,7 +217,7 @@ function refreshEnterpriseConstructionLogColumns(){
     {key:"controlLevel",title:"管控等级",width:150,align:"center",render:row=>row.controlLevel},
     {key:"builder",title:"建设单位",width:220,align:"left",render:row=>row.builder},
     {key:"keyCustomer",title:"重点客户",width:130,align:"center",render:row=>row.keyCustomer||"无"},
-    {key:"region",title:"所属区域",width:120,align:"center",render:row=>row.region},
+    {key:"region",title:"区域市场",width:120,align:"center",render:row=>row.region},
     {key:"projectCode",title:"项目编号",width:150,align:"center",render:row=>row.projectCode},
     {key:"operation",title:"操作",width:100,align:"center",render:row=>`<button type="button" class="link" onclick="openEnterpriseConstructionLogDetail(${row.id})">查看</button>`}
   ];
@@ -246,7 +246,7 @@ function renderEnterpriseConstructionLogQueryFields(){
     <div class="form-item"><label>管控等级</label><select id="enterpriseLogControlLevel" class="select">${renderActualOutputOptions(controlLevels,s.controlLevel,"全部")}</select></div>
     <div class="form-item"><label>建设单位</label><input id="enterpriseLogBuilder" class="input" value="${escapeAttr(s.builder)}" placeholder="请输入建设单位模糊搜索"/></div>
     <div class="form-item"><label>重点客户</label><select id="enterpriseLogKeyCustomer" class="select">${renderActualOutputOptions(typeof getKeyCustomerDictionaryOptionsV2284==="function"?getKeyCustomerDictionaryOptionsV2284():cpUnique("keyCustomer").map(value=>value||"无"),s.keyCustomer,"全部")}</select></div>
-    <div class="form-item"><label>所属区域</label><select id="enterpriseLogRegion" class="select">${renderActualOutputOptions(cpUnique("region"),s.region,"全部")}</select></div>
+    <div class="form-item"><label>区域市场</label><select id="enterpriseLogRegion" class="select">${renderActualOutputOptions(cpUnique("region"),s.region,"全部")}</select></div>
     <div class="form-item"><label>项目状态</label><select id="enterpriseLogProjectStatus" class="select">${renderActualOutputOptions(cpUnique("projectStatus"),s.projectStatus,"全部")}</select></div>
     <div class="form-item"><label>项目编号</label><input id="enterpriseLogProjectCode" class="input" value="${escapeAttr(s.projectCode)}" placeholder="请输入项目编号模糊搜索"/></div>
   `;
