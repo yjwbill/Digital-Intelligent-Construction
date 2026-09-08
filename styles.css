@@ -2159,6 +2159,39 @@ button.link{border:0;background:transparent;padding:0 0 0 4px;font:inherit;line-
   text-overflow:ellipsis;
 }
 .organization-management-layout{grid-template-columns:300px minmax(0,1fr)}
+.menu-management-layout{flex:1;min-height:0}
+.menu-management-layout .org-user-panel{min-width:0}
+.menu-management-layout .org-tree-node{justify-content:flex-start;gap:2px}
+.menu-management-node-label{display:flex;align-items:center;gap:6px;flex:1;min-width:0;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;height:34px}
+.menu-management-node-label span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.menu-management-node-label .tdesign-icon{flex-shrink:0}
+.menu-management-layout .card-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.menu-management-layout .org-user-hd .actions{flex-shrink:0}
+.menu-management-layout .org-tree-depth-btn:disabled{opacity:.35;cursor:default}
+.menu-management-layout .org-node-tools{flex-shrink:0}
+.menu-management-layout .org-tree-node:focus-within .org-node-tools{display:flex}
+.menu-management-edit-form{display:grid;gap:20px}
+.menu-emoji-picker{border:1px solid var(--border);border-radius:6px;background:#fff;overflow:hidden;min-width:0}
+.menu-emoji-search{padding:12px}
+.menu-emoji-search .input{width:100%;box-sizing:border-box}
+.menu-emoji-categories{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 12px;border-bottom:1px solid var(--border)}
+.menu-emoji-categories button{border:1px solid transparent;border-radius:4px;background:#f5f7fa;color:var(--sub);font:inherit;font-size:13px;padding:6px 9px;cursor:pointer}
+.menu-emoji-categories button:hover,.menu-emoji-categories button.active{background:var(--primary-light);border-color:var(--primary);color:var(--primary)}
+.menu-emoji-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:6px;align-content:start;padding:12px;height:260px;overflow:auto;overscroll-behavior:contain}
+.menu-emoji-results .menu-management-icon-option{width:100%;height:38px;border-color:transparent;background:transparent}
+.menu-emoji-results .menu-management-icon-option:hover,.menu-emoji-results .menu-management-icon-option.active{border-color:var(--primary);background:var(--primary-light)}
+.menu-emoji-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;min-height:42px;border-top:1px solid var(--border);background:#fafbfc;font-size:12px;color:var(--muted)}
+#menuEmojiPreview{display:flex;align-items:center;gap:8px;min-width:0}
+.menu-emoji-current{font-size:26px;flex-shrink:0}
+#menuEmojiCount{white-space:nowrap;flex-shrink:0}
+.menu-emoji-empty{grid-column:1/-1;padding:60px 12px;text-align:center;color:var(--muted);font-size:14px}
+.menu-management-node-emoji{display:inline-flex;align-items:center;justify-content:center;width:20px;min-width:20px;height:20px;font-size:16px;line-height:20px}
+.menu-management-icon-option{font-size:22px;line-height:1}
+.menu-management-icon-options{display:grid;grid-template-columns:repeat(8,36px);gap:8px;max-width:100%}
+.menu-management-icon-option{display:flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border:1px solid var(--border);border-radius:4px;background:#fff;color:var(--sub);cursor:pointer}
+.menu-management-icon-option:hover,.menu-management-icon-option.active{border-color:var(--primary);background:var(--primary-light);color:var(--primary)}
+.menu-management-icon-option:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+@media(max-width:480px){.menu-management-icon-options{grid-template-columns:repeat(4,36px)}}
 .unified-org-tree-panel{width:300px;min-width:300px;max-width:300px;box-sizing:border-box}
 .unified-org-tree-search{display:flex;align-items:center;gap:6px;flex:none;padding:10px 10px 8px;border-bottom:1px solid var(--border);background:#fff}
 .unified-org-tree-search .input{width:auto;min-width:0;flex:1;height:32px}
@@ -22668,6 +22701,8 @@ body.mobile-mode .mobile-tabbar .tab-create.active span:after{
 @media(max-width:1000px){.message-project-selector>.unified-query-card .search-grid{grid-template-columns:repeat(2,minmax(0,1fr)) !important}}
 .nested-modal.message-project-person-picker-modal{width:94vw;max-width:calc(100vw - 40px);height:86vh;max-height:86vh}
 .message-project-person-picker-modal .modal-bd{padding:14px;overflow:hidden;background:#f5f7fa}
+.menu-role-picker-selector>.table-card{flex:1;min-height:0}
+.menu-role-picker-selector>.unified-query-card .search-grid{grid-template-columns:repeat(3,minmax(0,1fr)) !important}
 .message-project-person-selector{height:100%;min-height:0;display:flex;flex-direction:column;gap:12px}
 .message-project-person-selector>.unified-query-card{flex:0 0 auto;margin:0}
 .message-project-person-selector>.unified-query-card .search-grid{grid-template-columns:repeat(4,minmax(0,1fr)) !important}
@@ -26179,3 +26214,4 @@ body.entry-mode .digital-entry-values{
 
 
 
+.economy-diagnosis-task-table th,.economy-diagnosis-task-table td{text-align:center!important}

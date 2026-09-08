@@ -741,7 +741,8 @@ const businessMenus={
           {name:"组织管理",active:true},
           {name:"岗位管理"},
           {name:"角色管理"},
-          {name:"项目资源授权"}
+          {name:"项目资源授权"},
+          {name:"菜单管理"}
         ]
       },
       {
