@@ -26214,4 +26214,5 @@ body.entry-mode .digital-entry-values{
 
 
 
-.economy-diagnosis-task-table th,.economy-diagnosis-task-table td{text-align:center!important}
+.economy-diagnosis-task-table th:nth-child(1),.economy-diagnosis-task-table td:nth-child(1),.economy-diagnosis-task-table th:nth-child(2),.economy-diagnosis-task-table td:nth-child(2),.economy-diagnosis-task-table th:nth-child(3),.economy-diagnosis-task-table td:nth-child(3),.economy-diagnosis-task-table th:nth-child(4),.economy-diagnosis-task-table td:nth-child(4),.economy-diagnosis-task-table th:nth-child(5),.economy-diagnosis-task-table td:nth-child(5),.economy-diagnosis-task-table th:nth-child(6),.economy-diagnosis-task-table td:nth-child(6),.economy-diagnosis-task-table th:nth-child(9),.economy-diagnosis-task-table td:nth-child(9),.economy-diagnosis-task-table th:nth-child(10),.economy-diagnosis-task-table td:nth-child(10),.economy-diagnosis-task-table th:nth-child(11),.economy-diagnosis-task-table td:nth-child(11),.economy-diagnosis-task-table th:nth-child(12),.economy-diagnosis-task-table td:nth-child(12),.economy-diagnosis-task-table th:nth-child(13),.economy-diagnosis-task-table td:nth-child(13),.economy-diagnosis-task-table th:nth-child(14),.economy-diagnosis-task-table td:nth-child(14){text-align:center!important}
+
