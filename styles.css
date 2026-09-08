@@ -1,3 +1,4 @@
+@import url("./src/components/selection-primitives/selection-primitives.css?v=1.0.3-global");
 
 @view-transition{navigation:auto;}
 ::view-transition-old(root),::view-transition-new(root){animation-duration:0s;}
@@ -25288,6 +25289,16 @@ body.entry-mode .digital-entry-divider{height:6px;margin:0 auto 14px;opacity:.72
 .form-item .DscCombobox,.field .DscCombobox,.query-item .DscCombobox{width:100%;max-width:none}
 .form-item .DscCombobox__control,.field .DscCombobox__control,.query-item .DscCombobox__control{display:flex;width:100%;height:32px;min-height:32px;margin:0;padding:0 10px;border:1px solid #E5E6EB;border-radius:4px;background:#fff;color:#1D2129;font-size:14px;font-weight:400;line-height:20px;font-family:inherit;box-shadow:none}
 .form-item .DscCombobox__control:hover,.field .DscCombobox__control:hover,.query-item .DscCombobox__control:hover{border-color:#165DFF}
+/* Query/form containers often have broad button rules; keep Combobox metrics deterministic. */
+.form-item button.DscCombobox__control,.field button.DscCombobox__control,.query-item button.DscCombobox__control,
+.unified-query-card button.DscCombobox__control{box-sizing:border-box!important;display:flex!important;width:100%!important;height:32px!important;min-height:32px!important;padding:0 10px!important;border:1px solid #E5E6EB!important;border-radius:4px!important;background:#fff!important;color:#1D2129!important;font-family:inherit!important;font-size:14px!important;font-weight:400!important;line-height:20px!important;text-align:left!important;box-shadow:none!important}
+.form-item .DscCombobox__control>span,.field .DscCombobox__control>span,.query-item .DscCombobox__control>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.form-item .DscCombobox__panel,.field .DscCombobox__panel,.query-item .DscCombobox__panel{z-index:1200!important}
+.form-item .DscCombobox,.field .DscCombobox,.query-item .DscCombobox,.unified-query-card .DscCombobox{position:relative!important;display:block!important;overflow:visible!important}
+.form-item .DscCombobox__panel,.field .DscCombobox__panel,.query-item .DscCombobox__panel,.unified-query-card .DscCombobox__panel{position:absolute!important;top:calc(100% + 6px)!important;left:0!important;right:auto!important;height:auto!important;max-height:none!important;margin:0!important}
+.form-item .DscCombobox__search input,.unified-query-card .DscCombobox__search input{box-sizing:border-box!important;width:100%!important;height:32px!important;padding:0 10px!important;border:1px solid #E5E6EB!important;border-radius:4px!important;background:#fff!important;color:#1D2129!important;font:400 14px/20px inherit!important}
+.form-item .DscSelection__option,.unified-query-card .DscSelection__option{box-sizing:border-box!important;width:100%!important;min-height:32px!important;padding:6px 8px!important;border:0!important;border-radius:4px!important;background:transparent!important;color:#1D2129!important;font-family:inherit!important;font-size:14px!important;font-weight:400!important;line-height:20px!important;text-align:left!important}
+.form-item .DscSelection__option:hover,.unified-query-card .DscSelection__option:hover,.form-item .DscSelection__option.is-selected,.unified-query-card .DscSelection__option.is-selected{background:#E8F3FF!important;color:#165DFF!important}
 @media(max-width:1280px){.economy-management-search{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
 @media(max-width:900px){.economy-management-search{grid-template-columns:repeat(2,minmax(0,1fr))!important}.economy-management-modal-form{grid-template-columns:1fr 1fr}}
 
@@ -26146,7 +26157,6 @@ body.entry-mode .digital-entry-values{
 .card-hd>.component-button-radio.output-forecast-scope-switch .component-button-radio-option:has(input:checked){background:var(--primary)!important;color:#fff!important;border-color:var(--primary)!important;}
 .card-hd>.component-button-radio.output-forecast-scope-switch .component-button-radio-option:hover{opacity:.9!important;}
 .output-forecast-total-item{min-width:108px;padding:0 8px;}
-
 /* Standard form controls: unified 32px specification. */
 .standard-list .unified-query-card input.input,
 .standard-list .unified-query-card select.select,
@@ -26166,4 +26176,6 @@ body.entry-mode .digital-entry-values{
 .standard-list .unified-query-card select.select,
 .standard-form-group select.select,
 .modal-bd select.select{padding-right:32px;}
+
+
 
