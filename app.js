@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.984-project-stop-default-yes";
+  const version="2.2.997-milestone-status-tag";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/tdesign-icon/tdesign-icon.js",
@@ -63,3 +63,4 @@
     document.write('<script src="./'+src+'?v='+version+'"><\/script>');
   });
 })();
+

@@ -1370,15 +1370,9 @@ function renderProjectLogMilestoneRows(savedRows=[],reportDate=getProjectLogToda
     const completedRows=getProjectLogCompletedMilestoneRows();
     if(!completedRows.length)return `<div class="project-log-empty project-log-milestone-empty">暂无已完成里程碑节点</div>`;
     return `<div class="project-log-milestone-card-list">${completedRows.map(row=>`
-      <div class="project-log-milestone-row completed" data-milestone-mode="completed">
-        <div class="project-log-risk-info project-log-milestone-info">
-          <div><span>里程碑节点名称</span><strong>${row.nodeName}</strong></div>
-          <div><span>计划完成日期（最新）</span><strong>${row.planLatestDate}</strong></div>
-          <div><span>节点状态</span><strong>${row.nodeStatus}</strong></div>
-          <div><span>管控等级</span><strong>${row.controlLevel}</strong></div>
-          <div><span>是否重点进度节点</span><strong>${row.keyNode}</strong></div>
-          <div><span>实际完成日期</span><strong>${row.actualDate}</strong></div>
-        </div>
+      <div class="project-log-milestone-row project-log-milestone-card project-log-risk-row completed" data-milestone-mode="completed">
+        <div class="project-log-risk-heading"><span class="project-log-risk-index">${String(completedRows.indexOf(row)+1).padStart(2,"0")}</span><strong>${row.nodeName}</strong><em class="project-log-risk-type">${row.nodeStatus}</em></div>
+        <div class="project-log-risk-info project-log-risk-info-grid project-log-milestone-info"><div><span>计划完成日期（最新）：</span><strong>${row.planLatestDate}</strong></div><div><span>实际完成日期：</span><strong>${row.actualDate}</strong></div><div><span>管控等级：</span><strong>${row.controlLevel}</strong></div><div><span>是否重点进度节点：</span><strong>${row.keyNode}</strong></div></div>
       </div>`).join("")}</div>`;
   }
   const savedMap=new Map((savedRows||[]).map(row=>[row.nodeName,row]));
@@ -1390,18 +1384,15 @@ function renderProjectLogMilestoneRows(savedRows=[],reportDate=getProjectLogToda
       const saved=savedMap.get(row.nodeName)||{};
       const status=saved.milestoneStatus||"进度可控";
       return `
-        <div class="project-log-milestone-row" data-milestone-mode="ongoing"
+        <div class="project-log-milestone-row project-log-milestone-card project-log-risk-row" data-milestone-mode="ongoing"
           data-node-name="${escapeAttr(row.nodeName)}"
           data-plan-latest-date="${escapeAttr(row.planLatestDate)}"
           data-node-status="${escapeAttr(row.nodeStatus)}"
           data-control-level="${escapeAttr(row.controlLevel)}"
           data-key-node="${escapeAttr(row.keyNode)}">
-          <div class="project-log-risk-info project-log-milestone-info">
-            <div><span>里程碑节点名称</span><strong>${row.nodeName}</strong></div>
-            <div><span>计划完成日期（最新）</span><strong>${row.planLatestDate}</strong></div>
-            <div><span>节点状态</span><strong>${row.nodeStatus}</strong></div>
-            <div><span>管控等级</span><strong>${row.controlLevel}</strong></div>
-            <div><span>是否重点进度节点</span><strong>${row.keyNode}</strong></div>
+          <div class="project-log-risk-heading"><span class="project-log-risk-index">${String(rows.indexOf(row)+1).padStart(2,"0")}</span><strong>${row.nodeName}</strong><em class="project-log-risk-type">${row.nodeStatus}</em></div>
+          <div class="project-log-risk-info project-log-risk-info-grid project-log-milestone-info">
+            <div><span>计划完成日期（最新）：</span><strong>${row.planLatestDate}</strong></div><div><span>管控等级：</span><strong>${row.controlLevel}</strong></div><div><span>是否重点进度节点：</span><strong>${row.keyNode}</strong></div>
           </div>
           <div class="project-log-risk-form project-log-milestone-form">
             <div class="form-item"><label>里程碑情况 <em>*</em></label><select class="select project-log-milestone-status"><option value="">请选择</option><option ${status==="进度可控"?"selected":""}>进度可控</option><option ${status==="进度预警"?"selected":""}>进度预警</option></select></div>
@@ -1523,21 +1514,8 @@ function renderProjectLogRiskRows(savedRisks=[]){
     const controlledValue=getProjectLogRiskFieldValue(savedRisk,"是否受控")||"是";
     const situationValue=getProjectLogRiskFieldValue(savedRisk,"风险情况")||"风险可控";
     const progressValue=getProjectLogRiskFieldValue(savedRisk,"风险进展情况");
-    return `
-    <div class="project-log-risk-row" data-project-log-risk-index="${index}">
-      <div class="project-log-risk-info">
-        ${Array.from({length:Math.ceil(risk.length/2)},(_,i)=>`
-          <div><span>${risk[i*2]}</span><strong>${risk[i*2+1]}</strong></div>
-        `).join("")}
-      </div>
-      <div class="project-log-risk-form">
-        <div class="form-item"><label>是否完成 <em>*</em></label><select class="select"><option ${completeValue==="否"?"selected":""}>否</option><option ${completeValue==="是"?"selected":""}>是</option></select></div>
-        <div class="form-item"><label>是否受控 <em>*</em></label><select class="select"><option ${controlledValue==="是"?"selected":""}>是</option><option ${controlledValue==="否"?"selected":""}>否</option></select></div>
-        <div class="form-item"><label>风险情况 <em>*</em></label>${renderProjectLogRiskSituationSelect(situationValue)}</div>
-        <div class="form-item"><label>风险进展情况 <em>*</em></label><textarea class="input project-log-risk-progress" placeholder="请输入" required>${escapeAttr(progressValue)}</textarea></div>
-      </div>
-    </div>
-  `;
+    const value=label=>escapeAttr(getProjectLogRiskFieldValue(risk,label)||"-");
+    return `<div class="project-log-risk-row project-log-risk-card" data-project-log-risk-index="${index}"><div class="project-log-risk-heading"><span class="project-log-risk-index">${String(index+1).padStart(2,"0")}</span><strong>${value("风险名称")}</strong><em class="project-log-risk-level">${value("风险等级")}</em><span class="project-log-risk-type">${value("风险类型")}</span></div><div class="project-log-risk-info project-log-risk-info-grid"><div><span>计划开始日期：</span><strong>${value("计划开始日期")}</strong></div><div><span>计划完成日期：</span><strong>${value("计划完成日期")}</strong></div><div><span>实际开始日期：</span><strong>${value("实际开始日期")}</strong></div><div><span>计划持续时间：</span><strong>${value("计划持续时间")}</strong></div><div><span>挂牌领导：</span><strong>${value("挂牌领导")}</strong></div><div><span>是否临铁/临高速：</span><strong>${value("是否临铁/临高速")||"是"}</strong></div><div><span>是否年度风险：</span><strong>${value("是否年度风险")||"是"}</strong></div><div class="project-log-risk-description"><span>风险描述：</span><strong>${value("风险描述")}</strong></div></div><div class="project-log-risk-form"><div class="form-item"><label>是否完成 <em>*</em></label><select class="select"><option ${completeValue==="否"?"selected":""}>否</option><option ${completeValue==="是"?"selected":""}>是</option></select></div><div class="form-item"><label>是否受控 <em>*</em></label><select class="select"><option ${controlledValue==="是"?"selected":""}>是</option><option ${controlledValue==="否"?"selected":""}>否</option></select></div><div class="form-item"><label>风险情况 <em>*</em></label>${renderProjectLogRiskSituationSelect(situationValue)}</div><div class="form-item"><label>风险进展情况 <em>*</em></label><textarea class="input project-log-risk-progress" placeholder="请输入" required>${escapeAttr(progressValue)}</textarea></div></div></div>`;
   }).join("");
 }
 
@@ -5839,4 +5817,5 @@ function renderProjectPlaceholderPage(title){
     </section>
   `);
 }
+
 

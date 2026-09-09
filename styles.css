@@ -21695,6 +21695,50 @@ body.enterprise-mobile-mode .enterprise-mobile-mine-menu-item strong{
 .project-log-risk-info span{color:#4E5969;font-size:13px;font-weight:800;}
 .project-log-risk-info strong{color:#1D2129;font-size:13px;font-weight:900;}
 .project-log-risk-form{display:grid;gap:10px;}
+
+/* Construction log risk card: keep the online report layout stable even when
+   legacy risk-info rules are loaded later in the stylesheet. */
+.project-log-risk-card .project-log-risk-info.project-log-risk-info-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px 28px!important;align-content:start!important}
+.project-log-risk-card .project-log-risk-info.project-log-risk-info-grid>div{display:flex!important;align-items:baseline!important;gap:4px!important;min-width:0!important;min-height:24px!important}
+.project-log-risk-card .project-log-risk-info.project-log-risk-info-grid>div>span{flex:none!important;white-space:nowrap!important;color:#697482!important;font-size:13px!important;font-weight:400!important}
+.project-log-risk-card .project-log-risk-info.project-log-risk-info-grid>div>strong{min-width:0!important;color:#30343b!important;font-size:13px!important;font-weight:400!important;overflow-wrap:anywhere!important}
+.project-log-risk-card .project-log-risk-info.project-log-risk-info-grid .project-log-risk-description{grid-column:1/-1!important;align-items:flex-start!important}
+.project-log-risk-card .project-log-risk-form{display:grid!important;grid-template-columns:1fr 1fr 1fr 2fr!important;gap:14px!important;margin-top:14px!important;padding:12px 10px!important;background:#f5f9ff!important}
+.project-log-risk-card .project-log-risk-form .form-item{display:block!important;min-width:0!important;margin:0!important}
+.project-log-risk-card .project-log-risk-form .form-item label{display:block!important;margin-bottom:6px!important;white-space:nowrap!important}
+.project-log-risk-card .project-log-risk-form textarea{width:100%!important;min-height:72px!important;box-sizing:border-box!important;resize:vertical!important}
+@media(max-width:900px){.project-log-risk-card .project-log-risk-info.project-log-risk-info-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.project-log-risk-card .project-log-risk-form{grid-template-columns:1fr 1fr!important}.project-log-risk-card .project-log-risk-form .form-item:last-child{grid-column:1/-1!important}}
+.project-log-risk-card .project-log-risk-heading{display:flex!important;align-items:center!important;gap:12px!important;min-height:28px!important;margin-bottom:14px!important}
+.project-log-risk-card .project-log-risk-index{display:flex!important;align-items:center!important;justify-content:center!important;flex:none!important;width:24px!important;height:24px!important;padding:2px 4px!important;box-sizing:border-box!important;border-radius:2px!important;background:#E8F3FF!important;color:#165DFF!important;font-family:"Source Han Sans","Microsoft YaHei",sans-serif!important;font-size:14px!important;font-weight:500!important;line-height:20px!important}
+.project-log-risk-card .project-log-risk-heading>strong{flex:none!important;margin:0!important;color:#1D2129!important;font-family:"Source Han Sans","Microsoft YaHei",sans-serif!important;font-size:16px!important;font-weight:400!important;line-height:24px!important;white-space:nowrap!important}
+.project-log-risk-card .project-log-risk-level,.project-log-risk-card .project-log-risk-type{display:inline-flex!important;align-items:center!important;height:24px!important;padding:0 8px!important;border-radius:4px!important;font-style:normal!important;font-size:12px!important;line-height:24px!important;white-space:nowrap!important}
+.project-log-risk-card .project-log-risk-level{background:#FFF7E8!important;color:#FF7D00!important}
+.project-log-risk-card .project-log-risk-type{background:#E8F3FF!important;color:#165DFF!important}
+.project-log-risk-card.project-log-risk-row{display:block!important;width:100%!important;box-sizing:border-box!important}
+.project-log-risk-card.project-log-risk-row>.project-log-risk-heading{width:100%!important}
+.project-log-risk-card.project-log-risk-row>.project-log-risk-info{width:100%!important}
+.project-log-risk-card .project-log-risk-info.project-log-risk-info-grid>div>span{font-family:"Source Han Sans","Microsoft YaHei",sans-serif!important;font-size:14px!important;font-weight:400!important;line-height:normal!important;letter-spacing:0!important;color:#4E5969!important}
+.project-log-risk-card .project-log-risk-info.project-log-risk-info-grid>div>strong{font-family:"Source Han Sans","Microsoft YaHei",sans-serif!important;font-size:14px!important;font-weight:400!important;line-height:normal!important;letter-spacing:0!important;color:#1D2129!important}
+.project-log-risk-card .project-log-risk-form .form-item>label{font-family:"Source Han Sans","Microsoft YaHei",sans-serif!important;font-size:14px!important;font-weight:400!important;line-height:normal!important;letter-spacing:0!important;color:#4E5969!important}
+.project-log-milestone-card.project-log-risk-row{display:block!important;width:100%!important;box-sizing:border-box!important}
+.project-log-milestone-card .project-log-milestone-form{grid-template-columns:1fr 2fr!important}
+.project-log-milestone-card .project-log-milestone-info>div:nth-child(n+4){display:none!important}
+.project-log-milestone-card .project-log-milestone-info{margin-left:36px!important;width:calc(100% - 36px)!important}
+.project-log-milestone-card .project-log-milestone-info>div>span{font-family:"Source Han Sans","Microsoft YaHei",sans-serif!important;font-size:14px!important;font-weight:400!important;line-height:normal!important;color:#4E5969!important;white-space:nowrap!important}
+.project-log-milestone-card .project-log-milestone-info>div>strong{font-family:"Source Han Sans","Microsoft YaHei",sans-serif!important;font-size:14px!important;font-weight:400!important;line-height:normal!important;color:#1D2129!important}
+.project-log-milestone-card .project-log-risk-level{background:#E8F3FF!important;color:#165DFF!important}
+.project-log-milestone-card.completed .project-log-milestone-info>div:nth-child(n){display:flex!important}
+.project-log-milestone-card .project-log-risk-heading{display:flex!important;align-items:center!important;gap:12px!important;min-height:28px!important;margin:0 0 14px!important}
+.project-log-milestone-card .project-log-risk-index{display:flex!important;align-items:center!important;justify-content:center!important;flex:none!important;width:24px!important;height:24px!important;padding:2px 4px!important;box-sizing:border-box!important;border-radius:2px!important;background:#E8F3FF!important;color:#165DFF!important;font-size:14px!important;font-weight:500!important;line-height:20px!important}
+.project-log-milestone-card .project-log-risk-heading>strong{display:block!important;flex:none!important;margin:0!important;color:#1D2129!important;font-size:16px!important;font-weight:400!important;line-height:24px!important;white-space:nowrap!important}
+.project-log-milestone-card .project-log-milestone-info>div{display:flex!important;align-items:baseline!important;gap:4px!important;min-width:0!important;min-height:24px!important}
+.project-log-milestone-card .project-log-milestone-form{display:grid!important;grid-template-columns:1fr 2fr!important;gap:14px!important;margin:14px 0 0 36px!important;width:calc(100% - 36px)!important;padding:12px 10px!important;box-sizing:border-box!important;background:#f5f9ff!important}
+.project-log-milestone-card .project-log-milestone-form .form-item{display:block!important;min-width:0!important;margin:0!important}
+.project-log-milestone-card .project-log-milestone-form .form-item>label{display:block!important;margin-bottom:6px!important}
+.project-log-risk-card.project-log-risk-row{padding-left:14px!important;padding-right:14px!important}
+.project-log-risk-card .project-log-risk-heading{margin-left:0!important}
+.project-log-risk-card .project-log-risk-info.project-log-risk-info-grid{margin-left:36px!important;width:calc(100% - 36px)!important}
+.project-log-risk-card .project-log-risk-form{margin-left:36px!important;width:calc(100% - 36px)!important}
 .project-log-radio-group{min-height:34px;display:flex;align-items:center;gap:16px;border:1px solid var(--border);border-radius:4px;background:#fff;padding:0 12px;}
 .project-log-radio-option{display:inline-flex;align-items:center;gap:6px;color:#1D2129;font-size:13px;font-weight:800;line-height:20px;cursor:pointer;}
 .project-log-radio-option input{width:14px;height:14px;margin:0;accent-color:var(--primary);}
