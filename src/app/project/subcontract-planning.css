@@ -1,0 +1,36 @@
+.subcontract-planning-modal:not(.fullscreen){width:min(1600px,calc(100vw - 48px));max-width:calc(100vw - 48px)}
+.subcontract-planning-modal .modal-bd{padding:16px}
+.subcontract-plan-body{display:grid;gap:12px;min-width:0}
+.subcontract-plan-body .standard-form-group{margin:0;min-width:0}
+.subcontract-plan-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.subcontract-plan-stat{min-width:0;min-height:80px;box-sizing:border-box;padding:12px 16px;border-radius:6px;background:linear-gradient(180deg,#e6f5ff,#f3faff);display:flex;flex-direction:column;gap:8px;justify-content:center}
+.subcontract-plan-stat>span,.subcontract-plan-stat>label{font-size:14px;font-weight:400;color:#4e5969}
+.subcontract-plan-stat strong{font-family:DIN,Arial,sans-serif;font-size:22px;font-weight:700;color:#1d2129;overflow-wrap:anywhere}
+.subcontract-plan-stat em{color:#f53f3f;font-style:normal}
+.subcontract-plan-money,.subcontract-plan-name{display:flex;align-items:center;gap:8px;min-width:0}
+.subcontract-plan-money .input,.subcontract-plan-name .input{flex:1;width:0;min-width:0}
+.subcontract-plan-money .input{text-align:right}
+.subcontract-plan-money span{flex:none;font-size:14px;color:#4e5969}
+.subcontract-plan-formula-tip{display:inline-flex;width:14px;height:14px;align-items:center;justify-content:center;box-sizing:border-box;border:1px solid #86909c;border-radius:50%;color:#86909c;font:400 11px/1 Arial,sans-serif;cursor:help;vertical-align:middle}
+.subcontract-plan-table-wrap{max-height:420px;overflow:auto;border:1px solid #e5e6eb}
+.subcontract-planning-modal .subcontract-plan-table{width:100%;min-width:1650px;border-collapse:collapse;table-layout:fixed}
+.subcontract-planning-modal .subcontract-plan-table th,.subcontract-planning-modal .subcontract-plan-table td{box-sizing:border-box;border:1px solid #e5e6eb;height:40px;padding:8px 10px;text-align:left;font-size:14px;font-weight:400;line-height:22px;color:var(--text)}
+.subcontract-planning-modal .subcontract-plan-table th{background:#fafbfc;color:var(--sub);font-weight:600}
+.subcontract-planning-modal .subcontract-plan-table th:first-child,.subcontract-planning-modal .subcontract-plan-table td:first-child{text-align:center}
+.subcontract-planning-modal .subcontract-plan-table th:last-child,.subcontract-planning-modal .subcontract-plan-table .subcontract-plan-actions{position:sticky;right:0;background:#fff;text-align:center;z-index:1;box-shadow:-1px 0 #e5e6eb}
+.subcontract-planning-modal .subcontract-plan-table th:last-child{background:#fafbfc;z-index:2}
+.subcontract-planning-modal .subcontract-plan-category .subcontract-plan-actions{background:#f7f8fa}
+.subcontract-plan-table th:first-child,.subcontract-plan-table td:first-child{text-align:center}
+.subcontract-plan-table .input,.subcontract-plan-table .select{box-sizing:border-box;width:100%;min-width:0;height:32px;padding:0 8px;font-size:14px;font-weight:400;color:#1d2129;background:#fff;border:1px solid #e5e6eb;border-radius:4px}
+.subcontract-plan-table .input:focus,.subcontract-plan-table .select:focus{outline:none;border-color:var(--primary)}
+.subcontract-plan-table .subcontract-plan-money .input,.subcontract-plan-table .subcontract-plan-name .input{width:0}
+.subcontract-plan-category td{background:#f7f8fa}
+.subcontract-plan-category strong{font-weight:600}
+.subcontract-planning-modal .subcontract-plan-table .subcontract-plan-number{text-align:right;font-weight:600}
+.subcontract-plan-link{border:0;padding:0;background:transparent;color:var(--primary);font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+.subcontract-plan-link.danger{color:#f53f3f}
+.subcontract-plan-link:hover{text-decoration:underline}
+.subcontract-planning-modal .subcontract-plan-table input:disabled,.subcontract-planning-modal .subcontract-plan-table select:disabled{background:#f2f3f5;color:#86909c;cursor:not-allowed;opacity:1}
+.subcontract-plan-table .subcontract-plan-formula-tip{margin-left:4px}
+@media(max-width:1000px){.subcontract-plan-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.subcontract-plan-stats{grid-template-columns:1fr}}

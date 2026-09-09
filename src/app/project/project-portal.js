@@ -870,20 +870,7 @@ function renderProjectLogReadonlyMilestoneTable(rows){
     ...(rows||[]).filter(item=>item.actualDate)
   ].map(item=>[item.nodeName,item]));
   const completedRows=[...completedMap.values()];
-  const cards=items=>items.length?`<div class="project-log-readonly-risk-list">
-    ${items.map(item=>`
-      <div class="project-log-readonly-risk-card project-detail-info-grid">
-        ${renderProjectLogReadonlyField("里程碑节点名称",item.nodeName)}
-        ${renderProjectLogReadonlyField("计划完成日期（最新）",item.planLatestDate)}
-        ${renderProjectLogReadonlyField("节点状态",item.nodeStatus)}
-        ${renderProjectLogReadonlyField("管控等级",item.controlLevel)}
-        ${renderProjectLogReadonlyField("是否重点进度节点",item.keyNode)}
-        ${item.actualDate?renderProjectLogReadonlyField("实际完成日期",item.actualDate):""}
-        ${item.actualDate?"":renderProjectLogReadonlyField("里程碑情况",item.milestoneStatus||"-")}
-        ${item.actualDate?"":renderProjectLogReadonlyField("里程碑进展情况",item.milestoneProgress||"-")}
-      </div>
-    `).join("")}
-  </div>`:`<div class="project-log-empty project-log-milestone-empty">暂无数据</div>`;
+  const cards=items=>items.length?`<div class="project-log-readonly-risk-list">${items.map((item,index)=>`<div class="project-log-risk-row project-log-risk-card project-log-milestone-card project-log-readonly-risk-card"><div class="project-log-risk-heading"><span class="project-log-risk-index">${String(index+1).padStart(2,"0")}</span><strong>${item.nodeName}</strong><em class="project-log-risk-type">${item.nodeStatus}</em></div><div class="project-log-risk-info project-log-risk-info-grid project-log-milestone-info"><div><span>计划完成日期（最新）：</span><strong>${item.planLatestDate||"-"}</strong></div>${item.actualDate?`<div><span>实际完成日期：</span><strong>${item.actualDate}</strong></div>`:""}<div><span>管控等级：</span><strong>${item.controlLevel||"-"}</strong></div><div><span>是否重点进度节点：</span><strong>${item.keyNode||"-"}</strong></div></div>${item.actualDate?"":`<div class="project-log-risk-form project-log-milestone-form project-log-readonly-form"><div class="form-item"><label>里程碑情况</label><select class="select" disabled><option selected>${item.milestoneStatus||"-"}</option></select></div><div class="form-item"><label>里程碑进展情况</label><textarea class="input" disabled>${item.milestoneProgress||"-"}</textarea></div></div>`}</div>`).join("")}</div>`:`<div class="project-log-empty project-log-milestone-empty">暂无数据</div>`;
   return `<div class="project-log-readonly-milestone">
     <div class="project-log-readonly-milestone-panel" data-readonly-milestone-panel="ongoing">${cards(ongoingRows)}</div>
     <div class="project-log-readonly-milestone-panel" data-readonly-milestone-panel="completed" hidden>${cards(completedRows)}</div>
@@ -922,11 +909,7 @@ function switchProjectLogReadonlyMilestoneTab(button,tab){
 
 function renderProjectLogReadonlyRiskCards(risks){
   return `<div class="project-log-readonly-risk-list">
-    ${risks.map(risk=>`
-      <div class="project-log-readonly-risk-card project-detail-info-grid">
-        ${Array.from({length:risk.length/2},(_,index)=>renderProjectLogReadonlyField(risk[index*2],risk[index*2+1])).join("")}
-      </div>
-    `).join("")}
+    ${risks.map((risk,index)=>{const v=key=>risk[risk.indexOf(key)+1]||"-";return `<div class="project-log-risk-row project-log-risk-card project-log-readonly-risk-card"><div class="project-log-risk-heading"><span class="project-log-risk-index">${String(index+1).padStart(2,"0")}</span><strong>${v("风险名称")}</strong><em class="project-log-risk-level">${v("风险等级")}</em><span class="project-log-risk-type">${v("风险类型")}</span></div><div class="project-log-risk-info project-log-risk-info-grid"><div><span>计划开始日期：</span><strong>${v("计划开始日期")}</strong></div><div><span>计划完成日期：</span><strong>${v("计划完成日期")}</strong></div><div><span>实际开始日期：</span><strong>${v("实际开始日期")}</strong></div><div><span>计划持续时间：</span><strong>${v("计划持续时间")}</strong></div><div><span>挂牌领导：</span><strong>${v("挂牌领导")}</strong></div><div><span>是否临铁/临高速：</span><strong>${v("是否临铁/临高速")}</strong></div><div><span>是否年度风险：</span><strong>${v("是否年度风险")}</strong></div><div class="project-log-risk-description"><span>风险描述：</span><strong>${v("风险描述")}</strong></div></div><div class="project-log-risk-form project-log-readonly-form"><div class="form-item"><label>是否完成</label><select class="select" disabled><option selected>${v("是否完成")}</option></select></div><div class="form-item"><label>是否受控</label><select class="select" disabled><option selected>${v("是否受控")}</option></select></div><div class="form-item"><label>风险情况</label><select class="select" disabled><option selected>${v("风险情况")}</option></select></div><div class="form-item"><label>风险进展情况</label><textarea class="input" disabled>${v("风险进展情况")}</textarea></div></div></div>`;}).join("")}
   </div>`;
 }
 
@@ -4413,8 +4396,8 @@ const projectPlanningModules=[
     contentType:"amounts",
     amounts:[["工程渣土","5,000","吨"],["工程泥浆","5,000","吨"],["装修垃圾","5,000","吨"]]
   },
-  {key:"cost",title:"目标成本计划",required:false,status:"future",contentType:"future"},
-  {key:"subcontract",title:"分包分供筹划",required:false,status:"future",contentType:"future"}
+  {key:"cost",title:"目标成本筹划",required:false,status:"planning",contentType:"tiles",tiles:[["中标价合计","301,880","元"],["目标成本合计","191,600","元"]]},
+  {key:"subcontract",title:"分包分供筹划",required:false,status:"planning",contentType:"tiles",tiles:[["已筹划合同数","0","份"],["已筹划合同额","0.00","元"]]}
 ];
 
 const projectPlanningState={
@@ -4430,11 +4413,26 @@ function getCurrentProjectPlanningCompletedKeys(){
 }
 
 function getProjectPlanningStatus(module){
+  if(module.key==="subcontract"){
+    try{
+      const saved=JSON.parse(localStorage.getItem(`subcontract-plan:${getCurrentProjectContext()?.id||"default"}`)||"null");
+      if(saved)return saved.submitted?"done":"planning";
+    }catch(error){/* Fall back to the in-session planning state. */}
+  }
   if(module.status==="future")return "future";
   return getCurrentProjectPlanningCompletedKeys().has(module.key)?"done":"planning";
 }
 
 function renderProjectPlanningCardContent(module,status){
+  if(module.key==="subcontract"){
+    let rows=[];
+    try{const saved=JSON.parse(localStorage.getItem(`subcontract-plan:${getCurrentProjectContext()?.id||"default"}`)||"null");rows=(saved?.groups||[]).flat();}catch(error){}
+    const amount=rows.reduce((sum,row)=>sum+Math.round(Number(row.amount||0)*100),0)/100;
+    module={...module,tiles:[["已筹划合同数",String(rows.length),"份"],["已筹划合同额",amount.toLocaleString("zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2}),"元"]]};
+  }
+  if(module.key==="cost"){
+    module={...module,tiles:[["中标价合计",projectTargetCostTotal("quote").toLocaleString("zh-CN"),"元"],["目标成本合计",projectTargetCostTotal("target").toLocaleString("zh-CN"),"元"]]};
+  }
   if(status==="future"){
     return `
       <div class="project-planning-future">
@@ -4830,9 +4828,80 @@ function completeProjectPlanningModule(key){
     openProjectRiskPlanningModal();
     return;
   }
+  if(key==="cost"){
+    openProjectTargetCostPlanningModal();
+    return;
+  }
+  if(key==="subcontract"){
+    openProjectSubcontractPlanningModal();
+    return;
+  }
   getCurrentProjectPlanningCompletedKeys().add(key);
   renderProjectOverallPlanningPage();
   showToast(`${module.title}已完成筹划`);
+}
+
+const projectTargetCostRows=[
+  {name:"工程量清单本体费用",parent:true,children:[{name:"子项1",quote:100000,target:90000,remark:"0708改为90000"},{name:"子项2",quote:200000,target:90000,remark:""},{name:"子项3",quote:0,target:10000,remark:"0708新增1000"}]},
+  {name:"措施费",parent:true,children:[{name:"安全文明施工费",fixed:true,quote:100,target:80,remark:""},{name:"其他措施项目费",fixed:true,quote:80,target:80,remark:""}]},
+  {name:"其他项目费",parent:true,children:[{name:"暂列金额",fixed:true,quote:0,target:0,remark:""},{name:"专业工程暂估价",fixed:true,quote:0,target:0,remark:""},{name:"计日工",fixed:true,quote:0,target:0,remark:""},{name:"总承包服务费",fixed:true,quote:0,target:0,remark:""}]},
+  {name:"税金",parent:true,children:[]},{name:"其他直接费",parent:true,children:[]},{name:"项目管理费",parent:true,children:[]}
+];
+function projectTargetCostTotal(key){return projectTargetCostRows.reduce((sum,row)=>sum+row.children.reduce((subtotal,child)=>subtotal+Math.round(Number(child[key]||0)*100),0),0)/100}
+function renderProjectTargetCostInput(row,i,j,key,label){
+  const money=key==="quote"||key==="target";
+  const input=`<input class="input" aria-label="${i+1}${j<0?"":"."+(j+1)} ${label}" type="${money?"number":"text"}" ${money?'min="0" step="0.01"':'maxlength="500"'} value="${escapeAttr(String(row[key]??""))}" placeholder="请输入" oninput="updateProjectTargetCostValue(this,${i},${j},'${key}')">`;
+  return money?`<div class="comprehensive-actual-output-input target-cost-money-input">${input}<span>元</span></div>`:input;
+}
+function renderProjectTargetCostTableRows(){
+  return projectTargetCostRows.map((row,i)=>`<tr class="project-target-cost-parent">
+    <td>${i+1}</td><td>${renderProjectTargetCostInput(row,i,-1,"name","成本项名称")}</td>
+    <td><strong data-cost-subtotal="${i}-quote"></strong></td><td><strong data-cost-subtotal="${i}-target"></strong></td>
+    <td>${renderProjectTargetCostInput(row,i,-1,"remark","备注")}</td>
+    <td><button type="button" class="target-cost-text-action" onclick="addProjectTargetCostChild(${i})">新增子项</button></td></tr>
+    ${row.children.map((child,j)=>`<tr class="${child.fixed?"project-target-cost-fixed-child":""}"><td>${i+1}.${j+1}</td><td>${child.fixed?`<span class="project-target-cost-fixed-name">${escapeAttr(child.name)}</span>`:renderProjectTargetCostInput(child,i,j,"name","成本项名称")}</td>
+      <td>${renderProjectTargetCostInput(child,i,j,"quote","中标价")}</td><td>${renderProjectTargetCostInput(child,i,j,"target","目标成本")}</td>
+      <td>${renderProjectTargetCostInput(child,i,j,"remark","备注")}</td>
+      <td>${child.fixed?"":`<button type="button" class="target-cost-text-action danger" onclick="removeProjectTargetCostChild(${i},${j})">移除</button>`}</td></tr>`).join("")}`).join("");
+}
+function refreshProjectTargetCostTotals(){
+  const money=value=>value.toLocaleString("zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2});
+  projectTargetCostRows.forEach((row,i)=>["quote","target"].forEach(key=>{
+    row[key]=row.children.reduce((sum,child)=>sum+Math.round(Number(child[key]||0)*100),0)/100;
+    const cell=document.querySelector(`[data-cost-subtotal="${i}-${key}"]`);
+    if(cell)cell.textContent=money(row[key]);
+  }));
+  const quote=projectTargetCostTotal("quote"),target=projectTargetCostTotal("target");
+  const values=[money(quote),money(target),money(Math.round((quote-target)*100)/100),`${(quote?(quote-target)/quote*100:0).toFixed(2)}%`];
+  document.querySelectorAll(".project-target-cost-metrics strong").forEach((cell,i)=>cell.textContent=values[i]);
+}
+function updateProjectTargetCostValue(input,i,j,key){
+  const row=j<0?projectTargetCostRows[i]:projectTargetCostRows[i].children[j];
+  if(key==="quote"||key==="target"){
+    if(!input.validity.valid)return;
+    row[key]=input.value===""?"":Number(input.value);
+    refreshProjectTargetCostTotals();
+  }else row[key]=input.value;
+}
+function addProjectTargetCostChild(i){
+  projectTargetCostRows[i].children.push({name:"",quote:"",target:"",remark:""});
+  document.getElementById("projectTargetCostTableBody").innerHTML=renderProjectTargetCostTableRows();
+  refreshProjectTargetCostTotals();
+  document.querySelector(`[aria-label="${i+1}.${projectTargetCostRows[i].children.length} 成本项名称"]`)?.focus();
+}
+function removeProjectTargetCostChild(i,j){
+  projectTargetCostRows[i].children.splice(j,1);
+  document.getElementById("projectTargetCostTableBody").innerHTML=renderProjectTargetCostTableRows();
+  refreshProjectTargetCostTotals();
+}
+function openProjectTargetCostPlanningModal(){
+  const quote=projectTargetCostTotal("quote"),target=projectTargetCostTotal("target"),profit=quote-target;
+  const metrics=`<div class="project-target-cost-metrics"><div><span>中标价合计(元)</span><strong>${quote.toLocaleString("zh-CN",{minimumFractionDigits:2})}</strong></div><div><span>目标成本合计(元)</span><strong>${target.toLocaleString("zh-CN",{minimumFractionDigits:2})}</strong></div><div><span>目标利润(元)</span><strong>${profit.toLocaleString("zh-CN",{minimumFractionDigits:2})}</strong></div><div><span>目标利润率（含税）</span><strong>${(quote?profit/quote*100:0).toFixed(2)}%</strong></div></div>`;
+  const detail=`<div class="table-wrap"><table class="comprehensive-actual-output-project-table project-target-cost-table"><colgroup><col style="width:4%"><col style="width:38%"><col style="width:10%"><col style="width:10%"><col style="width:28%"><col style="width:10%"></colgroup><thead><tr><th>序号</th><th>成本项名称<em>*</em></th><th>中标价<em>*</em></th><th>目标成本<em>*</em></th><th>备注</th><th>操作</th></tr></thead><tbody id="projectTargetCostTableBody">${renderProjectTargetCostTableRows()}</tbody></table></div>`;
+  const html=`<div class="project-target-cost-modal-body">${renderStandardFormGroup("项目目标成本",metrics,{className:"project-target-cost-group"})}${renderStandardFormGroup("项目成本分解表",detail,{description:"单位：元",className:"project-target-cost-group project-target-cost-detail"})}${renderStandardFormGroup("说明",`<div class="project-target-cost-note-content">工程量清单本体费用是指进行建行业的部分分项、交通行业除100章外的对应清单费用；<br/>目标成本中各类费用均为含税价；<br/>税金成本为项目最终承担成本。</div>`,{className:"project-target-cost-group"})}</div>`;
+  openModal("目标成本筹划",html,`<button class="btn primary" onclick="showToast('目标成本筹划已保存')">保存</button><button class="btn primary" onclick="showToast('目标成本筹划已保存并提交')">保存并提交</button><button class="btn" onclick="closeModal()">取消</button>` ,"large");
+  modalBox.classList.add("project-target-cost-modal");
+  refreshProjectTargetCostTotals();
 }
 
 function submitProjectOverallPlanning(){
@@ -5734,6 +5803,7 @@ Object.assign(window,{
   completeProjectPlanningModule,
   submitProjectOverallPlanning,
   openProjectConstructionWastePlanningModal,
+  openProjectTargetCostPlanningModal,
   saveProjectConstructionWastePlanning,
   submitProjectConstructionWastePlanning,
   openProjectRiskPlanningModal,
@@ -5817,5 +5887,3 @@ function renderProjectPlaceholderPage(title){
     </section>
   `);
 }
-
-

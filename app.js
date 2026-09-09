@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.997-milestone-status-tag";
+  const version="2.2.1015-planning-scroll-fix";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/tdesign-icon/tdesign-icon.js",
@@ -18,6 +18,7 @@
     "src/app/project/economy-overview.js",
     "src/app/project/economy-basic-info.js",
     "src/app/project/project-portal.js",
+    "src/app/project/subcontract-planning.js",
     "src/app/project/safety-management-personnel.js",
     "src/app/shell/enterprise-navigation.js",
     "src/app/safety/labor-video-roster.js",
