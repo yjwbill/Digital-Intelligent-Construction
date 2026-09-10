@@ -26296,3 +26296,28 @@ body.entry-mode .digital-entry-values{
 /* Fixed planning modal shell: only its table viewport scrolls. */
 .modal.project-target-cost-modal>.modal-bd,.modal.subcontract-planning-modal>.modal-bd{overflow:hidden!important;flex:1 1 auto!important;min-height:0!important}
 .modal.project-target-cost-modal,.modal.subcontract-planning-modal{overflow:hidden!important}
+
+/* 设备台账图片预览与卡片规范 */
+.project-equipment-image-preview-modal .modal-bd{padding:0!important;display:flex;min-height:0;overflow:hidden!important;background:#0f172a!important}
+.project-equipment-image-preview-modal .project-equipment-image-viewer-stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.project-equipment-image-preview-modal .project-equipment-image-viewer-stage img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain}
+.project-equipment-ledger>.project-equipment-table-wrap{border:0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);border-radius:0}
+.project-equipment-ledger>.pagination{border-top:0;margin-top:0}
+
+.unified-query-card.collapsed .project-equipment-enterprise-filter>label:nth-child(n+9){display:none!important}
+.project-equipment-enterprise-filter{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 16px}
+@media(max-width:1280px){.project-equipment-enterprise-filter{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){.project-equipment-enterprise-filter{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.project-equipment-enterprise-filter{grid-template-columns:1fr}}
+
+/* 设备信息登记标准表单间距 */
+.project-equipment-modal .standard-form-group{margin-bottom:16px}
+.project-equipment-modal .standard-form-group:last-child{margin-bottom:0}
+.project-equipment-modal .detail-group-body{padding:16px 20px}
+.project-equipment-modal .project-equipment-form-grid{gap:16px 20px}
+.project-equipment-modal .form-item>label{margin-bottom:6px}
+.project-equipment-label-info{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border:1px solid #86909c;border-radius:50%;color:#86909c;font-size:10px;font-weight:600;line-height:1;font-family:Arial,sans-serif}
+
+
+.project-equipment-label-info{width:16px;height:16px;border:1px solid #86909C;background:#fff;color:#86909C;box-shadow:none;font-size:11px;font-style:normal;font-weight:600;line-height:14px}
+

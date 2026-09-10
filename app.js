@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.1015-planning-scroll-fix";
+  const version="2.2.1016-enterprise-equipment-ledger";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/tdesign-icon/tdesign-icon.js",
@@ -64,4 +64,3 @@
     document.write('<script src="./'+src+'?v='+version+'"><\/script>');
   });
 })();
-
