@@ -25317,6 +25317,88 @@ body.entry-mode .digital-entry-divider{height:6px;margin:0 auto 14px;opacity:.72
 .economy-warning-notice-page-shell>.economy-warning-notice-page>.economy-warning-notice-query,
 .economy-warning-notice-page-shell>.economy-warning-notice-page>.economy-warning-notice-table-card{margin:0}
 .economy-warning-notice-page-shell>.economy-warning-notice-page>.economy-warning-notice-query{margin-bottom:10px}
+/* 预警通知统一标准列表表格节奏 */
+.economy-warning-notice-page-shell>.economy-warning-notice-page>.economy-warning-notice-table-card{
+  display:flex;
+  flex:1 1 auto;
+  min-height:0;
+  flex-direction:column;
+  overflow:hidden;
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:#fff;
+  box-shadow:none;
+}
+.economy-warning-notice-table-card>.card-hd{
+  flex:0 0 auto;
+  min-height:48px;
+  padding:0 14px;
+  border-bottom:1px solid var(--border);
+}
+.economy-warning-notice-table-card>.table-wrap{
+  flex:1 1 auto;
+  min-height:0;
+  overflow:auto;
+  border:0;
+  border-radius:0;
+}
+.economy-warning-notice-table-card table{
+  width:100%;
+  min-width:1330px;
+  table-layout:fixed;
+  border-collapse:collapse;
+}
+.economy-warning-notice-table-card th,
+.economy-warning-notice-table-card td{
+  height:40px!important;
+  padding:7px 8px;
+  border-right:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  box-sizing:border-box;
+  color:var(--text);
+  font-size:14px!important;
+  line-height:20px;
+  vertical-align:middle;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.economy-warning-notice-table-card th{
+  height:44px!important;
+  background:#fafbfc;
+  color:var(--sub);
+  font-weight:600;
+  text-align:center;
+}
+.economy-warning-notice-table-card td:nth-child(1),
+.economy-warning-notice-table-card td:nth-child(2),
+.economy-warning-notice-table-card td:nth-child(3),
+.economy-warning-notice-table-card td:nth-child(4),
+.economy-warning-notice-table-card td:nth-child(7),
+.economy-warning-notice-table-card td:nth-child(9),
+.economy-warning-notice-table-card td:nth-child(10){text-align:center}
+.economy-warning-notice-table-card>.pagination{
+  flex:0 0 auto;
+  min-height:48px;
+  padding:0 14px;
+  border-top:0;
+  background:#fff;
+}
+.economy-warning-notice-table-card th:last-child,.economy-warning-notice-table-card td:last-child{position:sticky;right:0;z-index:2;background:#fff;box-shadow:-2px 0 6px rgba(31,35,41,.06)}
+.economy-warning-notice-table-card th:last-child{z-index:3;background:#fafbfc}
+.economy-warning-notice-table-card .tag{display:inline-flex;align-items:center;justify-content:center;min-width:64px;height:24px;padding:0 8px;border-radius:4px}
+.economy-warning-notice-table-card .economy-warning-notice-actions{display:table-cell;vertical-align:middle;text-align:center;height:auto;white-space:nowrap;}
+.economy-warning-notice-table-card .economy-warning-notice-actions .link{padding:0;border:0;background:transparent;color:var(--primary);font-size:14px;line-height:20px;}
+/* 预警通知最终默认列宽（与列设置默认值保持一致） */
+.economy-warning-notice-table-card table{min-width:1400px!important;width:max-content!important;table-layout:fixed!important}
+/* 预警通知列宽最终约束：避免旧规则或列设置行内样式把操作列拉宽 */
+.economy-warning-notice-table-card .table-wrap{width:100%;overflow:auto;}
+.economy-warning-notice-table-card table{
+  width:max-content!important;
+  min-width:1370px!important;
+  max-width:none!important;
+  table-layout:fixed!important;
+}
 .economy-warning-rule-content{padding:0;overflow:hidden}
 .economy-warning-rule-content>.economy-warning-rule-toolbar{min-height:48px;height:48px;padding:0 14px;box-sizing:border-box}
 .economy-warning-rule-content>.roster-table-wrap{flex:1;min-height:0;overflow:auto}
@@ -25392,8 +25474,10 @@ body.entry-mode .digital-entry-divider{height:6px;margin:0 auto 14px;opacity:.72
   gap:10px;
   white-space:nowrap;
 }
-.economy-management-pending-table-card .economy-management-operation-column{width:180px!important;min-width:180px!important;max-width:180px!important}
-.economy-management-managed-table-card .economy-management-operation-column{width:260px!important;min-width:260px!important;max-width:260px!important}
+.economy-management-pending-table-card .economy-management-operation-column{width:150px!important;min-width:150px!important;max-width:150px!important}
+.economy-management-managed-table-card .economy-management-operation-column{width:150px!important;min-width:150px!important;max-width:150px!important}
+.economy-management-ended-table-card th:nth-child(4),.economy-management-ended-table-card td:nth-child(4){width:130px!important;min-width:130px!important;max-width:130px!important;text-align:center!important}
+.economy-management-ended-table-card th:nth-child(6),.economy-management-ended-table-card td:nth-child(6){width:200px!important;min-width:200px!important;max-width:200px!important;text-align:center!important}
 .economy-management-modal-form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px 22px;padding:4px;align-items:start}.economy-management-modal-field{display:flex;min-width:0;min-height:72px;flex-direction:column;gap:7px}.economy-management-modal-field label{position:relative;color:var(--text);font-size:14px;line-height:20px;white-space:nowrap}.economy-management-modal-field.required>label:after{content:"*";margin-left:5px;color:var(--danger)}.economy-management-modal-field .input,.economy-management-modal-field .select{width:100%;height:32px;box-sizing:border-box}.economy-management-modal-field .readonly{background:#f2f3f5;color:var(--text)}.economy-management-modal-field .DscMultiSelect{width:100%}.economy-management-radio-group{height:32px;display:flex;align-items:center;gap:20px}.economy-management-radio-group .component-radio{height:32px;cursor:pointer}.economy-management-radio-group .component-radio input{width:14px;height:14px;margin:0}
 /* Organization fields use the shared Combobox without inheriting native select/button rules. */
 .form-item>[data-org-combobox-upgraded],.field>[data-org-combobox-upgraded],.query-item>[data-org-combobox-upgraded]{display:block;min-width:0;width:100%}
@@ -26320,4 +26404,10 @@ body.entry-mode .digital-entry-values{
 
 
 .project-equipment-label-info{width:16px;height:16px;border:1px solid #86909C;background:#fff;color:#86909C;box-shadow:none;font-size:11px;font-style:normal;font-weight:600;line-height:14px}
+
+
+
+.economy-management-table-card th:nth-child(9),.economy-management-table-card td:nth-child(9){width:200px!important;min-width:200px!important;max-width:200px!important;text-align:center!important}
+.economy-management-pending-table-card th:nth-child(6),.economy-management-pending-table-card td:nth-child(6){width:200px!important;min-width:200px!important;max-width:200px!important;text-align:center!important}
+.economy-management-managed-table-card th:nth-child(6),.economy-management-managed-table-card td:nth-child(6){width:130px!important;min-width:130px!important;max-width:130px!important}
 

@@ -18,7 +18,7 @@ function getEconomyCustomColumnConfig(key,columns){
     return defaults.map(column=>({...column,visible:column.key==="operation"||visible.has(column.index)}));
   }
   if(!Array.isArray(saved))return defaults;
-  return defaults.map(column=>{const old=saved.find(item=>item.key===column.key||Number(item.index)===column.index);return old?{...column,visible:old.visible!==false,width:Number(old.width)||column.width,align:old.align||column.align,order:Number(old.order)||column.order}:column;}).sort((a,b)=>a.key==="operation"?1:b.key==="operation"?-1:a.order-b.order).map((column,index)=>({...column,order:index+1}));
+  return defaults.map(column=>{const old=saved.find(item=>item.key===column.key)||saved.find(item=>!item.key&&Number(item.index)===column.index);return old?{...column,visible:old.visible!==false,width:Number(old.width)||column.width,align:old.align||column.align,order:Number(old.order)||column.order}:column;}).sort((a,b)=>a.key==="operation"?1:b.key==="operation"?-1:a.order-b.order).map((column,index)=>({...column,order:index+1}));
 }
 function getEconomyCustomFreezeCount(key,columns){
   const max=normalizeEconomyCustomColumns(columns).filter(column=>column.key!=="operation").length;
@@ -35,9 +35,11 @@ function applyEconomyCustomColumnVisibility(key){
   let leftOffset=0;
   document.querySelectorAll(`${setting.selector} tr`).forEach(row=>{
     const cells=[...row.children];
+    if(cells.some(cell=>cell.colSpan>1))return;
     config.sort((a,b)=>a.order-b.order).forEach(column=>{
-      const cell=cells[column.index];
+      const cell=cells.find(item=>item.dataset.economyColumnKey===column.key)||cells[column.index];
       if(!cell)return;
+      cell.dataset.economyColumnKey=column.key;
       cell.style.display=column.visible?"":"none";
       cell.style.width=`${column.width}px`;cell.style.minWidth=`${column.width}px`;cell.style.maxWidth=`${column.width}px`;cell.style.textAlign=column.align;
       cell.classList.remove("table-sticky-left","table-sticky-left-edge","table-sticky-operation");
