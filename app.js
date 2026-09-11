@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.1019-warning-notice-period-position";
+  const version="2.2.1020-warning-notice-remove-bulk-delete";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/tdesign-icon/tdesign-icon.js",
