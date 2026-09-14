@@ -875,6 +875,14 @@ const businessMenus={
         ]
       },
       {
+        icon:"🔎",
+        name:"隐患排查",
+        open:false,
+        children:[
+          {name:"隐患排查总览"}
+        ]
+      },
+      {
         icon:"🎥",
         name:"视频监控",
         open:false,
