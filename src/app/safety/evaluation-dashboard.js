@@ -5344,7 +5344,7 @@ tableColumnDefinitions.safetyStaffShortage=[
   {key:"actual",title:"已配置安全岗人数",width:150,align:"right",render:row=>row.actual},
   {key:"required",title:`应配置安全岗人数 <span class="help-ico" data-tip="【总包安全员数量规定： \n1）5000万元以下的项目不少于1人\n2）5000万～2亿元的项目不少于2人\n3）2亿元以上的项目不少于3人，且每增加2亿元，应当至少增加1名专职安全生产管理人员】" onmouseenter="showFloatingInfoTip(this)" onmouseleave="hideFloatingInfoTip()">💬</span>`,width:170,align:"right",render:row=>row.required},
   {key:"areaCity",title:"所在省市",width:140,align:"center",render:row=>row.areaCity},
-  {key:"region",title:"所属区域",width:130,align:"center",render:row=>row.region},
+  {key:"region",title:"区域市场",width:130,align:"center",render:row=>row.region},
   {key:"owner",title:"建设单位",width:220,align:"left",render:row=>row.owner}
 ];
 

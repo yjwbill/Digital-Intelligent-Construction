@@ -1,0 +1,20 @@
+/* Keep planning headers, statistics and footers visible; scroll only tables. */
+.modal.project-target-cost-modal,.modal.subcontract-planning-modal{height:calc(100vh - 64px)!important;max-height:calc(100vh - 64px)!important;display:flex;flex-direction:column;overflow:hidden}
+.modal.project-target-cost-modal.fullscreen,.modal.subcontract-planning-modal.fullscreen{height:100vh!important;max-height:100vh!important}
+.modal.project-target-cost-modal>.modal-hd,.modal.subcontract-planning-modal>.modal-hd,.modal.project-target-cost-modal>.modal-ft,.modal.subcontract-planning-modal>.modal-ft{flex-shrink:0}
+.modal.project-target-cost-modal>.modal-bd,.modal.subcontract-planning-modal>.modal-bd{flex:1;min-height:0;overflow:hidden!important;display:flex;flex-direction:column;box-sizing:border-box;padding:16px!important}
+.modal.project-target-cost-modal .project-target-cost-modal-body{flex:1;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:12px}
+.modal.subcontract-planning-modal .subcontract-plan-body{flex:1;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);gap:12px}
+.modal.project-target-cost-modal .standard-form-group,.modal.subcontract-planning-modal .standard-form-group{margin:0;min-height:0;min-width:0}
+.modal.project-target-cost-modal .project-target-cost-detail,.modal.subcontract-planning-modal .subcontract-plan-body>.standard-form-group:last-child{display:flex;flex-direction:column;overflow:hidden}
+.modal.project-target-cost-modal .project-target-cost-detail>.detail-group-header,.modal.subcontract-planning-modal .subcontract-plan-body>.standard-form-group:last-child>.detail-group-header{flex-shrink:0}
+.modal.project-target-cost-modal .project-target-cost-detail>.detail-group-body,.modal.subcontract-planning-modal .subcontract-plan-body>.standard-form-group:last-child>.detail-group-body{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+.modal.project-target-cost-modal .project-target-cost-detail .table-wrap,.modal.subcontract-planning-modal .subcontract-plan-table-wrap{flex:1;min-height:0;max-height:none;overflow:auto}
+@media(max-height:720px){
+  .modal.project-target-cost-modal,.modal.subcontract-planning-modal{height:calc(100vh - 24px)!important;max-height:calc(100vh - 24px)!important}
+  .modal.project-target-cost-modal .project-target-cost-metrics{padding:0!important}
+  .modal.project-target-cost-modal .project-target-cost-note-content{padding:4px 8px;line-height:18px}
+  .modal.subcontract-planning-modal .subcontract-plan-stat{min-height:64px;padding:8px 12px;gap:4px}
+}
+
+#modalBox.project-target-cost-modal #modalBody,#modalBox.subcontract-planning-modal #modalBody{overflow:hidden!important;display:flex!important;flex-direction:column!important;min-height:0!important;flex:1!important}

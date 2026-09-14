@@ -232,6 +232,7 @@ function selectBusinessChildMenu(line,gi,ci,name){
   if(line==="base"&&name==="组织管理")return renderChild(()=>renderOrgManagementPage());
   if(line==="base"&&name==="岗位管理")return renderChild(()=>renderPostManagementPage());
   if(line==="base"&&name==="角色管理")return renderChild(()=>renderRoleManagementPage());
+  if(line==="base"&&name==="菜单管理")return renderChild(()=>renderMenuManagementPage());
   if(line==="base"&&name==="项目资源授权")return renderChild(()=>renderProjectResourceAuthorizationPage());
   if(line==="base"&&name==="模板管理")return renderChild(()=>renderMessageTemplatePage());
   if(line==="base"&&name==="发送批次明细")return renderChild(()=>renderMessageSendRecordPage());
@@ -256,7 +257,10 @@ function selectBusinessChildMenu(line,gi,ci,name){
   if(line==="economy"&&parent?.name==="经济诊断"&&name==="诊断任务")return renderChild(()=>renderEconomyDiagnosisTaskPageRoute());
   if(line==="economy"&&parent?.name==="经济诊断"&&name==="诊断结果")return renderChild(()=>renderEconomyDiagnosisResultPage());
   if(line==="economy"&&parent?.name==="经济诊断"&&name==="规则设置")return renderChild(()=>renderEconomyWarningRuleSettingsPage());
+  if(line==="economy"&&parent?.name==="经济诊断"&&name==="填报规则")return renderChild(()=>renderBusinessModulePage(line,"填报规则"));
   if(line==="economy"&&parent?.name==="经济预警"&&name==="预警通知")return renderChild(()=>renderEconomyWarningNoticePage());
+  if(line==="economy"&&parent?.name==="经济报表"&&name==="进度节点")return renderChild(()=>renderEconomyProgressNodeReportPage());
+  if(line==="economy"&&parent?.name==="历史功能")return renderChild(()=>renderBusinessModulePage(line,name));
 
   if(line==="safety")return renderChild(()=>renderSafetyPlaceholder(name));
 

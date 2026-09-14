@@ -1,8 +1,9 @@
 (function(){
-  const version="2.2.987-safety-pie-card-center";
+  const version="2.2.1020-warning-notice-remove-bulk-delete";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/tdesign-icon/tdesign-icon.js",
+    "src/components/selection-primitives/selection-primitives.js",
     "src/vendor/jszip.min.js",
     "src/app/shared/construction-log-word-export.js",
     "src/components/statistics-filter/statistics-filter.js",
@@ -17,11 +18,15 @@
     "src/app/project/economy-overview.js",
     "src/app/project/economy-basic-info.js",
     "src/app/project/project-portal.js",
+    "src/app/project/subcontract-planning.js",
     "src/app/project/safety-management-personnel.js",
     "src/app/shell/enterprise-navigation.js",
     "src/app/safety/labor-video-roster.js",
     "src/app/production/supplier-performance.js",
     "src/app/base/base-management.js",
+    "src/app/base/menu-management.js",
+    "src/components/emoji-picker/emoji-data.js",
+    "src/components/emoji-picker/menu-emoji-picker.js",
     "src/app/safety/evaluation-dashboard.js",
     "src/app/production/dashboard-statistics-data.js",
     "src/app/production/dashboard.js",
@@ -50,6 +55,7 @@
     "src/app/economy/dashboard.js",
     "src/app/economy/economy-warning-rule-settings.js",
     "src/app/economy/economy-warning-notice.js",
+    "src/app/economy/economy-progress-node-report.js",
     "src/app/mobile/project-overview.js",
     "src/app/core/99-initial-route.js"
   ];
@@ -58,3 +64,4 @@
     document.write('<script src="./'+src+'?v='+version+'"><\/script>');
   });
 })();
+

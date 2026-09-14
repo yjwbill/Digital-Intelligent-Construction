@@ -810,82 +810,44 @@ function saveOrgUserAddNew(){
   applyUserAssignments(user,assignments);orgUserData.push(user);persistMasterData("users",orgUserData);currentOrgId=user.orgId;closeModal();renderOrgManagementPagePreservingScroll();showToast("人员新增成功");
 }
 */
-function renderPostManagementPage(){
-  detailPage.style.display="none";
-  listPage.style.display="flex";
-
-  listPage.innerHTML=`
-    <div class="compact-title-row">
-      <div class="module-title">岗位管理</div>
-    </div>
-
-    <section class="card table-card">
-      <div class="card-hd">
-        <div class="card-title">岗位列表</div>
-        <div class="actions">
-          <button class="btn primary" onclick="openPostAddModal()">新增岗位</button>
-          <button class="btn" onclick="renderPostManagementPage()">刷新</button>
-        </div>
-      </div>
-
-      <div class="table-wrap roster-table-wrap">
-        <table style="min-width:1100px">
-          <thead>
-            <tr>
-              <th style="width:70px;text-align:center">序号</th>
-              <th>岗位编码</th>
-              <th>岗位名称</th>
-              <th>岗位层级</th>
-              <th style="text-align:right">岗位人数</th>
-              <th>状态</th>
-              <th>备注</th>
-              <th style="width:230px;text-align:center">操作</th>
-            </tr>
-          </thead>
-          <tbody id="postTbody"></tbody>
-        </table>
-      </div>
-
-      <div class="pagination">
-        <span id="postTotalText">共 ${postData.length} 条</span>
-        <span>第 1 / 1 页　每页 50 条</span>
-      </div>
-    </section>
-  `;
-
-  renderPostTable();
+const organizationAuthListState={post:{code:"",name:"",level:"",status:""},role:{code:"",name:"",remark:"",status:""}};
+function filterOrganizationAuthRows(type){
+  const f=organizationAuthListState[type];
+  const rows=type==="post"?postData:roleData;
+  return rows.filter(row=>!f.code||row.code===f.code).filter(row=>!f.name||row.name.includes(f.name)).filter(row=>!f.status||row.status===f.status).filter(row=>type!=="post"||!f.level||row.level===f.level).filter(row=>type!=="role"||!f.remark||String(row.remark||"").includes(f.remark));
 }
-
-function renderPostTable(){
-  const tbody=document.getElementById("postTbody");
-  if(!tbody)return;
-
-  tbody.innerHTML=postData.map((p,i)=>{
-    const count=orgUserData.filter(u=>getUserAssignments(u).some(item=>item.postIds.includes(p.id))).length;
-
-    return `
-      <tr>
-        <td style="text-align:center">${i+1}</td>
-        <td>${p.code}</td>
-        <td>${p.name}</td>
-        <td>${p.level}</td>
-        <td style="text-align:right">${count}</td>
-        <td>${p.status==="启用"?tag("启用","green"):tag("禁用","gray")}</td>
-        <td>${p.remark || "-"}</td>
-        <td style="text-align:center">
-          <a class="link" onclick="openPostEditModal('${p.id}')">编辑</a>
-          ｜
-          <a class="link" onclick="togglePostStatus('${p.id}')">${p.status==="启用"?"禁用":"启用"}</a>
-          ｜
-          <a class="link" onclick="openPostBatchAuthorize('${p.id}')">批量授权</a>
-        </td>
-      </tr>
-    `;
-  }).join("");
-
-  const total=document.getElementById("postTotalText");
-  if(total)total.innerText=`共 ${postData.length} 条`;
+function renderOrganizationAuthQuery(type){
+  const f=organizationAuthListState[type], prefix=`organizationAuth-${type}`;
+  const fields=type==="post"?`
+    <div class="form-item"><label>岗位编码</label><input class="input" id="${prefix}-code" value="${escapeAttr(f.code)}" placeholder="请输入岗位编码"/></div>
+    <div class="form-item"><label>岗位名称</label><input class="input" id="${prefix}-name" value="${escapeAttr(f.name)}" placeholder="请输入岗位名称"/></div>
+    <div class="form-item"><label>岗位层级</label><select class="select" id="${prefix}-level"><option value="">全部</option>${["股份级","子公司级","分公司级"].map(x=>`<option ${f.level===x?"selected":""}>${x}</option>`).join("")}</select></div>
+    <div class="form-item"><label>状态</label><select class="select" id="${prefix}-status"><option value="">全部</option><option ${f.status==="启用"?"selected":""}>启用</option><option ${f.status==="禁用"?"selected":""}>禁用</option></select></div>`:`
+    <div class="form-item"><label>角色编码</label><input class="input" id="${prefix}-code" value="${escapeAttr(f.code)}" placeholder="请输入角色编码"/></div>
+    <div class="form-item"><label>角色名称</label><input class="input" id="${prefix}-name" value="${escapeAttr(f.name)}" placeholder="请输入角色名称"/></div>
+    <div class="form-item"><label>备注</label><input class="input" id="${prefix}-remark" value="${escapeAttr(f.remark)}" placeholder="请输入备注"/></div>
+    <div class="form-item"><label>状态</label><select class="select" id="${prefix}-status"><option value="">全部</option><option ${f.status==="启用"?"selected":""}>启用</option><option ${f.status==="禁用"?"selected":""}>禁用</option></select></div>`;
+  return renderUnifiedQueryCard(fields,{id:`organizationAuth-${type}-query`,queryFn:`queryOrganizationAuthList('${type}')`,resetFn:`resetOrganizationAuthList('${type}')`,canCollapse:false});
 }
+function queryOrganizationAuthList(type){
+  const f=organizationAuthListState[type],prefix=`organizationAuth-${type}`;
+  Object.keys(f).forEach(key=>{const el=document.getElementById(`${prefix}-${key}`);if(el)f[key]=el.value.trim();});
+  type==="post"?renderPostManagementPage():renderRoleManagementPage();
+}
+function resetOrganizationAuthList(type){Object.keys(organizationAuthListState[type]).forEach(key=>organizationAuthListState[type][key]="");type==="post"?renderPostManagementPage():renderRoleManagementPage();}
+
+tableColumnDefinitions.organizationPosts=[
+ {key:"index",title:"序号",width:70,align:"center",render:(row,index)=>index+1},
+ {key:"code",title:"岗位编码",width:180,render:row=>escapeAttr(row.code)},
+ {key:"name",title:"岗位名称",width:180,render:row=>escapeAttr(row.name)},
+ {key:"level",title:"岗位层级",width:130,render:row=>escapeAttr(row.level)},
+ {key:"count",title:"岗位人数",width:110,align:"right",render:row=>orgUserData.filter(u=>getUserAssignments(u).some(item=>item.postIds.includes(row.id))).length},
+ {key:"status",title:"状态",width:100,align:"center",render:row=>row.status==="启用"?tag("启用","green"):tag("禁用","gray")},
+ {key:"remark",title:"备注",width:280,render:row=>escapeAttr(row.remark||"-")},
+ {key:"operation",title:"操作",width:240,align:"center",render:row=>`<a class="link" onclick="openPostEditModal('${row.id}')">编辑</a> <a class="link" onclick="togglePostStatus('${row.id}')">${row.status==="启用"?"禁用":"启用"}</a> <a class="link" onclick="openPostBatchAuthorize('${row.id}')">批量授权</a>`}
+];
+tableColumnDefinitions.organizationPosts.rightFreezeCount=1;
+function renderPostManagementPage(){detailPage.style.display="none";listPage.style.display="flex";const rows=filterOrganizationAuthRows("post");listPage.innerHTML=`<div class="compact-title-row"><div class="module-title">岗位管理</div></div>${renderOrganizationAuthQuery("post")}${renderUnifiedTableCard({title:"岗位列表",tableKey:"organizationPosts",tableId:"organizationPostsTable",theadId:"organizationPostsThead",tbodyId:"postTbody",totalId:"postTotalText",total:rows.length,renderFnName:"renderPostManagementPage",beforeActions:'<button class="btn primary" onclick="openPostAddModal()">新增岗位</button>',refreshAction:"renderPostManagementPage()",exportAction:"showToast('导出成功：岗位列表.xlsx')"})}`;renderTableByColumns("organizationPosts",rows,"postTbody");}
 
 function openPostAddModal(){
   openPostFormModal();
@@ -1337,62 +1299,16 @@ function openProjectResourceAssignmentPlaceholder(id){
 }
 
 /* ---------- 角色管理：基础维护，供新增人员选择 ---------- */
-function renderRoleManagementPage(){
-  detailPage.style.display="none";
-  listPage.style.display="flex";
-
-  listPage.innerHTML=`
-    <div class="compact-title-row">
-      <div class="module-title">角色管理</div>
-    </div>
-
-    <section class="card table-card">
-      <div class="card-hd">
-        <div class="card-title">角色列表</div>
-        <div class="actions">
-          <button class="btn primary" onclick="openRoleAddModal()">新增角色</button>
-          <button class="btn" onclick="renderRoleManagementPage()">刷新</button>
-        </div>
-      </div>
-
-      <div class="table-wrap roster-table-wrap">
-        <table style="min-width:900px">
-          <thead>
-            <tr>
-              <th style="width:70px;text-align:center">序号</th>
-              <th>角色编码</th>
-              <th>角色名称</th>
-              <th>状态</th>
-              <th>备注</th>
-              <th style="width:160px;text-align:center">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${roleData.map((r,i)=>`
-              <tr>
-                <td style="text-align:center">${i+1}</td>
-                <td>${r.code}</td>
-                <td>${r.name}</td>
-                <td>${r.status==="启用"?tag("启用","green"):tag("禁用","gray")}</td>
-                <td>${r.remark || "-"}</td>
-                <td style="text-align:center">
-                  <a class="link" onclick="openRoleEditModal('${r.id}')">编辑</a>
-                  ｜
-                  <a class="link" onclick="toggleRoleStatus('${r.id}')">${r.status==="启用"?"禁用":"启用"}</a>
-                </td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      </div>
-
-      <div class="pagination">
-        <span>共 ${roleData.length} 条</span>
-        <span>第 1 / 1 页　每页 50 条</span>
-      </div>
-    </section>
-  `;
-}
+tableColumnDefinitions.organizationRoles=[
+ {key:"index",title:"序号",width:70,align:"center",render:(row,index)=>index+1},
+ {key:"code",title:"角色编码",width:220,render:row=>escapeAttr(row.code)},
+ {key:"name",title:"角色名称",width:180,render:row=>escapeAttr(row.name)},
+ {key:"status",title:"状态",width:100,align:"center",render:row=>row.status==="启用"?tag("启用","green"):tag("禁用","gray")},
+ {key:"remark",title:"备注",width:300,render:row=>escapeAttr(row.remark||"-")},
+ {key:"operation",title:"操作",width:160,align:"center",render:row=>`<a class="link" onclick="openRoleEditModal('${row.id}')">编辑</a> <a class="link" onclick="toggleRoleStatus('${row.id}')">${row.status==="启用"?"禁用":"启用"}</a>`}
+];
+tableColumnDefinitions.organizationRoles.rightFreezeCount=1;
+function renderRoleManagementPage(){detailPage.style.display="none";listPage.style.display="flex";const rows=filterOrganizationAuthRows("role");listPage.innerHTML=`<div class="compact-title-row"><div class="module-title">角色管理</div></div>${renderOrganizationAuthQuery("role")}${renderUnifiedTableCard({title:"角色列表",tableKey:"organizationRoles",tableId:"organizationRolesTable",theadId:"organizationRolesThead",tbodyId:"roleTbody",totalId:"roleTotalText",total:rows.length,renderFnName:"renderRoleManagementPage",beforeActions:'<button class="btn primary" onclick="openRoleAddModal()">新增角色</button>',refreshAction:"renderRoleManagementPage()",exportAction:"showToast('导出成功：角色列表.xlsx')"})}`;renderTableByColumns("organizationRoles",rows,"roleTbody");}
 
 function openRoleAddModal(){
   openRoleFormModal();

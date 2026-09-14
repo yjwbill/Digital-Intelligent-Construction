@@ -122,7 +122,7 @@ function renderProjectContextDropdown(currentProject){
         ${renderProjectContextSelect("projectSwitchBranchCompany","分公司","branchCompany",allProjects,branchSource)}
         ${renderProjectContextSelect("projectSwitchStatus","项目状态","projectStatus",allProjects)}
         <label class="project-switch-field"><span>项目经理</span><input id="projectSwitchManager" class="input" value="${escapeAttr(projectContextSwitchState.projectManager)}" placeholder="请输入项目经理" onkeydown="if(event.key==='Enter')syncProjectContextFilters()"/></label>
-        ${renderProjectContextSelect("projectSwitchRegion","所属区域","region",allProjects)}
+        ${renderProjectContextSelect("projectSwitchRegion","区域市场","region",allProjects)}
         <label class="project-switch-field"><span>所在省市</span><input id="projectSwitchProvinceCity" class="input" value="${escapeAttr(projectContextSwitchState.provinceCity)}" placeholder="请输入省/市" onkeydown="if(event.key==='Enter')syncProjectContextFilters()"/></label>
         ${renderProjectContextSelect("projectSwitchSafetyManaged","安全纳管","isSafetyManaged",allProjects)}
       </div>
@@ -870,20 +870,7 @@ function renderProjectLogReadonlyMilestoneTable(rows){
     ...(rows||[]).filter(item=>item.actualDate)
   ].map(item=>[item.nodeName,item]));
   const completedRows=[...completedMap.values()];
-  const cards=items=>items.length?`<div class="project-log-readonly-risk-list">
-    ${items.map(item=>`
-      <div class="project-log-readonly-risk-card project-detail-info-grid">
-        ${renderProjectLogReadonlyField("里程碑节点名称",item.nodeName)}
-        ${renderProjectLogReadonlyField("计划完成日期（最新）",item.planLatestDate)}
-        ${renderProjectLogReadonlyField("节点状态",item.nodeStatus)}
-        ${renderProjectLogReadonlyField("管控等级",item.controlLevel)}
-        ${renderProjectLogReadonlyField("是否重点进度节点",item.keyNode)}
-        ${item.actualDate?renderProjectLogReadonlyField("实际完成日期",item.actualDate):""}
-        ${item.actualDate?"":renderProjectLogReadonlyField("里程碑情况",item.milestoneStatus||"-")}
-        ${item.actualDate?"":renderProjectLogReadonlyField("里程碑进展情况",item.milestoneProgress||"-")}
-      </div>
-    `).join("")}
-  </div>`:`<div class="project-log-empty project-log-milestone-empty">暂无数据</div>`;
+  const cards=items=>items.length?`<div class="project-log-readonly-risk-list">${items.map((item,index)=>`<div class="project-log-risk-row project-log-risk-card project-log-milestone-card project-log-readonly-risk-card"><div class="project-log-risk-heading"><span class="project-log-risk-index">${String(index+1).padStart(2,"0")}</span><strong>${item.nodeName}</strong><em class="project-log-risk-type">${item.nodeStatus}</em></div><div class="project-log-risk-info project-log-risk-info-grid project-log-milestone-info"><div><span>计划完成日期（最新）：</span><strong>${item.planLatestDate||"-"}</strong></div>${item.actualDate?`<div><span>实际完成日期：</span><strong>${item.actualDate}</strong></div>`:""}<div><span>管控等级：</span><strong>${item.controlLevel||"-"}</strong></div><div><span>是否重点进度节点：</span><strong>${item.keyNode||"-"}</strong></div></div>${item.actualDate?"":`<div class="project-log-risk-form project-log-milestone-form project-log-readonly-form"><div class="form-item"><label>里程碑情况</label><select class="select" disabled><option selected>${item.milestoneStatus||"-"}</option></select></div><div class="form-item"><label>里程碑进展情况</label><textarea class="input" disabled>${item.milestoneProgress||"-"}</textarea></div></div>`}</div>`).join("")}</div>`:`<div class="project-log-empty project-log-milestone-empty">暂无数据</div>`;
   return `<div class="project-log-readonly-milestone">
     <div class="project-log-readonly-milestone-panel" data-readonly-milestone-panel="ongoing">${cards(ongoingRows)}</div>
     <div class="project-log-readonly-milestone-panel" data-readonly-milestone-panel="completed" hidden>${cards(completedRows)}</div>
@@ -922,11 +909,7 @@ function switchProjectLogReadonlyMilestoneTab(button,tab){
 
 function renderProjectLogReadonlyRiskCards(risks){
   return `<div class="project-log-readonly-risk-list">
-    ${risks.map(risk=>`
-      <div class="project-log-readonly-risk-card project-detail-info-grid">
-        ${Array.from({length:risk.length/2},(_,index)=>renderProjectLogReadonlyField(risk[index*2],risk[index*2+1])).join("")}
-      </div>
-    `).join("")}
+    ${risks.map((risk,index)=>{const v=key=>risk[risk.indexOf(key)+1]||"-";return `<div class="project-log-risk-row project-log-risk-card project-log-readonly-risk-card"><div class="project-log-risk-heading"><span class="project-log-risk-index">${String(index+1).padStart(2,"0")}</span><strong>${v("风险名称")}</strong><em class="project-log-risk-level">${v("风险等级")}</em><span class="project-log-risk-type">${v("风险类型")}</span></div><div class="project-log-risk-info project-log-risk-info-grid"><div><span>计划开始日期：</span><strong>${v("计划开始日期")}</strong></div><div><span>计划完成日期：</span><strong>${v("计划完成日期")}</strong></div><div><span>实际开始日期：</span><strong>${v("实际开始日期")}</strong></div><div><span>计划持续时间：</span><strong>${v("计划持续时间")}</strong></div><div><span>挂牌领导：</span><strong>${v("挂牌领导")}</strong></div><div><span>是否临铁/临高速：</span><strong>${v("是否临铁/临高速")}</strong></div><div><span>是否年度风险：</span><strong>${v("是否年度风险")}</strong></div><div class="project-log-risk-description"><span>风险描述：</span><strong>${v("风险描述")}</strong></div></div><div class="project-log-risk-form project-log-readonly-form"><div class="form-item"><label>是否完成</label><select class="select" disabled><option selected>${v("是否完成")}</option></select></div><div class="form-item"><label>是否受控</label><select class="select" disabled><option selected>${v("是否受控")}</option></select></div><div class="form-item"><label>风险情况</label><select class="select" disabled><option selected>${v("风险情况")}</option></select></div><div class="form-item"><label>风险进展情况</label><textarea class="input" disabled>${v("风险进展情况")}</textarea></div></div></div>`;}).join("")}
   </div>`;
 }
 
@@ -1370,15 +1353,9 @@ function renderProjectLogMilestoneRows(savedRows=[],reportDate=getProjectLogToda
     const completedRows=getProjectLogCompletedMilestoneRows();
     if(!completedRows.length)return `<div class="project-log-empty project-log-milestone-empty">暂无已完成里程碑节点</div>`;
     return `<div class="project-log-milestone-card-list">${completedRows.map(row=>`
-      <div class="project-log-milestone-row completed" data-milestone-mode="completed">
-        <div class="project-log-risk-info project-log-milestone-info">
-          <div><span>里程碑节点名称</span><strong>${row.nodeName}</strong></div>
-          <div><span>计划完成日期（最新）</span><strong>${row.planLatestDate}</strong></div>
-          <div><span>节点状态</span><strong>${row.nodeStatus}</strong></div>
-          <div><span>管控等级</span><strong>${row.controlLevel}</strong></div>
-          <div><span>是否重点进度节点</span><strong>${row.keyNode}</strong></div>
-          <div><span>实际完成日期</span><strong>${row.actualDate}</strong></div>
-        </div>
+      <div class="project-log-milestone-row project-log-milestone-card project-log-risk-row completed" data-milestone-mode="completed">
+        <div class="project-log-risk-heading"><span class="project-log-risk-index">${String(completedRows.indexOf(row)+1).padStart(2,"0")}</span><strong>${row.nodeName}</strong><em class="project-log-risk-type">${row.nodeStatus}</em></div>
+        <div class="project-log-risk-info project-log-risk-info-grid project-log-milestone-info"><div><span>计划完成日期（最新）：</span><strong>${row.planLatestDate}</strong></div><div><span>实际完成日期：</span><strong>${row.actualDate}</strong></div><div><span>管控等级：</span><strong>${row.controlLevel}</strong></div><div><span>是否重点进度节点：</span><strong>${row.keyNode}</strong></div></div>
       </div>`).join("")}</div>`;
   }
   const savedMap=new Map((savedRows||[]).map(row=>[row.nodeName,row]));
@@ -1390,18 +1367,15 @@ function renderProjectLogMilestoneRows(savedRows=[],reportDate=getProjectLogToda
       const saved=savedMap.get(row.nodeName)||{};
       const status=saved.milestoneStatus||"进度可控";
       return `
-        <div class="project-log-milestone-row" data-milestone-mode="ongoing"
+        <div class="project-log-milestone-row project-log-milestone-card project-log-risk-row" data-milestone-mode="ongoing"
           data-node-name="${escapeAttr(row.nodeName)}"
           data-plan-latest-date="${escapeAttr(row.planLatestDate)}"
           data-node-status="${escapeAttr(row.nodeStatus)}"
           data-control-level="${escapeAttr(row.controlLevel)}"
           data-key-node="${escapeAttr(row.keyNode)}">
-          <div class="project-log-risk-info project-log-milestone-info">
-            <div><span>里程碑节点名称</span><strong>${row.nodeName}</strong></div>
-            <div><span>计划完成日期（最新）</span><strong>${row.planLatestDate}</strong></div>
-            <div><span>节点状态</span><strong>${row.nodeStatus}</strong></div>
-            <div><span>管控等级</span><strong>${row.controlLevel}</strong></div>
-            <div><span>是否重点进度节点</span><strong>${row.keyNode}</strong></div>
+          <div class="project-log-risk-heading"><span class="project-log-risk-index">${String(rows.indexOf(row)+1).padStart(2,"0")}</span><strong>${row.nodeName}</strong><em class="project-log-risk-type">${row.nodeStatus}</em></div>
+          <div class="project-log-risk-info project-log-risk-info-grid project-log-milestone-info">
+            <div><span>计划完成日期（最新）：</span><strong>${row.planLatestDate}</strong></div><div><span>管控等级：</span><strong>${row.controlLevel}</strong></div><div><span>是否重点进度节点：</span><strong>${row.keyNode}</strong></div>
           </div>
           <div class="project-log-risk-form project-log-milestone-form">
             <div class="form-item"><label>里程碑情况 <em>*</em></label><select class="select project-log-milestone-status"><option value="">请选择</option><option ${status==="进度可控"?"selected":""}>进度可控</option><option ${status==="进度预警"?"selected":""}>进度预警</option></select></div>
@@ -1523,21 +1497,8 @@ function renderProjectLogRiskRows(savedRisks=[]){
     const controlledValue=getProjectLogRiskFieldValue(savedRisk,"是否受控")||"是";
     const situationValue=getProjectLogRiskFieldValue(savedRisk,"风险情况")||"风险可控";
     const progressValue=getProjectLogRiskFieldValue(savedRisk,"风险进展情况");
-    return `
-    <div class="project-log-risk-row" data-project-log-risk-index="${index}">
-      <div class="project-log-risk-info">
-        ${Array.from({length:Math.ceil(risk.length/2)},(_,i)=>`
-          <div><span>${risk[i*2]}</span><strong>${risk[i*2+1]}</strong></div>
-        `).join("")}
-      </div>
-      <div class="project-log-risk-form">
-        <div class="form-item"><label>是否完成 <em>*</em></label><select class="select"><option ${completeValue==="否"?"selected":""}>否</option><option ${completeValue==="是"?"selected":""}>是</option></select></div>
-        <div class="form-item"><label>是否受控 <em>*</em></label><select class="select"><option ${controlledValue==="是"?"selected":""}>是</option><option ${controlledValue==="否"?"selected":""}>否</option></select></div>
-        <div class="form-item"><label>风险情况 <em>*</em></label>${renderProjectLogRiskSituationSelect(situationValue)}</div>
-        <div class="form-item"><label>风险进展情况 <em>*</em></label><textarea class="input project-log-risk-progress" placeholder="请输入" required>${escapeAttr(progressValue)}</textarea></div>
-      </div>
-    </div>
-  `;
+    const value=label=>escapeAttr(getProjectLogRiskFieldValue(risk,label)||"-");
+    return `<div class="project-log-risk-row project-log-risk-card" data-project-log-risk-index="${index}"><div class="project-log-risk-heading"><span class="project-log-risk-index">${String(index+1).padStart(2,"0")}</span><strong>${value("风险名称")}</strong><em class="project-log-risk-level">${value("风险等级")}</em><span class="project-log-risk-type">${value("风险类型")}</span></div><div class="project-log-risk-info project-log-risk-info-grid"><div><span>计划开始日期：</span><strong>${value("计划开始日期")}</strong></div><div><span>计划完成日期：</span><strong>${value("计划完成日期")}</strong></div><div><span>实际开始日期：</span><strong>${value("实际开始日期")}</strong></div><div><span>计划持续时间：</span><strong>${value("计划持续时间")}</strong></div><div><span>挂牌领导：</span><strong>${value("挂牌领导")}</strong></div><div><span>是否临铁/临高速：</span><strong>${value("是否临铁/临高速")||"是"}</strong></div><div><span>是否年度风险：</span><strong>${value("是否年度风险")||"是"}</strong></div><div class="project-log-risk-description"><span>风险描述：</span><strong>${value("风险描述")}</strong></div></div><div class="project-log-risk-form"><div class="form-item"><label>是否完成 <em>*</em></label><select class="select"><option ${completeValue==="否"?"selected":""}>否</option><option ${completeValue==="是"?"selected":""}>是</option></select></div><div class="form-item"><label>是否受控 <em>*</em></label><select class="select"><option ${controlledValue==="是"?"selected":""}>是</option><option ${controlledValue==="否"?"selected":""}>否</option></select></div><div class="form-item"><label>风险情况 <em>*</em></label>${renderProjectLogRiskSituationSelect(situationValue)}</div><div class="form-item"><label>风险进展情况 <em>*</em></label><textarea class="input project-log-risk-progress" placeholder="请输入" required>${escapeAttr(progressValue)}</textarea></div></div></div>`;
   }).join("");
 }
 
@@ -2395,7 +2356,7 @@ tableColumnDefinitions.projectEquipmentManagement=[
   {key:"operation",title:"操作",width:190,align:"center",render:row=>renderProjectEquipmentMergedActions(row)}
 ];
 tableColumnDefinitions.enterpriseEquipmentLedger=[
-  {key:"index",title:"序号",width:60,align:"center"},{key:"projectName",title:"项目名称",width:180},{key:"subCompany",title:"子公司",width:120},{key:"branchCompany",title:"分公司",width:120},{key:"projectManager",title:"项目经理",width:150},{key:"deviceType",title:"设备类型",width:120},{key:"category",title:"设备分类",width:110},{key:"deviceName",title:"设备名称",width:140},{key:"model",title:"规格型号",width:120},{key:"deviceNo",title:"设备编号",width:130},{key:"brand",title:"设备品牌",width:110},{key:"country",title:"国别",width:90},{key:"energy",title:"能源方式",width:100},{key:"power",title:"额定功率(KW)",width:120},{key:"manufactureMonth",title:"出厂日期",width:120},{key:"property",title:"设备产权",width:100},{key:"planEntryDate",title:"计划进场日期",width:130},{key:"planExitDate",title:"计划退场日期",width:130},{key:"actualEntryDate",title:"实际进场日期",width:130},{key:"actualExitDate",title:"实际退场日期",width:130},{key:"deviceImages",title:"设备图片",width:120},{key:"nameplateImages",title:"铭牌图片",width:120},{key:"attachments",title:"附件上传情况",width:150},{key:"region",title:"区域市场",width:120},{key:"provinceCity",title:"所在省市",width:130},{key:"builder",title:"建设单位",width:160}
+  {key:"index",title:"序号",width:60,align:"center"},{key:"projectName",title:"项目名称",width:180},{key:"subCompany",title:"子公司",width:120},{key:"branchCompany",title:"分公司",width:120},{key:"projectManager",title:"项目经理",width:150},{key:"deviceName",title:"设备名称",width:140},{key:"deviceNo",title:"设备编号",width:130},{key:"entryStatus",title:"进场状态",width:110,align:"center"},{key:"deviceType",title:"设备类型",width:120},{key:"category",title:"设备分类",width:110},{key:"model",title:"规格型号",width:120},{key:"brand",title:"设备品牌",width:110},{key:"country",title:"国别",width:90},{key:"energy",title:"能源方式",width:100},{key:"power",title:"额定功率(KW)",width:120},{key:"manufactureMonth",title:"出厂日期",width:120},{key:"property",title:"设备产权",width:100},{key:"planEntryDate",title:"计划进场日期",width:130},{key:"planExitDate",title:"计划退场日期",width:130},{key:"actualEntryDate",title:"实际进场日期",width:130},{key:"actualExitDate",title:"实际退场日期",width:130},{key:"deviceImages",title:"设备图片",width:120},{key:"nameplateImages",title:"铭牌图片",width:120},{key:"attachments",title:"附件上传情况",width:150},{key:"region",title:"区域市场",width:120},{key:"provinceCity",title:"所在省市",width:130},{key:"builder",title:"建设单位",width:160}
 ];
 const enterpriseEquipmentState={
   subCompany:"",
@@ -2403,6 +2364,8 @@ const enterpriseEquipmentState={
   region:"",
   provinceCity:"",
   deviceName:"",
+  brand:"",
+  manufactureMonth:"",
   category:"",
   deviceType:"",
   country:"",
@@ -2469,7 +2432,8 @@ function getEnterpriseEquipmentRows(includeStat=true){
     const matched=(
     equals(row,"subCompany",s.subCompany)&&equals(row,"branchCompany",s.branchCompany)
     &&(!s.region||normalizedRegion===s.region)&&includes(row,"provinceCity",s.provinceCity)
-    &&includes(row,"deviceName",s.deviceName)&&equals(row,"deviceType",s.deviceType)
+    &&includes(row,"deviceName",s.deviceName)&&equals(row,"deviceType",s.deviceType)&&equals(row,"brand",s.brand)
+    &&equals(row,"manufactureMonth",s.manufactureMonth)
     &&equals(row,"planEntryDate",s.planEntryDate)
     &&equals(row,"planExitDate",s.planExitDate)&&equals(row,"actualEntryDate",s.actualEntryDate)
     &&equals(row,"actualExitDate",s.actualExitDate)&&includes(row,"projectName",s.projectName)
@@ -2479,6 +2443,7 @@ function getEnterpriseEquipmentRows(includeStat=true){
     if(!includeStat)return true;
     if(s.statKey==="entered")return !!row.actualEntryDate&&!row.actualExitDate;
     if(s.statKey==="exited")return !!row.actualExitDate;
+    if(s.statKey.startsWith("property:"))return row.property===s.statKey.slice(9);
     if(s.statKey.startsWith("category:"))return row.category===s.statKey.slice(9);
     if(s.statKey.startsWith("country:"))return row.country===s.statKey.slice(8);
     if(s.statKey.startsWith("energy:"))return row.energy===s.statKey.slice(7);
@@ -2492,33 +2457,34 @@ function getEnterpriseEquipmentOptions(key){
 }
 
 function renderEnterpriseEquipmentSelect(id,label,key,options=getEnterpriseEquipmentOptions(key)){
-  return `<label><span>${label}</span><select id="${id}" class="select">${renderProjectEquipmentOptions(options,enterpriseEquipmentState[key],"全部")}</select></label>`;
+  return `<div class="form-item"><label for="${id}">${label}</label><select id="${id}" class="select">${renderProjectEquipmentOptions(options,enterpriseEquipmentState[key],"全部")}</select></div>`;
 }
 
 function renderEnterpriseEquipmentInput(id,label,key,type="text"){
-  return `<label><span>${label}</span><input id="${id}" class="input" type="${type}" value="${escapeAttr(enterpriseEquipmentState[key])}" placeholder="${type==="date"?"请选择":"请输入"}${escapeAttr(label)}" onkeydown="if(event.key==='Enter')queryEnterpriseEquipmentLedger()"/></label>`;
+  return `<div class="form-item"><label for="${id}">${label}</label><input id="${id}" class="input" type="${type}" value="${escapeAttr(enterpriseEquipmentState[key])}" placeholder="${type==="date"?"请选择":"请输入"}${escapeAttr(label)}" onkeydown="if(event.key==='Enter')queryEnterpriseEquipmentLedger()"/></div>`;
 }
 
 function renderEnterpriseEquipmentFilters(){
   const fields=[
+    renderEnterpriseEquipmentInput("enterpriseEquipmentProjectName","项目名称","projectName"),
     renderEnterpriseEquipmentSelect("enterpriseEquipmentSubCompany","子公司","subCompany"),
     renderEnterpriseEquipmentSelect("enterpriseEquipmentBranchCompany","分公司","branchCompany"),
-    renderEnterpriseEquipmentSelect("enterpriseEquipmentRegion","区域市场","region",typeof getEconomyBusinessAnalysisDictionaryOptions==="function"?getEconomyBusinessAnalysisDictionaryOptions("MARKET_AREA"):enterpriseEquipmentRegionOptions),
-    renderEnterpriseEquipmentInput("enterpriseEquipmentProvinceCity","所在省市","provinceCity"),
     renderEnterpriseEquipmentInput("enterpriseEquipmentDeviceName","设备名称","deviceName"),
     renderEnterpriseEquipmentSelect("enterpriseEquipmentType","设备类型","deviceType",projectEquipmentTypes),
+    renderEnterpriseEquipmentSelect("enterpriseEquipmentBrand","设备品牌","brand"),
+    renderEnterpriseEquipmentSelect("enterpriseEquipmentRegion","区域市场","region",typeof getEconomyBusinessAnalysisDictionaryOptions==="function"?getEconomyBusinessAnalysisDictionaryOptions("MARKET_AREA"):enterpriseEquipmentRegionOptions),
+    renderEnterpriseEquipmentInput("enterpriseEquipmentProvinceCity","所在省市","provinceCity"),
     renderEnterpriseEquipmentInput("enterpriseEquipmentPlanEntryDate","计划进场日期","planEntryDate","date"),
     renderEnterpriseEquipmentInput("enterpriseEquipmentPlanExitDate","计划退场日期","planExitDate","date"),
     renderEnterpriseEquipmentInput("enterpriseEquipmentActualEntryDate","实际进场日期","actualEntryDate","date"),
     renderEnterpriseEquipmentInput("enterpriseEquipmentActualExitDate","实际退场日期","actualExitDate","date"),
-    renderEnterpriseEquipmentInput("enterpriseEquipmentProjectName","项目名称","projectName"),
-    renderEnterpriseEquipmentInput("enterpriseEquipmentProjectManager","项目经理","projectManager"),
-    renderEnterpriseEquipmentInput("enterpriseEquipmentBuilder","建设单位","builder")
+    renderEnterpriseEquipmentInput("enterpriseEquipmentManufactureMonth","出厂日期","manufactureMonth","month")
   ];
-  return `<div class="project-equipment-enterprise-filter">${fields.slice(0,8).join("")}</div>`;
+  return `<div class="project-equipment-enterprise-filter">${fields.join("")}</div>`;
 }
 
 function setEnterpriseEquipmentStat(key){
+  enterpriseEquipmentState.page=1;
   enterpriseEquipmentState.statKey=enterpriseEquipmentState.statKey===key?"all":key;
   renderEnterpriseEquipmentLedgerPage();
 }
@@ -2528,10 +2494,11 @@ function renderEnterpriseEquipmentStatsCard(rows){
   const exited=rows.filter(row=>row.actualExitDate).length;
   const countBy=key=>value=>rows.filter(row=>row[key]===value).length;
   return StatisticsFilter.render({id:"enterprise-equipment-statistics-filter",activeKey:enterpriseEquipmentState.statKey,groups:[
-    {label:"设备汇总",items:[
+    {label:"进场状态",items:[
       {key:"entered",label:"已进场",value:entered},
       {key:"exited",label:"已退场",value:exited}
     ]},
+    {label:"设备产权",items:["租赁","自有"].map(value=>({key:`property:${value}`,label:value,value:countBy("property")(value)}))},
     {label:"设备分类",items:projectEquipmentCategories.map(value=>({key:`category:${value}`,label:value,value:countBy("category")(value)}))},
     {label:"国别",items:projectEquipmentCountryOptions.map(value=>({key:`country:${value}`,label:value,value:countBy("country")(value)}))},
     {label:"能源方式",items:projectEquipmentEnergyOptions.map(value=>({key:`energy:${value}`,label:value,value:countBy("energy")(value)}))}
@@ -2556,7 +2523,7 @@ function renderEnterpriseEquipmentLedgerPage(){
   const baseRows=getEnterpriseEquipmentRows(false);
   const rows=getEnterpriseEquipmentRows();
   renderProjectPageShell("设备台账","设备管理 / 设备台账",`
-    ${renderUnifiedQueryCard(renderEnterpriseEquipmentFilters().replace(/^<div[^>]*>|<\/div>$/g,""),{id:"enterpriseEquipmentQueryCard",title:"查询条件",queryFn:"queryEnterpriseEquipmentLedger()",resetFn:"resetEnterpriseEquipmentLedger()",canCollapse:false})}
+    ${renderUnifiedQueryCard(renderEnterpriseEquipmentFilters().replace(/^<div[^>]*>|<\/div>$/g,""),{id:"enterpriseEquipmentQueryCard",title:"查询条件",queryFn:"queryEnterpriseEquipmentLedger()",resetFn:"resetEnterpriseEquipmentLedger()",canCollapse:true,collapsed:true})}
     <div class="enterprise-equipment-stats-spacing">${renderEnterpriseEquipmentStatsCard(baseRows)}</div>
     ${renderProjectEquipmentLedgerSection({rows,showEnterpriseColumns:true,showActions:false,title:"设备台账",subtitle:"",exportAction:"showToast('设备台账导出成功')"})}
   `);
@@ -2573,13 +2540,13 @@ function normalizeEnterpriseEquipmentLedgerTable(){
   const table=document.querySelector('.project-equipment-ledger .project-equipment-table');
   if(!table)return;
   const header=[...table.querySelectorAll('thead th')];
-  header.forEach(cell=>{if(cell.textContent.trim()==='所属区域')cell.textContent='区域市场';});
+  header.forEach(cell=>{if(cell.textContent.trim()==='区域市场')cell.textContent='区域市场';});
   const names=header.map(cell=>cell.textContent.trim());
-  const desired=['序号','项目名称','子公司','分公司','项目经理','设备类型','设备分类','设备名称','规格型号','设备编号','设备品牌','国别','能源方式','额定功率(KW)','出厂日期','设备产权','计划进场日期','计划退场日期','实际进场日期','实际退场日期','设备图片','铭牌图片','附件上传情况','区域市场','所在省市','建设单位'];
+  const desired=['序号','项目名称','子公司','分公司','项目经理','设备名称','设备编号','进场状态','设备类型','设备分类','规格型号','设备品牌','国别','能源方式','额定功率(KW)','出厂日期','设备产权','计划进场日期','计划退场日期','实际进场日期','实际退场日期','设备图片','铭牌图片','附件上传情况','区域市场','所在省市','建设单位'];
   const order=desired.map(name=>names.indexOf(name)).filter(index=>index>=0);
   if(order.length===desired.length){
     const rows=[...table.querySelectorAll('tr')];
-    rows.forEach(row=>{const cells=[...row.children]; order.forEach(index=>row.appendChild(cells[index]));});
+    rows.forEach(row=>{const cells=[...row.children]; if(cells.length!==desired.length)return; order.forEach(index=>row.appendChild(cells[index]));});
     const managerIndex=desired.indexOf('项目经理');
     const regionIndex=desired.indexOf('区域市场');
     [...table.querySelectorAll('tbody tr')].forEach(row=>{
@@ -2591,7 +2558,7 @@ function normalizeEnterpriseEquipmentLedgerTable(){
         cells[managerIndex].innerHTML=renderProjectManagerContact(name,phone,{key:`enterprise-equipment-${Math.random()}`});
       }
       if(cells[regionIndex])cells[regionIndex].innerHTML=renderProjectEquipmentTag(cells[regionIndex].textContent.trim(),'green');
-      ["设备类型","设备分类","国别","能源方式","设备产权"].forEach(label=>{const index=desired.indexOf(label);if(cells[index])cells[index].innerHTML=renderProjectEquipmentTag(cells[index].textContent.trim(),"blue");});
+      ["设备类型","设备分类","国别","能源方式","设备产权","进场状态"].forEach(label=>{const index=desired.indexOf(label);if(cells[index])cells[index].innerHTML=renderProjectEquipmentTag(cells[index].textContent.trim(),label==="进场状态"?(cells[index].textContent.trim()==="已退场"?"gray":"green"):"blue");});
     });
   }
 }
@@ -2726,21 +2693,22 @@ function renderProjectEquipmentLedgerSection(options={}){
   const showActions=options.showActions!==false;
   const title=options.title||"设备信息台账";
   const subtitle=Object.prototype.hasOwnProperty.call(options,"subtitle")?options.subtitle:"已登记设备全量信息";
-  const colspan=19+(showEnterpriseColumns?7:0)+(showActions?1:0);
+  const colspan=20+(showEnterpriseColumns?7:0)+(showActions?1:0);
   const rows=options.rows||projectEquipmentRegistrations;
   return `<section class="card project-equipment-ledger">
-    <div class="card-hd"><div class="card-title">${escapeAttr(title)}</div><div class="actions">${options.exportAction?`<button class="btn" type="button" onclick="${options.exportAction}">导出</button>`:""}<button class="column-setting-icon-btn" title="列设置" onclick="openColumnSetting('enterpriseEquipmentLedger','renderEnterpriseEquipmentLedgerPage')">⚙</button></div></div>
+    <div class="card-hd"><div class="card-title">${escapeAttr(title)}</div><div class="actions">${options.exportAction?`<button class="btn" type="button" onclick="${options.exportAction}">导出</button>`:""}<button class="btn" type="button" title="刷新" onclick="renderEnterpriseEquipmentLedgerPage()">刷新</button><button class="column-setting-icon-btn" title="列设置" onclick="openColumnSetting('enterpriseEquipmentLedger','renderEnterpriseEquipmentLedgerPage')">⚙</button></div></div>
     <div class="project-equipment-table-wrap">
       <table class="project-equipment-table ledger">
-        <thead><tr><th>序号</th>${showEnterpriseColumns?"<th>子公司</th><th>分公司</th><th>所属区域</th><th>所在省市</th><th>项目名称</th><th>项目经理</th><th>建设单位</th>":""}<th>设备类型</th><th>设备分类</th><th>设备名称</th><th>规格型号</th><th>设备编号</th><th>设备品牌</th><th>国别</th><th>能源方式</th><th>额定功率(KW)</th><th>出厂日期</th><th>设备产权</th><th>计划进场日期</th><th>计划退场日期</th><th>实际进场日期</th><th>实际退场日期</th><th>设备图片</th><th>铭牌图片</th><th>附件上传情况</th>${showActions?"<th>操作</th>":""}</tr></thead>
+        <thead><tr><th>序号</th>${showEnterpriseColumns?"<th>子公司</th><th>分公司</th><th>区域市场</th><th>所在省市</th><th>项目名称</th><th>项目经理</th><th>建设单位</th>":""}<th>设备名称</th><th>设备编号</th><th>进场状态</th><th>设备分类</th><th>设备类型</th><th>规格型号</th><th>设备品牌</th><th>能源方式</th><th>额定功率(KW)</th><th>出厂日期</th><th>设备产权</th><th>国别</th><th>计划进场日期</th><th>计划退场日期</th><th>实际进场日期</th><th>实际退场日期</th><th>设备图片</th><th>铭牌图片</th><th>附件上传情况</th>${showActions?"<th>操作</th>":""}</tr></thead>
         <tbody>${rows.slice((enterpriseEquipmentState.page-1)*enterpriseEquipmentState.pageSize,enterpriseEquipmentState.page*enterpriseEquipmentState.pageSize).map((row,index)=>`<tr>
           <td>${index+1}</td>
           ${showEnterpriseColumns?`<td>${escapeAttr(row.subCompany||"-")}</td><td>${escapeAttr(row.branchCompany||"-")}</td><td>${escapeAttr(normalizeEnterpriseEquipmentRegion(row.region)||"-")}</td><td>${escapeAttr(row.provinceCity||"-")}</td><td title="${escapeAttr(row.projectName||pcPortalState.currentProject)}">${escapeAttr(row.projectName||pcPortalState.currentProject)}</td><td>${renderProjectManagerContact(row.projectManager,row.managerPhone,{key:`enterprise-equipment-${row.id||row.deviceNo}`})}</td><td title="${escapeAttr(row.builder||"-")}">${escapeAttr(row.builder||"-")}</td>`:""}
+          <td>${escapeAttr(row.deviceName||"-")}</td>
+          <td>${escapeAttr(row.deviceNo)}</td>
+          <td>${escapeAttr(row.actualExitDate?"已退场":row.actualEntryDate?"已进场":"—")}</td>
           <td>${escapeAttr(row.deviceType)}</td>
           <td>${escapeAttr(row.category)}</td>
-          <td>${escapeAttr(row.deviceName||"-")}</td>
           <td>${escapeAttr(row.model)}</td>
-          <td>${escapeAttr(row.deviceNo)}</td>
           <td>${escapeAttr(row.brand)}</td>
           <td>${escapeAttr(row.country)}</td>
           <td>${escapeAttr(row.energy)}</td>
@@ -2783,7 +2751,7 @@ function getProjectEquipmentDocumentFiles(documents,key){
 
 function renderProjectEquipmentLabelHint(key){
   if(key!=="compliancePhoto"&&key!=="supervisionReport")return "";
-  return `<span class="project-equipment-label-hint" aria-label="该附件由安全子平台录入"><span class="project-equipment-label-info" aria-hidden="true">I</span><span class="project-equipment-label-tooltip">该附件由安全子平台录入</span></span>`;
+  return `<span class="project-equipment-label-hint" aria-label="该附件由安全子平台录入"><span class="project-equipment-label-info" aria-hidden="true">i</span><span class="project-equipment-label-tooltip">该附件由安全子平台录入</span></span>`;
 }
 
 function renderProjectEquipmentDocumentLabel(item,required){
@@ -2805,7 +2773,7 @@ function renderProjectEquipmentAttachmentStatus(row){
   const uploadedGroups=groups.filter(group=>group.files.length).length;
   const fileCount=groups.reduce((sum,group)=>sum+group.files.length,0);
   const documentCount=projectEquipmentDocumentItems.filter(item=>getProjectEquipmentDocumentFiles(row.documents,item.key).length).length;
-  return `<button type="button" class="project-equipment-attachment-status" onclick="openProjectEquipmentAttachmentModal('${escapeAttr(row.id)}')"><strong>${documentCount}/${projectEquipmentDocumentItems.length}</strong><span>${fileCount}个资料附件</span></button>`;
+  return `<button type="button" class="project-equipment-attachment-status" onclick="openProjectEquipmentAttachmentModal('${escapeAttr(row.id)}')"><strong>${documentCount}/${projectEquipmentDocumentItems.length}</strong><span>${documentCount ? "已上传" : "未上传"}</span></button>`;
 }
 
 function renderProjectEquipmentAttachmentGroup(group){
@@ -2982,6 +2950,7 @@ function resetProjectEquipmentManagement(){
 }
 
 function queryEnterpriseEquipmentLedger(){
+  enterpriseEquipmentState.page=1;
   const readFilterValue=(id,key,trim=false)=>{
     const node=document.getElementById(id);
     if(!node)return enterpriseEquipmentState[key]||"";
@@ -2994,6 +2963,8 @@ function queryEnterpriseEquipmentLedger(){
     provinceCity:readFilterValue("enterpriseEquipmentProvinceCity","provinceCity",true),
     deviceName:readFilterValue("enterpriseEquipmentDeviceName","deviceName",true),
     deviceType:readFilterValue("enterpriseEquipmentType","deviceType"),
+    brand:readFilterValue("enterpriseEquipmentBrand","brand"),
+    manufactureMonth:readFilterValue("enterpriseEquipmentManufactureMonth","manufactureMonth"),
     planEntryDate:readFilterValue("enterpriseEquipmentPlanEntryDate","planEntryDate"),
     planExitDate:readFilterValue("enterpriseEquipmentPlanExitDate","planExitDate"),
     actualEntryDate:readFilterValue("enterpriseEquipmentActualEntryDate","actualEntryDate"),
@@ -3008,7 +2979,7 @@ function queryEnterpriseEquipmentLedger(){
 function resetEnterpriseEquipmentLedger(){
   const expanded=enterpriseEquipmentState.expanded;
   Object.keys(enterpriseEquipmentState).forEach(key=>{
-    enterpriseEquipmentState[key]=key==="expanded"?expanded:key==="statKey"?"all":"";
+    enterpriseEquipmentState[key]=key==="expanded"?expanded:key==="statKey"?"all":key==="page"?1:key==="pageSize"?enterpriseEquipmentState.pageSize:"";
   });
   renderEnterpriseEquipmentLedgerPage();
 }
@@ -3109,7 +3080,7 @@ function syncProjectEquipmentDocumentUploadPreview(key){
 
 function renderProjectEquipmentDocumentSection(documents={},category="特种设备"){
   return `<section>
-    <h3>全量资料清单</h3>
+
     <div class="project-equipment-document-grid">
       ${projectEquipmentDocumentItems.map(item=>renderProjectEquipmentDocumentUploadField(item,documents,category)).join("")}
     </div>
@@ -4435,8 +4406,8 @@ const projectPlanningModules=[
     contentType:"amounts",
     amounts:[["工程渣土","5,000","吨"],["工程泥浆","5,000","吨"],["装修垃圾","5,000","吨"]]
   },
-  {key:"cost",title:"目标成本计划",required:false,status:"future",contentType:"future"},
-  {key:"subcontract",title:"分包分供筹划",required:false,status:"future",contentType:"future"}
+  {key:"cost",title:"目标成本筹划",required:false,status:"planning",contentType:"tiles",tiles:[["中标价合计","301,880","元"],["目标成本合计","191,600","元"]]},
+  {key:"subcontract",title:"分包分供筹划",required:false,status:"planning",contentType:"tiles",tiles:[["已筹划合同数","0","份"],["已筹划合同额","0.00","元"]]}
 ];
 
 const projectPlanningState={
@@ -4452,11 +4423,26 @@ function getCurrentProjectPlanningCompletedKeys(){
 }
 
 function getProjectPlanningStatus(module){
+  if(module.key==="subcontract"){
+    try{
+      const saved=JSON.parse(localStorage.getItem(`subcontract-plan:${getCurrentProjectContext()?.id||"default"}`)||"null");
+      if(saved)return saved.submitted?"done":"planning";
+    }catch(error){/* Fall back to the in-session planning state. */}
+  }
   if(module.status==="future")return "future";
   return getCurrentProjectPlanningCompletedKeys().has(module.key)?"done":"planning";
 }
 
 function renderProjectPlanningCardContent(module,status){
+  if(module.key==="subcontract"){
+    let rows=[];
+    try{const saved=JSON.parse(localStorage.getItem(`subcontract-plan:${getCurrentProjectContext()?.id||"default"}`)||"null");rows=(saved?.groups||[]).flat();}catch(error){}
+    const amount=rows.reduce((sum,row)=>sum+Math.round(Number(row.amount||0)*100),0)/100;
+    module={...module,tiles:[["已筹划合同数",String(rows.length),"份"],["已筹划合同额",amount.toLocaleString("zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2}),"元"]]};
+  }
+  if(module.key==="cost"){
+    module={...module,tiles:[["中标价合计",projectTargetCostTotal("quote").toLocaleString("zh-CN"),"元"],["目标成本合计",projectTargetCostTotal("target").toLocaleString("zh-CN"),"元"]]};
+  }
   if(status==="future"){
     return `
       <div class="project-planning-future">
@@ -4852,9 +4838,80 @@ function completeProjectPlanningModule(key){
     openProjectRiskPlanningModal();
     return;
   }
+  if(key==="cost"){
+    openProjectTargetCostPlanningModal();
+    return;
+  }
+  if(key==="subcontract"){
+    openProjectSubcontractPlanningModal();
+    return;
+  }
   getCurrentProjectPlanningCompletedKeys().add(key);
   renderProjectOverallPlanningPage();
   showToast(`${module.title}已完成筹划`);
+}
+
+const projectTargetCostRows=[
+  {name:"工程量清单本体费用",parent:true,children:[{name:"子项1",quote:100000,target:90000,remark:"0708改为90000"},{name:"子项2",quote:200000,target:90000,remark:""},{name:"子项3",quote:0,target:10000,remark:"0708新增1000"}]},
+  {name:"措施费",parent:true,children:[{name:"安全文明施工费",fixed:true,quote:100,target:80,remark:""},{name:"其他措施项目费",fixed:true,quote:80,target:80,remark:""}]},
+  {name:"其他项目费",parent:true,children:[{name:"暂列金额",fixed:true,quote:0,target:0,remark:""},{name:"专业工程暂估价",fixed:true,quote:0,target:0,remark:""},{name:"计日工",fixed:true,quote:0,target:0,remark:""},{name:"总承包服务费",fixed:true,quote:0,target:0,remark:""}]},
+  {name:"税金",parent:true,children:[]},{name:"其他直接费",parent:true,children:[]},{name:"项目管理费",parent:true,children:[]}
+];
+function projectTargetCostTotal(key){return projectTargetCostRows.reduce((sum,row)=>sum+row.children.reduce((subtotal,child)=>subtotal+Math.round(Number(child[key]||0)*100),0),0)/100}
+function renderProjectTargetCostInput(row,i,j,key,label){
+  const money=key==="quote"||key==="target";
+  const input=`<input class="input" aria-label="${i+1}${j<0?"":"."+(j+1)} ${label}" type="${money?"number":"text"}" ${money?'min="0" step="0.01"':'maxlength="500"'} value="${escapeAttr(String(row[key]??""))}" placeholder="请输入" oninput="updateProjectTargetCostValue(this,${i},${j},'${key}')">`;
+  return money?`<div class="comprehensive-actual-output-input target-cost-money-input">${input}<span>元</span></div>`:input;
+}
+function renderProjectTargetCostTableRows(){
+  return projectTargetCostRows.map((row,i)=>`<tr class="project-target-cost-parent">
+    <td>${i+1}</td><td>${renderProjectTargetCostInput(row,i,-1,"name","成本项名称")}</td>
+    <td><strong data-cost-subtotal="${i}-quote"></strong></td><td><strong data-cost-subtotal="${i}-target"></strong></td>
+    <td>${renderProjectTargetCostInput(row,i,-1,"remark","备注")}</td>
+    <td><button type="button" class="target-cost-text-action" onclick="addProjectTargetCostChild(${i})">新增子项</button></td></tr>
+    ${row.children.map((child,j)=>`<tr class="${child.fixed?"project-target-cost-fixed-child":""}"><td>${i+1}.${j+1}</td><td>${child.fixed?`<span class="project-target-cost-fixed-name">${escapeAttr(child.name)}</span>`:renderProjectTargetCostInput(child,i,j,"name","成本项名称")}</td>
+      <td>${renderProjectTargetCostInput(child,i,j,"quote","中标价")}</td><td>${renderProjectTargetCostInput(child,i,j,"target","目标成本")}</td>
+      <td>${renderProjectTargetCostInput(child,i,j,"remark","备注")}</td>
+      <td>${child.fixed?"":`<button type="button" class="target-cost-text-action danger" onclick="removeProjectTargetCostChild(${i},${j})">移除</button>`}</td></tr>`).join("")}`).join("");
+}
+function refreshProjectTargetCostTotals(){
+  const money=value=>value.toLocaleString("zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2});
+  projectTargetCostRows.forEach((row,i)=>["quote","target"].forEach(key=>{
+    row[key]=row.children.reduce((sum,child)=>sum+Math.round(Number(child[key]||0)*100),0)/100;
+    const cell=document.querySelector(`[data-cost-subtotal="${i}-${key}"]`);
+    if(cell)cell.textContent=money(row[key]);
+  }));
+  const quote=projectTargetCostTotal("quote"),target=projectTargetCostTotal("target");
+  const values=[money(quote),money(target),money(Math.round((quote-target)*100)/100),`${(quote?(quote-target)/quote*100:0).toFixed(2)}%`];
+  document.querySelectorAll(".project-target-cost-metrics strong").forEach((cell,i)=>cell.textContent=values[i]);
+}
+function updateProjectTargetCostValue(input,i,j,key){
+  const row=j<0?projectTargetCostRows[i]:projectTargetCostRows[i].children[j];
+  if(key==="quote"||key==="target"){
+    if(!input.validity.valid)return;
+    row[key]=input.value===""?"":Number(input.value);
+    refreshProjectTargetCostTotals();
+  }else row[key]=input.value;
+}
+function addProjectTargetCostChild(i){
+  projectTargetCostRows[i].children.push({name:"",quote:"",target:"",remark:""});
+  document.getElementById("projectTargetCostTableBody").innerHTML=renderProjectTargetCostTableRows();
+  refreshProjectTargetCostTotals();
+  document.querySelector(`[aria-label="${i+1}.${projectTargetCostRows[i].children.length} 成本项名称"]`)?.focus();
+}
+function removeProjectTargetCostChild(i,j){
+  projectTargetCostRows[i].children.splice(j,1);
+  document.getElementById("projectTargetCostTableBody").innerHTML=renderProjectTargetCostTableRows();
+  refreshProjectTargetCostTotals();
+}
+function openProjectTargetCostPlanningModal(){
+  const quote=projectTargetCostTotal("quote"),target=projectTargetCostTotal("target"),profit=quote-target;
+  const metrics=`<div class="project-target-cost-metrics"><div><span>中标价合计(元)</span><strong>${quote.toLocaleString("zh-CN",{minimumFractionDigits:2})}</strong></div><div><span>目标成本合计(元)</span><strong>${target.toLocaleString("zh-CN",{minimumFractionDigits:2})}</strong></div><div><span>目标利润(元)</span><strong>${profit.toLocaleString("zh-CN",{minimumFractionDigits:2})}</strong></div><div><span>目标利润率（含税）</span><strong>${(quote?profit/quote*100:0).toFixed(2)}%</strong></div></div>`;
+  const detail=`<div class="table-wrap"><table class="comprehensive-actual-output-project-table project-target-cost-table"><colgroup><col style="width:4%"><col style="width:38%"><col style="width:10%"><col style="width:10%"><col style="width:28%"><col style="width:10%"></colgroup><thead><tr><th>序号</th><th>成本项名称<em>*</em></th><th>中标价<em>*</em></th><th>目标成本<em>*</em></th><th>备注</th><th>操作</th></tr></thead><tbody id="projectTargetCostTableBody">${renderProjectTargetCostTableRows()}</tbody></table></div>`;
+  const html=`<div class="project-target-cost-modal-body">${renderStandardFormGroup("项目目标成本",metrics,{className:"project-target-cost-group"})}${renderStandardFormGroup("项目成本分解表",detail,{description:"单位：元",className:"project-target-cost-group project-target-cost-detail"})}${renderStandardFormGroup("说明",`<div class="project-target-cost-note-content">工程量清单本体费用是指进行建行业的部分分项、交通行业除100章外的对应清单费用；<br/>目标成本中各类费用均为含税价；<br/>税金成本为项目最终承担成本。</div>`,{className:"project-target-cost-group"})}</div>`;
+  openModal("目标成本筹划",html,`<button class="btn primary" onclick="showToast('目标成本筹划已保存')">保存</button><button class="btn primary" onclick="showToast('目标成本筹划已保存并提交')">保存并提交</button><button class="btn" onclick="closeModal()">取消</button>` ,"large");
+  modalBox.classList.add("project-target-cost-modal");
+  refreshProjectTargetCostTotals();
 }
 
 function submitProjectOverallPlanning(){
@@ -5086,6 +5143,7 @@ function renderProjectOverviewPage(){
 }
 
 function renderProjectWorkspacePage(){
+  window.__projectWorkbenchApprovalEmbedded=true;
   const stages=[
     {title:"工程待建和策划阶段",tasks:[
       {name:"项目基本信息登记",icon:"file-edit"},
@@ -5112,9 +5170,11 @@ function renderProjectWorkspacePage(){
   ];
   detailPage.style.display="none";
   listPage.style.display="flex";
-  const visits=[{date:"2026-09-02",name:"王安全",role:"安全领导",time:"16:42"},{date:"2026-09-02",name:"秦群群",role:"项目经理",time:"15:18"},{date:"2026-09-02",name:"王安全",role:"安全领导",time:"10:06"},{date:"2026-09-01",name:"刘佳",role:"项目副经理",time:"17:35"},{date:"2026-09-01",name:"王峰",role:"施工经理",time:"09:20"}];
+  const visits=[{date:"2026-09-02",name:"王安全",level:"project",org:"漕河泾创新水岸建设工程",role:"安全领导",time:"16:42"},{date:"2026-09-02",name:"秦群群",level:"project",org:"漕河泾创新水岸建设工程",role:"项目经理",time:"15:18"},{date:"2026-09-02",name:"王安全",level:"project",org:"漕河泾创新水岸建设工程",role:"安全领导",time:"10:06"},{date:"2026-09-01",name:"刘佳",level:"branch",org:"上海隧道工程有限公司/第一分公司",role:"项目副经理、生产经理",time:"17:35"},{date:"2026-09-01",name:"王峰",level:"company",org:"上海隧道工程有限公司",role:"施工经理",time:"09:20"}];
   const grouped=visits.reduce((map,item)=>{(map[item.date]??=[]).push(item);return map;},{});
-  listPage.innerHTML=`<div class="project-workbench-layout"><div class="project-launch-workspace" aria-label="项目任务发起工作桌面">
+  const approvalTabs=renderApprovalCenterTabs();
+  const approvalBody=`<div class="project-workbench-approval-body">${renderApprovalCategoryTree()}<main class="approval-center-main">${renderApprovalCenterTable()}</main></div>`;
+  listPage.innerHTML=`<div class="project-workbench-page"><div class="project-workbench-layout"><div class="project-launch-workspace" aria-label="项目任务发起工作桌面">
     ${stages.map(stage=>`<section class="project-launch-stage">
       <h2>${stage.title}</h2>
       <div class="project-launch-grid">
@@ -5124,7 +5184,18 @@ function renderProjectWorkspacePage(){
         </button>`).join("")}
       </div>
     </section>`).join("")}
-  </div><aside class="project-visit-record-card"><h2>访问记录</h2><div class="project-visit-record-list">${Object.entries(grouped).map(([date,items])=>{const parts=date.split("-");return `<section><h3>${parts[0]}年${Number(parts[1])}月${Number(parts[2])}日</h3>${items.map(item=>`<div class="project-visit-record-item"><span class="project-visit-avatar">${item.name.slice(0,1)}</span><strong>${item.name}</strong><small>${item.role}</small><time>${date} ${item.time}</time></div>`).join("")}</section>`;}).join("")}</div></aside></div>`;
+  </div><aside class="project-visit-record-card"><div class="project-visit-record-head"><h2>访问记录</h2><button type="button" class="project-visit-record-all" onclick='openProjectVisitRecordModal()'>查看全部<span aria-hidden="true">›</span></button></div><div class="project-visit-record-list">${Object.entries(grouped).map(([date,items])=>{const parts=date.split("-");return `<section><h3>${parts[0]}年${Number(parts[1])}月${Number(parts[2])}日</h3>${items.map(item=>`<div class="project-visit-record-item"><span class="project-visit-avatar">${item.name.slice(0,1)}</span><strong>${item.name}</strong><span class="project-visit-role-tags">${item.role.split(/[、,，]/).filter(Boolean).map(role=>`<span class="project-visit-role-tag">${role}</span>`).join("")}</span><time>${date} ${item.time}</time></div>`).join("")}</section>`;}).join("")}</div></aside></div><section class="project-workbench-approval"><div class="project-workbench-approval-tabs">${approvalTabs}</div>${approvalBody}</section></div>`;
+}
+
+function openProjectVisitRecordModal(){
+  const rows=[
+    ["王安全","漕河泾创新水岸建设工程","安全领导","2026-09-02 16:42"],
+    ["秦群群","漕河泾创新水岸建设工程","项目经理","2026-09-02 15:18"],
+    ["王安全","漕河泾创新水岸建设工程","安全领导","2026-09-02 10:06"],
+    ["刘佳","上海隧道工程有限公司/第一分公司","项目副经理、生产经理","2026-09-01 17:35"],
+    ["王峰","上海隧道工程有限公司","施工经理","2026-09-01 09:20"]
+  ];
+  openModal("访问记录",`<div class="table-card project-visit-record-modal-table"><div class="table-wrap"><table><thead><tr><th style="width:60px;text-align:center">序号</th><th>姓名</th><th>所属组织</th><th>岗位</th><th>访问时间</th></tr></thead><tbody>${rows.map((row,index)=>`<tr><td style="text-align:center">${index+1}</td><td>${row[0]}</td><td><span class="project-visit-org"><span class="project-visit-org-tag">${row[0]==="王安全"||row[0]==="秦群群"?"项目":row[0]==="刘佳"?"分公司":"子公司"}</span>${row[1]}</span></td><td><div class="project-visit-role-tags">${row[2].split(/[、,，]/).filter(Boolean).map(role=>`<span class="project-visit-role-tag">${role}</span>`).join("")}</div></td><td>${row[3]}</td></tr>`).join("")}</tbody></table></div></div>`,`<button type="button" class="btn primary" onclick="closeModal()">关闭</button>` ,"large");
 }
 function changeEnterpriseEquipmentPage(delta){ enterpriseEquipmentState.page=Math.max(1,enterpriseEquipmentState.page+Number(delta||0)); renderEnterpriseEquipmentLedgerPage(); }
 function changeEnterpriseEquipmentPageSize(size){ enterpriseEquipmentState.pageSize=Number(size)||50; enterpriseEquipmentState.page=1; renderEnterpriseEquipmentLedgerPage(); }
@@ -5284,13 +5355,13 @@ function openProjectStopSupplementApplication(){
       <div class="project-stop-status-confirm-field">
         <label>是否停工 <em>*</em></label>
         <div class="project-stop-status-options" role="radiogroup" aria-label="是否停工">
-          <label><input type="radio" name="projectStopSupplementStatusConfirm" value="yes" onchange="changeProjectStopSupplementStatus(this.value)"><span>是</span></label>
+          <label><input type="radio" name="projectStopSupplementStatusConfirm" value="yes" checked onchange="changeProjectStopSupplementStatus(this.value)"><span>是</span></label>
           <label><input type="radio" name="projectStopSupplementStatusConfirm" value="no" onchange="changeProjectStopSupplementStatus(this.value)"><span>否</span></label>
         </div>
       </div>
-      <div id="projectStopSupplementStatusTip" class="project-stop-status-tip">请选择是否停工</div>
-    </div>
-    <section id="projectStopSupplementFormSection" class="project-stop-form-card" hidden>
+      <div id="projectStopSupplementStatusTip" class="project-stop-status-tip">请补充停工申请信息</div>
+    </section>
+    <section id="projectStopSupplementFormSection" class="project-stop-form-card">
       <h3>停工申请信息</h3>
       <div class="project-stop-form-grid">
         <div class="form-item required"><label>停工日期</label><input id="projectStopSupplementDate" class="input" type="date" value="${today}"></div>
@@ -5305,7 +5376,7 @@ function openProjectStopSupplementApplication(){
     title:"停工申请（补充版）",
     mode:"initiation",
     content,
-    modalClass:"project-stop-application-modal project-stop-supplement-application-modal",
+    modalClass:"project-stop-supplement-application-modal",
     previewNodes:["发起审批","项目部总工","分公司管理员","结束审批"],
     footer:`<button class="btn" onclick="closeModal()">取消</button><button class="btn" onclick="saveProjectStopSupplementApplicationDraft()">保存草稿</button><button class="btn primary" onclick="submitProjectStopSupplementApplication()">保存并提交</button>`
   });
@@ -5742,6 +5813,7 @@ Object.assign(window,{
   completeProjectPlanningModule,
   submitProjectOverallPlanning,
   openProjectConstructionWastePlanningModal,
+  openProjectTargetCostPlanningModal,
   saveProjectConstructionWastePlanning,
   submitProjectConstructionWastePlanning,
   openProjectRiskPlanningModal,
@@ -5825,4 +5897,11 @@ function renderProjectPlaceholderPage(title){
     </section>
   `);
 }
+
+
+
+
+
+
+
 

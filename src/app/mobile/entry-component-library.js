@@ -780,7 +780,7 @@ function renderEnterpriseEconomyMorePicker(){
   const sectors=getEnterpriseEconomyUniqueOptions("projectType",rows);
   return `<div class="enterprise-economy-more-form">
     <section class="enterprise-economy-more-section"><h3>组织选择</h3><div class="enterprise-economy-more-grid">${renderEnterpriseEconomyMoreSelect("公司","company",draft.company,companies,"全部公司")}${renderEnterpriseEconomyMoreSelect("分公司","branch",draft.branch,branches,"全部分公司",!draft.company)}</div></section>
-    <section class="enterprise-economy-more-section"><h3>区域选择</h3>${renderEnterpriseEconomyMoreSelect("所属区域","region",draft.region,regions,"全部区域")}</section>
+    <section class="enterprise-economy-more-section"><h3>区域选择</h3>${renderEnterpriseEconomyMoreSelect("区域市场","region",draft.region,regions,"全部区域")}</section>
     <section class="enterprise-economy-more-section"><h3>板块选择</h3>${renderEnterpriseEconomyMoreSelect("项目板块","sector",draft.sector,sectors,"全部板块")}</section>
   </div>`;
 }
@@ -1233,14 +1233,14 @@ const componentChinaAreaDataV2298={
 const componentLibraryMenusV2288={
   pc:[
     {group:"设计规范",items:[["design-token","设计变量 Design Token"]]},
-    {group:"基础组件",items:[["button","按钮 Button"],["icon","图标 Icon"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"],["month","年月选择器 MonthPicker"]]},
-    {group:"表单组件",items:[["input","输入框 Input"],["select","选择器 Select"],["form-group","表单分组 FormGroup"]]},
+    {group:"基础组件",items:[["button","按钮 Button"],["icon","图标 Icon"],["checkbox","复选框 Checkbox"],["radio","单选框 Radio / Button Radio"],["date","日期选择器 DatePicker"],["month","年月选择器 MonthPicker"]]},
+    {group:"表单组件",items:[["input","输入框 Input"],["select","选择器 Select"],["combobox","组合选择器 Combobox"],["multi-select","下拉多选 Multi Select"],["form-group","表单分组 FormGroup"]]},
     {group:"数据展示",items:[["tag","标签 Tag"],["table","表格 Table"],["standard-list","标准列表 StandardList"],["project-manager-contact","项目经理联系方式 ProjectManagerContact"],["row-span-table","纵跨行组件 RowSpanTable"]]},
-    {group:"弹层组件",items:[["modal-standard","基础标准弹框 Modal"],["modal-fullscreen","全屏弹框 FullscreenModal"],["modal-nested","嵌套弹框 NestedModal"],["modal-business","业务定制弹框 BusinessModal"],["approval-dialog","审批弹框 ApprovalDialog"],["modal-immersive","沉浸式预览弹框 ImmersiveModal"],["modal-mobile","移动端弹层 MobileOverlay"],["modal-lightweight","轻量浮层 Popover"]]},
+    {group:"弹层组件",items:[["popover","悬浮层 Popover"],["modal-standard","基础标准弹框 Modal"],["modal-fullscreen","全屏弹框 FullscreenModal"],["modal-nested","嵌套弹框 NestedModal"],["modal-business","业务定制弹框 BusinessModal"],["approval-dialog","审批弹框 ApprovalDialog"],["modal-immersive","沉浸式预览弹框 ImmersiveModal"],["modal-mobile","移动端弹层 MobileOverlay"],["modal-lightweight","轻量浮层业务示例"]]},
     {group:"业务组件",items:[["statistics-filter","统计筛选 StatisticsFilter"],["dashboard-org-switch","看板组织切换 DashboardOrgSwitch"],["project-selector","项目选择器 ProjectSelector"]]}
   ],
   mobile:[
-    {group:"基础组件",items:[["button","按钮 Button"],["radio","单选框 Radio"],["date","日期选择器 DatePicker"],["mobile-month","年月选择器 MobileMonthPicker"]]},
+    {group:"基础组件",items:[["button","按钮 Button"],["radio","单选框 Radio / Button Radio"],["date","日期选择器 DatePicker"],["mobile-month","年月选择器 MobileMonthPicker"]]},
     {group:"组织选择器 OrganizationPicker",items:[["org-single-picker","组织选择器-单选 OrgSinglePicker"],["org-multiple-picker","组织选择器-多选 OrgMultiplePicker"]]},
     {group:"省市区选择器 AreaPicker",items:[["area-single-picker","省市区选择器-单选 AreaSinglePicker"],["area-multiple-picker","省市区选择器-多选 AreaMultiplePicker"]]},
     {group:"反馈组件",items:[["toast","轻提示 Toast"],["sheet","底部面板 ActionSheet"]]},
@@ -1556,11 +1556,27 @@ function renderPcComponentPreviewV2288(type){
       </div>
       <p>操作图标统一来自本地 <code>tdesign-icons-svg@0.4.6</code> 资产库。业务模板使用 <code>renderTDesignIcon(name, options)</code>，禁止重新手绘下拉、关闭、搜索、增删改等通用图标。</p>
     `,
+    checkbox:`
+      <div class="component-checkbox-preview">
+        ${DscCheckbox.render({id:"component-checkbox-default",label:"未选择"})}
+        ${DscCheckbox.render({id:"component-checkbox-checked",label:"已选择",checked:true,onChange:value=>showToast(value?"复选框已选择":"复选框已取消")})}
+        ${DscCheckbox.render({id:"component-checkbox-mixed",label:"部分选择",indeterminate:true})}
+        ${DscCheckbox.render({id:"component-checkbox-disabled",label:"禁用状态",disabled:true})}
+      </div>
+      <p>支持未选中、选中、半选和禁用状态。使用原生键盘焦点语义，适用于批量选择、列设置和多选列表。</p>
+    `,
     radio:`
       <div class="component-demo-row" role="radiogroup" aria-label="接入方式">
         <label class="component-radio"><input type="radio" name="component-radio-basic" value="manual" checked> 手动</label>
         <label class="component-radio"><input type="radio" name="component-radio-basic" value="integrated"> 集成</label>
         <label class="component-radio disabled"><input type="radio" name="component-radio-basic" value="disabled" disabled> 禁用</label>
+      </div>
+      <div class="component-demo-subtitle">Button Radio</div>
+      <div class="component-button-radio" role="radiogroup" aria-label="城市选择">
+        <label class="component-button-radio-option"><input type="radio" name="component-button-radio" checked><span>New York</span></label>
+        <label class="component-button-radio-option"><input type="radio" name="component-button-radio"><span>Washington</span></label>
+        <label class="component-button-radio-option"><input type="radio" name="component-button-radio"><span>Los Angeles</span></label>
+        <label class="component-button-radio-option"><input type="radio" name="component-button-radio"><span>Chicago</span></label>
       </div>
       <p>用于少量互斥选项，标题和值需清晰对齐，业务枚举优先读取数据字典。</p>
     `,
@@ -1572,7 +1588,24 @@ function renderPcComponentPreviewV2288(type){
     `,
     select:`
       <div class="component-demo-row"><select class="select component-input-demo"><option>全部</option><option>已启用</option><option>已停用</option></select></div>
+      <div class="component-demo-subtitle">下拉多选 Select Multiple</div>
+      <div class="component-demo-row component-select-multiple-demo">${DscMultiSelect.render({id:"component-library-select-multiple",options:["Gold","Lime","Green","Cyan"],values:["Gold","Cyan"],placeholder:"请选择颜色"})}</div>
       <p>选择器用于枚举筛选，选项来源优先使用数据字典或组织树等基础数据。</p>
+      <p>下拉多选用于同时选择多个固定选项，已选内容以标签展示，可单独移除。</p>
+    `,
+    combobox:`
+      <div class="component-selection-preview">
+        ${DscCombobox.render({id:"component-library-combobox",options:["机场联络线工程","漕河泾创新水岸建设工程","临港综合管廊建设项目","G60科创走廊道路改扩建工程"],value:"机场联络线工程",placeholder:"请选择项目",searchPlaceholder:"搜索项目",onChange:(value)=>{const target=document.getElementById("component-combobox-value");if(target)target.textContent=`当前选择：${value}`;}})}
+      </div>
+      <div class="component-selection-value" id="component-combobox-value">当前选择：机场联络线工程</div>
+      <p>Combobox 将输入搜索和单选下拉组合在一起，适用于项目、人员、组织以及选项数量较多的字典字段。</p>
+    `,
+    "multi-select":`
+      <div class="component-selection-preview">
+        ${DscMultiSelect.render({id:"component-library-multi-select",options:[{value:"2025",label:"2025年"},{value:"2026",label:"2026年"},{value:"2027",label:"2027年"},{value:"2028",label:"2028年",disabled:true}],values:["2025","2026"],placeholder:"请选择全面预算年度",searchPlaceholder:"搜索年度",maxTagCount:2,onChange:(values)=>{const target=document.getElementById("component-multi-select-value");if(target)target.textContent=`已选择：${values.join("、")||"--"}`;}})}
+      </div>
+      <div class="component-selection-value" id="component-multi-select-value">已选择：2025、2026</div>
+      <p>支持搜索、固定选项复选、标签回显、单项删除、一键清空和禁用选项，适用于全面预算、岗位、组织等多值字段。</p>
     `,
     tag:`
       <div class="component-demo-row">${tag("Primary","primary")}${tag("Success","success")}${tag("Info","info")}${tag("Warning","warning")}${tag("Danger","danger")}</div>
@@ -1601,6 +1634,12 @@ function renderPcComponentPreviewV2288(type){
       <p>项目列表和项目选择弹框统一使用 <code>项目经理</code> 单列，展示“姓名 | 脱敏手机号”。存在完整手机号时显示查看按钮，点击后仅展示 3 秒；无手机号时展示“姓名 | --”且不显示按钮。编辑表单和基础信息详情仍将项目经理与联系方式分字段展示。</p>
     `,
     "row-span-table":renderPcRowSpanTablePreviewV2609(),
+    popover:`
+      <div class="component-demo-row">
+        ${DscPopover.render({id:"component-library-popover",triggerHtml:`${renderTDesignIcon("filter",{size:16})}<span>筛选说明</span>`,triggerClassName:"btn",width:300,contentHtml:`<div class="component-popover-card"><strong>筛选条件说明</strong><p>支持在轻量浮层中放置说明、快捷操作或少量表单控件。</p></div>`})}
+      </div>
+      <p>Popover 用于承载与触发对象强关联的轻量内容，点击外部或再次点击触发器关闭；复杂录入仍应使用标准 Modal。</p>
+    `,
     "modal-standard":ModalGallery.renderPreview("standard"),
     "modal-fullscreen":ModalGallery.renderPreview("fullscreen"),
     "modal-nested":ModalGallery.renderPreview("nested"),

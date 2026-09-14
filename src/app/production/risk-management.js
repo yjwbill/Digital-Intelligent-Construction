@@ -195,7 +195,7 @@ async function renderRiskLedgerPage(){
   replaceProductionDashboardFragment(riskSlot("actual-start"),renderRiskDateRange("riskActualStartFrom","riskActualStartTo"));
   replaceProductionDashboardFragment(riskSlot("plan-end"),renderRiskDateRange("riskPlanEndFrom","riskPlanEndTo"));
   replaceProductionDashboardFragment(riskSlot("actual-end"),renderRiskDateRange("riskActualEndFrom","riskActualEndTo"));
-  replaceProductionDashboardFragment(riskSlot("area"),renderRiskMultiSelect("riskAreaFilter",riskAreaOptions,"请选择所属区域"));
+  replaceProductionDashboardFragment(riskSlot("area"),renderRiskMultiSelect("riskAreaFilter",riskAreaOptions,"请选择区域市场"));
   replaceProductionDashboardFragment(riskSlot("province"),renderRiskProvinceSelects());
   const table=document.getElementById("riskTable");
   if(table)table.style.minWidth=getTableMinWidth("riskLedger")+"px";
