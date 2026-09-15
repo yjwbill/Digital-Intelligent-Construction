@@ -1,5 +1,5 @@
 (function(){
-  const version="2.2.1020-warning-notice-remove-bulk-delete";
+  const version="2.2.1047-equipment-pending-status";
   const scripts=[
     "src/app/core/00-data-and-utils.js",
     "src/components/tdesign-icon/tdesign-icon.js",

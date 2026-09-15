@@ -33,6 +33,7 @@ const dataDictionaryListV2284=[
   {name:"是否类投资项目",code:"IS_INVESTMENT_LIKE_PROJECT",remark:"经济纳管项目类投资属性"},
   {name:"CM项目板块",code:"CM_PROJECT_PLATE",remark:"CM项目板块标准字典"}
   ,{name:"管控等级",code:"ECONOMY_CONTROL_LEVEL",remark:"经济报表进度节点管控层级"}
+  ,{name:"生产业务类型",code:"PRODUCTION_BIZ_TYPE",remark:"生产项目业务类型标准字典"}
 ];
 const dataDictionaryValuesV2284={
   PROJECT_STATUS:[
@@ -603,6 +604,10 @@ function ensureDataDictionaryLocalLoadedV2284(){
   const stored=window.EMMasterData?.ensure("dictionaries",[seed]);
   const payload=Array.isArray(stored) && stored[0] ? stored[0] : seed;
   applyDataDictionaryPayloadV2284(payload);
+  // 确保标准生产业务类型在已有本地字典数据中可见
+  applyStandardDataDictionaryV2285();
+  if(!dataDictionaryListV2284.some(item=>item.code==="PRODUCTION_BIZ_TYPE"))dataDictionaryListV2284.push({name:"生产业务类型",code:"PRODUCTION_BIZ_TYPE",remark:"生产项目业务类型标准字典"});
+  syncDataDictionaryToLocalStoreV2284();
   const economyWarningChanged=ensureEconomyWarningInternationalDictionaryV2431();
   const internationalProjectTypeChanged=ensureInternationalProjectTypeDictionaryV2433();
   const participantUnitTypeChanged=ensureParticipantUnitTypeDictionaryV2561();
@@ -846,6 +851,22 @@ function getDictEnabledOptionsV2285(code){
 
 function applyStandardDataDictionaryV2285(){
   const statusPalette={orange:3,green:1,red:4,blue:2,yellow:9,gray:0};
+  dataDictionaryValuesV2284.PRODUCTION_BIZ_TYPE=[
+    {name:"应急抢修类",code:"YJQX",status:"启用",palette:3,remark:"应急抢修类指我方作为应急抢修单位参与的应急抢修作业，该类业务存在时间短、任务急的特点。"},
+    {name:"监测类",code:"JC",status:"启用",palette:2,remark:"监测类指我方作为监测单位，同时过程存在简单的施工维保项目。"},
+    {name:"巡检类",code:"XJ",status:"启用",palette:6,remark:"巡检类指我方作为巡检单位，同时过程存在简单的施工维保项目。"},
+    {name:"维保类",code:"WB",status:"启用",palette:1,remark:"维保类指我方作为维保单位，同时过程存在简单的施工维保项目。"},
+    {name:"二次供水类",code:"ECGS",status:"启用",palette:5,remark:"二次供水类指小区、企事业单位等水系统改造等。"},
+    {name:"施工配合类",code:"SGPH",status:"启用",palette:7,remark:"施工配合类指运营集团直属相关单位为施工总承包单位做交通组织配套施工。"},
+    {name:"工营事团工程类",code:"GYSTGC",status:"启用",palette:8,remark:"工营事团类工程特指为企业或个体工商户安装燃气表阀及配套施工。"},
+    {name:"海外项目(含港澳)类",code:"HWXM",status:"启用",palette:2,remark:"海外项目（含港澳）类特指在国外（含港澳）实施的项目。"},
+    {name:"设计EPC施工(外单位合作)类",code:"SJEPCSG",status:"启用",palette:3,remark:"设计EPC施工（外单位合作）类特指各子公司的设计院承接的与外单位合作类的EPC施工项目。"},
+    {name:"施工类（大于400万）",code:"SGGE400",status:"启用",palette:4,remark:"400万以上的生产施工类项目需进行精细化管理。"},
+    {name:"施工类（小于400万）",code:"SGLT400",status:"启用",palette:9,remark:"项目合同额在400万以下，且施工无一级、二级、三级风险。"},
+    {name:"股份内专业分包装类",code:"GFZYFB",status:"启用",palette:8,remark:"作为股份内施工总承包单位的专业分包工程。"},
+    {name:"人防工程类",code:"RFGC",status:"启用",palette:1,remark:"进行人防门安装或局部人防改造，且施工无一级、二级、三级风险。"},
+    {name:"专业分包",code:"ZYFB",status:"启用",palette:8,remark:""},{name:"劳务分包",code:"LWFB",status:"启用",palette:6,remark:""},{name:"设备租赁",code:"SBZL",status:"启用",palette:2,remark:""},{name:"材料加工",code:"CLJG",status:"启用",palette:5,remark:""},{name:"代办服务",code:"DBFW",status:"启用",palette:3,remark:"代办服务：指为业主单位代办报送业务（管线类）。"}
+  ];
   dataDictionaryValuesV2284.PROJECT_STATUS=[
     {name:"待建",code:"1",status:"启用",palette:statusPalette.orange,remark:"标准项目状态"},
     {name:"在建",code:"2",status:"启用",palette:statusPalette.green,remark:"标准项目状态"},

@@ -2316,7 +2316,7 @@ function getTableColumnStickyStyle(tableKey,col,columns=getVisibleColumns(tableK
 function renderTableHeaderByColumns(tableKey){
   const columns=getVisibleColumns(tableKey);
   return columns.map(col=>`
-    <th class="${getTableColumnClass(tableKey,col,columns)}" data-column-key="${escapeAttr(col.key)}" style="${getTableColumnStickyStyle(tableKey,col,columns)}width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.align||"left"}">
+    <th class="${getTableColumnClass(tableKey,col,columns)}" data-column-key="${escapeAttr(col.key)}" style="${getTableColumnStickyStyle(tableKey,col,columns)}width:${col.width}px;min-width:${col.width}px;max-width:${col.width}px;text-align:${col.headerAlign||col.align||"left"}">
       ${col.title}
     </th>
   `).join("");
@@ -2341,8 +2341,10 @@ function renderTableByColumns(tableKey,data,tbodyId){
 function openColumnSetting(tableKey,afterSaveFnName){
   const config=getColumnConfig(tableKey);
   const maxFreezeColumns=config.filter(col=>col.key!=="operation").length;
+  const openedFromNestedModal=Boolean(document.querySelector(".nested-modal-mask"));
+  const openSettingModal=openedFromNestedModal?openNestedModal:openModal;
 
-  openModal(
+  openSettingModal(
     "列设置",
     `
       <div class="setting-tip">
@@ -2398,16 +2400,22 @@ function openColumnSetting(tableKey,afterSaveFnName){
       </div>
     `,
     `
-      <button class="btn" onclick="resetColumnSetting('${tableKey}','${afterSaveFnName}')">恢复默认</button>
-      <button class="btn" onclick="closeModal()">取消</button>
-      <button class="btn primary" onclick="saveColumnSetting('${tableKey}','${afterSaveFnName}')">保存</button>
+      <button class="btn" onclick="resetColumnSetting('${tableKey}','${afterSaveFnName}',this)">恢复默认</button>
+      <button class="btn" onclick="closeColumnSetting(this)">取消</button>
+      <button class="btn primary" onclick="saveColumnSetting('${tableKey}','${afterSaveFnName}',this)">保存</button>
     `,
     "large"
   );
 }
 
-function refreshColumnOrderInputs(){
-  [...document.querySelectorAll("#columnSettingTbody tr")].forEach((row,index)=>{
+function closeColumnSetting(source){
+  const mask=source?.closest(".nested-modal-mask");
+  if(mask)closeNestedModal(mask);
+  else closeModal();
+}
+
+function refreshColumnOrderInputs(tbody=document.getElementById("columnSettingTbody")){
+  [...(tbody?.querySelectorAll("tr")||[])].forEach((row,index)=>{
     const orderInput=row.querySelector(".col-order");
     if(orderInput)orderInput.value=index+1;
   });
@@ -2425,7 +2433,7 @@ function moveColumnSettingRow(btn,dir){
     tbody.insertBefore(row.nextElementSibling,row);
   }
 
-  refreshColumnOrderInputs();
+  refreshColumnOrderInputs(tbody);
 }
 
 function refreshStandardTableHeaderByConfig(tableKey){
@@ -2433,8 +2441,9 @@ function refreshStandardTableHeaderByConfig(tableKey){
   if(header?.tagName==="TR")header.innerHTML=renderTableHeaderByColumns(tableKey);
 }
 
-function saveColumnSetting(tableKey,afterSaveFnName){
-  const rows=[...document.querySelectorAll("#columnSettingTbody tr")];
+function saveColumnSetting(tableKey,afterSaveFnName,source){
+  const dialog=source?.closest(".modal")||document;
+  const rows=[...dialog.querySelectorAll("#columnSettingTbody tr")];
 
   let config=rows.map(row=>({
     key:row.dataset.key,
@@ -2450,10 +2459,10 @@ function saveColumnSetting(tableKey,afterSaveFnName){
 
   localStorage.setItem(getColumnStorageKey(tableKey),JSON.stringify(config));
   const maxFreeze=config.filter(col=>col.visible&&col.key!=="operation").length;
-  const freezeCount=Math.min(maxFreeze,Math.max(0,Number(document.getElementById("columnFreezeCount")?.value)||0));
+  const freezeCount=Math.min(maxFreeze,Math.max(0,Number(dialog.querySelector("#columnFreezeCount")?.value)||0));
   localStorage.setItem(getTableFreezeStorageKey(tableKey),String(freezeCount));
 
-  closeModal();
+  closeColumnSetting(source);
   refreshStandardTableHeaderByConfig(tableKey);
 
   if(typeof window[afterSaveFnName]==="function"){
@@ -2463,10 +2472,10 @@ function saveColumnSetting(tableKey,afterSaveFnName){
   showToast("列设置已保存");
 }
 
-function resetColumnSetting(tableKey,afterSaveFnName){
+function resetColumnSetting(tableKey,afterSaveFnName,source){
   localStorage.removeItem(getColumnStorageKey(tableKey));
   localStorage.removeItem(getTableFreezeStorageKey(tableKey));
-  closeModal();
+  closeColumnSetting(source);
   refreshStandardTableHeaderByConfig(tableKey);
 
   if(typeof window[afterSaveFnName]==="function"){

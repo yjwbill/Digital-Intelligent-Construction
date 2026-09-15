@@ -1184,15 +1184,43 @@ function saveConstructionProjectOfflineApplication(id){
   showToast("项目下线申请已提交");
 }
 
+function getNewConstructionProjectDefaults(){
+  return {
+    id:Math.max(0,...constructionProjectData.map(item=>Number(item.id)||0))+1, managerPhone:"13800000000",region:"长三角区域",provinceCity:"上海市/上海市",orderProjectNo:"",productionProjectNo:"",generalContractor:"",contractProjectManager:"",productionBizType:"房建市政",keyCustomer:"",constructionPermit:"未办理",totalContractor:"",detailAddress:"",accumulatedOutput:0,remainingWorkload:0,yearPlanOutput:0,monthlyAccumulatedOutput:0,currentMonthOutput:0,planStart:"",planEnd:"",planDuration:0,actualStart:"",actualEnd:"",registered:"未登记",shouldRegisterDays:7,actualRegisterDays:0,planned:"未筹划",shouldPlanDays:15,actualPlanDays:0,isShareInternal:"否",isSubCompanyInternal:"否",isConstructionProject:"是",isMajorRisk:"否",isSafetyManaged:"是",isKeyProject:"否",completedSettled:"否",resumeInTwoWeeks:"否"
+  };
+}
+
+function createConstructionProjectFromProductionProject(row){
+  const existing=constructionProjectData.find(item=>item.productionProjectNo===row.productionProjectNo);
+  if(existing)return existing;
+  const now=new Date(),pad=value=>String(value).padStart(2,"0");
+  const day=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  const createdAt=`${day} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  const project=getNewConstructionProjectDefaults();
+  let serial=project.id;
+  do{project.projectCode=`SG${day.replace(/-/g,"")}${String(serial++).padStart(6,"0")}`;}
+  while(constructionProjectData.some(item=>item.projectCode===project.projectCode));
+  Object.assign(project,{
+    projectName:row.projectName,projectShortName:row.projectShortName,subCompany:row.company,branchCompany:row.branch,
+    projectManager:row.projectManager,managerPhone:row.fullContact||row.contact,country:row.country,provinceCity:row.provinceCity,
+    detailAddress:row.projectAddress,integratedManagement:row.groupIntegratedMode,projectStatus:row.projectStatus,
+    productionProjectNo:row.productionProjectNo,orderProjectNo:row.relatedOrderProject,projectCost:Number(String(row.projectCost||0).replace(/,/g,"")),
+    approvalDate:day,constructionCreatedAt:createdAt,projectType:"",implementationMode:"",controlLevel:"",builder:"",productionBizType:""
+  });
+  persistMasterData("projects",[project,...constructionProjectData]);
+  constructionProjectData.unshift(project);
+  constructionProjectCurrentList=[...constructionProjectData];
+  constructionProjectBaseFilteredList=[...constructionProjectData];
+  return project;
+}
+
 function saveConstructionProject(id){
   const projectName=document.getElementById("projectFormName").value.trim();
   const projectCode=document.getElementById("projectFormCode").value.trim();
   if(!projectName||!projectCode)return showToast("请填写项目名称和项目编号");
   if(constructionProjectData.some(item=>item.projectCode===projectCode&&String(item.id)!==String(id)))return showToast("项目编号不可重复");
   const existing=id==null?null:constructionProjectData.find(item=>String(item.id)===String(id));
-  const project=existing || {
-    id:Math.max(0,...constructionProjectData.map(item=>Number(item.id)||0))+1, managerPhone:"13800000000",region:"长三角区域",provinceCity:"上海市/上海市",orderProjectNo:"",productionProjectNo:"",generalContractor:"",contractProjectManager:"",productionBizType:"房建市政",keyCustomer:"",constructionPermit:"未办理",totalContractor:"",detailAddress:"",accumulatedOutput:0,remainingWorkload:0,yearPlanOutput:0,monthlyAccumulatedOutput:0,currentMonthOutput:0,planStart:"",planEnd:"",planDuration:0,actualStart:"",actualEnd:"",registered:"未登记",shouldRegisterDays:7,actualRegisterDays:0,planned:"未筹划",shouldPlanDays:15,actualPlanDays:0,isShareInternal:"否",isSubCompanyInternal:"否",isConstructionProject:"是",isMajorRisk:"否",isSafetyManaged:"是",isKeyProject:"否",completedSettled:"否",resumeInTwoWeeks:"否"
-  };
+  const project=existing || getNewConstructionProjectDefaults();
   Object.assign(project,{
     projectName,projectCode,subCompany:document.getElementById("projectFormSub").value,branchCompany:document.getElementById("projectFormBranch").value,
     projectStatus:document.getElementById("projectFormStatus").value,projectManager:document.getElementById("projectFormManager").value.trim(),

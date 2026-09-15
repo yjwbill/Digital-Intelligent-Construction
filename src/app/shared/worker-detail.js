@@ -948,6 +948,7 @@ function openNestedModal(title,html,footerHtml){
     </div>
   `;
   document.body.appendChild(mask);
+  return mask;
 }
 
 function closeNestedModal(el){

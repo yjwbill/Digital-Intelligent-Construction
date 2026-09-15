@@ -2423,6 +2423,16 @@ function normalizeEnterpriseEquipmentRegion(region){
   return enterpriseEquipmentRegionAlias[value]||value;
 }
 
+function getEnterpriseEquipmentEntryStatus(row){
+  const actualExitDate=String(row?.actualExitDate||"").trim();
+  const actualEntryDate=String(row?.actualEntryDate||"").trim();
+  return actualExitDate?"已退场":actualEntryDate?"已进场":"待进场";
+}
+
+function getEnterpriseEquipmentEntryStatusColor(status){
+  return status==="已退场"?"gray":status==="已进场"?"green":"orange";
+}
+
 function getEnterpriseEquipmentRows(includeStat=true){
   const s=enterpriseEquipmentState;
   const includes=(row,key,value)=>!value||String(row[key]||"").includes(value);
@@ -2441,8 +2451,9 @@ function getEnterpriseEquipmentRows(includeStat=true){
     );
     if(!matched)return false;
     if(!includeStat)return true;
-    if(s.statKey==="entered")return !!row.actualEntryDate&&!row.actualExitDate;
-    if(s.statKey==="exited")return !!row.actualExitDate;
+    if(s.statKey==="pending")return getEnterpriseEquipmentEntryStatus(row)==="待进场";
+    if(s.statKey==="entered")return getEnterpriseEquipmentEntryStatus(row)==="已进场";
+    if(s.statKey==="exited")return getEnterpriseEquipmentEntryStatus(row)==="已退场";
     if(s.statKey.startsWith("property:"))return row.property===s.statKey.slice(9);
     if(s.statKey.startsWith("category:"))return row.category===s.statKey.slice(9);
     if(s.statKey.startsWith("country:"))return row.country===s.statKey.slice(8);
@@ -2490,11 +2501,13 @@ function setEnterpriseEquipmentStat(key){
 }
 
 function renderEnterpriseEquipmentStatsCard(rows){
-  const entered=rows.filter(row=>row.actualEntryDate&&!row.actualExitDate).length;
-  const exited=rows.filter(row=>row.actualExitDate).length;
+  const pending=rows.filter(row=>getEnterpriseEquipmentEntryStatus(row)==="待进场").length;
+  const entered=rows.filter(row=>getEnterpriseEquipmentEntryStatus(row)==="已进场").length;
+  const exited=rows.filter(row=>getEnterpriseEquipmentEntryStatus(row)==="已退场").length;
   const countBy=key=>value=>rows.filter(row=>row[key]===value).length;
   return StatisticsFilter.render({id:"enterprise-equipment-statistics-filter",activeKey:enterpriseEquipmentState.statKey,groups:[
     {label:"进场状态",items:[
+      {key:"pending",label:"待进场",value:pending},
       {key:"entered",label:"已进场",value:entered},
       {key:"exited",label:"已退场",value:exited}
     ]},
@@ -2558,7 +2571,7 @@ function normalizeEnterpriseEquipmentLedgerTable(){
         cells[managerIndex].innerHTML=renderProjectManagerContact(name,phone,{key:`enterprise-equipment-${Math.random()}`});
       }
       if(cells[regionIndex])cells[regionIndex].innerHTML=renderProjectEquipmentTag(cells[regionIndex].textContent.trim(),'green');
-      ["设备类型","设备分类","国别","能源方式","设备产权","进场状态"].forEach(label=>{const index=desired.indexOf(label);if(cells[index])cells[index].innerHTML=renderProjectEquipmentTag(cells[index].textContent.trim(),label==="进场状态"?(cells[index].textContent.trim()==="已退场"?"gray":"green"):"blue");});
+      ["设备类型","设备分类","国别","能源方式","设备产权","进场状态"].forEach(label=>{const index=desired.indexOf(label);if(cells[index]){const value=cells[index].textContent.trim();cells[index].innerHTML=renderProjectEquipmentTag(value,label==="进场状态"?getEnterpriseEquipmentEntryStatusColor(value):"blue");}});
     });
   }
 }
@@ -2705,7 +2718,7 @@ function renderProjectEquipmentLedgerSection(options={}){
           ${showEnterpriseColumns?`<td>${escapeAttr(row.subCompany||"-")}</td><td>${escapeAttr(row.branchCompany||"-")}</td><td>${escapeAttr(normalizeEnterpriseEquipmentRegion(row.region)||"-")}</td><td>${escapeAttr(row.provinceCity||"-")}</td><td title="${escapeAttr(row.projectName||pcPortalState.currentProject)}">${escapeAttr(row.projectName||pcPortalState.currentProject)}</td><td>${renderProjectManagerContact(row.projectManager,row.managerPhone,{key:`enterprise-equipment-${row.id||row.deviceNo}`})}</td><td title="${escapeAttr(row.builder||"-")}">${escapeAttr(row.builder||"-")}</td>`:""}
           <td>${escapeAttr(row.deviceName||"-")}</td>
           <td>${escapeAttr(row.deviceNo)}</td>
-          <td>${escapeAttr(row.actualExitDate?"已退场":row.actualEntryDate?"已进场":"—")}</td>
+          <td>${renderProjectEquipmentTag(getEnterpriseEquipmentEntryStatus(row),getEnterpriseEquipmentEntryStatusColor(getEnterpriseEquipmentEntryStatus(row)))}</td>
           <td>${escapeAttr(row.deviceType)}</td>
           <td>${escapeAttr(row.category)}</td>
           <td>${escapeAttr(row.model)}</td>
@@ -4161,17 +4174,57 @@ const projectTechSchemeState={
 };
 
 const projectTechSchemeRows=[
-  {id:1,approvalStatus:"未审批",schemeType:"施工专项方案",schemeName:"芳乐路站附属基坑施工专项方案",schemeTag:"质量方案",dangerous:"否",subcontract:"否",planFinishDate:"2026-01-22",actualApprovalDate:"",approvalFile:"",schemeFile:"",expertReview:"否",planReviewDate:"",expertFinishDate:"",milestoneCount:0,riskCount:0},
-  {id:2,approvalStatus:"未审批",schemeType:"施工专项方案",schemeName:"附属深基坑工程施工专项方案",schemeTag:"质量方案",dangerous:"否",subcontract:"否",planFinishDate:"2025-12-15",actualApprovalDate:"",approvalFile:"",schemeFile:"",expertReview:"是",planReviewDate:"2025-12-22",expertFinishDate:"",milestoneCount:0,riskCount:0},
-  {id:3,approvalStatus:"未审批",schemeType:"施工专项方案",schemeName:"芳乐路站附属基坑降水专项方案",schemeTag:"质量方案",dangerous:"否",subcontract:"是",planFinishDate:"2025-12-15",actualApprovalDate:"",approvalFile:"",schemeFile:"",expertReview:"否",planReviewDate:"",expertFinishDate:"",milestoneCount:0,riskCount:0},
-  {id:4,approvalStatus:"未审批",schemeType:"施工专项方案",schemeName:"附属基坑SMW工法桩施工方案",schemeTag:"质量方案",dangerous:"否",subcontract:"否",planFinishDate:"2025-07-21",actualApprovalDate:"",approvalFile:"",schemeFile:"",expertReview:"否",planReviewDate:"",expertFinishDate:"",milestoneCount:0,riskCount:0},
-  {id:5,approvalStatus:"未审批",schemeType:"施工专项方案",schemeName:"附属基坑钻孔灌注桩施工方案",schemeTag:"质量方案",dangerous:"否",subcontract:"否",planFinishDate:"2025-07-10",actualApprovalDate:"",approvalFile:"",schemeFile:"",expertReview:"否",planReviewDate:"",expertFinishDate:"",milestoneCount:0,riskCount:0},
-  {id:6,approvalStatus:"未审批",schemeType:"总体施工组织",schemeName:"总体施工组织",schemeTag:"",dangerous:"否",subcontract:"否",planFinishDate:"2022-12-15",actualApprovalDate:"",approvalFile:"",schemeFile:"",expertReview:"否",planReviewDate:"",expertFinishDate:"",milestoneCount:null,riskCount:null}
+  {id:1,schemeType:"施工专项方案",schemeName:"芳乐路站附属基坑施工专项方案",schemeTag:"质量方案",dangerous:"否",subcontract:"否",planFinishDate:"2026-01-22",actualApprovalDate:"",approvalFile:"",schemeFile:"",expertReview:"否",schemeReported:false,expertReviewed:false,planReviewDate:"",expertFinishDate:"",milestoneCount:0,riskCount:0},
+  {id:2,schemeType:"施工专项方案",schemeName:"附属深基坑工程施工专项方案",schemeTag:"质量方案",dangerous:"否",subcontract:"否",planFinishDate:"2025-12-15",actualApprovalDate:"",approvalFile:"",schemeFile:"",expertReview:"是",schemeReported:false,expertReviewed:false,planReviewDate:"2025-12-22",expertFinishDate:"",milestoneCount:0,riskCount:0},
+  {id:3,schemeType:"施工专项方案",schemeName:"芳乐路站附属基坑降水专项方案",schemeTag:"质量方案",dangerous:"否",subcontract:"是",planFinishDate:"2025-12-15",actualApprovalDate:"",approvalFile:"",schemeFile:"",expertReview:"否",schemeReported:false,expertReviewed:false,planReviewDate:"",expertFinishDate:"",milestoneCount:0,riskCount:0},
+  {id:4,schemeType:"施工专项方案",schemeName:"附属基坑SMW工法桩施工方案",schemeTag:"质量方案",dangerous:"否",subcontract:"否",planFinishDate:"2025-07-21",actualApprovalDate:"",approvalFile:"",schemeFile:"",expertReview:"否",schemeReported:false,expertReviewed:false,planReviewDate:"",expertFinishDate:"",milestoneCount:0,riskCount:0},
+  {id:5,schemeType:"施工专项方案",schemeName:"附属基坑钻孔灌注桩施工方案",schemeTag:"质量方案",dangerous:"否",subcontract:"否",planFinishDate:"2025-07-10",actualApprovalDate:"",approvalFile:"",schemeFile:"",expertReview:"否",schemeReported:false,expertReviewed:false,planReviewDate:"",expertFinishDate:"",milestoneCount:0,riskCount:0},
+  {id:6,schemeType:"总体施工组织",schemeName:"总体施工组织",schemeTag:"",dangerous:"否",subcontract:"否",planFinishDate:"2022-12-15",actualApprovalDate:"",approvalFile:"",schemeFile:"",expertReview:"否",schemeReported:false,expertReviewed:false,planReviewDate:"",expertFinishDate:"",milestoneCount:null,riskCount:null}
 ];
+
+function getProjectTechSchemeStatus(row){
+  return row.schemeReported && (row.expertReview!=="是" || row.expertReviewed) ? "已上报" : "未上报";
+}
+function reportProjectTechScheme(id){
+  const row=projectTechSchemeRows.find(item=>item.id===id);if(!row)return;
+  const field=(label,value,extra="",editable=false)=>`<div class="form-item"><label>${label}</label><input class="input" ${extra} value="${escapeAttr(value||"")}" ${editable?"":"readonly"}></div>`;
+  const fileField=(label,id,value)=>`<div class="form-item"><label>${label}</label><div class="project-tech-scheme-file-upload"><input id="${id}" type="file" onchange="handleProjectTechSchemeFileChange(this)"><span class="project-tech-scheme-file-name">${escapeAttr(value||"未选择文件")}</span></div></div>`;
+  const body=`<div class="project-tech-scheme-report-modal">${renderStandardFormGroup("基础信息",`<div class="project-tech-scheme-report-grid">${field("方案名称",row.schemeName)}${field("方案类型",row.schemeType)}${field("方案标签",row.schemeTag||"-")}${field("是否危大工序/工程",row.dangerous)}${field("是否专业分包",row.subcontract)}${field("计划完成日期",row.planFinishDate)}${field("是否专家评审",row.expertReview)}${field("计划评审日期",row.planReviewDate||"-")}</div>`,{className:"project-tech-scheme-report-group"})}${renderStandardFormGroup("方案上报信息",`<div class="project-tech-scheme-report-grid">${field("实际审批完成日期",row.actualApprovalDate||new Date().toISOString().slice(0,10),`id="projectTechSchemeActualApprovalDate" type="date"`,true)}${fileField("方案批复文件","projectTechSchemeApprovalFile",row.approvalFile)}${fileField("方案文件","projectTechSchemeFile",row.schemeFile)}</div>`,{className:"project-tech-scheme-report-group"})}</div>`;
+  openModal("方案上报",body,`<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="submitProjectTechSchemeReport(${id})">确认上报</button>`,"large");
+}
+function submitProjectTechSchemeReport(id){
+  const row=projectTechSchemeRows.find(item=>item.id===id);if(!row)return;
+  row.schemeReported=true;
+  row.actualApprovalDate=document.getElementById("projectTechSchemeActualApprovalDate")?.value||new Date().toISOString().slice(0,10);
+  row.approvalFile=document.getElementById("projectTechSchemeApprovalFile")?.dataset.fileName||row.approvalFile||"";
+  row.schemeFile=document.getElementById("projectTechSchemeFile")?.dataset.fileName||row.schemeFile||"";
+  closeModal();renderProjectTechSchemePage();showToast("方案上报已完成");
+}
+function reviewProjectTechScheme(id){
+  const row=projectTechSchemeRows.find(item=>item.id===id);if(!row)return;
+  const field=(label,value,extra="",editable=false)=>`<div class="form-item"><label>${label}</label><input class="input" ${extra} value="${escapeAttr(value||"")}" ${editable?"":"readonly"}></div>`;
+  const fileField=(label,id,value)=>`<div class="form-item"><label>${label}</label><div class="project-tech-scheme-file-upload"><input id="${id}" type="file" onchange="handleProjectTechSchemeFileChange(this)"><span class="project-tech-scheme-file-name">${escapeAttr(value||"未选择文件")}</span></div></div>`;
+  const body=`<div class="project-tech-scheme-report-modal">${renderStandardFormGroup("基础信息",`<div class="project-tech-scheme-report-grid">${field("方案名称",row.schemeName)}${field("方案类型",row.schemeType)}${field("方案标签",row.schemeTag||"-")}${field("是否危大工序/工程",row.dangerous)}${field("是否专业分包",row.subcontract)}${field("计划完成日期",row.planFinishDate)}${field("是否专家评审",row.expertReview)}${field("计划评审日期",row.planReviewDate||"-")}</div>`,{className:"project-tech-scheme-report-group"})}${renderStandardFormGroup("专家评审信息",`<div class="project-tech-scheme-report-grid">${field("专家评审完成日期",row.expertFinishDate||new Date().toISOString().slice(0,10),`id="projectTechSchemeExpertFinishDate" type="date"`,true)}${fileField("专家评审相关文件","projectTechSchemeExpertReviewFile",row.expertReviewFile)}</div>`,{className:"project-tech-scheme-report-group"})}</div>`;
+  openModal("专家评审",body,`<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="submitProjectTechSchemeReview(${id})">确认评审</button>`,"large");
+}
+function submitProjectTechSchemeReview(id){
+  const row=projectTechSchemeRows.find(item=>item.id===id);if(!row)return;
+  row.expertReviewed=true;
+  row.expertFinishDate=document.getElementById("projectTechSchemeExpertFinishDate")?.value||new Date().toISOString().slice(0,10);
+  row.expertReviewFile=document.getElementById("projectTechSchemeExpertReviewFile")?.dataset.fileName||row.expertReviewFile||"";
+  closeModal();renderProjectTechSchemePage();showToast("专家评审已完成");
+}
+function handleProjectTechSchemeFileChange(input){
+  const file=input?.files?.[0];
+  if(!file)return;
+  input.dataset.fileName=file.name;
+  const display=input.parentElement?.querySelector(".project-tech-scheme-file-name");
+  if(display)display.textContent=file.name;
+}
 
 tableColumnDefinitions.projectTechScheme=[
   {key:"index",title:"序号",width:70,align:"center",render:(row,index)=>(projectTechSchemeState.page-1)*projectTechSchemeState.pageSize+index+1},
-  {key:"approvalStatus",title:"方案审批状态",width:130,align:"center",render:row=>row.approvalStatus==="已审批"?tag("已审批","green"):tag("未审批","red")},
+  {key:"approvalStatus",title:`方案上报状态${renderInfoTip("如需专家评审，那么方案上报、专家评审两个都操作完才算已上报，如无需专家评审，那么只要方案上报完就算已上报")}`,width:140,align:"center",render:row=>getProjectTechSchemeStatus(row)==="已上报"?tag("已上报","green"):tag("未上报","red")},
   {key:"schemeType",title:"方案类型",width:150,align:"center",render:row=>row.schemeType},
   {key:"schemeName",title:"方案名称",width:220,align:"left",render:row=>row.schemeName},
   {key:"schemeTag",title:"方案标签",width:130,align:"center",render:row=>row.schemeTag||"-"},
@@ -4186,7 +4239,7 @@ tableColumnDefinitions.projectTechScheme=[
   {key:"expertFinishDate",title:"专家评审完成日期",width:160,align:"center",render:row=>row.expertFinishDate||"-"},
   {key:"milestoneCount",title:"关联里程碑",width:120,align:"center",render:row=>row.milestoneCount===null?"-":`<a class="link" onclick="showToast('查看关联里程碑')">${row.milestoneCount}</a>`},
   {key:"riskCount",title:"关联风险",width:110,align:"center",render:row=>row.riskCount===null?"-":`<a class="link" onclick="showToast('查看关联风险')">${row.riskCount}</a>`},
-  {key:"action",title:"操作",width:150,align:"center",render:row=>`<a class="link" onclick="showToast('查看方案详情')">查看</a>&nbsp;&nbsp;<a class="link" onclick="showToast('进入方案上报')">方案上报</a>`}
+  {key:"action",title:"操作",width:220,align:"center",render:row=>`<a class="link" onclick="showToast('查看方案详情')">查看</a>&nbsp;&nbsp;<a class="link" onclick="reportProjectTechScheme(${row.id})">方案上报</a>${row.expertReview==="是"?`&nbsp;&nbsp;<a class="link" onclick="reviewProjectTechScheme(${row.id})">专家评审</a>`:""}`}
 ];
 
 function getProjectTechSchemeFilteredRows(){
@@ -4198,8 +4251,8 @@ function getProjectTechSchemeFilteredRows(){
     if(s.dangerous&&row.dangerous!==s.dangerous)return false;
     if(s.subcontract&&row.subcontract!==s.subcontract)return false;
     if(s.expertReview&&row.expertReview!==s.expertReview)return false;
-    if(s.statKey==="unapproved"&&row.approvalStatus!=="未审批")return false;
-    if(s.statKey==="approved"&&row.approvalStatus!=="已审批")return false;
+    if(s.statKey==="unapproved"&&getProjectTechSchemeStatus(row)!=="未上报")return false;
+    if(s.statKey==="approved"&&getProjectTechSchemeStatus(row)!=="已上报")return false;
     if(s.statKey==="linkedMilestone"&&!(Number(row.milestoneCount)>0))return false;
     if(s.statKey==="linkedRisk"&&!(Number(row.riskCount)>0))return false;
     return true;
@@ -4225,7 +4278,7 @@ function renderProjectTechSchemeStatsCard(){
   const count=predicate=>rows.filter(predicate).length;
   return StatisticsFilter.render({id:"project-tech-scheme-statistics-filter",activeKey:projectTechSchemeState.statKey,groups:[
     {label:"计划总数",items:[{key:"all",label:"计划总数",value:rows.length}]},
-    {label:"技术方案",items:[{key:"unapproved",label:"未审批",value:count(row=>row.approvalStatus==="未审批")},{key:"approved",label:"已审批",value:count(row=>row.approvalStatus==="已审批")}]},
+    {label:"技术方案",items:[{key:"unapproved",label:"未上报",value:count(row=>getProjectTechSchemeStatus(row)==="未上报")},{key:"approved",label:"已上报",value:count(row=>getProjectTechSchemeStatus(row)==="已上报")}]},
     {label:"方案关联",items:[{key:"linkedMilestone",label:"已关联里程碑",value:count(row=>Number(row.milestoneCount)>0)},{key:"linkedRisk",label:"已关联风险",value:count(row=>Number(row.riskCount)>0)}]}
   ],onChange:key=>setProjectTechSchemeStat(key)});
 }
@@ -5172,6 +5225,7 @@ function renderProjectWorkspacePage(){
   listPage.style.display="flex";
   const visits=[{date:"2026-09-02",name:"王安全",level:"project",org:"漕河泾创新水岸建设工程",role:"安全领导",time:"16:42"},{date:"2026-09-02",name:"秦群群",level:"project",org:"漕河泾创新水岸建设工程",role:"项目经理",time:"15:18"},{date:"2026-09-02",name:"王安全",level:"project",org:"漕河泾创新水岸建设工程",role:"安全领导",time:"10:06"},{date:"2026-09-01",name:"刘佳",level:"branch",org:"上海隧道工程有限公司/第一分公司",role:"项目副经理、生产经理",time:"17:35"},{date:"2026-09-01",name:"王峰",level:"company",org:"上海隧道工程有限公司",role:"施工经理",time:"09:20"}];
   const grouped=visits.reduce((map,item)=>{(map[item.date]??=[]).push(item);return map;},{});
+  const visitOrgLabel=item=>item.level==="project"?"项目管理人员":item.org;
   const approvalTabs=renderApprovalCenterTabs();
   const approvalBody=`<div class="project-workbench-approval-body">${renderApprovalCategoryTree()}<main class="approval-center-main">${renderApprovalCenterTable()}</main></div>`;
   listPage.innerHTML=`<div class="project-workbench-page"><div class="project-workbench-layout"><div class="project-launch-workspace" aria-label="项目任务发起工作桌面">
@@ -5184,7 +5238,7 @@ function renderProjectWorkspacePage(){
         </button>`).join("")}
       </div>
     </section>`).join("")}
-  </div><aside class="project-visit-record-card"><div class="project-visit-record-head"><h2>访问记录</h2><button type="button" class="project-visit-record-all" onclick='openProjectVisitRecordModal()'>查看全部<span aria-hidden="true">›</span></button></div><div class="project-visit-record-list">${Object.entries(grouped).map(([date,items])=>{const parts=date.split("-");return `<section><h3>${parts[0]}年${Number(parts[1])}月${Number(parts[2])}日</h3>${items.map(item=>`<div class="project-visit-record-item"><span class="project-visit-avatar">${item.name.slice(0,1)}</span><strong>${item.name}</strong><span class="project-visit-role-tags">${item.role.split(/[、,，]/).filter(Boolean).map(role=>`<span class="project-visit-role-tag">${role}</span>`).join("")}</span><time>${date} ${item.time}</time></div>`).join("")}</section>`;}).join("")}</div></aside></div><section class="project-workbench-approval"><div class="project-workbench-approval-tabs">${approvalTabs}</div>${approvalBody}</section></div>`;
+  </div><aside class="project-visit-record-card"><div class="project-visit-record-head"><h2>访问记录</h2><button type="button" class="project-visit-record-all" onclick='openProjectVisitRecordModal()'>查看全部<span aria-hidden="true">›</span></button></div><div class="project-visit-record-list">${Object.entries(grouped).map(([date,items])=>{const parts=date.split("-");return `<section><h3>${parts[0]}年${Number(parts[1])}月${Number(parts[2])}日</h3>${items.map(item=>`<div class="project-visit-record-item"><span class="project-visit-avatar">${item.name.slice(0,1)}</span><div class="project-visit-record-person"><div class="project-visit-record-name-line"><strong>${item.name}</strong><span class="project-visit-role-tags">${item.role.split(/[、,，]/).filter(Boolean).map(role=>`<span class="project-visit-role-tag">${role}</span>`).join("")}</span></div><small>${visitOrgLabel(item)}</small></div><time>${date} ${item.time}</time></div>`).join("")}</section>`;}).join("")}</div></aside></div><section class="project-workbench-approval"><div class="project-workbench-approval-tabs">${approvalTabs}</div>${approvalBody}</section></div>`;
 }
 
 function openProjectVisitRecordModal(){
@@ -5897,6 +5951,7 @@ function renderProjectPlaceholderPage(title){
     </section>
   `);
 }
+
 
 
 

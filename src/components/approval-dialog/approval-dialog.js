@@ -52,7 +52,9 @@
     return groups.map(group=>`<section class="approval-dialog-view-day"><h4>${escapeHtml(group.date)}</h4><div>${group.records.map(record=>{
       const person=record.person||record.name||"-";
       const avatar=record.avatar?`<img src="${escapeHtml(record.avatar)}" alt="${escapeHtml(person)}">`:`<span role="img" aria-label="${escapeHtml(person)}头像">${escapeHtml(person.slice(-2))}</span>`;
-      return `<article class="approval-dialog-view-item"><i></i><div class="approval-dialog-view-avatar">${avatar}</div><strong>${escapeHtml(person)}</strong><time datetime="${escapeHtml(record.time||record.viewTime||"")}">${escapeHtml(record.time)}</time></article>`;
+      const role=record.role||record.post||"-";
+      const org=record.project||record.company||record.org||"项目管理人员";
+      return `<article class="approval-dialog-view-item"><div class="approval-dialog-view-avatar">${avatar}</div><div class="approval-dialog-view-person"><div class="approval-dialog-view-name-line"><strong>${escapeHtml(person)}</strong><span class="project-visit-role-tags"><span class="project-visit-role-tag">${escapeHtml(role)}</span></span></div><small>${escapeHtml(org)}</small></div><time datetime="${escapeHtml(record.time||record.viewTime||"")}">${escapeHtml(record.time)}</time></article>`;
     }).join("")}</div></section>`).join("");
   }
 

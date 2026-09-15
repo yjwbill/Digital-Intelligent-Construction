@@ -111,10 +111,22 @@ function getEnterpriseConstructionLogDayState(project,day){
   return getEnterpriseConstructionLogDayStateForMonth(project,day,enterpriseConstructionLogState.reportMonth);
 }
 
+function isEnterpriseConstructionLogLargeConstructionType(value){
+  const normalized=String(value??"")
+    .replace(/\s+/g,"")
+    .replace(/\(/g,"（")
+    .replace(/\)/g,"）");
+  return normalized==="施工类（大于400万）";
+}
+
 function getEnterpriseConstructionLogRows(){
   const meta=getEnterpriseConstructionLogMonthMeta();
   const latestDay=enterpriseConstructionLogState.reportMonth==="2026-07"?13:meta.days;
+  const productionTypes=typeof getDictEnabledOptionsV2285==="function"?getDictEnabledOptionsV2285("PRODUCTION_BIZ_TYPE"):[];
   return constructionProjectData.map(project=>{
+    const productionBizType=productionTypes.length
+      ? productionTypes[(Number(project.id)||0)%productionTypes.length]
+      : project.productionBizType;
     const latestDayState=getEnterpriseConstructionLogDayState(project,latestDay);
     const reportStatus=latestDayState==="stopped"
       ? "停工未上报"
@@ -124,9 +136,12 @@ function getEnterpriseConstructionLogRows(){
       : reportStatus==="未上报"?Math.max(1,latestDay-1):Math.max(1,latestDay-(project.id%3));
     return {
       ...project,
+      productionBizType,
       reportStatus,
       reportMethod:reportStatus==="已上报"?getEnterpriseConstructionLogReportMethod(getEnterpriseConstructionLogReportRecord(project,latestDay,enterpriseConstructionLogState.reportMonth)):"",
-      onTimeUpload:reportStatus==="已上报"?(project.id%5===0?"否":"是"):"否",
+      onTimeUpload:isEnterpriseConstructionLogLargeConstructionType(productionBizType)
+        ? (reportStatus==="已上报"?(project.id%5===0?"否":"是"):"否")
+        : "-",
       latestUploadDate:uploadedDay
         ? `${enterpriseConstructionLogState.reportMonth}-${String(uploadedDay).padStart(2,"0")}`
         : "-"
@@ -155,28 +170,33 @@ function filterEnterpriseConstructionLogSearchRows(rows){
   });
 }
 
-function getEnterpriseConstructionLogTodayStatRows(){
-  const day=13;
-  return filterEnterpriseConstructionLogSearchRows(constructionProjectData.map(project=>{
-    const dailyState=getEnterpriseConstructionLogDayStateForMonth(project,day,"2026-07");
-    const reportStatus=dailyState==="stopped"?"停工未上报":dailyState==="missing"?"未上报":"已上报";
-    const reportMethod=dailyState==="reported"?getEnterpriseConstructionLogReportMethod(getEnterpriseConstructionLogReportRecord(project,day,"2026-07")):"";
-    const onTimeUpload=reportStatus==="已上报"?(project.id%5===0?"否":"是"):"否";
-    return {...project,reportStatus,reportMethod,onTimeUpload};
+function getEnterpriseConstructionLogTodayStatRows(rows=getEnterpriseConstructionLogSearchRows()){
+  // 当前原型以模拟日志数据的截止日作为“今日”，与已有上报数据保持一致。
+  const month=constructionLogDataRange.end.slice(0,7);
+  const day=Number(constructionLogDataRange.end.slice(8,10));
+  return rows.map(project=>({
+    ...project,
+    todayReportState:getEnterpriseConstructionLogDayStateForMonth(project,day,month)
   }));
+}
+
+function getEnterpriseConstructionLogStatBuckets(rows=getEnterpriseConstructionLogSearchRows()){
+  const todayRows=getEnterpriseConstructionLogTodayStatRows(rows);
+  const required=todayRows.filter(row=>isEnterpriseConstructionLogLargeConstructionType(row.productionBizType));
+  return {
+    required,
+    reported:todayRows.filter(row=>row.todayReportState==="reported"),
+    // 应报项目当天没有上报即计入，包含其中的停工未上报项目。
+    unreported:required.filter(row=>row.todayReportState!=="reported"),
+    stopped:todayRows.filter(row=>row.todayReportState==="stopped"),
+    onTime:rows.filter(row=>row.onTimeUpload==="是"),
+    notOnTime:rows.filter(row=>row.onTimeUpload==="否")
+  };
 }
 
 function getEnterpriseConstructionLogFilteredRows(){
   const rows=getEnterpriseConstructionLogSearchRows();
-  if(enterpriseConstructionLogState.statKey==="reported")return rows.filter(row=>row.reportStatus==="已上报");
-  if(enterpriseConstructionLogState.statKey==="unreported")return rows.filter(row=>row.reportStatus==="未上报");
-  if(enterpriseConstructionLogState.statKey==="stopped")return rows.filter(row=>row.reportStatus==="停工未上报");
-  if(enterpriseConstructionLogState.statKey==="online")return rows.filter(row=>row.reportMethod==="在线上报");
-  if(enterpriseConstructionLogState.statKey==="file")return rows.filter(row=>row.reportMethod==="文件上报");
-  if(enterpriseConstructionLogState.statKey==="merged")return rows.filter(row=>row.reportMethod==="在线+文件上报");
-  if(enterpriseConstructionLogState.statKey==="onTime")return rows.filter(row=>row.onTimeUpload==="是");
-  if(enterpriseConstructionLogState.statKey==="notOnTime")return rows.filter(row=>row.onTimeUpload==="否");
-  return rows;
+  return getEnterpriseConstructionLogStatBuckets(rows)[enterpriseConstructionLogState.statKey]||rows;
 }
 
 function getEnterpriseConstructionLogPagedRows(){
@@ -189,6 +209,10 @@ function getEnterpriseConstructionLogPagedRows(){
 
 function renderEnterpriseConstructionLogDayCell(row,day){
   const state=getEnterpriseConstructionLogDayState(row,day);
+  if(!isEnterpriseConstructionLogLargeConstructionType(row.productionBizType)){
+    if(state==="reported")return `<button type="button" class="enterprise-log-day-drill" title="查看当日施工日志" onclick="openEnterpriseConstructionLogReportDetail(${row.id},${day})">${renderProjectLogStatusIcon("uploaded")}</button>`;
+    return `<span class="enterprise-log-day-status" title="未开始">${renderProjectLogStatusIcon("not-started")}</span>`;
+  }
   if(state==="reported")return `<button type="button" class="enterprise-log-day-drill" title="查看当日施工日志" onclick="openEnterpriseConstructionLogReportDetail(${row.id},${day})">${renderProjectLogStatusIcon("uploaded")}</button>`;
   if(state==="missing")return `<span class="enterprise-log-day-status" title="未上报">${renderProjectLogStatusIcon("missing")}</span>`;
   if(state==="stopped")return `<span class="enterprise-log-day-status" title="停工未上报">${renderProjectLogStatusIcon("stopped")}</span>`;
@@ -203,7 +227,8 @@ function refreshEnterpriseConstructionLogColumns(){
     {key:"projectStatus",title:"项目状态",width:80,align:"center",render:row=>projectStatusTag(row.projectStatus)},
     {key:"subCompany",title:"子公司",width:130,align:"center",render:row=>row.subCompany},
     {key:"branchCompany",title:"分公司",width:140,align:"center",render:row=>row.branchCompany},
-    {key:"onTimeUpload",title:`是否按要求上报${renderInfoTip("子公司重大项目和股份重大项目，必须每天填报施工日志；子公司一般项目三天不少于1次填报，一周不少于2次填报")}`,width:140,align:"center",render:row=>tag(row.onTimeUpload,row.onTimeUpload==="是"?"green":"red")},
+    {key:"productionBizType",title:"生产业务类型",width:150,align:"center",render:row=>{const value=row.productionBizType||"";const options=typeof getDictEnabledOptionsV2285==="function"?getDictEnabledOptionsV2285("PRODUCTION_BIZ_TYPE"):[];return options.includes(value)?tag(value,"blue"):(value||"-");}},
+    {key:"onTimeUpload",title:`是否按要求上报${renderInfoTip("以下规则仅针对生产业务类型为“施工类（大于400万）”的项目\n子公司重大项目和股份重大项目，必须每天填报施工日志；子公司一般项目三天不少于 1 次填报，一周不少于 2 次填报")}`,width:140,align:"center",render:row=>!isEnterpriseConstructionLogLargeConstructionType(row.productionBizType)||row.onTimeUpload==="-"?"-":tag(row.onTimeUpload,row.onTimeUpload==="是"?"green":"red")},
     {key:"latestUploadDate",title:"最新上报日期",width:110,align:"center",render:row=>row.latestUploadDate},
     ...Array.from({length:meta.days},(_,index)=>({
       key:`day${index+1}`,
@@ -224,12 +249,10 @@ function refreshEnterpriseConstructionLogColumns(){
 }
 
 function renderEnterpriseConstructionLogStats(){
-  const rows=getEnterpriseConstructionLogTodayStatRows();
-  const count=status=>rows.filter(row=>row.reportStatus===status).length;
+  const buckets=getEnterpriseConstructionLogStatBuckets();
   return StatisticsFilter.render({id:"enterprise-construction-log-statistics-filter",activeKey:enterpriseConstructionLogState.statKey,groups:[
-    {label:"今日 上报",items:[{key:"all",label:"应上报",value:rows.length},{key:"reported",label:"已上报",value:count("已上报")},{key:"unreported",label:"应报未报",value:count("未上报")},{key:"stopped",label:"停工未上报",value:count("停工未上报")}]},
-    {label:"上报方式",items:[{key:"online",label:"在线上报",value:rows.filter(row=>row.reportMethod==="在线上报").length},{key:"file",label:"文件上报",value:rows.filter(row=>row.reportMethod==="文件上报").length},{key:"merged",label:"在线+文件上报",value:rows.filter(row=>row.reportMethod==="在线+文件上报").length}]},
-    {label:"按要求 上报",items:[{key:"onTime",label:"按要求上报",value:rows.filter(row=>row.onTimeUpload==="是").length},{key:"notOnTime",label:"未按要求上报",value:rows.filter(row=>row.onTimeUpload==="否").length}]}
+    {label:"今日 上报",items:[{key:"required",label:"应上报",value:buckets.required.length},{key:"reported",label:"已上报",value:buckets.reported.length},{key:"unreported",label:"应报未报",value:buckets.unreported.length},{key:"stopped",label:"停工未上报",value:buckets.stopped.length}]},
+    {label:"按要求\n上报",className:"required-report-stat-group",items:[{key:"onTime",label:"按要求上报",value:buckets.onTime.length},{key:"notOnTime",label:"未按要求上报",value:buckets.notOnTime.length}]}
   ],onChange:key=>setEnterpriseConstructionLogStat(key)});
 }
 

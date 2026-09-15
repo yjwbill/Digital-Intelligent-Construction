@@ -46,7 +46,7 @@
     instances.set(normalized.id,normalized);
     const groups=normalized.groups.map(group=>`
       <div class="construction-project-stat-group statistics-filter__group ${escapeHtml(group.className)}">
-        <div class="construction-project-stat-name statistics-filter__group-label">${escapeHtml(group.label)}</div>
+        <div class="construction-project-stat-name statistics-filter__group-label">${String(group.label??"").split(/\\n|\n/).map(escapeHtml).join("<br>")}</div>
         <div class="construction-project-stat-items statistics-filter__items">
           ${group.items.map(item=>{
             const active=normalized.activeKey===item.key;
