@@ -187,6 +187,14 @@ function renderDigitalConstructionEntry(){
               <button class="entry-terminal-card" onclick="openDigitalConstructionExternalEntry('住建委大屏端')"><span class="entry-terminal-icon terminal-image screen" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>大屏端</strong><em>可视化综合分析展示</em></span><b>立即体验　→</b></button>
             </div>
           </section>
+          <section class="entry-product-card roundpipe">
+            <header class="entry-product-header"><span class="entry-product-logo entry-emoji-product" aria-hidden="true">⛏️</span><div><h2>圆顶管专版</h2><p>圆顶管项目协同管理，覆盖施工推进、监测预警与风险闭环</p></div></header>
+            <div class="entry-terminal-grid">
+              <button class="entry-terminal-card" onclick="enterRoundpipeDemo('desktop')"><span class="entry-terminal-icon terminal-image pc" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>桌面端</strong><em>项目管理与业务协同</em></span><b>立即体验　→</b></button>
+              <button class="entry-terminal-card" onclick="enterRoundpipeDemo('mobile')"><span class="entry-terminal-icon terminal-image mobile" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>移动端</strong><em>现场推进与班次交接</em></span><b>立即体验　→</b></button>
+              <button class="entry-terminal-card" onclick="enterRoundpipeDemo('screen')"><span class="entry-terminal-icon terminal-image screen" aria-hidden="true"></span><span class="entry-terminal-copy"><strong>大屏端</strong><em>多项目进度与风险总览</em></span><b>立即体验　→</b></button>
+            </div>
+          </section>
           <div class="entry-side-products">
             <section class="entry-compact-product tunnel"><header><span class="entry-product-logo tunnel" aria-hidden="true"><img src="src/assets/shareholder-dashboard/tunnel-shareholder-logo.png" alt="隧道股份 上海城建"></span><div><h2>股份大屏</h2><p>工程管理驾驶舱，助力智慧决策</p></div></header><button onclick="openDigitalConstructionExternalEntry('股份看板')"><span class="entry-terminal-icon terminal-image screen" aria-hidden="true"></span><span><strong>大屏端</strong><em>工程态势与实时监控</em></span><b>立即体验　→</b></button></section>
             <section class="entry-compact-product environment"><header><span class="entry-product-logo entry-emoji-product" aria-hidden="true">🌿</span><div><h2>环境集团</h2><p>环境治理智慧平台，助力绿色发展与运营管理</p></div></header><button onclick="openDigitalConstructionExternalEntry('环境集团桌面端')"><span class="entry-terminal-icon terminal-image pc" aria-hidden="true"></span><span><strong>桌面端</strong><em>运营管理与数据看板</em></span><b>立即体验　→</b></button></section>
@@ -202,6 +210,15 @@ function renderDigitalConstructionEntry(){
       </section>
     </main>
   `;
+}
+
+function enterRoundpipeDemo(type){
+  const app=document.querySelector('.app'); if(!app)return;
+  const labels={desktop:'桌面端',mobile:'移动端',screen:'大屏端'};
+  window.__digitalConstructionMode='roundpipe-'+type;
+  document.body.classList.remove('entry-mode','mobile-mode','zjw-demo-mode','component-library-mode','enterprise-mobile-mode','product-overview-mode');
+  document.body.classList.add('zjw-demo-mode');
+  app.innerHTML=`<main class="zjw-demo-host"><header class="zjw-demo-toolbar"><div><strong>圆顶管专版 · ${labels[type]}</strong><span>独立产品 · DEMO</span></div><button type="button" onclick="renderDigitalConstructionEntry()">返回 Demo 入口</button></header><section style="flex:1;display:flex;align-items:center;justify-content:center;background:#f4f6f8"><div style="text-align:center;color:#667085"><div style="font-size:48px;margin-bottom:16px">⛏️</div><h2 style="margin:0 0 8px;color:#1d2129">圆顶管${labels[type]}</h2><p style="margin:0">功能页面待接入，后续可按需求继续完善</p></div></section></main>`;
 }
 
 function openDigitalConstructionExternalEntry(name){

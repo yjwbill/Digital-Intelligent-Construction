@@ -42,10 +42,10 @@ function setup({savedColumns=null,constructionProjects=[]}={}){
     operation:row=>context.tableColumnDefinitions.operationProductionProjectList.find(column=>column.key==='operation').render(row)};
 }
 
-test('操作列默认220px，仅总承包、管线且未关联、无立项时间时提供创建入口，旧默认宽度迁移后仍可自定义',()=>{
+test('操作列默认280px，仅总承包、管线且未关联、无立项时间时提供创建入口，旧默认宽度迁移后仍可自定义',()=>{
   const env=setup({savedColumns:[{key:'operation',width:250},{key:'projectName',width:350}]});
-  assert.equal(env.context.tableColumnDefinitions.operationProductionProjectList.at(-1).width,220);
-  assert.deepEqual(JSON.parse(env.storage.get('columns-operationProductionProjectList')),[{key:'operation',width:220},{key:'projectName',width:350}]);
+  assert.equal(env.context.tableColumnDefinitions.operationProductionProjectList.at(-1).width,280);
+  assert.deepEqual(JSON.parse(env.storage.get('columns-operationProductionProjectList')),[{key:'operation',width:280},{key:'projectName',width:350}]);
   assert.ok(!env.operation(env.rows[0]).includes('创建施工项目'));
   const row=env.rows[2];
   for(const businessType of ['总承包','管线']){
@@ -62,6 +62,29 @@ test('操作列默认220px，仅总承包、管线且未关联、无立项时间
   }
   const custom=setup({savedColumns:[{key:'operation',width:310}]});
   assert.equal(JSON.parse(custom.storage.get('columns-operationProductionProjectList'))[0].width,310);
+});
+
+test('启用禁用按钮与状态联动，按项目独立保存并可重新加载，保存失败不改变状态',()=>{
+  const env=setup(),ctx=env.context,row=env.rows[0],other=env.rows[1];
+  const cols=ctx.tableColumnDefinitions.operationProductionProjectList;
+  assert.equal(cols[cols.findIndex(col=>col.key==='index')+1].key,'enabled');
+  assert.equal(row.enabled,true);
+  assert.match(env.operation(row),/>禁用<\/button>/);
+  ctx.toggleOperationProductionProjectEnabled(row.id);
+  assert.equal(row.enabled,false);
+  assert.equal(other.enabled,true);
+  assert.match(env.operation(row),/>启用<\/button>/);
+  assert.equal(JSON.parse(env.storage.get('EM_OPERATION_PRODUCTION_PROJECT_ENABLED'))[row.productionProjectNo],false);
+  vm.runInContext(source,ctx);
+  ctx.renderOperationProductionProjectListPage();
+  assert.equal(env.rows[0].enabled,false);
+  ctx.toggleOperationProductionProjectEnabled(row.id);
+  assert.equal(env.rows[0].enabled,true);
+  ctx.localStorage.setItem=()=>{throw new Error('quota');};
+  ctx.toggleOperationProductionProjectEnabled(row.id);
+  assert.equal(env.rows[0].enabled,true);
+  assert.match(env.messages.at(-1),/保存失败/);
+  assert.doesNotThrow(()=>ctx.toggleOperationProductionProjectEnabled(-1));
 });
 
 test('业务弹框展示10个只读字段，四列排列；取消或关闭不创建且旧确认不可执行',()=>{

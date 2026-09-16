@@ -1,7 +1,7 @@
 const outputForecastState={
   activeTab:"施工类",
   activeSubTab:"全部分类",
-  outputMonth:getPreviousReportMonth(),
+  outputYear:getOutputForecastDefaultYear(),
   projectName:"",
   company:"",
   branch:"",
@@ -157,6 +157,7 @@ const outputForecastConstructionRows=[
   annualPlanOutput:item[9],
   annualCompletedOutput:item[10],
   mayOutput:item[11],
+  monthlyOutputs:buildOutputForecastDemoMonths(item,index),
   remainingContractOutput:item[12],
   remaining2026Forecast:item[13],
   forecast2027:item[14],
@@ -201,6 +202,73 @@ function formatForecastYuan(value){
   return Number(value||0).toLocaleString("zh-CN",{maximumFractionDigits:0});
 }
 
+function getOutputForecastDefaultYear(){
+  return String(Math.min(2026,Math.max(2024,new Date().getFullYear())));
+}
+
+function getOutputForecastYear(){
+  return ["2024","2025","2026"].includes(outputForecastState.outputYear)
+    ?Number(outputForecastState.outputYear):Number(getOutputForecastDefaultYear());
+}
+
+function getOutputForecastMonthCount(){
+  const now=new Date();
+  const year=getOutputForecastYear();
+  return year<now.getFullYear()?12:year===now.getFullYear()?now.getMonth()+1:0;
+}
+
+// Deterministic demo reports: preserve the existing May values and populate Jan–Aug.
+function buildOutputForecastDemoMonths(item,index){
+  const values={};
+  const start=item[6].slice(0,7);
+  const history=[];
+  for(const year of [2024,2025]){
+    for(let month=1;month<=12;month++){
+      const period=`${year}-${String(month).padStart(2,"0")}`;
+      values[period]=0;
+      if(period>=start)history.push(period);
+    }
+  }
+  // Allocate the existing end-of-2025 cumulative amount without changing its total.
+  const totalCents=Math.round(item[8]*100);
+  history.forEach((period,i)=>{
+    values[period]=(Math.floor(totalCents/history.length)+(i<totalCents%history.length?1:0))/100;
+  });
+  for(let month=1;month<=12;month++){
+    const period=`2026-${String(month).padStart(2,"0")}`;
+    const reported=month<=8&&period>=start&&item[4]==="在建";
+    values[period]=month===5?item[11]:reported
+      ?Math.round(item[9]/12*(0.85+((index+month)%5)*0.08)*100)/100:0;
+  }
+  return values;
+}
+
+function getOutputForecastYearRow(row){
+  const year=getOutputForecastYear();
+  const sumCents=predicate=>Object.entries(row.monthlyOutputs||{}).reduce((sum,[period,value])=>
+    sum+(predicate(period)?Math.round((Number(value)||0)*100):0),0);
+  const annualCents=sumCents(period=>period.startsWith(`${year}-`));
+  const previousCents=sumCents(period=>Number(period.slice(0,4))<year);
+  const accumulatedCents=previousCents+annualCents;
+  return {...row,completedTo2025:previousCents/100,annualCompletedOutput:annualCents/100,
+    annualPlanOutput:year===2026?row.annualPlanOutput:Math.round(annualCents*1.15)/100,
+    accumulatedOutput:accumulatedCents/100,
+    remainingContractOutput:(Math.round(row.contractAmount*100)-accumulatedCents)/100};
+}
+
+function getOutputForecastMonthColumns(){
+  const year=getOutputForecastYear();
+  if(year===2024)return [{key:"initialOutput2024",title:"期初值（万元）",width:140,align:"right",
+    render:row=>formatForecastAmount(row.annualCompletedOutput)}];
+  const month=getOutputForecastMonthCount();
+  return Array.from({length:month},(_,index)=>{
+    const number=month-index;
+    const period=`${year}-${String(number).padStart(2,"0")}`;
+    return {key:`monthlyOutput_${period}`,title:`${number}月完成产值(万元)`,width:140,align:"right",
+      render:row=>formatForecastAmount(row.monthlyOutputs?.[period])};
+  });
+}
+
 function getOutputForecastOrderSearchRows(){
   const s=outputForecastState;
   return outputForecastOrderRows.filter(row=>{
@@ -234,7 +302,7 @@ function getOutputForecastSearchRows(){
   const s=outputForecastState;
   return outputForecastConstructionRows.filter(row=>{
     if(!matchOutputForecastTab(row))return false;
-    if(s.outputMonth&&row.outputMonth&&row.outputMonth!==s.outputMonth)return false;
+    if(Number(row.bidDate.slice(0,4))>getOutputForecastYear())return false;
     if(s.projectName&&!row.projectName.includes(s.projectName))return false;
     if(s.company&&row.company!==s.company)return false;
     if(s.branch&&row.branch!==s.branch)return false;
@@ -242,7 +310,7 @@ function getOutputForecastSearchRows(){
     if(s.bidMonth&&row.bidDate.slice(0,7)!==s.bidMonth)return false;
     if(s.projectNo&&!row.projectNo.toLowerCase().includes(s.projectNo.toLowerCase()))return false;
     return true;
-  });
+  }).map(getOutputForecastYearRow);
 }
 
 function getOutputForecastRowCategory(row){
@@ -269,7 +337,19 @@ function getOutputForecastFilteredRows(){
   if(outputForecastState.activeTab==="施工类"&&outputForecastState.statKey==="finished")return rows.filter(row=>row.statisticNature==="完工未结算");
   if(isOutputForecastWeakIndustry()&&outputForecastState.reportScope==="branch"){
     const grouped=new Map();
-    rows.forEach(row=>{const key=`${row.company}|${row.branch}`;const current=grouped.get(key)||{...row,projectName:`${row.company} / ${row.branch}`};["totalContractPriceYuan","completedTo2025","annualPlanOutput","annualCompletedOutput","mayOutput","remainingContractOutput","accumulatedOutput"].forEach(field=>current[field]=(Number(current[field])||0)+(Number(row[field])||0));grouped.set(key,current);});
+    const fields=["totalContractPriceYuan","completedTo2025","annualPlanOutput","annualCompletedOutput","mayOutput","remainingContractOutput","accumulatedOutput"];
+    rows.forEach(row=>{
+      const key=`${row.company}|${row.branch}`;
+      const current=grouped.get(key)||{...row,projectName:`${row.company} / ${row.branch}`,monthlyOutputs:{},...Object.fromEntries(fields.map(field=>[field,0]))};
+      fields.forEach(field=>current[field]=(Math.round(current[field]*100)+Math.round((Number(row[field])||0)*100))/100);
+      const periods=new Set([...Object.keys(current.monthlyOutputs),...Object.keys(row.monthlyOutputs||{})]);
+      periods.forEach(period=>{
+        const value=row.monthlyOutputs?.[period];
+        const previous=current.monthlyOutputs[period];
+        current.monthlyOutputs[period]=(Math.round((Number(previous)||0)*100)+Math.round((Number(value)||0)*100))/100;
+      });
+      grouped.set(key,current);
+    });
     return [...grouped.values()];
   }
   return rows;
@@ -284,7 +364,7 @@ function getOutputForecastPagedRows(){
 }
 
 function queryOutputForecastAnalysis(){
-  outputForecastState.outputMonth=document.getElementById("outputForecastOutputMonth")?.value || getPreviousReportMonth();
+  outputForecastState.outputYear=document.getElementById("outputForecastOutputYear")?.value || getOutputForecastDefaultYear();
   outputForecastState.projectName=document.getElementById("outputForecastProjectName")?.value.trim() || "";
   outputForecastState.company=document.getElementById("outputForecastCompany")?.value || "";
   outputForecastState.branch=document.getElementById("outputForecastBranch")?.value || "";
@@ -300,7 +380,7 @@ function resetOutputForecastAnalysis(){
   Object.assign(outputForecastState,{
     activeTab:"施工类",
     activeSubTab:"全部分类",
-    outputMonth:getPreviousReportMonth(),
+    outputYear:getOutputForecastDefaultYear(),
     projectName:"",
     company:"",
     branch:"",
@@ -383,7 +463,7 @@ function renderOutputForecastStatsCard(){
 function renderOutputForecastTotalCard(){
   const rows=getOutputForecastSearchRows();
   const sumValue=key=>rows.reduce((sum,row)=>sum+(Number(row[key])||0),0);
-  const metrics=[["completedTo2025","至2025年末累计完成产值(万元)"],["annualPlanOutput","年度计划产值(万元)"],["annualCompletedOutput","年度累计完成产值(万元)"],["mayOutput","5月完成产值(万元)"],["remainingContractOutput","剩余合同产值(万元)"],["accumulatedOutput","开累产值(万元)"]];
+  const metrics=[["completedTo2025",`至${getOutputForecastYear()-1}年末累计完成产值(万元)`],["annualPlanOutput","年度计划产值(万元)"],["annualCompletedOutput","年度累计完成产值(万元)"],["remainingContractOutput","剩余合同产值(万元)"],["accumulatedOutput","开累产值(万元)"]];
   return `
     <div class="output-forecast-total-card" aria-label="产值合计">
       <div class="output-forecast-total-items">
@@ -412,25 +492,27 @@ tableColumnDefinitions.outputForecastConstruction=[
   {key:"completedTo2025",title:"至2025年末累计完成产值(万元)",width:230,align:"right",render:row=>formatForecastAmount(row.completedTo2025)},
   {key:"annualPlanOutput",title:"年度计划产值(万元)",width:180,align:"right",render:row=>formatForecastAmount(row.annualPlanOutput)},
   {key:"annualCompletedOutput",title:"年度累计完成产值(万元)",width:210,align:"right",render:row=>formatForecastAmount(row.annualCompletedOutput)},
-  {key:"mayOutput",title:"5月完成产值(万元)",width:170,align:"right",render:row=>formatForecastAmount(row.mayOutput)},
   {key:"remainingContractOutput",title:"剩余合同产值(万元)",width:180,align:"right",render:row=>formatForecastAmount(row.remainingContractOutput)},
   {key:"accumulatedOutput",title:"开累产值(万元)",width:160,align:"right",render:row=>formatForecastAmount(row.accumulatedOutput)}
 ];
 const outputForecastProjectColumns=tableColumnDefinitions.outputForecastConstruction;
 function getOutputForecastColumns(){
-  if(outputForecastState.reportScope!=="branch"||!isOutputForecastWeakIndustry())return outputForecastProjectColumns;
+  const monthlyColumns=getOutputForecastMonthColumns();
+  const previousYearTitle=`至${getOutputForecastYear()-1}年末累计完成产值(万元)`;
+  if(outputForecastState.reportScope!=="branch"||!isOutputForecastWeakIndustry())return [
+    ...outputForecastProjectColumns.map(col=>col.key==="completedTo2025"?{...col,title:previousYearTitle}:col),...monthlyColumns];
   const amount=(key,title)=>({key,title,width:key==="company"?140:key==="branch"?180:180,align:key==="company"||key==="branch"?"center":"right",render:row=>key==="totalContractPriceYuan"?formatForecastYuan(row[key]):formatForecastAmount(row[key])});
   return [
     {key:"index",title:"序号",width:70,align:"center",render:(row,index)=>(outputForecastState.page-1)*outputForecastState.pageSize+index+1},
     {key:"company",title:"子公司",width:140,align:"center",render:row=>row.company},
     {key:"branch",title:"分公司",width:180,align:"center",render:row=>row.branch},
     amount("totalContractPriceYuan","合同总额（元）"),
-    amount("completedTo2025","至2025年末累计完成产值(万元)"),
+    amount("completedTo2025",previousYearTitle),
     amount("annualPlanOutput","年度计划产值(万元)"),
     amount("annualCompletedOutput","年度累计完成产值(万元)"),
-    amount("mayOutput","5月完成产值(万元)"),
     amount("remainingContractOutput","剩余合同产值(万元)"),
-    amount("accumulatedOutput","开累产值(万元)")
+    amount("accumulatedOutput","开累产值(万元)"),
+    ...monthlyColumns
   ];
 }
 
@@ -475,7 +557,7 @@ function renderOutputForecastConstructionPage(){
   const totalPages=Math.max(1,Math.ceil(rows.length/outputForecastState.pageSize));
   return `
     ${renderUnifiedQueryCard(`
-      <div class="form-item"><label>上报月份</label><input class="input" id="outputForecastOutputMonth" type="month" value="${outputForecastState.outputMonth}"/></div>
+      <div class="form-item"><label for="outputForecastOutputYear">上报年份</label><select class="select" id="outputForecastOutputYear" onchange="queryOutputForecastAnalysis()">${[2024,2025,2026].map(year=>`<option value="${year}" ${String(year)===outputForecastState.outputYear?"selected":""}>${year}</option>`).join("")}</select></div>
       <div class="form-item"><label>项目名称</label><input class="input" id="outputForecastProjectName" value="${escapeAttr(outputForecastState.projectName)}" placeholder="请输入项目名称"/></div>
       <div class="form-item"><label>子公司</label><select class="select" id="outputForecastCompany" onchange="syncOutputForecastBranchOptions()">${renderActualOutputOptions(companyOptions,outputForecastState.company,"全部")}</select></div>
       <div class="form-item"><label>分公司</label><select class="select" id="outputForecastBranch">${renderActualOutputOptions(branchOptions,outputForecastState.branch,"全部")}</select></div>

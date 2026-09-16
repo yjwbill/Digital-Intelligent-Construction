@@ -1,4 +1,10 @@
 (function(){
+  const enabledStorageKey="EM_OPERATION_PRODUCTION_PROJECT_ENABLED";
+  let savedEnabled={};
+  try{
+    const saved=JSON.parse(localStorage.getItem(enabledStorageKey)||"{}");
+    if(saved&&typeof saved==="object"&&!Array.isArray(saved))savedEnabled=saved;
+  }catch(error){/* No saved state: existing projects default to enabled. */}
   const companies=["上海隧道","市政集团","上海路桥","城建物资"];
   const branches=["轨交分公司","上海分公司","道路分公司","物资事业部"];
   const managers=["王自立","吴平","周坤","金文皓","陈晓","赵青"];
@@ -17,6 +23,7 @@
     const date=`2026-08-${String(6-Math.floor(index/8)).padStart(2,"0")} ${String(13-index%5).padStart(2,"0")}:${String((index*7)%60).padStart(2,"0")}`;
     return {
       id:index+1,
+      enabled:savedEnabled[`SUCG${String(10+index%9).padStart(2,"0")}202608${String(index+1).padStart(4,"0")}`]!==false,
       projectName:names[index%names.length],
       projectShortName:names[index%names.length].slice(0,12),
       country:"中国",
@@ -138,6 +145,7 @@
   tableColumnDefinitions.operationProductionProjectList=[
     {key:"selection",title:"",width:48,align:"center",render:()=>`<input type="checkbox"/>`},
     {key:"index",title:"序号",width:70,align:"center",render:(row,index)=>(state.page-1)*state.pageSize+index+1},
+    {key:"enabled",title:"状态",width:100,align:"center",render:row=>tag(row.enabled?"启用":"禁用",row.enabled?"green":"red")},
     {key:"projectName",title:"生产项目名称",width:300,render:row=>`<a class="link text-ellipsis" title="${escapeAttr(row.projectName)}">${row.projectName}</a>`},
     {key:"productionProjectNo",title:"生产项目编号",width:170,align:"center",render:row=>row.productionProjectNo},
     {key:"subProjectNo",title:"子公司项目编号",width:160,align:"center",render:row=>row.subProjectNo},
@@ -155,21 +163,34 @@
     {key:"linkedConstructionProject",title:"关联施工项目",width:175,align:"center",render:row=>linkCell(row.linkedConstructionProject)},
     {key:"constructionDate",title:"施工立项时间",width:165,align:"center",render:row=>row.constructionDate||"-"},
     {key:"pushRecords",title:"推送记录",width:100,align:"center",render:row=>`<button type="button" class="link operation-push-record-count" onclick="openProductionProjectPushRecords(${row.id})">${getProductionProjectPushRecords(row).length}</button>`},
-    {key:"operation",title:"操作",width:220,align:"center",render:row=>`<a class="link" onclick="showOperationProductionProjectDetail(${row.id})">详情</a> <a class="link" onclick="editOperationProductionProject(${row.id})">编辑</a> <a class="link" onclick="openOperationOrderProjectRebindPicker(${row.id})">换绑</a>${canCreateConstructionProject(row)?` <a class="link" onclick="createOperationConstructionProject(${row.id})">创建施工项目</a>`:""}`}
+    {key:"operation",title:"操作",width:280,align:"center",render:row=>`<a class="link" onclick="showOperationProductionProjectDetail(${row.id})">详情</a> <a class="link" onclick="editOperationProductionProject(${row.id})">编辑</a> <a class="link" onclick="openOperationOrderProjectRebindPicker(${row.id})">换绑</a> <button type="button" class="link" onclick="toggleOperationProductionProjectEnabled(${row.id})">${row.enabled?"禁用":"启用"}</button>${canCreateConstructionProject(row)?` <a class="link" onclick="createOperationConstructionProject(${row.id})">创建施工项目</a>`:""}`}
   ];
 
   // 仅迁移原操作列默认宽度，保留其他列及用户自定义宽度。
   if(typeof getColumnStorageKey==="function"&&typeof localStorage!=="undefined"){
-    const storageKey=getColumnStorageKey("operationProductionProjectList"),migrationKey=storageKey+"_operation220";
+    const storageKey=getColumnStorageKey("operationProductionProjectList"),migrationKey=storageKey+"_operation280";
     try{
       if(!localStorage.getItem(migrationKey)){
         const saved=JSON.parse(localStorage.getItem(storageKey)||"null");
         const operation=Array.isArray(saved)?saved.find(column=>column.key==="operation"):null;
-        if(operation&&[190,250].includes(Number(operation.width))){operation.width=220;localStorage.setItem(storageKey,JSON.stringify(saved));}
+        if(operation&&[190,220,250].includes(Number(operation.width))){operation.width=280;localStorage.setItem(storageKey,JSON.stringify(saved));}
         localStorage.setItem(migrationKey,"1");
       }
     }catch(error){console.warn("生产项目操作列默认宽度更新失败",error);}
   }
+
+  window.toggleOperationProductionProjectEnabled=id=>{
+    const row=operationProductionProjectListData.find(item=>item.id===Number(id));
+    if(!row)return;
+    const enabled=!row.enabled;
+    const next={...savedEnabled,[row.productionProjectNo]:enabled};
+    try{localStorage.setItem(enabledStorageKey,JSON.stringify(next));}
+    catch(error){showToast("状态保存失败，请检查浏览器存储后重试");return;}
+    savedEnabled=next;
+    row.enabled=enabled;
+    renderTable();
+    showToast(`生产项目已${enabled?"启用":"禁用"}`);
+  };
 
   function canCreateConstructionProject(row){return ["总承包","管线"].includes(row.businessType)&&!row.linkedConstructionProject&&!row.constructionDate;}
   function syncConstructionProjectLinks(){

@@ -1,8 +1,8 @@
 ﻿
-const APP_CODE_VERSION="EM-20260701-V2.2.755-SHAREHOLDER-FULFILLMENT-WATERFALL";
-const APP_CODE_VERSION_NAME="股份看板设备指标与生命周期图标优化";
-const APP_CODE_VERSION_TIME="2026-08-16";
-const APP_CODE_VERSION_DESC="生产要素保障设备分组新增智能监管接入数，项目全生命周期四个状态图标缩小至原展示尺寸的80%。";
+const APP_CODE_VERSION="EM-20260701-V2.2.1051-PRODUCTION-PROJECT-ENABLED";
+const APP_CODE_VERSION_NAME="生产项目启用禁用状态";
+const APP_CODE_VERSION_TIME="2026-09-16";
+const APP_CODE_VERSION_DESC="生产项目列表在序号后新增状态列，操作区按状态展示启用或禁用按钮，状态保存在浏览器本地。";
 window.__APP_VERSION__={
   code:APP_CODE_VERSION,
   name:APP_CODE_VERSION_NAME,
@@ -2260,6 +2260,11 @@ function getColumnConfig(tableKey){
     }:def;
   });
 
+  if(tableKey==="outputForecastConstruction"){
+    const monthly=merged.filter(col=>col.key.startsWith("monthlyOutput_")).sort((a,b)=>b.key.localeCompare(a.key));
+    return merged.filter(col=>!col.key.startsWith("monthlyOutput_")).sort((a,b)=>a.order-b.order)
+      .concat(monthly).map((item,index)=>({...item,order:index+1}));
+  }
   return merged
     .sort((a,b)=>a.order-b.order)
     .map((item,index)=>({...item,order:index+1}));
