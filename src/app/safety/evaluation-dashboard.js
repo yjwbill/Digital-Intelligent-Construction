@@ -2604,7 +2604,8 @@ const safetyEvalResultState={
 };
 
 function safetyEvalRiskTag(value){
-  return tag(value,value==="风险极高"?"red":value==="风险较高"?"orange":"green");
+  const type=value==="风险极高"?"safety-risk-extreme":value==="风险较高"?"safety-risk-high":"safety-risk-controlled";
+  return tag(value,type);
 }
 
 function safetyEvalResultStatusTag(value){
@@ -4402,9 +4403,9 @@ const safetyEvaluationOrgs=["全部",...getOrganizationCompanies()];
 const safetyEvaluationOrgState={active:safetyEvaluationOrgs[0],company:"",branch:""};
 const safetyEvaluationSummaryMeta=[
   {label:"安全纳管项目数",level:"",color:"blue",icon:"▣",trend:"↑ 4"},
-  {label:"风险极高项目",level:"风险极高",color:"red",icon:"src/assets/risk-extreme.png",trend:"↑ 3",iconType:"image"},
-  {label:"风险较高项目",level:"风险较高",color:"orange",icon:"src/assets/risk-high.png",trend:"↑ 2",iconType:"image"},
-  {label:"风险可控项目",level:"风险可控",color:"green",icon:"src/assets/risk-control.png",trend:"↓ 1",iconType:"image"}
+  {label:"风险极高项目",level:"风险极高",color:"safety-risk-extreme",icon:"shield-error-filled",trend:"↑ 3",iconType:"tdesign"},
+  {label:"风险较高项目",level:"风险较高",color:"safety-risk-high",icon:"error-circle-filled",trend:"↑ 2",iconType:"tdesign"},
+  {label:"风险可控项目",level:"风险可控",color:"safety-risk-controlled",icon:"secured-filled",trend:"↓ 1",iconType:"tdesign"}
 ];
 const safetyEvaluationDimensions=[
   {title:"现场管控",spark:[29,25,27,30,33],items:[["隐患整改闭环",69],["重复隐患发生",99],["安全每日监督",4],["关键岗位在岗",18,"red"],["分包人员配置",3],["工人工资核验",4]]},
@@ -4811,7 +4812,6 @@ function openSafetyEvaluationDetail(rowNo){
   const row=safetyEvaluationRows.find(item=>String(item[0])===String(rowNo)) || safetyEvaluationRows[0];
   const meta=safetyEvaluationDetailMeta[(Number(row[0])||1)-1] || safetyEvaluationDetailMeta[0];
   const dims=safetyEvaluationRadarAxes.map((axis,index)=>[axis.name,row[8+index]]);
-  const riskType=row[7]==="风险可控"?"green":row[7]==="风险较高"?"orange":"red";
   const html=`
     <div class="safety-eval-detail-page">
       <section class="safety-eval-detail-hero">
@@ -4844,7 +4844,7 @@ function openSafetyEvaluationDetail(rowNo){
         </div>
         <div class="detail-score-level">
           <h4>项目安全等级</h4>
-          ${tag(row[7],riskType)}
+          ${safetyEvalRiskTag(row[7])}
         </div>
         <div class="detail-dim-scores">
           ${dims.map(item=>`
@@ -4910,7 +4910,7 @@ function renderSafetyEvaluationTable(){
               <tr>
                 <td class="center col-select"><input type="checkbox" ${isSafetyEvalRowSelected(row[0])?"checked":""} onchange="toggleSafetyEvalRowSelect('${escapeAttr(row[0])}',this.checked)"/></td><td class="center col-index">${index+1}</td><td class="project-name col-project"><a class="link" onclick="openSafetyEvaluationDetail('${escapeAttr(row[0])}')">${row[1]}</a></td><td class="center">${row[2]}</td><td class="center">${row[3]}</td><td class="center">${renderProjectManagerContact(row[4],"",{key:`safety-evaluation-dashboard-${row[0]}`})}</td>
                 <td class="center"><span class="dot ${row[5]==="竣工"?"blue":"green"}"></span>${row[5]}</td><td class="center">${row[6]}</td>
-                <td class="center">${tag(row[7],row[7]==="风险可控"?"green":row[7]==="风险较高"?"orange":"red")}</td>
+                <td class="center">${safetyEvalRiskTag(row[7])}</td>
                 <td>${row[8]}</td><td>${row[9]}</td><td>${row[10]}</td><td>${row[11]}</td><td>${row[12]}</td>
                 <td class="center ${row[14]}">${row[13]}</td>
                 <td class="center col-report-action"><div class="report-actions"><a class="link" onclick="sendSafetyEvalMonthlyReport('${escapeAttr(row[4])}')">发送报告</a><a class="link" onclick="downloadSafetyEvalMonthlyReport()">下载报告</a></div></td>
@@ -4957,7 +4957,7 @@ function renderSafetyEvaluationDashboardPage(){
           <section class="safety-eval-summary">
             ${summaryItems.map(item=>`
               <div class="safety-eval-summary-item ${item.level?"clickable":""} ${item.level&&safetyEvaluationFilterState.riskLevel===item.level?"active":""}" ${item.level?`onclick="setSafetyEvalRiskFilter('${item.level}')"`:""}>
-                <div class="summary-icon ${item.color}">${item.iconType==="image"?`<img src="${item.icon}" alt="${item.label}"/>`:item.icon}</div>
+                <div class="summary-icon ${item.color}">${item.iconType==="tdesign"?renderTDesignIcon(item.icon,{size:28,label:item.label}):item.icon}</div>
                 <div><span>${item.label}</span><strong>${item.value}<em>个</em></strong><p>较上月 <b>${item.trend || "↑ 4"}</b></p></div>
               </div>
             `).join("")}
@@ -4982,7 +4982,7 @@ function renderSafetyEvaluationDashboardPreservingScroll(){
 function renderSafetyScreenPanel(title,topItems,warnItems,type,withInfo=false){
   return `
     <div class="screen-panel ${type}">
-      <div class="screen-panel-hd"><h2>${title}${withInfo?`<i>i</i>`:""}</h2><button>进入专版 →</button></div>
+      <div class="screen-panel-hd"><h2>${title}${withInfo?`<i>i</i>`:""}</h2>${type==="hazard"?`<button onclick="openHazardOverviewFromDashboard()">进入专版 →</button>`:`<button>进入专版 →</button>`}</div>
       <div class="screen-kpi-grid">
         ${topItems.map(item=>{
           const hasUnit=item.length>3;
@@ -5029,6 +5029,297 @@ function renderSafetyScreenPanel(title,topItems,warnItems,type,withInfo=false){
       </div>
     </div>
   `;
+}
+
+const hazardSpecialState={perspective:"share",scope:"none",quarter:"三季度",inspectionType:"superior",analysis:"count"};
+const hazardSpecialEntities={
+  companies:["上海隧道","市政集团","上海路桥","上海能建","城市环境","城建物资"],
+  companyLabels:["上海\n隧道","市政\n集团","上海\n路桥","上海\n能建","城市\n环境","城建\n物资"],
+  branches:["轨交分公司","市政分公司","地基公司","第一建筑","公路公司","市政设计院"],
+  branchLabels:["轨交\n分公司","市政\n分公司","地基\n公司","第一\n建筑","公路\n公司","市政\n设计院"],
+  projects:["轨交21号线土建12标","外青松公路改建工程","示范区线SFQSG-12标","北蔡A-1地块项目","黄石长江大桥改建工程","中原路道路整治工程"],
+  projectLabels:["轨交21号线\n土建12标","外青松公路\n改建工程","示范区线\nSFQSG-12标","北蔡A-1\n地块项目","黄石长江大桥\n改建工程","中原路\n整治工程"]
+};
+const hazardInspectorRanking=[
+  {name:"王磊",hazards:286,major:6},
+  {name:"张伟",hazards:251,major:4},
+  {name:"陈建国",hazards:219,major:5},
+  {name:"李强",hazards:186,major:3},
+  {name:"赵明",hazards:158,major:2},
+  {name:"周海峰",hazards:132,major:1}
+].sort((a,b)=>b.hazards-a.hazards);
+function openHazardOverviewFromDashboard(){
+  const groupIndex=businessMenus.safety?.menus?.findIndex(item=>item.name==="隐患排查") ?? -1;
+  if(groupIndex>=0 && typeof window.selectBusinessChildMenu==="function"){
+    return window.selectBusinessChildMenu("safety",groupIndex,0,"隐患排查总览");
+  }
+  return renderHazardSpecialDashboard();
+}
+function toggleSafetyScreenFullscreen(){
+  const target=document.querySelector(".hazard-special-page") || document.querySelector(".safety-screen-page");
+  if(!document.fullscreenElement && target?.requestFullscreen) target.requestFullscreen();
+  else if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
+}
+function setHazardPerspective(perspective){
+  hazardSpecialState.perspective=["company","branch"].includes(perspective)?perspective:"share";
+  if(hazardSpecialState.inspectionType==="self" || hazardSpecialState.perspective==="branch")hazardSpecialState.scope="none";
+  else hazardSpecialState.scope=hazardSpecialState.perspective==="company"?"sub":"none";
+  renderHazardSpecialDashboard();
+}
+function setHazardSpecialScope(scope){
+  const allowed=hazardSpecialState.perspective==="company"?["sub","branch"]:["none","sub","branch"];
+  hazardSpecialState.scope=allowed.includes(scope)?scope:allowed[0];
+  renderHazardSpecialDashboard();
+}
+function setHazardInspectionType(type){
+  hazardSpecialState.inspectionType=type==="self"?"self":"superior";
+  hazardSpecialState.scope=hazardSpecialState.inspectionType==="superior"&&hazardSpecialState.perspective==="company"?"sub":"none";
+  renderHazardSpecialDashboard();
+}
+function setHazardAnalysisMode(mode){hazardSpecialState.analysis=mode==="users"?"users":"count";renderHazardSpecialDashboard();}
+function setHazardSpecialQuarter(value){const text=String(value||"");hazardSpecialState.quarter=text.includes("二季度")?"二季度":text.includes("一季度")?"一季度":"三季度";renderHazardSpecialDashboard();}
+function getHazardUsageModel(){
+  const self=hazardSpecialState.inspectionType==="self";
+  const perspective=hazardSpecialState.perspective;
+  const ranking=(perspective==="company"&&!self&&hazardSpecialState.scope==="sub") || (perspective==="branch"&&!self);
+  const safetyPeople=[139,91,65,144,86,19], safetyUsers=[71,56,35,2,46,3], safetyRate=["51.1%","61.5%","53.8%","1.4%","53.5%","15.8%"], safetyBills=[2606,1826,641,7,712,11], safetyAvg=[37,33,18,4,15,4];
+  const totalPeople=[271,148,121,160,161,30], totalUsers=[139,91,65,3,86,5], totalRate=["51.3%","61.5%","53.7%","1.9%","53.4%","16.7%"], totalBills=[5803,3226,1204,12,1426,21], totalAvg=[42,35,19,4,17,4];
+  const selfPeople=[215,118,76,149,102,24], selfUsers=[108,73,41,3,54,4], selfRate=["50.2%","61.9%","53.9%","2.0%","52.9%","16.7%"], selfBills=[3312,2046,703,9,824,15], selfAvg=[31,28,17,3,15,4];
+  const useSafety=!self&&((perspective==="share"&&hazardSpecialState.scope!=="none") || (perspective==="company"&&hazardSpecialState.scope==="branch"));
+  const data=useSafety?[safetyPeople,safetyUsers,safetyRate,safetyBills,safetyAvg]:self?[selfPeople,selfUsers,selfRate,selfBills,selfAvg]:[totalPeople,totalUsers,totalRate,totalBills,totalAvg];
+  let entities=hazardSpecialEntities.companies, labels=hazardSpecialEntities.companyLabels, entityTitle="公司名称";
+  if(perspective==="company"){
+    entities=hazardSpecialEntities.branches;
+    labels=hazardSpecialEntities.branchLabels;
+    entityTitle="分公司名称";
+  }else if(perspective==="branch"&&self){
+    entities=hazardSpecialEntities.projects;
+    labels=hazardSpecialEntities.projectLabels;
+    entityTitle="项目名称";
+  }
+  return {people:data[0],users:data[1],rates:data[2],bills:data[3],avgs:data[4],self,useSafety,ranking,entities,labels,entityTitle,rankingRows:hazardInspectorRanking};
+}
+function renderHazardPerspectiveSwitch(){
+  return `<div class="hazard-perspective-tabs" role="group" aria-label="看板视角">
+    ${[["share","股份视角"],["company","子公司视角"],["branch","分公司视角"]].map(([value,label])=>`<button class="${hazardSpecialState.perspective===value?"active":""}" aria-pressed="${hazardSpecialState.perspective===value}" onclick="setHazardPerspective('${value}')">${label}</button>`).join("")}
+  </div>`;
+}
+function renderHazardScopeTabs(){
+  if(hazardSpecialState.inspectionType!=="superior" || hazardSpecialState.perspective==="branch")return "";
+  const options=hazardSpecialState.perspective==="company"?[["sub","子公司"],["branch","分公司"]]:[["none","全部"],["sub","子公司"],["branch","分公司"]];
+  return `<div class="scope-tabs hazard-usage-scopes">${options.map(([value,label])=>`<button class="${hazardSpecialState.scope===value?"active":""}" onclick="setHazardSpecialScope('${value}')">${label}</button>`).join("")}</div>`;
+}
+function renderHazardRankingTable(rows){
+  return `<div class="hazard-ranking-wrap"><table class="hazard-ranking-table"><thead><tr><th>排名</th><th>姓名</th><th>排查隐患数</th><th>重大隐患数</th></tr></thead><tbody>${rows.map((row,index)=>`<tr><td><span class="hazard-rank rank-${index+1}">${index+1}</span></td><td>${row.name}</td><td><strong>${row.hazards}</strong></td><td>${row.major}</td></tr>`).join("")}</tbody></table></div>`;
+}
+function renderHazardUsageAnalysis(usage){
+  const billTotal=usage.bills.reduce((sum,value)=>sum+value,0);
+  const userTotal=usage.users.reduce((sum,value)=>sum+value,0);
+  const peopleTotal=usage.people.reduce((sum,value)=>sum+value,0);
+  const chartValues=hazardSpecialState.analysis==="users"?usage.users:usage.bills;
+  const lineValues=hazardSpecialState.analysis==="users"?usage.users:usage.avgs;
+  const chartMax=Math.max(...chartValues,1), lineMax=Math.max(...lineValues,1);
+  const peopleTitle=hazardSpecialState.perspective==="branch"&&usage.self?"总包管理人员数量":usage.self?"总包人数":usage.useSafety?"安全条线人数":"总人数";
+  return `<div class="usage-metrics"><b class="${hazardSpecialState.analysis==="count"?"active":""}" onclick="setHazardAnalysisMode('count')">按开单数量分析<strong>${billTotal}<small>次　${(billTotal/Math.max(peopleTotal,1)).toFixed(1)}次</small></strong></b><b class="${hazardSpecialState.analysis==="users"?"active":""}" onclick="setHazardAnalysisMode('users')">按使用人数分析<strong>${userTotal}<small>人　${(userTotal/Math.max(peopleTotal*100,1)).toFixed(1)}%</small></strong></b></div>
+    <div class="usage-chart"><div class="bars">${chartValues.map((value,index)=>`<div class="bar-col"><span class="bar-value">${value}</span><i style="height:${Math.max(3,value/chartMax*215)}px"></i><b style="bottom:${Math.max(7,lineValues[index]/lineMax*205)}px"></b><label title="${usage.entities[index]}">${usage.labels[index].replace("\n","<br>")}</label></div>`).join("")}</div><div class="usage-legend"><span><i class="line-dot"></i>${hazardSpecialState.analysis==="users"?"使用人数":"人均隐患开单数"}</span><span><i class="bar-dot"></i>${hazardSpecialState.analysis==="users"?"使用人数":"总数"}</span></div></div>
+    <table class="mini-table"><thead><tr><th>${usage.entityTitle}</th><th>${peopleTitle}</th><th>${usage.self?"总包使用人数":usage.useSafety?"安全条线使用人数":"使用人数"}</th><th>${usage.self?"总包使用率":usage.useSafety?"安全条线使用率":"使用率"}</th><th>${usage.self?"总包开单数":usage.useSafety?"安全条线开单数":"开单数"}</th><th>${usage.self?"总包人均开单数":usage.useSafety?"安全条线人均开单数":"人均开单数"}</th></tr></thead><tbody>${usage.entities.map((entity,index)=>`<tr><td title="${entity}">${entity}</td><td>${usage.people[index]}</td><td>${usage.users[index]}</td><td>${usage.rates[index]}</td><td>${usage.bills[index]}</td><td>${usage.avgs[index]}</td></tr>`).join("")}</tbody></table>`;
+}
+function renderHazardUsageCard(usage,hazardTip){
+  const superiorLabel=hazardSpecialState.perspective==="branch"?"分公司检查":"上级检查总览";
+  return `<article class="hazard-card hazard-usage ${usage.ranking?"is-ranking":""}"><header><h2>隐患排查使用情况 ${renderInfoTip(hazardTip)}</h2><select onchange="setHazardSpecialQuarter(this.value)"><option ${hazardSpecialState.quarter==="三季度"?"selected":""}>三季度</option><option ${hazardSpecialState.quarter==="二季度"?"selected":""}>二季度</option><option ${hazardSpecialState.quarter==="一季度"?"selected":""}>一季度</option></select><div class="scope-tabs"><button class="${hazardSpecialState.inspectionType==="superior"?"active":""}" onclick="setHazardInspectionType('superior')">${superiorLabel}</button><button class="${hazardSpecialState.inspectionType==="self"?"active":""}" onclick="setHazardInspectionType('self')">项目自查</button></div></header>${renderHazardScopeTabs()}${usage.ranking?renderHazardRankingTable(usage.rankingRows):renderHazardUsageAnalysis(usage)}</article>`;
+}
+function renderHazardDynamicTable(){
+  const perspective=hazardSpecialState.perspective;
+  if(perspective==="branch"){
+    const rows=[["轨交21号线土建12标",12,"2026/09/07"],["外青松公路改建工程",10,"2026/09/06"],["示范区线SFQSG-12标",9,"2026/09/04"],["北蔡A-1地块项目",7,"2026/09/02"],["黄石长江大桥改建工程",6,"2026/08/29"],["中原路道路整治工程",4,"2026/08/26"]];
+    return `<table class="hazard-dynamic-simple"><thead><tr><th>项目名称</th><th>检查次数</th><th>最近检查日期</th></tr></thead><tbody>${rows.map(row=>`<tr><td title="${row[0]}">${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td></tr>`).join("")}</tbody></table>`;
+  }
+  const entities=perspective==="company"?hazardSpecialEntities.branches:hazardSpecialEntities.companies;
+  const entityTitle=perspective==="company"?"分公司":"子公司";
+  const dynamicRows=[[354,309,"12.71%",371,348,"6.2%"],[181,129,"28.73%",86,66,"23.26%"],[210,168,"20%",74,69,"6.76%"],[3159,3159,"0%",232,229,"1.29%"],[851,816,"4.11%",171,170,"0.58%"],[0,0,"0%",0,0,"0%"]];
+  return `<table><thead><tr><th>${entityTitle}</th><th colspan="3">上海本地项目</th><th colspan="3">外地项目</th></tr><tr><th></th><th>应检查</th><th>未检查</th><th>覆盖率</th><th>应检查</th><th>未检查</th><th>覆盖率</th></tr></thead><tbody>${entities.map((entity,index)=>{const row=dynamicRows[index];return `<tr><td title="${entity}">${entity}</td><td>${row[0]}</td><td class="danger">${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td class="danger">${row[4]}</td><td>${row[5]}</td></tr>`;}).join("")}</tbody></table>`;
+}
+function renderHazardPieLeaders(rates,colors){
+  // Initial geometry is corrected from the rendered DOM by syncHazardPieLeaders().
+  const center=[250,212], edgeRadius=[82,89], elbowRadius=[104,111];
+  const labelAnchors=[[334,139],[374,219],[356,283],[267,347],[234,375],[126,345],[136,273],[118,211],[130,151],[254,99]];
+  let cumulative=0;
+  const leaders=rates.map((rate,index)=>{
+    const angle=(-90+(cumulative+rate/2)*3.6)*Math.PI/180;
+    cumulative+=rate;
+    const start=[center[0]+Math.cos(angle)*edgeRadius[0],center[1]+Math.sin(angle)*edgeRadius[1]];
+    const elbow=[center[0]+Math.cos(angle)*elbowRadius[0],center[1]+Math.sin(angle)*elbowRadius[1]];
+    const end=labelAnchors[index];
+    const points=[start,elbow,end].map(point=>point.map(value=>value.toFixed(1)).join(",")).join(" ");
+    return `<polyline points="${points}" fill="none" stroke="#aebdce" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><circle cx="${start[0].toFixed(1)}" cy="${start[1].toFixed(1)}" r="3.4" fill="#fff" stroke="${colors[index]}" stroke-width="1.8" vector-effect="non-scaling-stroke"/><circle cx="${start[0].toFixed(1)}" cy="${start[1].toFixed(1)}" r="1.7" fill="${colors[index]}"/>`;
+  }).join("");
+  return `<svg class="pie-leader-svg" viewBox="0 0 500 400" preserveAspectRatio="none" aria-hidden="true">${leaders}</svg>`;
+}
+function syncHazardPieLeaders(){
+  document.querySelectorAll(".hazard-special-page .hazard-distribution .pie-wrap").forEach(wrap=>{
+    const chart=wrap.querySelector(".pie-chart"),svg=wrap.querySelector(".pie-leader-svg");
+    const labels=Array.from(wrap.querySelectorAll(".pie-label"));
+    const polylines=svg?Array.from(svg.querySelectorAll("polyline")):[];
+    const dots=svg?Array.from(svg.querySelectorAll("circle")):[];
+    if(!chart||!svg||!labels.length||polylines.length!==labels.length)return;
+    const wrapRect=wrap.getBoundingClientRect(),card=wrap.closest(".hazard-distribution"),cardRect=card?card.getBoundingClientRect():wrapRect;
+    const initialChartRect=chart.getBoundingClientRect();
+    if(!wrapRect.width||!wrapRect.height||!initialChartRect.width||!initialChartRect.height)return;
+    // Keep the pie visually clear of the header while scaling the offset with the card.
+    // The connector pass below reads the moved chart rect, so leaders follow it exactly.
+    const pieVerticalOffset=Math.min(28,Math.max(16,cardRect.height*.06));
+    const cardCenter=[cardRect.left+cardRect.width/2,cardRect.top+cardRect.height/2+pieVerticalOffset];
+    chart.style.left=`${cardCenter[0]-wrapRect.left}px`;
+    chart.style.top=`${cardCenter[1]-wrapRect.top}px`;
+    const svgRect=svg.getBoundingClientRect(),chartRect=chart.getBoundingClientRect();
+    if(!svgRect.width||!svgRect.height||!chartRect.width||!chartRect.height)return;
+    const sx=500/svgRect.width,sy=400/svgRect.height;
+    const toView=(x,y)=>[(x-svgRect.left)*sx,(y-svgRect.top)*sy];
+    const centerPx=[chartRect.left+chartRect.width/2,chartRect.top+chartRect.height/2];
+    let cumulative=0;
+    labels.forEach((label,index)=>{
+      const rate=Number((window.__hazardPieRates||[])[index]||0);
+      const angle=(-90+(cumulative+rate/2)*3.6)*Math.PI/180;
+      cumulative+=rate;
+      const unit=[Math.cos(angle),Math.sin(angle)];
+      const startPx=[centerPx[0]+unit[0]*(chartRect.width/2),centerPx[1]+unit[1]*(chartRect.height/2)];
+      const elbowPx=[centerPx[0]+unit[0]*(chartRect.width/2+24),centerPx[1]+unit[1]*(chartRect.height/2+24)];
+      const labelRect=label.getBoundingClientRect();
+      // Keep the connector on the label's inner horizontal edge. This preserves
+      // the left/right routing of the reference layout, including bottom labels.
+      const labelCenterX=labelRect.left+labelRect.width/2;
+      const endPx=labelCenterX>=centerPx[0]
+        ? [labelRect.left,labelRect.top+labelRect.height/2]
+        : [labelRect.right,labelRect.top+labelRect.height/2];
+      const points=[startPx,elbowPx,endPx].map(point=>toView(point[0],point[1]).map(value=>value.toFixed(1)).join(",")).join(" ");
+      polylines[index].setAttribute("points",points);
+      if(dots[index]){
+        const dot=toView(startPx[0],startPx[1]);
+        dots[index*2].setAttribute("cx",dot[0].toFixed(1));
+        dots[index*2].setAttribute("cy",dot[1].toFixed(1));
+        dots[index*2+1].setAttribute("cx",dot[0].toFixed(1));
+        dots[index*2+1].setAttribute("cy",dot[1].toFixed(1));
+      }
+    });
+  });
+}
+function scheduleHazardPieLeaderSync(){
+  if(window.__hazardPieSyncFrame)return;
+  const run=()=>{window.__hazardPieSyncFrame=0;syncHazardPieLeaders();};
+  window.__hazardPieSyncFrame=window.requestAnimationFrame?window.requestAnimationFrame(run):window.setTimeout(run,0);
+}
+function renderHazardMajorChart(majorLabels){
+  const majorBars=[[16,6,1],[5,2,0],[0,0,1],[0,0,0],[1,12,0],[0,0,0]];
+  const barColors=["#f3c351","#88c468","#5777c5"];
+  const plotTop=15, plotBottom=260, plotHeight=plotBottom-plotTop, maxValue=25;
+  const xCenters=[100,190,280,370,460,550], barWidth=30;
+  const yFor=value=>plotBottom-value/maxValue*plotHeight;
+  const bars=majorBars.map((segments,index)=>{
+    let cursor=plotBottom;
+    const rects=segments.map((value,segment)=>{const height=value/maxValue*plotHeight;cursor-=height;return `<rect class="major-svg-bar s${segment}" x="${xCenters[index]-barWidth/2}" y="${cursor.toFixed(2)}" width="${barWidth}" height="${height.toFixed(2)}" rx="1" fill="${barColors[segment]}" style="fill:${barColors[segment]}"/>`;}).join("");
+    const parts=String(majorLabels[index]||"").split("\n");
+    return `<g class="major-svg-column">${rects}<text x="${xCenters[index]}" y="278" text-anchor="middle" fill="#596b84"><tspan x="${xCenters[index]}" dy="0">${parts[0]||""}</tspan>${parts[1]?`<tspan x="${xCenters[index]}" dy="14">${parts[1]}</tspan>`:""}</text></g>`;
+  }).join("");
+  const ticks=[25,20,15,10,5,0].map(value=>`<g><text x="16" y="${(yFor(value)+4).toFixed(2)}" fill="#74849a">${value}</text><line x1="40" y1="${yFor(value).toFixed(2)}" x2="600" y2="${yFor(value).toFixed(2)}" stroke="#cfdaea" stroke-width="1"/></g>`).join("");
+  const averageY=yFor(3.3);
+  return `<svg class="major-chart-svg" viewBox="0 0 640 300" preserveAspectRatio="none" aria-label="重大事故隐患分公司柱状图"><g class="major-svg-grid">${ticks}</g>${bars}<line class="major-svg-average" x1="40" y1="${averageY.toFixed(2)}" x2="600" y2="${averageY.toFixed(2)}" stroke="#ef3d45" stroke-width="2"/><rect class="major-svg-average-label" x="604" y="${(averageY-11).toFixed(2)}" width="32" height="22" rx="4" fill="#ef3d45"/><text class="major-svg-average-text" x="620" y="${(averageY+4).toFixed(2)}" text-anchor="middle" fill="#fff">3.3</text></svg><div class="major-chart-legend" aria-label="图例"><span><i class="sub"></i>子公司自查数</span><span><i class="branch"></i>分公司自查数</span><span><i class="joint"></i>股份公司检查数</span><span><i class="average"></i>平均自查数</span></div>`;
+}
+function renderHazardSpecialDashboard(){
+  detailPage.style.display="none";
+  listPage.style.display="block";
+  const orgs=hazardSpecialEntities.companies;
+  const majorLabels=hazardSpecialEntities.branchLabels;
+  const usage=getHazardUsageModel(), totals=usage.bills;
+  // The distribution only follows the inspection perspective (superior vs self).
+  // Company/branch scope tabs belong to the usage card and must not relabel this chart.
+  const inspectionLabel=hazardSpecialState.inspectionType==="self"?"项目自查":"上级检查总览";
+  const pie=[18.66,12.39,11.11,10.26,9.31,16.24,6.93,6.34,5.63,3.13];
+  window.__hazardPieRates=pie;
+  const pieNames=["临时用电","安全设施","生产设备","消防安全","文明施工","其他","起重吊装","劳防用品","高处作业","模板、支架"];
+  const colors=["#3d72df","#ffc21b","#79bf42","#ff3f3f","#35b9bc","#ff8c2c","#285e9f","#ff865b","#ffb51d","#6caa36"];
+  const hazardTips={
+    coverage:"所有安全纳管项目",
+    weekly:"安全纳管项目范围内",
+    unbilled:"未开单项目数 = 隐患排查覆盖项目数 - 近30天开单项目数（安全纳管项目范围内）",
+    overdue:"近30天累计超时未整改项目数（安全纳管项目范围内）",
+    users:"范围为开项且状态为在建的项目",
+    distribution:"范围为开项且状态为在建的项目",
+    repeat:"范围为安全纳管项目",
+    major:"范围为开项且状态为在建的项目",
+    dynamic:"范围为安全纳管项目"
+  };
+  queueMicrotask(()=>{const tips={".hazard-distribution h2":hazardTips.distribution,".hazard-repeat h2":hazardTips.repeat,".hazard-major h2":hazardTips.major,".hazard-dynamic h2":hazardTips.dynamic};Object.entries(tips).forEach(([selector,tip])=>{const title=document.querySelector(selector);if(title&&!title.querySelector(".info-tip"))title.insertAdjacentHTML("beforeend",` ${renderInfoTip(tip)}`);});});
+  queueMicrotask(()=>{
+    const distribution=document.querySelector(".hazard-distribution");
+    const pieValues=[1139,756,678,626,568,991,423,387,344,191];
+    const pieRates=[18.66,12.39,11.11,10.26,9.31,16.24,6.93,6.34,5.63,3.13];
+    if(distribution){
+      const center=distribution.querySelector(".pie-center");
+      if(center)center.innerHTML=`${inspectionLabel}隐患排查分布情况（6103条）`;
+      distribution.querySelectorAll(".pie-label").forEach((label,index)=>{
+        label.innerHTML=`<strong>${pieNames[index]} ${pieValues[index]}</strong><small>${pieRates[index]}%</small>`;
+      });
+    }
+
+    const repeat=document.querySelector(".hazard-repeat");
+    if(repeat){
+      const repeatRows=[
+        ["1","上海市轨道交通21号线一期工程土建12标","65次","上海隧道","轨交分公司"],
+        ["2","青浦区外青松公路（城中东路-新业路）改建工程","32次","上海隧道","市政分公司"],
+        ["3","上海示范区线工程SFQSG-12标施工","22次","市政集团","地基公司"],
+        ["4","北蔡南新地区A-1地块住宅新建项目","15次","市政集团","第一建筑"],
+        ["5","106国道黄石长江大桥改建工程","13次","市政集团","交公司"],
+        ["6","中原路（翔殷路-嫩江路）道路整治工程","10次","上海隧道","市政设计院"]
+      ];
+      const table=repeat.querySelector(".empty-table");
+      if(table){
+        table.className="repeat-table";
+        table.innerHTML=`<thead><tr><th>序号</th><th>项目名称</th><th>重复隐患次数</th><th>子公司</th><th>分公司</th></tr></thead><tbody>${repeatRows.map(row=>`<tr>${row.map((cell,index)=>`<td class="${index===0?"repeat-index":""} ${index===2?"repeat-count":""}">${cell}</td>`).join("")}</tr>`).join("")}</tbody>`;
+      }
+      repeat.querySelector("header>span")?.replaceChildren(document.createTextNode("时间范围：2026/08/10 - 2026/09/08"));
+      const repeatIcons=["user-safety-filled","tools-filled","alarm-filled","building-4-filled","traffic-events-filled"];
+      repeat.querySelectorAll(".repeat-cards>div").forEach((card,index)=>{
+        card.classList.toggle("active",index===0);
+        const icon=card.querySelector("i");
+        if(icon)icon.innerHTML=renderTDesignIcon(repeatIcons[index],{size:22,label:"重复隐患类型"});
+      });
+    }
+
+    const major=document.querySelector(".hazard-major");
+    if(major){
+      const quarterSelect=major.querySelector("header select");
+      if(quarterSelect?.options?.[0])quarterSelect.options[0].textContent="2026年 三季度";
+      const summary=major.querySelector(".major-summary");
+      if(summary){
+        const summaryItems=[["重大事故隐患总数","44"],["股份公司检查总数","4"],["子公司自查总数","20"],["分公司自查总数","20"],["自查平均数","3.3"]];
+        summary.innerHTML=summaryItems.map(([label,value])=>`<b>${label}<strong>${value}<em>个</em></strong></b>`).join("");
+        summary.insertAdjacentHTML("beforebegin",`<div class="major-period-tabs"><button class="active">本季度</button><button>上季度</button></div>`);
+      }
+      const chart=major.querySelector(".major-chart");
+      if(chart)chart.innerHTML=renderHazardMajorChart(majorLabels);
+    }
+
+    syncHazardPieLeaders();
+    if(!window.__hazardPieResizeBound){
+      window.addEventListener("resize",scheduleHazardPieLeaderSync,{passive:true});
+      window.__hazardPieResizeBound=true;
+    }
+
+  });
+  listPage.innerHTML=`<div class="safety-screen-page hazard-special-page">
+    ${renderSafetyScreenHeader("安全在线")}
+    <div class="hazard-special-toolbar">${renderHazardPerspectiveSwitch()}<span>公司：</span><select><option>请选择组织</option>${orgs.map(x=>`<option>${x}</option>`).join("")}</select><button class="hazard-fullscreen" onclick="toggleSafetyScreenFullscreen()">⛶ 全屏</button></div>
+    <div class="hazard-special-body">
+      <section class="hazard-special-top"><div class="hazard-stat"><span class="hazard-stat-icon blue">✣</span><div><label>隐患排查覆盖项目数 ${renderInfoTip(hazardTips.coverage)} </label><strong>946<em>个</em></strong></div></div><div class="hazard-stat"><span class="hazard-stat-icon folder">▰</span><div><label>近一周开展隐患排查项目/率 ${renderInfoTip(hazardTips.weekly)}</label><strong>193<em>个</em><b>20.4%</b></strong></div></div><div class="hazard-stat"><span class="hazard-stat-icon check">✓</span><div><label>开单人数/率（近一周） ${renderInfoTip(hazardTips.users)}</label><strong>563<em>人</em><b>5.9%</b></strong></div></div><div class="hazard-top-warnings"><div>◒ 未开单项目 ${renderInfoTip(hazardTips.unbilled)} <strong>725<em>个</em></strong></div><div>◒ 隐患整改超时项目 ${renderInfoTip(hazardTips.overdue)} <strong>70<em>个</em></strong></div><div>◒ 重大事故隐患数 ${renderInfoTip(hazardTips.major)} <strong>24<em>个</em></strong></div></div></section>
+      <section class="hazard-special-grid">
+        ${renderHazardUsageCard(usage,hazardTips.users)}
+        <article class="hazard-card hazard-distribution"><header><h2>隐患排查分布情况-${inspectionLabel}</h2></header><div class="pie-wrap"><div class="pie-chart"></div>${renderHazardPieLeaders(pie,colors)}<div class="pie-center">${inspectionLabel}隐患排查分布情况<br><strong>5802条</strong></div>${pieNames.map((n,i)=>`<span class="pie-label p${i}" style="--c:${colors[i]}">${n} ${[1074,727,646,593,546,955,393,366,318,184][i]}<small>${pie[i]}%</small></span>`).join("")}</div></article>
+        <article class="hazard-card hazard-repeat"><header><h2>重复隐患统计</h2><span>时间范围：2026/08/05 - 2026/09/03</span></header><div class="repeat-cards">${[["未正确佩戴安全帽",73,"🪖"],["高处作业",52,"♟"],["消防动火",157,"♨"],["临时设施消防安全",34,"⚙"],["临边防护",167,"▰"]].map(x=>`<div><i>${x[2]}</i><strong>${x[1]}<em>个</em></strong><span>${x[0]}</span></div>`).join("")}</div><table class="empty-table"><thead><tr><th>序号</th><th>项目名称</th><th>重复隐患次数</th><th>子公司</th><th>分公司</th></tr></thead><tbody><tr><td colspan="5"><b>✣</b><span>拼命加载中</span><small>暂无数据</small></td></tr></tbody></table></article>
+        <article class="hazard-card hazard-major"><header><h2>重大事故隐患</h2><select onchange="setHazardSpecialQuarter(this.value)"><option ${hazardSpecialState.quarter==="三季度"?"selected":""}>三季度</option><option ${hazardSpecialState.quarter==="二季度"?"selected":""}>二季度</option></select><div class="scope-tabs"><button class="active">排查情况</button><button>类型分析</button></div></header><div class="major-summary"><b>重大事故隐患总数<strong>23<em>个</em></strong></b><b>股份公司检查总数<strong>4<em>个</em></strong></b><b>子公司自查总数<strong>19<em>个</em></strong></b><b>子公司自查平均数<strong>3.2<em>个</em></strong></b></div><div class="major-chart">${renderHazardMajorChart(majorLabels)}</div></article>
+        <article class="hazard-card hazard-dynamic"><header><h2>上级单位检查动态</h2><span>时间范围：2026/08/10 - 2026/09/08</span></header>${renderHazardDynamicTable()}</article>
+      </section>
+    </div>
+  </div>`;
 }
 
 const safetyStaffShortageRows=[

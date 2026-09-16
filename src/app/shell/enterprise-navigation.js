@@ -118,7 +118,8 @@ function renderSideMenu(line){
 
       return `
         <div class="menu-item ${item.active?"active":""}" onclick="selectBusinessSingleMenu('${line}',${i},'${item.name}')">
-          ${item.icon} ${item.name}
+          <span class="menu-item-icon" aria-hidden="true">${item.icon}</span>
+          <span class="menu-item-label">${item.name}</span>
         </div>
       `;
     }).join("")}
@@ -241,6 +242,7 @@ function selectBusinessChildMenu(line,gi,ci,name){
   if(line==="base"&&name==="审批流程明细")return renderChild(()=>renderApprovalFlowDetailPage());
 
   if(line==="safety"&&name==="劳务工花名册")return renderChild(()=>renderRosterPage());
+  if(line==="safety"&&parent?.name==="隐患排查"&&name==="隐患排查总览")return renderChild(()=>renderHazardSpecialDashboard());
   if(line==="safety"&&name==="视频监控")return renderChild(()=>renderSafetyVideoMonitorPage());
   if(line==="safety"&&name==="AI违规抓拍")return renderChild(()=>renderSafetyAiCapturePage());
   if(line==="safety"&&(parent?.name==="安全评价"||parent?.name==="历史功能"))return renderChild(()=>renderSafetyEvaluationManagePage(name));

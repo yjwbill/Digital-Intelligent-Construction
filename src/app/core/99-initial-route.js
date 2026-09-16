@@ -11,13 +11,13 @@
   const enterpriseSingleRoutes={
     home:{0:"home-project-album",1:"src/app/home/construction-log.html"},
     production:{0:"src/app/production/dashboard.html",1:"src/app/production/dashboard-projects.html"},
-    safety:{0:"safety-dashboard",7:"safety-managed-overview"},
+    safety:{0:"safety-dashboard",9:"safety-managed-overview"},
     economy:{0:"src/app/economy/dashboard.html",1:"economy-contract"}
   };
   const enterpriseChildRoutes={
     base:{0:"base-org-permission",1:"base-message-management",2:"base-data-config"},
     production:{2:"production-progress",3:"src/app/production/risk-management.html",4:"src/app/production/output-management.html",5:"production-quality",6:"src/app/production/supplier-performance.html",7:"production-low-carbon"},
-    safety:{1:"safety-real-name",2:"safety-video",3:"safety-major-risk",4:"safety-minor-accident",5:"safety-daily-supervision",6:"safety-evaluation"},
+    safety:{1:"safety-real-name",2:"safety-hazard-overview",3:"safety-video",4:"safety-major-risk",5:"safety-minor-accident",6:"safety-daily-supervision",7:"safety-evaluation"},
     operation:{0:"operation-production-project"},
     economy:{0:"src/app/economy/dashboard.html",1:"src/app/economy/project-initiation.html"}
   };
